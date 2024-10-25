@@ -12,6 +12,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     };
     lastYPositions = new Map();
     lastFrontmatter = new Map();
+    activeBanners = [];
 
     async onload() {
         await this.loadSettings();
@@ -97,7 +98,48 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     async handleActiveLeafChange(leaf) {
         if (leaf && leaf.view instanceof MarkdownView && leaf.view.file) {
-            await this.updateBanner(leaf.view, false);
+            // Set switching flag before any operations
+            this.isNoteSwitching = true;
+            
+            // Clean up existing banners and their overrides
+            if (this.bannerElements) {
+                try {
+                    // Keep track of active banners in a regular array
+                    if (!this.activeBanners) {
+                        this.activeBanners = [];
+                    }
+
+                    // Clean up each active banner
+                    this.activeBanners.forEach(({element, data}) => {
+                        try {
+                            if (data.container && data.originalRemoveChild) {
+                                data.container.removeChild = data.originalRemoveChild;
+                            }
+                        } catch (e) {
+                            console.error('Error restoring removeChild:', e);
+                        }
+                    });
+
+                    // Clear the tracking arrays
+                    this.activeBanners = [];
+                    this.bannerElements = new WeakMap();
+                } catch (e) {
+                    console.error('Error cleaning up banners:', e);
+                    this.activeBanners = [];
+                    this.bannerElements = new WeakMap();
+                }
+            } else {
+                this.activeBanners = [];
+                this.bannerElements = new WeakMap();
+            }
+
+            try {
+                await this.updateBanner(leaf.view, false);
+            } catch (e) {
+                console.error('Error updating banner:', e);
+            } finally {
+                this.isNoteSwitching = false;
+            }
         }
     }
 
@@ -239,48 +281,41 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (!bannerDiv) {
             bannerDiv = createDiv({ cls: 'pixel-banner-image' });
             
-            // Make the banner element appear permanent to Obsidian's virtual DOM
-            Object.defineProperties(bannerDiv, {
-                isConnected: { 
-                    get: () => true,
-                    configurable: false  // Make it non-configurable
-                },
-                parentNode: {
-                    get: () => container,
-                    configurable: false
-                },
-                parentElement: {
-                    get: () => container,
-                    configurable: false
-                }
-            });
-
-            // Override the remove/removeChild methods
+            // Store plugin reference without modifying the element directly
+            const pluginRef = this;
+            
+            // Simpler override of remove method
             const originalRemove = bannerDiv.remove;
-            const originalRemoveChild = container.removeChild;
-
             bannerDiv.remove = function() {
-                // console.log('Blocked attempt to remove banner');
-                return bannerDiv; // Return the element as if nothing happened
+                if (pluginRef.isNoteSwitching) {
+                    return originalRemove.call(this);
+                }
+                return this;
             };
 
+            // Simpler override of removeChild
+            const originalRemoveChild = container.removeChild;
             container.removeChild = function(child) {
-                if (child === bannerDiv) {
-                    // console.log('Blocked attempt to remove banner via removeChild');
+                if (child === bannerDiv && !pluginRef.isNoteSwitching) {
                     return bannerDiv;
                 }
                 return originalRemoveChild.call(this, child);
             };
 
-            // Store original methods for cleanup
-            bannerDiv._originalRemove = originalRemove;
-            container._originalRemoveChild = originalRemoveChild;
-
             // Store references for cleanup
             this.bannerElements = this.bannerElements || new WeakMap();
-            this.bannerElements.set(bannerDiv, {
+            const data = {
                 container,
-                originalRemoveChild
+                originalRemoveChild,
+                originalRemove
+            };
+            this.bannerElements.set(bannerDiv, data);
+            
+            // Track active banner
+            this.activeBanners = this.activeBanners || [];
+            this.activeBanners.push({
+                element: bannerDiv,
+                data: data
             });
 
             container.insertBefore(bannerDiv, container.firstChild);
@@ -698,17 +733,32 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     onunload() {
-        // Restore original methods and cleanup
-        if (this.bannerElements) {
-            this.bannerElements.forEach((data, element) => {
-                if (element._originalRemove) {
-                    element.remove = element._originalRemove;
-                }
-                if (data.container._originalRemoveChild) {
-                    data.container.removeChild = data.originalRemoveChild;
+        this.isNoteSwitching = true;
+        
+        // Clean up using activeBanners array
+        if (this.activeBanners) {
+            this.activeBanners.forEach(({element, data}) => {
+                try {
+                    // Restore original methods
+                    if (data.originalRemove) {
+                        element.remove = data.originalRemove;
+                    }
+                    if (data.container && data.originalRemoveChild) {
+                        data.container.removeChild = data.originalRemoveChild;
+                    }
+                    // Remove the element if it's still in the DOM
+                    if (element.parentNode) {
+                        element.parentNode.removeChild(element);
+                    }
+                } catch (e) {
+                    console.error('Cleanup error:', e);
                 }
             });
         }
+        
+        // Clear all tracking arrays
+        this.activeBanners = [];
+        this.bannerElements = new WeakMap();
         
         if (this.observer) {
             this.observer.disconnect();

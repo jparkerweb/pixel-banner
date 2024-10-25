@@ -733,6 +733,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     });
     __publicField(this, "lastYPositions", /* @__PURE__ */ new Map());
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
+    __publicField(this, "activeBanners", []);
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
       if (activeLeaf && activeLeaf.view instanceof import_obsidian2.MarkdownView) {
@@ -803,7 +804,39 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
   }
   async handleActiveLeafChange(leaf) {
     if (leaf && leaf.view instanceof import_obsidian2.MarkdownView && leaf.view.file) {
-      await this.updateBanner(leaf.view, false);
+      this.isNoteSwitching = true;
+      if (this.bannerElements) {
+        try {
+          if (!this.activeBanners) {
+            this.activeBanners = [];
+          }
+          this.activeBanners.forEach(({ element, data }) => {
+            try {
+              if (data.container && data.originalRemoveChild) {
+                data.container.removeChild = data.originalRemoveChild;
+              }
+            } catch (e) {
+              console.error("Error restoring removeChild:", e);
+            }
+          });
+          this.activeBanners = [];
+          this.bannerElements = /* @__PURE__ */ new WeakMap();
+        } catch (e) {
+          console.error("Error cleaning up banners:", e);
+          this.activeBanners = [];
+          this.bannerElements = /* @__PURE__ */ new WeakMap();
+        }
+      } else {
+        this.activeBanners = [];
+        this.bannerElements = /* @__PURE__ */ new WeakMap();
+      }
+      try {
+        await this.updateBanner(leaf.view, false);
+      } catch (e) {
+        console.error("Error updating banner:", e);
+      } finally {
+        this.isNoteSwitching = false;
+      }
     }
   }
   async handleMetadataChange(file) {
@@ -917,38 +950,32 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
     if (!bannerDiv) {
       bannerDiv = createDiv({ cls: "pixel-banner-image" });
-      Object.defineProperties(bannerDiv, {
-        isConnected: {
-          get: () => true,
-          configurable: false
-          // Make it non-configurable
-        },
-        parentNode: {
-          get: () => container,
-          configurable: false
-        },
-        parentElement: {
-          get: () => container,
-          configurable: false
-        }
-      });
+      const pluginRef = this;
       const originalRemove = bannerDiv.remove;
-      const originalRemoveChild = container.removeChild;
       bannerDiv.remove = function() {
-        return bannerDiv;
+        if (pluginRef.isNoteSwitching) {
+          return originalRemove.call(this);
+        }
+        return this;
       };
+      const originalRemoveChild = container.removeChild;
       container.removeChild = function(child) {
-        if (child === bannerDiv) {
+        if (child === bannerDiv && !pluginRef.isNoteSwitching) {
           return bannerDiv;
         }
         return originalRemoveChild.call(this, child);
       };
-      bannerDiv._originalRemove = originalRemove;
-      container._originalRemoveChild = originalRemoveChild;
       this.bannerElements = this.bannerElements || /* @__PURE__ */ new WeakMap();
-      this.bannerElements.set(bannerDiv, {
+      const data = {
         container,
-        originalRemoveChild
+        originalRemoveChild,
+        originalRemove
+      };
+      this.bannerElements.set(bannerDiv, data);
+      this.activeBanners = this.activeBanners || [];
+      this.activeBanners.push({
+        element: bannerDiv,
+        data
       });
       container.insertBefore(bannerDiv, container.firstChild);
     }
@@ -1266,16 +1293,26 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
   }
   onunload() {
-    if (this.bannerElements) {
-      this.bannerElements.forEach((data, element) => {
-        if (element._originalRemove) {
-          element.remove = element._originalRemove;
-        }
-        if (data.container._originalRemoveChild) {
-          data.container.removeChild = data.originalRemoveChild;
+    this.isNoteSwitching = true;
+    if (this.activeBanners) {
+      this.activeBanners.forEach(({ element, data }) => {
+        try {
+          if (data.originalRemove) {
+            element.remove = data.originalRemove;
+          }
+          if (data.container && data.originalRemoveChild) {
+            data.container.removeChild = data.originalRemoveChild;
+          }
+          if (element.parentNode) {
+            element.parentNode.removeChild(element);
+          }
+        } catch (e) {
+          console.error("Cleanup error:", e);
         }
       });
     }
+    this.activeBanners = [];
+    this.bannerElements = /* @__PURE__ */ new WeakMap();
     if (this.observer) {
       this.observer.disconnect();
     }
