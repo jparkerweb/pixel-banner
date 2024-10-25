@@ -1,4 +1,4 @@
-import { Plugin, MarkdownView, requestUrl, Notice } from 'obsidian';
+import { Plugin, MarkdownView, requestUrl, Notice } from 'obsidian'; 
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
 
 module.exports = class PixelBannerPlugin extends Plugin {
