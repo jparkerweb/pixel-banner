@@ -20,18 +20,6 @@ content-start: 250
 
 ![[📜 Embedded Note with Banner]]
 
-.
+<br>
 
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
+![[🧪 test - 5- embed tests]]

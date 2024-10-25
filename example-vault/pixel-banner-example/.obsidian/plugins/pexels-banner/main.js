@@ -34,7 +34,9 @@ var DEFAULT_SETTINGS = {
   bannerHeight: 350,
   customBannerHeightField: ["banner-height"],
   fade: -75,
-  customFadeField: ["banner-fade"]
+  customFadeField: ["banner-fade"],
+  borderRadius: 17,
+  customBorderRadiusField: ["banner-radius"]
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app, onChoose) {
@@ -70,6 +72,8 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addImageDisplaySettings();
     this.addYPostionAndContentStart();
     this.addFadeAndBannerHeight();
+    const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
+    this.addBorderRadiusInput(controlEl);
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
@@ -270,6 +274,36 @@ var FolderImageSetting = class extends import_obsidian.Setting {
         await this.plugin.saveSettings();
       });
     });
+  }
+  // In FolderImageSetting class, add this method
+  addBorderRadiusInput(containerEl) {
+    var _a;
+    const label = containerEl.createEl("label", { text: "border radius", cls: "setting-item-name__label" });
+    const radiusInput = containerEl.createEl("input", {
+      type: "number",
+      attr: {
+        min: "0",
+        max: "50"
+      }
+    });
+    radiusInput.style.width = "50px";
+    radiusInput.style.marginLeft = "10px";
+    radiusInput.value = (_a = this.folderImage.borderRadius) != null ? _a : "";
+    radiusInput.placeholder = String(this.plugin.settings.borderRadius || 17);
+    radiusInput.addEventListener("change", async () => {
+      let value = radiusInput.value ? parseInt(radiusInput.value) : null;
+      if (value !== null) {
+        value = Math.max(0, Math.min(50, value));
+        this.folderImage.borderRadius = value;
+        radiusInput.value = String(value);
+      } else {
+        delete this.folderImage.borderRadius;
+        radiusInput.value = "";
+      }
+      await this.plugin.saveSettings();
+    });
+    label.appendChild(radiusInput);
+    containerEl.appendChild(label);
   }
 };
 function arrayToString(arr) {
@@ -529,6 +563,27 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       sliderEl.value = DEFAULT_SETTINGS.fade;
       sliderEl.dispatchEvent(new Event("input"));
     }));
+    new import_obsidian.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addText((text) => {
+      text.setPlaceholder("17").setValue(String(this.plugin.settings.borderRadius)).onChange(async (value) => {
+        const numValue = Number(value);
+        if (!isNaN(numValue)) {
+          this.plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
+          await this.plugin.saveSettings();
+          this.plugin.updateAllBanners();
+        }
+      });
+      text.inputEl.type = "number";
+      text.inputEl.min = "0";
+      text.inputEl.max = "50";
+      text.inputEl.style.width = "50px";
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+      const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
+      inputEl.value = DEFAULT_SETTINGS.borderRadius;
+      inputEl.dispatchEvent(new Event("input"));
+    }));
   }
   createCustomFieldsSettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "callout" });
@@ -582,6 +637,12 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         name: "Fade Field Names",
         desc: "Set custom field names for the fade effect in frontmatter (comma-separated)",
         placeholder: "banner-fade, fade-effect, image-fade"
+      },
+      {
+        setting: "customBorderRadiusField",
+        name: "Border Radius Field Names",
+        desc: "Set custom field names for the border radius in frontmatter (comma-separated)",
+        placeholder: "banner-radius, border-radius, banner-corner-radius"
       }
     ];
     customFields.forEach((field) => {
@@ -897,7 +958,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
   }
   async addPixelBanner(el, ctx) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e, _f;
     const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains("internal-embed");
@@ -956,6 +1017,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
         bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
         const fadeValue = (_c = (_b = (_a = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _a : this.getFolderSpecificSetting(file.path, "fade")) != null ? _b : this.settings.fade) != null ? _c : -75;
         bannerDiv.style.setProperty("--pixel-banner-fade", `${fadeValue}%`);
+        const borderRadius = (_f = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _d : this.getFolderSpecificSetting(file.path, "borderRadius")) != null ? _e : this.settings.borderRadius) != null ? _f : 17;
+        bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
         bannerDiv.style.display = "block";
       }
     } else {
@@ -1243,10 +1306,11 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     el.style.setProperty("--pixel-banner-content-start", `${contentStartPosition}px`);
   }
   getFolderSpecificSetting(filePath, settingName) {
+    var _a;
     const folderPath = this.getFolderPath(filePath);
     for (const folderImage of this.settings.folderImages) {
       if (folderPath.startsWith(folderImage.folder)) {
-        return folderImage[settingName];
+        return (_a = folderImage[settingName]) != null ? _a : void 0;
       }
     }
     return void 0;

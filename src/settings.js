@@ -23,6 +23,8 @@ const DEFAULT_SETTINGS = {
     customBannerHeightField: ['banner-height'],
     fade: -75,
     customFadeField: ['banner-fade'],
+    borderRadius: 17,
+    customBorderRadiusField: ['banner-radius'],
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -70,7 +72,12 @@ class FolderImageSetting extends Setting {
         this.addImageDisplaySettings();
         this.addYPostionAndContentStart();
         this.addFadeAndBannerHeight();
-        this.addDirectChildrenOnlyToggle(); // Add this line
+        
+        // Create a new container for the border radius input
+        const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
+        this.addBorderRadiusInput(controlEl);
+        
+        this.addDirectChildrenOnlyToggle();
     }
 
     addDeleteButton(containerEl) {
@@ -326,6 +333,38 @@ class FolderImageSetting extends Setting {
                     });
             });
     }
+
+    // In FolderImageSetting class, add this method
+    addBorderRadiusInput(containerEl) {
+        const label = containerEl.createEl('label', { text: 'border radius', cls: 'setting-item-name__label' });
+        const radiusInput = containerEl.createEl('input', {
+            type: 'number',
+            attr: {
+                min: '0',
+                max: '50'
+            }
+        });
+        radiusInput.style.width = '50px';
+        radiusInput.style.marginLeft = '10px';
+        // Use nullish coalescing to properly handle 0
+        radiusInput.value = this.folderImage.borderRadius ?? "";
+        radiusInput.placeholder = String(this.plugin.settings.borderRadius || 17);
+        radiusInput.addEventListener('change', async () => {
+            let value = radiusInput.value ? parseInt(radiusInput.value) : null;
+            if (value !== null) {
+                value = Math.max(0, Math.min(50, value));
+                this.folderImage.borderRadius = value;
+                radiusInput.value = String(value);
+            } else {
+                delete this.folderImage.borderRadius;
+                radiusInput.value = "";
+            }
+            await this.plugin.saveSettings();
+        });
+
+        label.appendChild(radiusInput);
+        containerEl.appendChild(label);
+    }
 }
 
 // Helper functions
@@ -438,7 +477,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
         const examplesTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'Examples' } });
         this.createExampleSettings(examplesTab);
 
-        // Activate the first tab
+        // Activate the API Settings tab by default
         tabsEl.firstChild.click();
     }
 
@@ -808,6 +847,37 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     sliderEl.value = DEFAULT_SETTINGS.fade;
                     sliderEl.dispatchEvent(new Event('input'));
                 }));
+
+        new Setting(containerEl)
+            .setName('Border Radius')
+            .setDesc('Set the default border radius of the banner image (0-50 pixels)')
+            .addText(text => {
+                text.setPlaceholder('17')
+                    .setValue(String(this.plugin.settings.borderRadius))
+                    .onChange(async (value) => {
+                        const numValue = Number(value);
+                        if (!isNaN(numValue)) {
+                            this.plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
+                            await this.plugin.saveSettings();
+                            this.plugin.updateAllBanners();
+                        }
+                    });
+                text.inputEl.type = 'number';
+                text.inputEl.min = '0';
+                text.inputEl.max = '50';
+                text.inputEl.style.width = '50px';
+            })
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                    const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
+                    inputEl.value = DEFAULT_SETTINGS.borderRadius;
+                    inputEl.dispatchEvent(new Event('input'));
+                }));
     }
 
     createCustomFieldsSettings(containerEl) {
@@ -864,6 +934,12 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 name: 'Fade Field Names',
                 desc: 'Set custom field names for the fade effect in frontmatter (comma-separated)',
                 placeholder: 'banner-fade, fade-effect, image-fade'
+            },
+            {
+                setting: 'customBorderRadiusField',
+                name: 'Border Radius Field Names',
+                desc: 'Set custom field names for the border radius in frontmatter (comma-separated)',
+                placeholder: 'banner-radius, border-radius, banner-corner-radius'
             }
         ];
 

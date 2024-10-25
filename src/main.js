@@ -313,6 +313,13 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 // Apply the fade value directly as a percentage
                 bannerDiv.style.setProperty('--pixel-banner-fade', `${fadeValue}%`);
 
+                // Set the border radius
+                const borderRadius = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField) ??
+                    this.getFolderSpecificSetting(file.path, 'borderRadius') ??
+                    this.settings.borderRadius ??
+                    17;
+                bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
+                
                 bannerDiv.style.display = 'block';
             }
         } else {
@@ -679,7 +686,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const folderPath = this.getFolderPath(filePath);
         for (const folderImage of this.settings.folderImages) {
             if (folderPath.startsWith(folderImage.folder)) {
-                return folderImage[settingName];
+                // Use nullish coalescing to properly handle 0 values
+                return folderImage[settingName] ?? undefined;
             }
         }
         return undefined;

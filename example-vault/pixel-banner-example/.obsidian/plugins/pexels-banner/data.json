@@ -33,7 +33,15 @@
       "contentStartPosition": 150,
       "imageDisplay": "cover",
       "imageRepeat": false,
-      "directChildrenOnly": true
+      "directChildrenOnly": true,
+      "borderRadius": 0
+    },
+    {
+      "folder": "tests",
+      "image": "",
+      "yPosition": 50,
+      "contentStartPosition": 150,
+      "borderRadius": 5
     }
   ],
   "contentStartPosition": 150,
@@ -46,5 +54,9 @@
   "fade": -75,
   "customFadeField": [
     "banner-fade"
+  ],
+  "borderRadius": 17,
+  "customBorderRadiusField": [
+    "banner-radius"
   ]
 }
