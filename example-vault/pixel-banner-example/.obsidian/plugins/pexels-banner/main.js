@@ -918,6 +918,18 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     if (!bannerDiv) {
       bannerDiv = createDiv({ cls: "pixel-banner-image" });
       container.insertBefore(bannerDiv, container.firstChild);
+      bannerDiv._isPersistentBanner = true;
+      if (!container._hasOverriddenSetChildrenInPlace) {
+        const originalSetChildrenInPlace = container.setChildrenInPlace;
+        container.setChildrenInPlace = function(children) {
+          const bannerElement = this.querySelector(":scope > .pixel-banner-image");
+          if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
+            children = [bannerElement, ...Array.from(children)];
+          }
+          originalSetChildrenInPlace.call(this, children);
+        };
+        container._hasOverriddenSetChildrenInPlace = true;
+      }
     }
     if (bannerImage) {
       let imageUrl = this.loadedImages.get(file.path);

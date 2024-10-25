@@ -239,6 +239,32 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (!bannerDiv) {
             bannerDiv = createDiv({ cls: 'pixel-banner-image' });
             container.insertBefore(bannerDiv, container.firstChild);
+            
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // !!!! PERSISTENT BANNER FIX !!!!
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // Add a custom property to mark this as a persistent element
+            bannerDiv._isPersistentBanner = true;
+            
+            // Override the setChildrenInPlace method for this container
+            // This is to ensure that the banner is always included in the DOM
+            // even if Obsidian removes other elements from the container
+            // This is a workaround for Obsidian's DOM manipulation
+            // which sometimes removes elements from the container
+            // This might not be necessary in future versions of Obsidian or
+            // might need to be updated if Obsidian changes the DOM manipulation
+            if (!container._hasOverriddenSetChildrenInPlace) {
+                const originalSetChildrenInPlace = container.setChildrenInPlace;
+                container.setChildrenInPlace = function(children) {
+                    // Add our banner to the new children set if it exists
+                    const bannerElement = this.querySelector(':scope > .pixel-banner-image');
+                    if (bannerElement?._isPersistentBanner) {
+                        children = [bannerElement, ...Array.from(children)];
+                    }
+                    originalSetChildrenInPlace.call(this, children);
+                };
+                container._hasOverriddenSetChildrenInPlace = true;
+            }
         }
 
         if (bannerImage) {
