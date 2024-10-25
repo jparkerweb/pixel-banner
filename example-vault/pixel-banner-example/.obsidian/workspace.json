@@ -11,10 +11,14 @@
             "id": "b925b70b1921a436",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "🚩 Pixel-Banner.md",
+                "mode": "preview",
+                "source": true
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "🚩 Pixel-Banner"
             }
           }
         ]

@@ -1346,3 +1346,5 @@ function getFrontmatterValue(frontmatter, fieldNames) {
   }
   return void 0;
 }
+
+/* nosourcemap */
