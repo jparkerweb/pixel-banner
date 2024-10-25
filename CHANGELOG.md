@@ -2,7 +2,17 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## [2.2.5] - 2024-10-25
+## [2.2.6] - 2024-10-25
+
+### Added
+- Border Radius: Customize the corner radius of banner images (0-100 pixels; default 17)
+  - Global default setting
+  - Folder-specific override
+  - Per-note override via frontmatter
+- New custom field names for border radius
+- Updated examples to showcase border radius options
+
+## [2.2.5] - 2024-10-24
 
 ### Added
 - Banner Height: Customize the height of banner images (100-2500 pixels; default 350)

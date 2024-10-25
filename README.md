@@ -40,44 +40,37 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 ```yaml
 ---
 banner: blue turtle
-banner-y: 30
-content-start: 90
-banner-height: 350
-banner-fade: -75
 ---
 
-# Or use a direct URL:
+### Or use a direct URL:
 
 ---
 banner: https://example.com/image.jpg
-banner-height: 400
-banner-fade: -150
 ---
 
-# Or use a local image:
+### Or use a local image:
 
 ---
 banner: /path/to/local/image.jpg
-banner-height: 300
-banner-fade: 0
 ---
 
-# Or use an Obsidian internal link:
+### Or use an Obsidian internal link:
 
 ---
 banner: [[path/to/internal/image.jpg]]
-banner-height: 250
-banner-fade: -200
 ---
 
-# Customize display and repeat settings:
+### All settings can be overridden per note:
 
 ---
 banner: ocean
-banner-display: cover
+banner-y: 30
+content-start: 90
+banner-display: contain
 banner-repeat: true
 banner-height: 500
-banner-fade: -100
+banner-fade: -75
+banner-radius: 50
 ---
 ```
 
@@ -113,6 +106,7 @@ In the plugin settings, you can customize:
 - Global fade effect (-1500 to 100, default -75)
 - Custom field names for all settings
 - Folder-specific default banner images
+- Global border radius (0-100 pixels, default 17)
 
 All global settings can be overridden on a per-folder or per-note basis.
 

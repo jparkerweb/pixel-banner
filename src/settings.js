@@ -1005,20 +1005,40 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
         const updateFolderSettings = () => {
             folderImagesContainer.empty();
-            this.plugin.settings.folderImages.forEach((folderImage, index) => {
-                new FolderImageSetting(folderImagesContainer, this.plugin, folderImage, index, updateFolderSettings);
+            
+            // Sort the folder images by folder path
+            const sortedFolderImages = [...this.plugin.settings.folderImages].sort((a, b) => {
+                const folderA = (a.folder || '').toLowerCase();
+                const folderB = (b.folder || '').toLowerCase();
+                return folderA.localeCompare(folderB);
             });
+
+            // Update the original array to maintain the sorted order
+            this.plugin.settings.folderImages = sortedFolderImages;
+            
+            // Create all folder image settings
+            const folderSettings = sortedFolderImages.map((folderImage, index) => 
+                new FolderImageSetting(folderImagesContainer, this.plugin, folderImage, index, updateFolderSettings)
+            );
+
+            // If this update was triggered by adding a new setting, focus its input
+            if (this.shouldFocusNewFolder) {
+                // Focus the first folder setting's input since it's the newly added one
+                folderSettings[0]?.folderInputEl?.focus();
+                this.shouldFocusNewFolder = false;
+            }
         };
 
         updateFolderSettings();
 
-        // Move this button outside of updateFolderSettings
-        new Setting(containerEl)
+        const addFolderContainer = containerEl.createDiv('add-folder-image-setting');
+        new Setting(addFolderContainer)
             .addButton(button => button
                 .setButtonText("+ Add Folder Image Setting")
                 .onClick(async () => {
                     this.plugin.settings.folderImages.push({ folder: "", image: "", yPosition: 50, contentStartPosition: 150 });
                     await this.plugin.saveSettings();
+                    this.shouldFocusNewFolder = true;
                     updateFolderSettings();
                 }));
     }
@@ -1046,6 +1066,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 400
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 25
 ---
 
 # Or use a direct URL:
@@ -1056,6 +1077,7 @@ ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 180
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 0
 ---
 
 # Or use a path to an image in the vault:
@@ -1066,6 +1088,7 @@ ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 100
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 50
 ---
 
 # Or use an Obsidian internal link:
@@ -1077,6 +1100,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 500
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 17
 ---`
         });
 

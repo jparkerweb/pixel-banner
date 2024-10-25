@@ -41,7 +41,10 @@
       "image": "",
       "yPosition": 50,
       "contentStartPosition": 150,
-      "borderRadius": 5
+      "borderRadius": 5,
+      "imageDisplay": "cover",
+      "imageRepeat": false,
+      "directChildrenOnly": false
     }
   ],
   "contentStartPosition": 150,

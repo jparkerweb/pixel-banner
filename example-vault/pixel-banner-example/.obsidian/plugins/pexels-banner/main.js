@@ -687,15 +687,28 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     calloutEl.style.marginBottom = "20px";
     const folderImagesContainer = containerEl.createDiv("folder-images-container");
     const updateFolderSettings = () => {
+      var _a, _b;
       folderImagesContainer.empty();
-      this.plugin.settings.folderImages.forEach((folderImage, index) => {
-        new FolderImageSetting(folderImagesContainer, this.plugin, folderImage, index, updateFolderSettings);
+      const sortedFolderImages = [...this.plugin.settings.folderImages].sort((a, b) => {
+        const folderA = (a.folder || "").toLowerCase();
+        const folderB = (b.folder || "").toLowerCase();
+        return folderA.localeCompare(folderB);
       });
+      this.plugin.settings.folderImages = sortedFolderImages;
+      const folderSettings = sortedFolderImages.map(
+        (folderImage, index) => new FolderImageSetting(folderImagesContainer, this.plugin, folderImage, index, updateFolderSettings)
+      );
+      if (this.shouldFocusNewFolder) {
+        (_b = (_a = folderSettings[0]) == null ? void 0 : _a.folderInputEl) == null ? void 0 : _b.focus();
+        this.shouldFocusNewFolder = false;
+      }
     };
     updateFolderSettings();
-    new import_obsidian.Setting(containerEl).addButton((button) => button.setButtonText("+ Add Folder Image Setting").onClick(async () => {
+    const addFolderContainer = containerEl.createDiv("add-folder-image-setting");
+    new import_obsidian.Setting(addFolderContainer).addButton((button) => button.setButtonText("+ Add Folder Image Setting").onClick(async () => {
       this.plugin.settings.folderImages.push({ folder: "", image: "", yPosition: 50, contentStartPosition: 150 });
       await this.plugin.saveSettings();
+      this.shouldFocusNewFolder = true;
       updateFolderSettings();
     }));
   }
@@ -717,6 +730,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 400
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 25
 ---
 
 # Or use a direct URL:
@@ -727,6 +741,7 @@ ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 180
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 0
 ---
 
 # Or use a path to an image in the vault:
@@ -737,6 +752,7 @@ ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 100
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 50
 ---
 
 # Or use an Obsidian internal link:
@@ -748,6 +764,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 500
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
+${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 17
 ---`
     });
     instructionsEl.createEl("p", { text: 'Note: The image display options are "auto", "cover", or "contain". The image repeat option is only applicable when the display is set to "contain".' });
