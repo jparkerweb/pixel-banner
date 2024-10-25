@@ -26,6 +26,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 ### Fixed
 - Fixed issue where banner image was not being displayed if it was an interal link not wrapped in quotes
 - Fixed issue where the banner image z-index was overlapping the properties block
+- Fixed issue with Obsidian's virtual DOM removing the banner image and causing image flicker
 
 ## [2.1.0] - 2024-10-22
 

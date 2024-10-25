@@ -238,6 +238,51 @@ module.exports = class PixelBannerPlugin extends Plugin {
         let bannerDiv = container.querySelector(':scope > .pixel-banner-image');
         if (!bannerDiv) {
             bannerDiv = createDiv({ cls: 'pixel-banner-image' });
+            
+            // Make the banner element appear permanent to Obsidian's virtual DOM
+            Object.defineProperties(bannerDiv, {
+                isConnected: { 
+                    get: () => true,
+                    configurable: false  // Make it non-configurable
+                },
+                parentNode: {
+                    get: () => container,
+                    configurable: false
+                },
+                parentElement: {
+                    get: () => container,
+                    configurable: false
+                }
+            });
+
+            // Override the remove/removeChild methods
+            const originalRemove = bannerDiv.remove;
+            const originalRemoveChild = container.removeChild;
+
+            bannerDiv.remove = function() {
+                // console.log('Blocked attempt to remove banner');
+                return bannerDiv; // Return the element as if nothing happened
+            };
+
+            container.removeChild = function(child) {
+                if (child === bannerDiv) {
+                    // console.log('Blocked attempt to remove banner via removeChild');
+                    return bannerDiv;
+                }
+                return originalRemoveChild.call(this, child);
+            };
+
+            // Store original methods for cleanup
+            bannerDiv._originalRemove = originalRemove;
+            container._originalRemoveChild = originalRemoveChild;
+
+            // Store references for cleanup
+            this.bannerElements = this.bannerElements || new WeakMap();
+            this.bannerElements.set(bannerDiv, {
+                container,
+                originalRemoveChild
+            });
+
             container.insertBefore(bannerDiv, container.firstChild);
         }
 
@@ -302,6 +347,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     setupMutationObserver() {
+        let reattachTimeout;
+        
         this.observer = new MutationObserver((mutations) => {
             for (let mutation of mutations) {
                 if (mutation.type === 'childList') {
@@ -312,13 +359,24 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         node.classList && node.classList.contains('pixel-banner-image')
                     );
 
+                    if (bannerRemoved) {
+                        // Debounce the reattachment
+                        clearTimeout(reattachTimeout);
+                        reattachTimeout = setTimeout(() => {
+                            const activeLeaf = this.app.workspace.activeLeaf;
+                            if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+                                this.updateBanner(activeLeaf.view, false);
+                            }
+                        }, 50); // 50ms delay
+                    }
+
                     const contentChanged = addedNodes.some(node => 
                         node.nodeType === Node.ELEMENT_NODE && 
                         (node.classList.contains('markdown-preview-section') || 
                          node.classList.contains('cm-content'))
                     );
 
-                    if (bannerRemoved || contentChanged) {
+                    if (contentChanged) {
                         this.debouncedEnsureBanner();
                     }
                 }
@@ -640,6 +698,18 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     onunload() {
+        // Restore original methods and cleanup
+        if (this.bannerElements) {
+            this.bannerElements.forEach((data, element) => {
+                if (element._originalRemove) {
+                    element.remove = element._originalRemove;
+                }
+                if (data.container._originalRemoveChild) {
+                    data.container.removeChild = data.originalRemoveChild;
+                }
+            });
+        }
+        
         if (this.observer) {
             this.observer.disconnect();
         }
@@ -676,4 +746,3 @@ function getFrontmatterValue(frontmatter, fieldNames) {
     }
     return undefined;
 }
-

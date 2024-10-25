@@ -917,6 +917,39 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
     if (!bannerDiv) {
       bannerDiv = createDiv({ cls: "pixel-banner-image" });
+      Object.defineProperties(bannerDiv, {
+        isConnected: {
+          get: () => true,
+          configurable: false
+          // Make it non-configurable
+        },
+        parentNode: {
+          get: () => container,
+          configurable: false
+        },
+        parentElement: {
+          get: () => container,
+          configurable: false
+        }
+      });
+      const originalRemove = bannerDiv.remove;
+      const originalRemoveChild = container.removeChild;
+      bannerDiv.remove = function() {
+        return bannerDiv;
+      };
+      container.removeChild = function(child) {
+        if (child === bannerDiv) {
+          return bannerDiv;
+        }
+        return originalRemoveChild.call(this, child);
+      };
+      bannerDiv._originalRemove = originalRemove;
+      container._originalRemoveChild = originalRemoveChild;
+      this.bannerElements = this.bannerElements || /* @__PURE__ */ new WeakMap();
+      this.bannerElements.set(bannerDiv, {
+        container,
+        originalRemoveChild
+      });
       container.insertBefore(bannerDiv, container.firstChild);
     }
     if (bannerImage) {
@@ -955,6 +988,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     this.applyContentStartPosition(viewContent, contentStartPosition);
   }
   setupMutationObserver() {
+    let reattachTimeout;
     this.observer = new MutationObserver((mutations) => {
       for (let mutation of mutations) {
         if (mutation.type === "childList") {
@@ -963,10 +997,19 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
           const bannerRemoved = removedNodes.some(
             (node) => node.classList && node.classList.contains("pixel-banner-image")
           );
+          if (bannerRemoved) {
+            clearTimeout(reattachTimeout);
+            reattachTimeout = setTimeout(() => {
+              const activeLeaf = this.app.workspace.activeLeaf;
+              if (activeLeaf && activeLeaf.view instanceof import_obsidian2.MarkdownView) {
+                this.updateBanner(activeLeaf.view, false);
+              }
+            }, 50);
+          }
           const contentChanged = addedNodes.some(
             (node) => node.nodeType === Node.ELEMENT_NODE && (node.classList.contains("markdown-preview-section") || node.classList.contains("cm-content"))
           );
-          if (bannerRemoved || contentChanged) {
+          if (contentChanged) {
             this.debouncedEnsureBanner();
           }
         }
@@ -1223,6 +1266,16 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
   }
   onunload() {
+    if (this.bannerElements) {
+      this.bannerElements.forEach((data, element) => {
+        if (element._originalRemove) {
+          element.remove = element._originalRemove;
+        }
+        if (data.container._originalRemoveChild) {
+          data.container.removeChild = data.originalRemoveChild;
+        }
+      });
+    }
     if (this.observer) {
       this.observer.disconnect();
     }
