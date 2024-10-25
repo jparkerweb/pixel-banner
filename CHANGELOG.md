@@ -2,7 +2,7 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## [2.2.6] - 2024-10-25
+## [2.3.0] - 2024-10-25
 
 ### Added
 - Border Radius: Customize the corner radius of banner images (0-100 pixels; default 17)
