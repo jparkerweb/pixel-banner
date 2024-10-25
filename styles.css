@@ -23,16 +23,23 @@
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
+    z-index: 0;
 }
+/* fix for banner image overlapping with note content */
 .pixel-banner-image ~ div {
     z-index: 1;
 }
-
+.cm-sizer,
+.markdown-preview-sizer {
+    display: flex;
+    flex-direction: column;
+}
 
 /* fix overflow issue with embedded notes */
 .internal-embed:not(.image-embed) {
     overflow: hidden;
 }
+
 
 /* ------------------------------------------------------------------ */
 /* -- push frontmatter container down to give room to banner image -- */

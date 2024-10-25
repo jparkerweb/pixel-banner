@@ -1,0 +1,220 @@
+/* ========================= */
+/* == Obsidian: Rich Foot == */
+/* ========================= */
+
+/* ------------------------------ */
+/* -- General Rich Foot Styles -- */
+/* ------------------------------ */
+.rich-foot {
+    margin-top: 30px !important;
+    margin-bottom: 20px !important;
+    padding-top: 10px !important;
+}
+
+/* ---------------------- */
+/* -- Backlinks Styles -- */
+/* ---------------------- */
+.rich-foot--backlinks::before {
+    content: 'Backlinks';
+    text-transform: uppercase;
+    filter: brightness(150%);
+    position: relative;
+    bottom: 0;
+    font-size: 0.7em;
+    color: var(--text-accent);
+}
+
+.rich-foot--backlinks ul {
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0 !important;
+    padding-left: 20px !important;
+}
+
+.rich-foot--backlinks ul li {
+    margin-inline-start: 0 !important;
+}
+
+.rich-foot--backlinks ul li a {
+    filter: brightness(120%);
+    text-decoration: none !important;
+    font-size: 12px;
+    padding: 0 8px;
+    text-transform: lowercase;
+    text-align: center;
+    display: inline-block;
+    margin: 0 4px;
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.204);
+    background-color: var(--tag-background);
+    transition: 150ms ease-in-out all;
+}
+
+.rich-foot--backlinks ul li a::before {
+    content: "← ";
+    opacity: .5;
+}
+
+.rich-foot--backlinks ul li a:hover {
+    filter: brightness(170%);
+    border: 1px solid transparent !important;
+    text-decoration: none;
+}
+
+/* ----------------- */
+/* -- Date Styles -- */
+/* ----------------- */
+.rich-foot--created-date,
+.rich-foot--modified-date {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    list-style: none;
+    margin-top: 10px;
+    padding-left: 0;
+    font-size: .8em;
+    filter: brightness(85%);
+    color: var(--text-accent);
+}
+
+.rich-foot--created-date {
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
+.rich-foot--created-date::before,
+.rich-foot--modified-date::before {
+    font-size: .7em;
+    text-transform: uppercase;
+    padding: 2px 8px 0 0;
+}
+
+.rich-foot--created-date::before {
+    content: "created date";
+}
+
+.rich-foot--modified-date::before {
+    content: "modified date";
+}
+
+/* --------------------------- */
+/* -- Theme-specific Styles -- */
+/* --------------------------- */
+body.theme-light .rich-foot--backlinks::before,
+body.theme-light .rich-foot--backlinks ul li a {
+    filter: brightness(80%);
+}
+
+/* ---------------------------- */
+/* -- Editor-specific Styles -- */
+/* ---------------------------- */
+.cm-scroller .cm-contentContainer > .cm-content,
+.markdown-source-view .cm-contentContainer > .cm-content {
+    padding-bottom: 30px !important;
+}
+
+.cm-scroller .rich-foot--backlinks,
+.markdown-source-view .rich-foot--backlinks {
+    margin-top: 0;
+}
+
+.cm-scroller .rich-foot--created-date,
+.cm-scroller .rich-foot--modified-date,
+.markdown-source-view .rich-foot--created-date,
+.markdown-source-view .rich-foot--modified-date,
+.cm-sizer .rich-foot--created-date,
+.cm-sizer .rich-foot--modified-date {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.cm-sizer,
+.markdown-preview-sizer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-height: 100% !important;
+    padding-bottom: 0 !important;
+}
+
+.cm-sizer .rich-foot--backlinks {
+    margin-top: 0;
+}
+
+.markdown-preview-sizer > div {
+    flex: 0;
+}
+
+.markdown-preview-sizer > .rich-foot {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.rich-foot > .rich-foot--dashed-line {
+    border-top: 1px dashed var(--text-accent);
+}
+
+.rich-foot > .rich-foot--dates-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+
+/* --------------------- */
+/* -- Settings Styles -- */
+/* --------------------- */
+.rich-foot-settings .rich-foot-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+}
+
+.rich-foot-settings .rich-foot-example {
+    margin-bottom: 20px;
+}
+
+.rich-foot-settings .rich-foot-example img {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.rich-foot-settings .rich-foot-example img:hover {
+    transform: scale(1.02);
+}
+
+.rich-foot-settings .setting-item {
+    border: none;
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.rich-foot-settings .setting-item-name {
+    font-weight: bold;
+}
+
+.rich-foot-settings .setting-item-description {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.rich-foot-settings textarea {
+    background-color: var(--background-primary-alt);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+    padding: 10px;
+    font-family: var(--font-monospace);
+    width: 400px !important;
+    height: 250px !important;
+    resize: vertical;
+}

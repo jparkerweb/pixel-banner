@@ -1,5 +1,6 @@
 ---
-banner: [[llamas.jpg]]
+banner:
+  - - llamas.jpg
 banner-y: 70
 content-start: 220
 banner-display: contain

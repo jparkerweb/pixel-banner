@@ -1,0 +1,11 @@
+{
+    "id": "rich-foot",
+    "name": "Rich Foot",
+    "version": "1.3.3",
+    "minAppVersion": "1.6.0",
+    "description": "Adds backlink tags and created/modified dates to the footer of your notes.",
+    "author": "Justin Parker",
+    "authorUrl": "https://www.jparkerweb.com",
+    "fundingUrl": "https://ko-fi.com/jparkerweb",
+    "isDesktopOnly": false
+}
