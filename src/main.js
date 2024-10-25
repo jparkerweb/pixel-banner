@@ -12,7 +12,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     };
     lastYPositions = new Map();
     lastFrontmatter = new Map();
-    activeBanners = [];
 
     async onload() {
         await this.loadSettings();
@@ -98,48 +97,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     async handleActiveLeafChange(leaf) {
         if (leaf && leaf.view instanceof MarkdownView && leaf.view.file) {
-            // Set switching flag before any operations
-            this.isNoteSwitching = true;
-            
-            // Clean up existing banners and their overrides
-            if (this.bannerElements) {
-                try {
-                    // Keep track of active banners in a regular array
-                    if (!this.activeBanners) {
-                        this.activeBanners = [];
-                    }
-
-                    // Clean up each active banner
-                    this.activeBanners.forEach(({element, data}) => {
-                        try {
-                            if (data.container && data.originalRemoveChild) {
-                                data.container.removeChild = data.originalRemoveChild;
-                            }
-                        } catch (e) {
-                            console.error('Error restoring removeChild:', e);
-                        }
-                    });
-
-                    // Clear the tracking arrays
-                    this.activeBanners = [];
-                    this.bannerElements = new WeakMap();
-                } catch (e) {
-                    console.error('Error cleaning up banners:', e);
-                    this.activeBanners = [];
-                    this.bannerElements = new WeakMap();
-                }
-            } else {
-                this.activeBanners = [];
-                this.bannerElements = new WeakMap();
-            }
-
-            try {
-                await this.updateBanner(leaf.view, false);
-            } catch (e) {
-                console.error('Error updating banner:', e);
-            } finally {
-                this.isNoteSwitching = false;
-            }
+            await this.updateBanner(leaf.view, false);
         }
     }
 
@@ -280,44 +238,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
         let bannerDiv = container.querySelector(':scope > .pixel-banner-image');
         if (!bannerDiv) {
             bannerDiv = createDiv({ cls: 'pixel-banner-image' });
-            
-            // Store plugin reference without modifying the element directly
-            const pluginRef = this;
-            
-            // Simpler override of remove method
-            const originalRemove = bannerDiv.remove;
-            bannerDiv.remove = function() {
-                if (pluginRef.isNoteSwitching) {
-                    return originalRemove.call(this);
-                }
-                return this;
-            };
-
-            // Simpler override of removeChild
-            const originalRemoveChild = container.removeChild;
-            container.removeChild = function(child) {
-                if (child === bannerDiv && !pluginRef.isNoteSwitching) {
-                    return bannerDiv;
-                }
-                return originalRemoveChild.call(this, child);
-            };
-
-            // Store references for cleanup
-            this.bannerElements = this.bannerElements || new WeakMap();
-            const data = {
-                container,
-                originalRemoveChild,
-                originalRemove
-            };
-            this.bannerElements.set(bannerDiv, data);
-            
-            // Track active banner
-            this.activeBanners = this.activeBanners || [];
-            this.activeBanners.push({
-                element: bannerDiv,
-                data: data
-            });
-
             container.insertBefore(bannerDiv, container.firstChild);
         }
 
@@ -382,8 +302,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     setupMutationObserver() {
-        let reattachTimeout;
-        
         this.observer = new MutationObserver((mutations) => {
             for (let mutation of mutations) {
                 if (mutation.type === 'childList') {
@@ -394,24 +312,13 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         node.classList && node.classList.contains('pixel-banner-image')
                     );
 
-                    if (bannerRemoved) {
-                        // Debounce the reattachment
-                        clearTimeout(reattachTimeout);
-                        reattachTimeout = setTimeout(() => {
-                            const activeLeaf = this.app.workspace.activeLeaf;
-                            if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-                                this.updateBanner(activeLeaf.view, false);
-                            }
-                        }, 50); // 50ms delay
-                    }
-
                     const contentChanged = addedNodes.some(node => 
                         node.nodeType === Node.ELEMENT_NODE && 
                         (node.classList.contains('markdown-preview-section') || 
                          node.classList.contains('cm-content'))
                     );
 
-                    if (contentChanged) {
+                    if (bannerRemoved || contentChanged) {
                         this.debouncedEnsureBanner();
                     }
                 }
@@ -733,33 +640,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     onunload() {
-        this.isNoteSwitching = true;
-        
-        // Clean up using activeBanners array
-        if (this.activeBanners) {
-            this.activeBanners.forEach(({element, data}) => {
-                try {
-                    // Restore original methods
-                    if (data.originalRemove) {
-                        element.remove = data.originalRemove;
-                    }
-                    if (data.container && data.originalRemoveChild) {
-                        data.container.removeChild = data.originalRemoveChild;
-                    }
-                    // Remove the element if it's still in the DOM
-                    if (element.parentNode) {
-                        element.parentNode.removeChild(element);
-                    }
-                } catch (e) {
-                    console.error('Cleanup error:', e);
-                }
-            });
-        }
-        
-        // Clear all tracking arrays
-        this.activeBanners = [];
-        this.bannerElements = new WeakMap();
-        
         if (this.observer) {
             this.observer.disconnect();
         }
@@ -796,3 +676,4 @@ function getFrontmatterValue(frontmatter, fieldNames) {
     }
     return undefined;
 }
+
