@@ -29,6 +29,10 @@
 .pixel-banner-image ~ div {
     z-index: 1;
 }
+.cm-sizer .metadata-container,
+.markdown-preview-sizer .metadata-container {
+    z-index: 1;
+}
 .cm-sizer,
 .markdown-preview-sizer {
     display: flex;

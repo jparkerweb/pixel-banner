@@ -1,13 +1,12 @@
 ---
 banner: "[[forest.jpg]]"
-content-start: 250
+content-start: 2
 ---
-  # 🚩 Pixel-Banner
+# 🚩 Pixel-Banner
 
 > [!info] ⇢ This note uses the `[[` internal link `]]` format for the Banner
 
 ---
-
 ### *Embedded Notes*
 
 ![[📃 Embedded Note]]
