@@ -97,6 +97,9 @@ Folder-specific settings will apply to all notes in that folder (and subfolders)
 
 In the plugin settings, you can customize:
 
+- API Provider (Pexels or Pixabay)
+  - Test your API keys directly in settings with the "Test API" button
+  - Get immediate feedback if your API key is valid
 - Image size (small, medium, large)
 - Image orientation (landscape, portrait, square)
 - Number of images to fetch (1-50)
