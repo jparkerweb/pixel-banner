@@ -288,3 +288,28 @@
 }
 
 .setting-item.folder-image-setting > div { min-height: 50px; }
+
+.pixel-banner-settings .callout {
+  position: relative;
+  z-index: 1;
+  margin: 1em 0;
+  padding: 0 1em;
+  background-color: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 5px;
+  color: var(--text-accent);
+}
+
+.pixel-banner-settings .setting-item {
+  position: relative;
+  z-index: 2;
+}
+
+.pixel-banner-settings input,
+.pixel-banner-settings textarea,
+.pixel-banner-settings select {
+  z-index: 3;
+  position: relative;
+}
+
+/* Remove any inline styles from the callout in settings.js */

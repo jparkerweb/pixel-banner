@@ -2,6 +2,17 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.4.0] - 2024-10-26
+
+### Added
+- API Test Buttons: Added "Test API" buttons for both Pexels and Pixabay API keys
+  - Instantly verify if your API keys are valid
+  - Visual feedback with success/failure notifications
+  - Prevents invalid API key submissions
+
+### Fixed
+- Settings UI: Fixed issue with callout text visibility when inputs have focus
+
 ## [2.3.0] - 2024-10-25
 
 ### Added

@@ -505,13 +505,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
         // section callout
         const calloutEl = containerEl.createEl('div', { cls: 'callout' });
         calloutEl.createEl('p', { text: 'Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes.' });
-        calloutEl.style.backgroundColor = 'var(--background-primary-alt)';
-        calloutEl.style.border = '1px solid var(--background-modifier-border)';
-        calloutEl.style.color = 'var(--text-accent)';
-        calloutEl.style.fontSize = '0.9em';
-        calloutEl.style.borderRadius = '5px';
-        calloutEl.style.padding = '0 25px';
-        calloutEl.style.marginBottom = '20px';
 
         // Add API provider radio buttons
         new Setting(containerEl)
@@ -533,6 +526,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
         containerEl.createEl('span', { text: 'Enter your Pexels API key. Get your API key from ', cls: 'setting-item-description' })
             .createEl('a', { href: 'https://www.pexels.com/api/', text: 'Pexels API' });
         const pexelsApiKeySetting = new Setting(containerEl)
+            .setClass('full-width-control')
             .addText(text => {
                 text
                     .setPlaceholder('Pexels API key')
@@ -541,9 +535,28 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         this.plugin.settings.pexelsApiKey = value;
                         await this.plugin.saveSettings();
                     });
-                text.inputEl.style.width = '100%';
-            });
-        pexelsApiKeySetting.settingEl.addClass('full-width-control');
+                text.inputEl.style.width = 'calc(100% - 100px)';  // Make room for the Test button
+            })
+            .addButton(button => button
+                .setButtonText('Test API')
+                .onClick(async () => {
+                    const apiKey = this.plugin.settings.pexelsApiKey;
+                    if (!apiKey) {
+                        new Notice('Please enter an API key first');
+                        return;
+                    }
+                    
+                    button.setButtonText('Testing...');
+                    button.setDisabled(true);
+                    
+                    const isValid = await testPexelsApi(apiKey);
+                    
+                    button.setButtonText('Test API');
+                    button.setDisabled(false);
+                    
+                    new Notice(isValid ? '✅ Pexels API key is valid!' : '❌ Invalid Pexels API key');
+                }));
+        pexelsApiKeySetting.settingEl.style.width = '100%';
 
         // Pixabay API key
         new Setting(containerEl)
@@ -551,6 +564,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
         containerEl.createEl('span', { text: 'Enter your Pixabay API key. Get your API key from ', cls: 'setting-item-description' })
             .createEl('a', { href: 'https://pixabay.com/api/docs/', text: 'Pixabay API' });
         const pixabayApiKeySetting = new Setting(containerEl)
+            .setClass('full-width-control')
             .addText(text => {
                 text
                     .setPlaceholder('Pixabay API key')
@@ -559,9 +573,28 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         this.plugin.settings.pixabayApiKey = value;
                         await this.plugin.saveSettings();
                     });
-                text.inputEl.style.width = '100%';
-            });
-        pixabayApiKeySetting.settingEl.addClass('full-width-control');
+                text.inputEl.style.width = 'calc(100% - 100px)';  // Make room for the Test button
+            })
+            .addButton(button => button
+                .setButtonText('Test API')
+                .onClick(async () => {
+                    const apiKey = this.plugin.settings.pixabayApiKey;
+                    if (!apiKey) {
+                        new Notice('Please enter an API key first');
+                        return;
+                    }
+                    
+                    button.setButtonText('Testing...');
+                    button.setDisabled(true);
+                    
+                    const isValid = await testPixabayApi(apiKey);
+                    
+                    button.setButtonText('Test API');
+                    button.setDisabled(false);
+                    
+                    new Notice(isValid ? '✅ Pixabay API key is valid!' : '❌ Invalid Pixabay API key');
+                }));
+        pixabayApiKeySetting.settingEl.style.width = '100%';
 
         new Setting(containerEl)
             .setName('Images')
@@ -650,13 +683,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
         // section callout
         const calloutEl = containerEl.createEl('div', { cls: 'callout' });
         calloutEl.createEl('p', { text: 'Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings.' });
-        calloutEl.style.backgroundColor = 'var(--background-primary-alt)';
-        calloutEl.style.border = '1px solid var(--background-modifier-border)';
-        calloutEl.style.color = 'var(--text-accent)';
-        calloutEl.style.fontSize = '0.9em';
-        calloutEl.style.borderRadius = '5px';
-        calloutEl.style.padding = '0 25px';
-        calloutEl.style.marginBottom = '20px';
 
         new Setting(containerEl)
             .setName('Image Vertical Position')
@@ -884,13 +910,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
         // section callout
         const calloutEl = containerEl.createEl('div', { cls: 'callout' });
         calloutEl.createEl('p', { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
-        calloutEl.style.backgroundColor = 'var(--background-primary-alt)';
-        calloutEl.style.border = '1px solid var(--background-modifier-border)';
-        calloutEl.style.color = 'var(--text-accent)';
-        calloutEl.style.fontSize = '0.9em';
-        calloutEl.style.borderRadius = '5px';
-        calloutEl.style.padding = '0 25px';
-        calloutEl.style.marginBottom = '20px';
 
         const customFields = [
             {
@@ -993,13 +1012,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
         // section callout
         const calloutEl = containerEl.createEl('div', { cls: 'callout' });
         calloutEl.createEl('p', { text: 'Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings.' });
-        calloutEl.style.backgroundColor = 'var(--background-primary-alt)';
-        calloutEl.style.border = '1px solid var(--background-modifier-border)';
-        calloutEl.style.color = 'var(--text-accent)';
-        calloutEl.style.fontSize = '0.9em';
-        calloutEl.style.borderRadius = '5px';
-        calloutEl.style.padding = '0 25px';
-        calloutEl.style.marginBottom = '20px';
 
         const folderImagesContainer = containerEl.createDiv('folder-images-container');
 
@@ -1136,6 +1148,41 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// API test functions
+async function testPexelsApi(apiKey) {
+    try {
+        const response = await fetch('https://api.pexels.com/v1/search?query=test&per_page=3', {
+            headers: {
+                'Authorization': apiKey
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('❌ Invalid Pexels API key');
+        }
+        
+        const data = await response.json();
+        return data.photos && data.photos.length > 0;
+    } catch (error) {
+        return false;
+    }
+}
+
+async function testPixabayApi(apiKey) {
+    try {
+        const response = await fetch(`https://pixabay.com/api/?key=${apiKey}&q=test&per_page=3`);
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 export { DEFAULT_SETTINGS, FolderSuggestModal, FolderImageSetting, PixelBannerSettingTab, debounce };

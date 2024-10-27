@@ -499,7 +499,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         // console.log('Entering fetchPixabayImage with keyword:', keyword);
         const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
         const keywordsToTry = [keyword, ...defaultKeywords];
-        const maxAttempts = 5;
+        const maxAttempts = 4;
 
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];

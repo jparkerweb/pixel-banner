@@ -2,7 +2,7 @@
   "apiProvider": "pexels",
   "pexelsApiKey": "",
   "pixabayApiKey": "",
-  "imageSize": "medium",
+  "imageSize": "large",
   "imageOrientation": "landscape",
   "numberOfImages": 10,
   "defaultKeywords": "nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns",
