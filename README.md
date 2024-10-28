@@ -157,6 +157,10 @@ Field names must follow these rules:
 
 ![settings-4](img/settings-5.jpg)
 
+## Appreciation
+If you enjoy this plugin please consider sending me a tip to support my work 😀
+### [🍵 tip me here](https://ko-fi.com/jparkerweb)
+
 ## Feedback and Support
 
 If you encounter any issues or have suggestions for improvements, please [open an issue](https://github.com/jparkerweb/pixel-banner/issues) on the GitHub repository.
