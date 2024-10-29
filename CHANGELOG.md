@@ -2,6 +2,9 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.5.6] - 2024-10-27
+- Scroll the pin icon with note content
+
 ## [2.5.5] - 2024-10-27
 
 ### Added

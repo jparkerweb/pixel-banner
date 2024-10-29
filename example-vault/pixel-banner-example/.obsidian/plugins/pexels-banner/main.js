@@ -913,7 +913,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.5.5 - v2.5.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)</li>\n<li><code>Folder Images</code> keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)</li>\n<li>When &quot;Pinning&quot; an image, the plugin now waits for potential a rename/move of the file to the local vault before updating the note frontmatter</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>&quot;Pinnings&quot; now correctly updates note frontmatter to use local image when saving if the note didn&#39;t already have a banner field</li>\n<li>Fix issue where a defined &quot;Folder Images&quot; path of root <code>/</code> was not being respected</li>\n<li>Description messages in settings page is now rendering properly acoss all tabs</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.5.6 - v2.5.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)</li>\n<li><code>Folder Images</code> keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)</li>\n<li>When &quot;Pinning&quot; an image, the plugin now waits for potential a rename/move of the file to the local vault before updating the note frontmatter</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>&quot;Pinnings&quot; now correctly updates note frontmatter to use local image when saving if the note didn&#39;t already have a banner field</li>\n<li>Fix issue where a defined &quot;Folder Images&quot; path of root <code>/</code> was not being respected</li>\n<li>Description messages in settings page is now rendering properly acoss all tabs</li>\n<li>Scroll the pin icon with note content</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1123,16 +1123,33 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       return;
     }
     let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
+    let pinIcon = container.querySelector(":scope > .pin-icon");
     if (!bannerDiv) {
       bannerDiv = createDiv({ cls: "pixel-banner-image" });
       container.insertBefore(bannerDiv, container.firstChild);
       bannerDiv._isPersistentBanner = true;
+      if (this.settings.showPinIcon) {
+        pinIcon = createDiv({ cls: "pin-icon" });
+        pinIcon.style.position = "absolute";
+        pinIcon.style.top = "10px";
+        pinIcon.style.left = "5px";
+        pinIcon.style.fontSize = "1.5em";
+        pinIcon.style.cursor = "pointer";
+        pinIcon.innerHTML = "\u{1F4CC}";
+        pinIcon._isPersistentPin = true;
+        container.insertBefore(pinIcon, bannerDiv.nextSibling);
+      }
       if (!container._hasOverriddenSetChildrenInPlace) {
         const originalSetChildrenInPlace = container.setChildrenInPlace;
         container.setChildrenInPlace = function(children) {
           const bannerElement = this.querySelector(":scope > .pixel-banner-image");
+          const pinElement = this.querySelector(":scope > .pin-icon");
+          children = Array.from(children);
           if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
-            children = [bannerElement, ...Array.from(children)];
+            children = [bannerElement, ...children];
+          }
+          if (pinElement == null ? void 0 : pinElement._isPersistentPin) {
+            children.splice(1, 0, pinElement);
           }
           originalSetChildrenInPlace.call(this, children);
         };
@@ -1168,15 +1185,25 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const borderRadius = (_f = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _d : this.getFolderSpecificSetting(file.path, "borderRadius")) != null ? _e : this.settings.borderRadius) != null ? _f : 17;
         bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
         bannerDiv.style.display = "block";
-        if (inputType === "keyword" && this.settings.showPinIcon) {
-          addPinIcon(viewContent, imageUrl, this);
-        } else {
-          const existingPins = viewContent.querySelectorAll(".pin-icon");
-          existingPins.forEach((pin) => pin.remove());
+        if (inputType === "keyword" && this.settings.showPinIcon && pinIcon) {
+          pinIcon.style.display = "block";
+          pinIcon.onclick = async () => {
+            try {
+              await handlePinIconClick(imageUrl, this);
+            } catch (error) {
+              console.error("Error pinning image:", error);
+              new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
+            }
+          };
+        } else if (pinIcon) {
+          pinIcon.style.display = "none";
         }
       }
     } else {
       bannerDiv.style.display = "none";
+      if (pinIcon) {
+        pinIcon.style.display = "none";
+      }
       this.loadedImages.delete(file.path);
       this.lastKeywords.delete(file.path);
       this.applyContentStartPosition(viewContent, 0);
@@ -1576,43 +1603,16 @@ function getFrontmatterValue(frontmatter, fieldNames) {
   }
   return void 0;
 }
-function addPinIcon(noteElement, imageUrl, plugin) {
-  const existingPins = noteElement.querySelectorAll(".pin-icon");
-  existingPins.forEach((pin) => pin.remove());
-  const pinIcon = document.createElement("div");
-  pinIcon.className = "pin-icon";
-  pinIcon.style.position = "absolute";
-  pinIcon.style.top = "40px";
-  pinIcon.style.left = "5px";
-  pinIcon.style.fontSize = "1.5em";
-  pinIcon.style.cursor = "pointer";
-  pinIcon.innerHTML = "\u{1F4CC}";
-  pinIcon.addEventListener("click", async () => {
-    try {
-      await handlePinIconClick(imageUrl, plugin);
-    } catch (error) {
-      console.error("Error pinning image:", error);
-      new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
-    }
-  });
-  noteElement.appendChild(pinIcon);
-}
 async function handlePinIconClick(imageUrl, plugin) {
-  console.log("\u{1F3AF} Starting pin process...");
   const imageBlob = await fetchImage(imageUrl);
-  console.log("\u{1F4E5} Image fetched successfully");
   const { initialPath, file } = await saveImageLocally(imageBlob, plugin);
-  console.log("\u{1F4BE} Initial save complete:", { initialPath, file });
-  console.log("\u{1F440} Waiting for potential file rename...");
   const finalPath = await waitForFileRename(file, plugin);
   if (!finalPath) {
     console.error("\u274C Failed to resolve valid file path");
     new import_obsidian3.Notice("Failed to save image - file not found");
     return;
   }
-  console.log("\u2705 File path resolved:", finalPath);
   await updateNoteFrontmatter(finalPath, plugin);
-  console.log("\u{1F4DD} Frontmatter updated");
   hidePinIcon();
 }
 async function fetchImage(url) {
@@ -1738,8 +1738,6 @@ var SaveImageModal = class extends import_obsidian3.Modal {
 async function waitForFileRename(file, plugin) {
   return new Promise((resolve) => {
     const initialPath = file.path;
-    const initialFolder = plugin.settings.pinnedImageFolder;
-    console.log("\u{1F50D} Starting file watch for:", initialPath);
     let timeoutId;
     let renamedPath = null;
     const validatePath = async (path) => {
@@ -1747,9 +1745,6 @@ async function waitForFileRename(file, plugin) {
       return await plugin.app.vault.adapter.exists(path);
     };
     const handleRename = async (theFile) => {
-      console.log("\u{1F4C2} Rename detected:", {
-        theFile: theFile == null ? void 0 : theFile.path
-      });
       if (theFile == null ? void 0 : theFile.path) {
         renamedPath = theFile == null ? void 0 : theFile.path;
       }
@@ -1759,27 +1754,17 @@ async function waitForFileRename(file, plugin) {
     };
     plugin.app.vault.on("rename", handleRename);
     timeoutId = setTimeout(async () => {
-      console.log("\u23F0 Timeout reached, checking paths in order...");
       cleanup();
-      console.log("Checking paths:", {
-        renamedPath,
-        initialPath
-      });
       if (renamedPath) {
         const exists = await validatePath(renamedPath);
-        console.log("renamedPath exists:", exists);
         if (exists) {
-          console.log("\u2705 Using renamedPath:", renamedPath);
           return resolve(renamedPath);
         }
       }
       const initialExists = await validatePath(initialPath);
-      console.log("initialPath exists:", initialExists);
       if (initialExists) {
-        console.log("\u2705 Using initialPath:", initialPath);
         return resolve(initialPath);
       }
-      console.log("\u274C No valid path found");
       resolve(null);
     }, 1500);
   });

@@ -260,6 +260,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
 
         let bannerDiv = container.querySelector(':scope > .pixel-banner-image');
+        let pinIcon = container.querySelector(':scope > .pin-icon');
+        
         if (!bannerDiv) {
             bannerDiv = createDiv({ cls: 'pixel-banner-image' });
             container.insertBefore(bannerDiv, container.firstChild);
@@ -267,24 +269,38 @@ module.exports = class PixelBannerPlugin extends Plugin {
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // !!!! PERSISTENT BANNER FIX !!!!
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // Add a custom property to mark this as a persistent element
+            // Mark banner as persistent
             bannerDiv._isPersistentBanner = true;
             
+            // Create pin icon if needed
+            if (this.settings.showPinIcon) {
+                pinIcon = createDiv({ cls: 'pin-icon' });
+                pinIcon.style.position = 'absolute';
+                pinIcon.style.top = '10px';
+                pinIcon.style.left = '5px';
+                pinIcon.style.fontSize = '1.5em';
+                pinIcon.style.cursor = 'pointer';
+                pinIcon.innerHTML = '📌';
+                pinIcon._isPersistentPin = true;
+                container.insertBefore(pinIcon, bannerDiv.nextSibling);
+            }
+            
             // Override the setChildrenInPlace method for this container
-            // This is to ensure that the banner is always included in the DOM
-            // even if Obsidian removes other elements from the container
-            // This is a workaround for Obsidian's DOM manipulation
-            // which sometimes removes elements from the container
-            // This might not be necessary in future versions of Obsidian or
-            // might need to be updated if Obsidian changes the DOM manipulation
             if (!container._hasOverriddenSetChildrenInPlace) {
                 const originalSetChildrenInPlace = container.setChildrenInPlace;
                 container.setChildrenInPlace = function(children) {
-                    // Add our banner to the new children set if it exists
+                    // Add our persistent elements to the new children set
                     const bannerElement = this.querySelector(':scope > .pixel-banner-image');
+                    const pinElement = this.querySelector(':scope > .pin-icon');
+                    
+                    children = Array.from(children);
                     if (bannerElement?._isPersistentBanner) {
-                        children = [bannerElement, ...Array.from(children)];
+                        children = [bannerElement, ...children];
                     }
+                    if (pinElement?._isPersistentPin) {
+                        children.splice(1, 0, pinElement); // Insert after banner
+                    }
+                    
                     originalSetChildrenInPlace.call(this, children);
                 };
                 container._hasOverriddenSetChildrenInPlace = true;
@@ -348,16 +364,25 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 bannerDiv.style.display = 'block';
 
                 // Only add pin icon if the image is from an API (keyword type) and showPinIcon is enabled
-                if (inputType === 'keyword' && this.settings.showPinIcon) {
-                    addPinIcon(viewContent, imageUrl, this);
-                } else {
-                    // Remove any existing pin icons if the image is not from an API or feature is disabled
-                    const existingPins = viewContent.querySelectorAll('.pin-icon');
-                    existingPins.forEach(pin => pin.remove());
+                if (inputType === 'keyword' && this.settings.showPinIcon && pinIcon) {
+                    pinIcon.style.display = 'block';
+                    pinIcon.onclick = async () => {
+                        try {
+                            await handlePinIconClick(imageUrl, this);
+                        } catch (error) {
+                            console.error('Error pinning image:', error);
+                            new Notice('😭 Failed to pin the image.');
+                        }
+                    };
+                } else if (pinIcon) {
+                    pinIcon.style.display = 'none';
                 }
             }
         } else {
             bannerDiv.style.display = 'none';
+            if (pinIcon) {
+                pinIcon.style.display = 'none';
+            }
             this.loadedImages.delete(file.path);
             this.lastKeywords.delete(file.path);
             // Reset the content start position when there's no banner
@@ -894,38 +919,52 @@ function addPinIcon(noteElement, imageUrl, plugin) {
     const existingPins = noteElement.querySelectorAll('.pin-icon');
     existingPins.forEach(pin => pin.remove());
 
-    // Create new pin icon
-    const pinIcon = document.createElement('div');
-    pinIcon.className = 'pin-icon';
-    pinIcon.style.position = 'absolute';
-    pinIcon.style.top = '40px';
-    pinIcon.style.left = '5px';
-    pinIcon.style.fontSize = '1.5em';
-    pinIcon.style.cursor = 'pointer';
-    pinIcon.innerHTML = '📌';
+    // Create pin icon elements for both modes
+    const createPinIcon = () => {
+        const pinIcon = document.createElement('div');
+        pinIcon.className = 'pin-icon';
+        pinIcon.style.position = 'absolute';
+        pinIcon.style.top = '10px';
+        pinIcon.style.left = '5px';
+        pinIcon.style.fontSize = '1.5em';
+        pinIcon.style.cursor = 'pointer';
+        pinIcon.innerHTML = '📌';
 
-    pinIcon.addEventListener('click', async () => {
-        try {
-            await handlePinIconClick(imageUrl, plugin);
-        } catch (error) {
-            console.error('Error pinning image:', error);
-            new Notice('😭 Failed to pin the image.');
-        }
-    });
+        pinIcon.addEventListener('click', async () => {
+            try {
+                await handlePinIconClick(imageUrl, plugin);
+            } catch (error) {
+                console.error('Error pinning image:', error);
+                new Notice('😭 Failed to pin the image.');
+            }
+        });
 
-    noteElement.appendChild(pinIcon);
+        return pinIcon;
+    };
+
+    // Add pin icon for reading mode
+    const previewBanner = noteElement.querySelector('.markdown-preview-sizer > .pixel-banner-image');
+    if (previewBanner) {
+        previewBanner.insertAdjacentElement('afterend', createPinIcon());
+    }
+
+    // Add pin icon for edit mode
+    const editBanner = noteElement.querySelector('.cm-sizer > .pixel-banner-image');
+    if (editBanner) {
+        editBanner.insertAdjacentElement('afterend', createPinIcon());
+    }
 }
 
 async function handlePinIconClick(imageUrl, plugin) {
-    console.log('🎯 Starting pin process...');
+    // console.log('🎯 Starting pin process...');
     const imageBlob = await fetchImage(imageUrl);
-    console.log('📥 Image fetched successfully');
+    // console.log('📥 Image fetched successfully');
     
     const { initialPath, file } = await saveImageLocally(imageBlob, plugin);
-    console.log('💾 Initial save complete:', { initialPath, file });
+    // console.log('💾 Initial save complete:', { initialPath, file });
     
     // Set up file monitoring for potential rename/move
-    console.log('👀 Waiting for potential file rename...');
+    // console.log('👀 Waiting for potential file rename...');
     const finalPath = await waitForFileRename(file, plugin);
     
     if (!finalPath) {
@@ -934,9 +973,9 @@ async function handlePinIconClick(imageUrl, plugin) {
         return;
     }
     
-    console.log('✅ File path resolved:', finalPath);
+    // console.log('✅ File path resolved:', finalPath);
     await updateNoteFrontmatter(finalPath, plugin);
-    console.log('📝 Frontmatter updated');
+    // console.log('📝 Frontmatter updated');
     hidePinIcon();
 }
 
@@ -1097,8 +1136,7 @@ class SaveImageModal extends Modal {
 async function waitForFileRename(file, plugin) {
     return new Promise((resolve) => {
         const initialPath = file.path;
-        const initialFolder = plugin.settings.pinnedImageFolder;
-        console.log('🔍 Starting file watch for:', initialPath);
+        // console.log('🔍 Starting file watch for:', initialPath);
         let timeoutId;
         let renamedPath = null;
 
@@ -1110,9 +1148,9 @@ async function waitForFileRename(file, plugin) {
 
         // Track rename events
         const handleRename = async (theFile) => {
-            console.log('📂 Rename detected:', {
-                theFile: theFile?.path
-            });
+            // console.log('📂 Rename detected:', {
+            //     theFile: theFile?.path
+            // });
             if (theFile?.path) {
                 renamedPath = theFile?.path;
             }
@@ -1127,35 +1165,35 @@ async function waitForFileRename(file, plugin) {
 
         // Set timeout to validate and resolve
         timeoutId = setTimeout(async () => {
-            console.log('⏰ Timeout reached, checking paths in order...');
+            // console.log('⏰ Timeout reached, checking paths in order...');
             cleanup();
 
             // Check paths in preferred order
-            console.log('Checking paths:', {
-                renamedPath: renamedPath,
-                initialPath: initialPath
-            });
+            // console.log('Checking paths:', {
+            //     renamedPath: renamedPath,
+            //     initialPath: initialPath
+            // });
 
             // 1. Check renamedPath
             if (renamedPath) {
                 const exists = await validatePath(renamedPath);
-                console.log('renamedPath exists:', exists);
+                // console.log('renamedPath exists:', exists);
                 if (exists) {
-                    console.log('✅ Using renamedPath:', renamedPath);
+                    // console.log('✅ Using renamedPath:', renamedPath);
                     return resolve(renamedPath);
                 }
             }
 
             // 2. Check initialPath
             const initialExists = await validatePath(initialPath);
-            console.log('initialPath exists:', initialExists);
+            // console.log('initialPath exists:', initialExists);
             if (initialExists) {
-                console.log('✅ Using initialPath:', initialPath);
+                // console.log('✅ Using initialPath:', initialPath);
                 return resolve(initialPath);
             }
 
             // No valid paths found
-            console.log('❌ No valid path found');
+            // console.log('❌ No valid path found');
             resolve(null);
         }, 1500);
     });
