@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.5.5] - 2024-10-27
+
+### Added
+- When "Pinning" an image, the plugin now waits for potential a rename/move of the file to the local vault before updating the note frontmatter
+
 ## [2.5.4] - 2024-10-27
 
 ### Fixed

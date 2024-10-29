@@ -14,6 +14,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     };
     lastYPositions = new Map();
     lastFrontmatter = new Map();
+    pendingImageUpdates = new Map(); // Track files waiting for potential renames
 
     async onload() {
         await this.loadSettings();
@@ -916,9 +917,26 @@ function addPinIcon(noteElement, imageUrl, plugin) {
 }
 
 async function handlePinIconClick(imageUrl, plugin) {
+    console.log('🎯 Starting pin process...');
     const imageBlob = await fetchImage(imageUrl);
-    const imagePath = await saveImageLocally(imageBlob, plugin);
-    await updateNoteFrontmatter(imagePath, plugin);
+    console.log('📥 Image fetched successfully');
+    
+    const { initialPath, file } = await saveImageLocally(imageBlob, plugin);
+    console.log('💾 Initial save complete:', { initialPath, file });
+    
+    // Set up file monitoring for potential rename/move
+    console.log('👀 Waiting for potential file rename...');
+    const finalPath = await waitForFileRename(file, plugin);
+    
+    if (!finalPath) {
+        console.error('❌ Failed to resolve valid file path');
+        new Notice('Failed to save image - file not found');
+        return;
+    }
+    
+    console.log('✅ File path resolved:', finalPath);
+    await updateNoteFrontmatter(finalPath, plugin);
+    console.log('📝 Frontmatter updated');
     hidePinIcon();
 }
 
@@ -966,8 +984,13 @@ async function saveImageLocally(arrayBuffer, plugin) {
     }
 
     const filePath = `${folderPath}/${fileName}`;
-    await vault.createBinary(filePath, arrayBuffer);
-    return filePath;
+    const savedFile = await vault.createBinary(filePath, arrayBuffer);
+    
+    // Return both the initial path and the TFile object
+    return {
+        initialPath: filePath,
+        file: savedFile
+    };
 }
 
 async function updateNoteFrontmatter(imagePath, plugin) {
@@ -1068,5 +1091,73 @@ class SaveImageModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
     }
+}
+
+// Add new function to wait for potential file rename
+async function waitForFileRename(file, plugin) {
+    return new Promise((resolve) => {
+        const initialPath = file.path;
+        const initialFolder = plugin.settings.pinnedImageFolder;
+        console.log('🔍 Starting file watch for:', initialPath);
+        let timeoutId;
+        let renamedPath = null;
+
+        // Helper function to validate file existence
+        const validatePath = async (path) => {
+            if (!path) return false;
+            return await plugin.app.vault.adapter.exists(path);
+        };
+
+        // Track rename events
+        const handleRename = async (theFile) => {
+            console.log('📂 Rename detected:', {
+                theFile: theFile?.path
+            });
+            if (theFile?.path) {
+                renamedPath = theFile?.path;
+            }
+        };
+
+        const cleanup = () => {
+            plugin.app.vault.off('rename', handleRename);
+        };
+
+        // Listen for rename events
+        plugin.app.vault.on('rename', handleRename);
+
+        // Set timeout to validate and resolve
+        timeoutId = setTimeout(async () => {
+            console.log('⏰ Timeout reached, checking paths in order...');
+            cleanup();
+
+            // Check paths in preferred order
+            console.log('Checking paths:', {
+                renamedPath: renamedPath,
+                initialPath: initialPath
+            });
+
+            // 1. Check renamedPath
+            if (renamedPath) {
+                const exists = await validatePath(renamedPath);
+                console.log('renamedPath exists:', exists);
+                if (exists) {
+                    console.log('✅ Using renamedPath:', renamedPath);
+                    return resolve(renamedPath);
+                }
+            }
+
+            // 2. Check initialPath
+            const initialExists = await validatePath(initialPath);
+            console.log('initialPath exists:', initialExists);
+            if (initialExists) {
+                console.log('✅ Using initialPath:', initialPath);
+                return resolve(initialPath);
+            }
+
+            // No valid paths found
+            console.log('❌ No valid path found');
+            resolve(null);
+        }, 1500);
+    });
 }
 

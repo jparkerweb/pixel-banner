@@ -1,9 +1,10 @@
 ## 🎉 What's New
 
-### v2.5.4 - v2.5.1 
+### v2.5.5 - v2.5.1 
 #### Added
 - Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)
 - `Folder Images` keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)
+- When "Pinning" an image, the plugin now waits for potential a rename/move of the file to the local vault before updating the note frontmatter
 
 #### Fixed
 - "Pinnings" now correctly updates note frontmatter to use local image when saving if the note didn't already have a banner field
