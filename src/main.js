@@ -390,6 +390,29 @@ module.exports = class PixelBannerPlugin extends Plugin {
     getFolderSpecificImage(filePath) {
         const folderPath = this.getFolderPath(filePath);
         for (const folderImage of this.settings.folderImages) {
+            // Special handling for root folder
+            if (folderImage.folder === '/') {
+                if (folderImage.directChildrenOnly) {
+                    // For root with directChildrenOnly, only match files directly in root
+                    if (!filePath.includes('/')) {
+                        return {
+                            image: folderImage.image,
+                            yPosition: folderImage.yPosition,
+                            contentStartPosition: folderImage.contentStartPosition
+                        };
+                    }
+                } else {
+                    // For root without directChildrenOnly, match all files
+                    return {
+                        image: folderImage.image,
+                        yPosition: folderImage.yPosition,
+                        contentStartPosition: folderImage.contentStartPosition
+                    };
+                }
+                continue;
+            }
+
+            // Normal folder path handling
             if (folderImage.directChildrenOnly) {
                 if (folderPath === folderImage.folder) {
                     return {
@@ -410,6 +433,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     getFolderPath(filePath) {
+        // Special case: if filePath has no slashes, it's in root
+        if (!filePath.includes('/')) {
+            return '/';
+        }
         const lastSlashIndex = filePath.lastIndexOf('/');
         return lastSlashIndex !== -1 ? filePath.substring(0, lastSlashIndex) : '';
     }
@@ -432,16 +459,21 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'keyword') {
+            // Handle comma-delimited keywords
+            const keywords = input.includes(',') 
+                ? input.split(',').map(k => k.trim()).filter(k => k.length > 0)
+                : [input];
+            
+            // Randomly select one keyword if multiple are provided
+            const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+
             if (this.settings.apiProvider === 'pexels') {
-                // console.log('Using Pexels API');
-                return this.fetchPexelsImage(input);
+                return this.fetchPexelsImage(selectedKeyword);
             } else if (this.settings.apiProvider === 'pixabay') {
-                // console.log('Using Pixabay API');
-                return this.fetchPixabayImage(input);
+                return this.fetchPixabayImage(selectedKeyword);
             }
         }
 
-        // console.log('No matching type found, returning null');
         return null;
     }
 

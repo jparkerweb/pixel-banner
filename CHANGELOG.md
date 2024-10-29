@@ -2,6 +2,14 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.5.2] - 2024-10-27
+
+### Added
+- `Folder Images` keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)
+
+### Fixed
+- Fix issue where a defined "Folder Images" path of root `/` was not being respected
+
 ## [2.5.1] - 2024-10-27
 
 ### Fixed

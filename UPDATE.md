@@ -1,4 +1,13 @@
-## 🎉 What's New in v2.5.1
+## 🎉 What's New in v2.5.2
+
+### v2.5.2  
+#### Added
+- `Folder Images` keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)
+
+#### Fixed
+- Fix issue where a defined "Folder Images" path of root `/` was not being respected
+
+---
 
 ### v2.5.1
 #### Fixed

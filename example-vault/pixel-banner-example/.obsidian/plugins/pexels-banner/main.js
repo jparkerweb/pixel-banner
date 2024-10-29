@@ -913,7 +913,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New in v2.5.1</h2>\n<h3>v2.5.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>fix description message in settings not appearing correctly</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New in v2.5.2</h2>\n<h3>v2.5.2</h3>\n<h4>Added</h4>\n<ul>\n<li><code>Folder Images</code> keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>Fix issue where a defined &quot;Folder Images&quot; path of root <code>/</code> was not being respected</li>\n</ul>\n<hr>\n<h3>v2.5.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>fix description message in settings not appearing correctly</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1199,6 +1199,24 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   getFolderSpecificImage(filePath) {
     const folderPath = this.getFolderPath(filePath);
     for (const folderImage of this.settings.folderImages) {
+      if (folderImage.folder === "/") {
+        if (folderImage.directChildrenOnly) {
+          if (!filePath.includes("/")) {
+            return {
+              image: folderImage.image,
+              yPosition: folderImage.yPosition,
+              contentStartPosition: folderImage.contentStartPosition
+            };
+          }
+        } else {
+          return {
+            image: folderImage.image,
+            yPosition: folderImage.yPosition,
+            contentStartPosition: folderImage.contentStartPosition
+          };
+        }
+        continue;
+      }
       if (folderImage.directChildrenOnly) {
         if (folderPath === folderImage.folder) {
           return {
@@ -1218,6 +1236,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     return null;
   }
   getFolderPath(filePath) {
+    if (!filePath.includes("/")) {
+      return "/";
+    }
     const lastSlashIndex = filePath.lastIndexOf("/");
     return lastSlashIndex !== -1 ? filePath.substring(0, lastSlashIndex) : "";
   }
@@ -1236,10 +1257,12 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       return this.getVaultImageUrl(input);
     }
     if (type === "keyword") {
+      const keywords = input.includes(",") ? input.split(",").map((k) => k.trim()).filter((k) => k.length > 0) : [input];
+      const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
       if (this.settings.apiProvider === "pexels") {
-        return this.fetchPexelsImage(input);
+        return this.fetchPexelsImage(selectedKeyword);
       } else if (this.settings.apiProvider === "pixabay") {
-        return this.fetchPixabayImage(input);
+        return this.fetchPixabayImage(selectedKeyword);
       }
     }
     return null;
