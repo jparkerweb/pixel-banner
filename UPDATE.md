@@ -1,16 +1,12 @@
-## 🎉 What's New in v2.5.2
+## 🎉 What's New
 
-### v2.5.2  
+### v2.5.3 - v2.5.1 
 #### Added
+- Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)
 - `Folder Images` keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)
 
 #### Fixed
 - Fix issue where a defined "Folder Images" path of root `/` was not being respected
-
----
-
-### v2.5.1
-#### Fixed
 - fix description message in settings not appearing correctly
 
 ---

@@ -154,6 +154,23 @@ module.exports = class PixelBannerPlugin extends Plugin {
         let contentStartPosition = this.settings.contentStartPosition;
         let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField);
 
+        // Handle comma-delimited banner values in frontmatter
+        if (bannerImage && typeof bannerImage === 'string' && !bannerImage.startsWith('[[')) {
+            const bannerValues = bannerImage.includes(',') 
+                ? bannerImage.split(',')
+                    .map(v => v.trim())
+                    .filter(v => v.length > 0)  // Filter out empty strings
+                    .filter(Boolean)  // Filter out null/undefined/empty values
+                : [bannerImage];
+            
+            // Only select random if we have valid values
+            if (bannerValues.length > 0) {
+                bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+            } else {
+                bannerImage = null; // Reset to null if no valid values
+            }
+        }
+
         // Flatten the bannerImage if it's an array within an array
         if (Array.isArray(bannerImage)) {
             bannerImage = bannerImage.flat()[0];
@@ -390,13 +407,31 @@ module.exports = class PixelBannerPlugin extends Plugin {
     getFolderSpecificImage(filePath) {
         const folderPath = this.getFolderPath(filePath);
         for (const folderImage of this.settings.folderImages) {
+            // Handle comma-delimited image values in folder settings
+            let folderBannerImage = folderImage.image;
+            if (folderBannerImage && typeof folderBannerImage === 'string' && !folderBannerImage.startsWith('[[')) {
+                const bannerValues = folderBannerImage.includes(',') 
+                    ? folderBannerImage.split(',')
+                        .map(v => v.trim())
+                        .filter(v => v.length > 0)
+                        .filter(Boolean)
+                    : [folderBannerImage];
+                
+                // Only select random if we have valid values
+                if (bannerValues.length > 0) {
+                    folderBannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+                } else {
+                    folderBannerImage = null;
+                }
+            }
+
             // Special handling for root folder
             if (folderImage.folder === '/') {
                 if (folderImage.directChildrenOnly) {
                     // For root with directChildrenOnly, only match files directly in root
                     if (!filePath.includes('/')) {
                         return {
-                            image: folderImage.image,
+                            image: folderBannerImage,
                             yPosition: folderImage.yPosition,
                             contentStartPosition: folderImage.contentStartPosition
                         };
@@ -404,7 +439,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 } else {
                     // For root without directChildrenOnly, match all files
                     return {
-                        image: folderImage.image,
+                        image: folderBannerImage,
                         yPosition: folderImage.yPosition,
                         contentStartPosition: folderImage.contentStartPosition
                     };
@@ -416,14 +451,14 @@ module.exports = class PixelBannerPlugin extends Plugin {
             if (folderImage.directChildrenOnly) {
                 if (folderPath === folderImage.folder) {
                     return {
-                        image: folderImage.image,
+                        image: folderBannerImage,
                         yPosition: folderImage.yPosition,
                         contentStartPosition: folderImage.contentStartPosition
                     };
                 }
             } else if (folderPath.startsWith(folderImage.folder)) {
                 return {
-                    image: folderImage.image,
+                    image: folderBannerImage,
                     yPosition: folderImage.yPosition,
                     contentStartPosition: folderImage.contentStartPosition
                 };
@@ -461,17 +496,22 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (type === 'keyword') {
             // Handle comma-delimited keywords
             const keywords = input.includes(',') 
-                ? input.split(',').map(k => k.trim()).filter(k => k.length > 0)
+                ? input.split(',')
+                    .map(k => k.trim())
+                    .filter(k => k.length > 0)  // Filter out empty strings
+                    .filter(Boolean)  // Filter out null/undefined/empty values
                 : [input];
             
-            // Randomly select one keyword if multiple are provided
-            const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-
-            if (this.settings.apiProvider === 'pexels') {
-                return this.fetchPexelsImage(selectedKeyword);
-            } else if (this.settings.apiProvider === 'pixabay') {
-                return this.fetchPixabayImage(selectedKeyword);
+            // Only proceed if we have valid keywords
+            if (keywords.length > 0) {
+                const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+                if (this.settings.apiProvider === 'pexels') {
+                    return this.fetchPexelsImage(selectedKeyword);
+                } else if (this.settings.apiProvider === 'pixabay') {
+                    return this.fetchPixabayImage(selectedKeyword);
+                }
             }
+            return null;
         }
 
         return null;

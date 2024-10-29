@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.5.3] - 2024-10-27
+
+### Added
+- Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)
+
 ## [2.5.2] - 2024-10-27
 
 ### Added
