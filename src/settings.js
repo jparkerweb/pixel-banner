@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS = {
     borderRadius: 17,
     customBorderRadiusField: ['banner-radius'],
     showPinIcon: true,
-    pinnedImageFolder: 'pixel-banners',
+    pinnedImageFolder: 'pixel-banner-images',
     showReleaseNotes: true,
     lastVersion: null,
 };
@@ -498,7 +498,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
                 // Activate clicked tab
                 tabEl.addClass('active');
-                tabContentContainer.querySelector(`.tab-content[data-tab="${tabName}"]`).style.display = 'block';
+                tabContentContainer.querySelector(`.tab-content[data-tab="${tabName}"]`).style.display = 'flex';
             });
         });
 
@@ -507,8 +507,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
     createAPISettings(containerEl) {
         // section callout
-        const calloutEl = containerEl.createEl('div', { cls: 'callout' });
-        calloutEl.createEl('p', { text: 'Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes.' });
+        const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
+        calloutEl.createEl('div', { text: 'Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes.' });
 
         // Add API provider radio buttons
         new Setting(containerEl)
@@ -747,8 +747,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
     createGeneralSettings(containerEl) {
         // section callout
-        const calloutEl = containerEl.createEl('div', { cls: 'callout' });
-        calloutEl.createEl('p', { text: 'Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings.' });
+        const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
+        calloutEl.createEl('div', { text: 'Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings.' });
 
         new Setting(containerEl)
             .setName('Image Vertical Position')
@@ -997,8 +997,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
     createCustomFieldsSettings(containerEl) {
         // section callout
-        const calloutEl = containerEl.createEl('div', { cls: 'callout' });
-        calloutEl.createEl('p', { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
+        const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
+        calloutEl.createEl('div', { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
 
         const customFields = [
             {
@@ -1099,8 +1099,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
     createFolderSettings(containerEl) {
         // section callout
-        const calloutEl = containerEl.createEl('div', { cls: 'callout' });
-        calloutEl.createEl('p', { text: 'Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings.' });
+        const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
+        calloutEl.createEl('div', { text: 'Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings. To get started, add a folder image setting and click the "+ Add Folder Image Setting" button below.' });
 
         const folderImagesContainer = containerEl.createDiv('folder-images-container');
 

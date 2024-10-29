@@ -1,6 +1,13 @@
-## 🎉 What's New in v2.5.0
+## 🎉 What's New in v2.5.1
 
-### Added
+### v2.5.1
+#### Fixed
+- fix description message in settings not appearing correctly
+
+---
+
+### v2.5.0
+#### Added
 - Pin Icon Feature: Save API images to your vault
   - Click the pin icon (📌) to save random banner images locally
   - Choose custom filenames when saving
