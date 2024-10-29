@@ -2,7 +2,7 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## [2.5.0] - 2024-10-27
+## [2.5.0] - 2024-10-29
 
 ### Added
 - Pin Icon Feature: Save API images to your vault
