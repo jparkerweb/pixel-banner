@@ -25,6 +25,8 @@ const DEFAULT_SETTINGS = {
     customFadeField: ['banner-fade'],
     borderRadius: 17,
     customBorderRadiusField: ['banner-radius'],
+    showPinIcon: true,
+    pinnedImageFolder: 'pixel-banners',
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -600,6 +602,36 @@ class PixelBannerSettingTab extends PluginSettingTab {
             .setName('Images')
             .setDesc('Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.')
             .setHeading();
+
+
+        new Setting(containerEl)
+            .setName('Show Pin Icon')
+            .setDesc('Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showPinIcon)
+                .onChange(async (value) => {
+                    this.plugin.settings.showPinIcon = value;
+                    // Show/hide the folder input based on the toggle
+                    folderInputSetting.settingEl.style.display = value ? 'flex' : 'none';
+                    await this.plugin.saveSettings();
+                }));
+
+        // Add the folder input setting
+        const folderInputSetting = new Setting(containerEl)
+            .setName('Pinned Images Folder')
+            .setDesc('Folder where pinned banner images will be saved')
+            .addText(text => text
+                .setPlaceholder('pixel-banners')
+                .setValue(this.plugin.settings.pinnedImageFolder)
+                .onChange(async (value) => {
+                    // Sanitize the folder path (remove leading/trailing slashes and spaces)
+                    const sanitizedValue = value.trim().replace(/^\/+|\/+$/g, '');
+                    this.plugin.settings.pinnedImageFolder = sanitizedValue || 'pixel-banners';
+                    await this.plugin.saveSettings();
+                }));
+
+        // Set initial visibility of the folder input
+        folderInputSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? 'flex' : 'none';
 
         new Setting(containerEl)
             .setName('Size')

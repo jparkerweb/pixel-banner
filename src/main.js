@@ -1,4 +1,4 @@
-import { Plugin, MarkdownView, requestUrl, Notice } from 'obsidian';
+import { Plugin, MarkdownView, requestUrl, Notice, Modal } from 'obsidian';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
 
 module.exports = class PixelBannerPlugin extends Plugin {
@@ -270,9 +270,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (bannerImage) {
             let imageUrl = this.loadedImages.get(file.path);
             const lastInput = this.lastKeywords.get(file.path);
+            const inputType = this.getInputType(bannerImage);
 
             if (!imageUrl || (isContentChange && bannerImage !== lastInput)) {
-                imageUrl = await this.getImageUrl(this.getInputType(bannerImage), bannerImage);
+                imageUrl = await this.getImageUrl(inputType, bannerImage);
                 if (imageUrl) {
                     this.loadedImages.set(file.path, imageUrl);
                     this.lastKeywords.set(file.path, bannerImage);
@@ -321,6 +322,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
                 
                 bannerDiv.style.display = 'block';
+
+                // Only add pin icon if the image is from an API (keyword type) and showPinIcon is enabled
+                if (inputType === 'keyword' && this.settings.showPinIcon) {
+                    addPinIcon(viewContent, imageUrl, this);
+                } else {
+                    // Remove any existing pin icons if the image is not from an API or feature is disabled
+                    const existingPins = viewContent.querySelectorAll('.pin-icon');
+                    existingPins.forEach(pin => pin.remove());
+                }
             }
         } else {
             bannerDiv.style.display = 'none';
@@ -709,5 +719,161 @@ function getFrontmatterValue(frontmatter, fieldNames) {
         }
     }
     return undefined;
+}
+
+function addPinIcon(noteElement, imageUrl, plugin) {
+    // Remove any existing pin icons first
+    const existingPins = noteElement.querySelectorAll('.pin-icon');
+    existingPins.forEach(pin => pin.remove());
+
+    // Create new pin icon
+    const pinIcon = document.createElement('div');
+    pinIcon.className = 'pin-icon';
+    pinIcon.style.position = 'absolute';
+    pinIcon.style.top = '40px';
+    pinIcon.style.left = '5px';
+    pinIcon.style.fontSize = '1.5em';
+    pinIcon.style.cursor = 'pointer';
+    pinIcon.innerHTML = '📌';
+
+    pinIcon.addEventListener('click', async () => {
+        try {
+            await handlePinIconClick(imageUrl, plugin);
+        } catch (error) {
+            console.error('Error pinning image:', error);
+            new Notice('😭 Failed to pin the image.');
+        }
+    });
+
+    noteElement.appendChild(pinIcon);
+}
+
+async function handlePinIconClick(imageUrl, plugin) {
+    const imageBlob = await fetchImage(imageUrl);
+    const imagePath = await saveImageLocally(imageBlob, plugin);
+    await updateNoteFrontmatter(imagePath);
+    hidePinIcon();
+}
+
+async function fetchImage(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Image download failed');
+    // Get the array buffer directly instead of blob
+    return await response.arrayBuffer();
+}
+
+async function saveImageLocally(arrayBuffer, plugin) {
+    const vault = plugin.app.vault;
+    const folderPath = plugin.settings.pinnedImageFolder;
+
+    // Ensure the folder exists
+    if (!await vault.adapter.exists(folderPath)) {
+        await vault.createFolder(folderPath);
+    }
+
+    // Prompt user for filename
+    const suggestedName = 'banner-';
+    const userInput = await new Promise((resolve) => {
+        const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
+            resolve(result);
+        });
+        modal.open();
+    });
+
+    if (!userInput) {
+        throw new Error('No filename provided');
+    }
+
+    // Sanitize the filename and ensure it ends with .png
+    let baseName = userInput.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
+    if (!baseName) baseName = 'banner';
+    if (!baseName.toLowerCase().endsWith('.png')) baseName += '.png';
+
+    // Handle duplicate filenames
+    let fileName = baseName;
+    let counter = 1;
+    while (await vault.adapter.exists(`${folderPath}/${fileName}`)) {
+        const nameWithoutExt = baseName.slice(0, -4); // remove .png
+        fileName = `${nameWithoutExt}-${counter}.png`;
+        counter++;
+    }
+
+    const filePath = `${folderPath}/${fileName}`;
+    await vault.createBinary(filePath, arrayBuffer);
+    return filePath;
+}
+
+async function updateNoteFrontmatter(imagePath) {
+    const activeFile = app.workspace.getActiveFile();
+    if (!activeFile) return;
+
+    const fileContent = await app.vault.read(activeFile);
+    const updatedContent = fileContent.replace(/banner:\s*.+/, `banner: ${imagePath}`);
+    await app.vault.modify(activeFile, updatedContent);
+}
+
+function hidePinIcon() {
+    const pinIcon = document.querySelector('.pin-icon');
+    if (pinIcon) pinIcon.style.display = 'none';
+}
+
+// Add this new class for the modal
+class SaveImageModal extends Modal {
+    constructor(app, suggestedName, onSubmit) {
+        super(app);
+        this.suggestedName = suggestedName;
+        this.onSubmit = onSubmit;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.createEl('h2', { text: 'Save Banner Image' });
+
+        const inputContainer = contentEl.createDiv();
+        inputContainer.style.margin = '1em 0';
+
+        const input = inputContainer.createEl('input', {
+            type: 'text',
+            value: this.suggestedName
+        });
+        input.style.width = '100%';
+        input.focus();
+
+        const buttonContainer = contentEl.createDiv();
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = 'flex-end';
+        buttonContainer.style.gap = '1em';
+        buttonContainer.style.marginTop = '1em';
+
+        const submitButton = buttonContainer.createEl('button', {
+            text: 'Save'
+        });
+        submitButton.addEventListener('click', () => {
+            this.onSubmit(input.value);
+            this.close();
+        });
+
+        const cancelButton = buttonContainer.createEl('button', {
+            text: 'Cancel'
+        });
+        cancelButton.addEventListener('click', () => {
+            this.onSubmit(null);
+            this.close();
+        });
+
+        // Handle Enter key
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                this.onSubmit(input.value);
+                this.close();
+            }
+        });
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
 }
 
