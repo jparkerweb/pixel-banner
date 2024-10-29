@@ -913,7 +913,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.5.3 - v2.5.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)</li>\n<li><code>Folder Images</code> keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>Fix issue where a defined &quot;Folder Images&quot; path of root <code>/</code> was not being respected</li>\n<li>fix description message in settings not appearing correctly</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.5.4 - v2.5.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)</li>\n<li><code>Folder Images</code> keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>&quot;Pinnings&quot; now correctly updates note frontmatter to use local image when saving if the note didn&#39;t already have a banner field</li>\n<li>Fix issue where a defined &quot;Folder Images&quot; path of root <code>/</code> was not being respected</li>\n<li>Description messages in settings page is now rendering properly acoss all tabs</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1598,7 +1598,7 @@ function addPinIcon(noteElement, imageUrl, plugin) {
 async function handlePinIconClick(imageUrl, plugin) {
   const imageBlob = await fetchImage(imageUrl);
   const imagePath = await saveImageLocally(imageBlob, plugin);
-  await updateNoteFrontmatter(imagePath);
+  await updateNoteFrontmatter(imagePath, plugin);
   hidePinIcon();
 }
 async function fetchImage(url) {
@@ -1636,11 +1636,33 @@ async function saveImageLocally(arrayBuffer, plugin) {
   await vault.createBinary(filePath, arrayBuffer);
   return filePath;
 }
-async function updateNoteFrontmatter(imagePath) {
+async function updateNoteFrontmatter(imagePath, plugin) {
   const activeFile = app.workspace.getActiveFile();
   if (!activeFile) return;
   const fileContent = await app.vault.read(activeFile);
-  const updatedContent = fileContent.replace(/banner:\s*.+/, `banner: ${imagePath}`);
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+  const hasFrontmatter = frontmatterRegex.test(fileContent);
+  const bannerField = Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0 ? plugin.settings.customBannerField[0] : "banner";
+  let updatedContent;
+  if (hasFrontmatter) {
+    updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+      const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
+      if (bannerRegex.test(frontmatter)) {
+        return match.replace(bannerRegex, `${bannerField}: ${imagePath}`);
+      } else {
+        return `---
+${frontmatter.trim()}
+${bannerField}: ${imagePath}
+---`;
+      }
+    });
+  } else {
+    updatedContent = `---
+${bannerField}: ${imagePath}
+---
+
+${fileContent}`;
+  }
   await app.vault.modify(activeFile, updatedContent);
 }
 function hidePinIcon() {

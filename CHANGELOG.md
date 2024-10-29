@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.5.4] - 2024-10-27
+
+### Fixed
+- "Pinnings" now correctly updates note frontmatter to use local image when saving if the note didn't already have a banner field
+
 ## [2.5.3] - 2024-10-27
 
 ### Added

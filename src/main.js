@@ -918,7 +918,7 @@ function addPinIcon(noteElement, imageUrl, plugin) {
 async function handlePinIconClick(imageUrl, plugin) {
     const imageBlob = await fetchImage(imageUrl);
     const imagePath = await saveImageLocally(imageBlob, plugin);
-    await updateNoteFrontmatter(imagePath);
+    await updateNoteFrontmatter(imagePath, plugin);
     hidePinIcon();
 }
 
@@ -970,12 +970,38 @@ async function saveImageLocally(arrayBuffer, plugin) {
     return filePath;
 }
 
-async function updateNoteFrontmatter(imagePath) {
+async function updateNoteFrontmatter(imagePath, plugin) {
     const activeFile = app.workspace.getActiveFile();
     if (!activeFile) return;
 
     const fileContent = await app.vault.read(activeFile);
-    const updatedContent = fileContent.replace(/banner:\s*.+/, `banner: ${imagePath}`);
+    const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+    const hasFrontmatter = frontmatterRegex.test(fileContent);
+    
+    // Get the first available banner field name from settings
+    const bannerField = Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0
+        ? plugin.settings.customBannerField[0]  // Use first defined custom field name
+        : 'banner';  // Fallback to 'banner' if no custom fields defined
+
+    let updatedContent;
+    if (hasFrontmatter) {
+        // Update existing frontmatter
+        updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+            // Check if banner field already exists
+            const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
+            if (bannerRegex.test(frontmatter)) {
+                // Update existing banner field
+                return match.replace(bannerRegex, `${bannerField}: ${imagePath}`);
+            } else {
+                // Add new banner field to existing frontmatter
+                return `---\n${frontmatter.trim()}\n${bannerField}: ${imagePath}\n---`;
+            }
+        });
+    } else {
+        // Create new frontmatter
+        updatedContent = `---\n${bannerField}: ${imagePath}\n---\n\n${fileContent}`;
+    }
+
     await app.vault.modify(activeFile, updatedContent);
 }
 
