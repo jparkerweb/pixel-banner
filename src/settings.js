@@ -620,14 +620,46 @@ class PixelBannerSettingTab extends PluginSettingTab {
         const folderInputSetting = new Setting(containerEl)
             .setName('Pinned Images Folder')
             .setDesc('Folder where pinned banner images will be saved')
-            .addText(text => text
-                .setPlaceholder('pixel-banners')
-                .setValue(this.plugin.settings.pinnedImageFolder)
-                .onChange(async (value) => {
-                    // Sanitize the folder path (remove leading/trailing slashes and spaces)
-                    const sanitizedValue = value.trim().replace(/^\/+|\/+$/g, '');
-                    this.plugin.settings.pinnedImageFolder = sanitizedValue || 'pixel-banners';
+            .addText(text => {
+                text.setPlaceholder('pixel-banner-images')
+                    .setValue(this.plugin.settings.pinnedImageFolder)
+                    .onChange(async (value) => {
+                        this.plugin.settings.pinnedImageFolder = value;
+                        await this.plugin.saveSettings();
+                    });
+
+                // Add blur handler for validation
+                text.inputEl.addEventListener('blur', async () => {
+                    let value = text.inputEl.value.trim();
+                    
+                    if (!value) {
+                        value = 'pixel-banner-images';
+                    }
+
+                    text.setValue(value);
+                    this.plugin.settings.pinnedImageFolder = value;
                     await this.plugin.saveSettings();
+                });
+
+                return text;
+            })
+            .addButton(button => button
+                .setButtonText('Clean Orphaned Pins')
+                .setTooltip('Remove pinned images that are not used in any note')
+                .onClick(async () => {
+                    button.setButtonText('🫧 Cleaning...');
+                    button.setDisabled(true);
+                    
+                    try {
+                        const result = await this.plugin.cleanOrphanedPins();
+                        new Notice(`🧼 Cleaned ${result.cleaned} orphaned pinned images`);
+                    } catch (error) {
+                        console.error('Error cleaning orphaned pins:', error);
+                        new Notice('Failed to clean orphaned pins');
+                    } finally {
+                        button.setButtonText('Clean Orphaned Pins');
+                        button.setDisabled(false);
+                    }
                 }));
 
         // Set initial visibility of the folder input

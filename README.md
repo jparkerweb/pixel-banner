@@ -20,6 +20,9 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 - Set a custom start position for the content below the banner image
 - Set the banner image display to cover or contain and adjust wrapping
 - Seamless integration with Obsidian's interface
+- Banner Image Border radius customization
+- Pin API images to your vault for offline use
+- Clean up orphaned pinned images
 
 ## Installation
 
@@ -168,3 +171,14 @@ If you encounter any issues or have suggestions for improvements, please [open a
 ## Credits
 
 This plugin optionally uses the [Pexels](https://www.pexels.com/api/) and [Pixabay](https://pixabay.com/api/docs/) APIs to fetch images. Special thanks to Pexels / Pixabay for providing this service.
+
+## Pin API Images
+When using random images from Pexels or Pixabay, you'll see a pin icon (📌) in the top left corner of the banner. Click this to:
+1. Save the image to your vault
+2. Update your note's frontmatter to use the local image
+3. Never lose that perfect banner image again!
+
+You can configure the save location and manage orphaned pins in settings.
+
+### Banner Configuration
+Add any of these fields to your note's frontmatter:

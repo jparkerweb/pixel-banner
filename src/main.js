@@ -702,6 +702,72 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
         return undefined;
     }
+
+    async cleanOrphanedPins() {
+        const vault = this.app.vault;
+        const folderPath = this.settings.pinnedImageFolder;
+        let cleaned = 0;
+
+        try {
+            // Check if folder exists
+            if (!await vault.adapter.exists(folderPath)) {
+                return { cleaned };
+            }
+
+            // Get all pinned images
+            const pinnedFolder = vault.getAbstractFileByPath(folderPath);
+            if (!pinnedFolder || !pinnedFolder.children) {
+                return { cleaned };
+            }
+
+            // Define common image extensions
+            const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'];
+            
+            const pinnedImages = pinnedFolder.children
+                .filter(file => imageExtensions.includes(file.extension.toLowerCase()))
+                .map(file => file.path);
+
+            if (!pinnedImages.length) {
+                return { cleaned };
+            }
+
+            // Get all markdown files
+            const markdownFiles = this.app.vault.getMarkdownFiles();
+            
+            // Get all banner field names to check
+            const bannerFields = this.settings.customBannerField;
+
+            // Create a Set of all images referenced in frontmatter
+            const referencedImages = new Set();
+            
+            for (const file of markdownFiles) {
+                const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+                if (frontmatter) {
+                    for (const field of bannerFields) {
+                        const bannerValue = frontmatter[field];
+                        if (bannerValue && typeof bannerValue === 'string') {
+                            // Handle both formats: with and without brackets
+                            const cleanPath = bannerValue.replace(/[\[\]]/g, '').trim();
+                            referencedImages.add(cleanPath);
+                        }
+                    }
+                }
+            }
+
+            // Delete unreferenced images
+            for (const imagePath of pinnedImages) {
+                if (!referencedImages.has(imagePath)) {
+                    await vault.trash(vault.getAbstractFileByPath(imagePath), true);
+                    cleaned++;
+                }
+            }
+
+            return { cleaned };
+        } catch (error) {
+            console.error('Error in cleanOrphanedPins:', error);
+            throw error;
+        }
+    }
 }
 
 // Add this helper function at the top level
@@ -772,7 +838,7 @@ async function saveImageLocally(arrayBuffer, plugin) {
     }
 
     // Prompt user for filename
-    const suggestedName = 'banner-';
+    const suggestedName = 'pixel-banner-image';
     const userInput = await new Promise((resolve) => {
         const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
             resolve(result);

@@ -2,6 +2,19 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.5.0] - 2024-10-27
+
+### Added
+- Pin Icon Feature: Save API images to your vault
+  - Click the pin icon (📌) to save random banner images locally
+  - Choose custom filenames when saving
+  - Automatically updates note frontmatter to use local image
+  - Configure save location in settings
+- Orphaned Pins Cleanup: New utility to remove unused pinned images
+  - Clean up button in settings
+  - Safely moves unused images to trash
+  - Checks all custom banner field names
+
 ## [2.4.0] - 2024-10-26
 
 ### Added

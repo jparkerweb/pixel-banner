@@ -61,5 +61,7 @@
   "borderRadius": 17,
   "customBorderRadiusField": [
     "banner-radius"
-  ]
+  ],
+  "showPinIcon": true,
+  "pinnedImageFolder": "pixel-banners"
 }
