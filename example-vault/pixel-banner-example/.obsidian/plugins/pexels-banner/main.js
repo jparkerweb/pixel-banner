@@ -38,7 +38,7 @@ var DEFAULT_SETTINGS = {
   borderRadius: 17,
   customBorderRadiusField: ["banner-radius"],
   showPinIcon: true,
-  pinnedImageFolder: "pixel-banners",
+  pinnedImageFolder: "pixel-banner-images",
   showReleaseNotes: true,
   lastVersion: null
 };
@@ -368,14 +368,14 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         tabsEl.querySelectorAll(".pixel-banner-settings-tab").forEach((tab) => tab.removeClass("active"));
         tabContentContainer.querySelectorAll(".tab-content").forEach((content) => content.style.display = "none");
         tabEl.addClass("active");
-        tabContentContainer.querySelector(`.tab-content[data-tab="${tabName}"]`).style.display = "block";
+        tabContentContainer.querySelector(`.tab-content[data-tab="${tabName}"]`).style.display = "flex";
       });
     });
     return { tabsEl, tabContentContainer };
   }
   createAPISettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
     new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
       this.plugin.settings.apiProvider = value;
       await this.plugin.saveSettings();
@@ -503,8 +503,8 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     defaultKeywordsSetting.settingEl.style.flexDirection = "column";
   }
   createGeneralSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: "Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings." });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: "Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings." });
     new import_obsidian.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
       (slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
         this.plugin.settings.yPosition = value;
@@ -647,8 +647,8 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     }));
   }
   createCustomFieldsSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
     const customFields = [
       {
         setting: "customBannerField",
@@ -730,8 +730,8 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     });
   }
   createFolderSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "callout" });
-    calloutEl.createEl("p", { text: "Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings." });
+    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+    calloutEl.createEl("div", { text: 'Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings. To get started, add a folder image setting and click the "+ Add Folder Image Setting" button below.' });
     const folderImagesContainer = containerEl.createDiv("folder-images-container");
     const updateFolderSettings = () => {
       var _a, _b;
@@ -913,7 +913,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New in v2.5.0</h2>\n<h3>Added</h3>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New in v2.5.1</h2>\n<h3>v2.5.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>fix description message in settings not appearing correctly</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {

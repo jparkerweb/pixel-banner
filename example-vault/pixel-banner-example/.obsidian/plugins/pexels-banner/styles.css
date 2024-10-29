@@ -44,6 +44,10 @@
     overflow: hidden;
 }
 
+/* pin icon */
+.pin-icon {
+    z-index: var(--layer-modal);
+}
 
 /* ------------------------------------------------------------------ */
 /* -- push frontmatter container down to give room to banner image -- */
@@ -289,11 +293,18 @@
 
 .setting-item.folder-image-setting > div { min-height: 50px; }
 
-.pixel-banner-settings .callout {
+.pixel-banner-settings .tab-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.pixel-banner-settings .tab-callout {
   position: relative;
+  display: flex;
+  flex-direction: column;
   z-index: 1;
-  margin: 1em 0;
-  padding: 0 1em;
+  margin: 0 0 1em;
+  padding: .5em 1em;
   background-color: var(--background-primary-alt);
   border: 1px solid var(--background-modifier-border);
   border-radius: 5px;
@@ -311,8 +322,6 @@
   z-index: 3;
   position: relative;
 }
-
-/* Remove any inline styles from the callout in settings.js */
 
 /* Release Notes Modal */
 .release-notes-container {
