@@ -8,7 +8,7 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/main.js
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 
 // src/settings.js
 var import_obsidian = require("obsidian");
@@ -38,7 +38,9 @@ var DEFAULT_SETTINGS = {
   borderRadius: 17,
   customBorderRadiusField: ["banner-radius"],
   showPinIcon: true,
-  pinnedImageFolder: "pixel-banners"
+  pinnedImageFolder: "pixel-banners",
+  showReleaseNotes: true,
+  lastVersion: null
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -631,6 +633,18 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.borderRadius;
       inputEl.dispatchEvent(new Event("input"));
     }));
+    new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
+      this.plugin.settings.showReleaseNotes = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
+      await this.plugin.saveSettings();
+      const toggleEl = button.extraSettingsEl.parentElement.querySelector(".checkbox-container input");
+      if (toggleEl) {
+        toggleEl.checked = DEFAULT_SETTINGS.showReleaseNotes;
+        toggleEl.dispatchEvent(new Event("change"));
+      }
+    }));
   }
   createCustomFieldsSettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "callout" });
@@ -857,8 +871,52 @@ async function testPixabayApi(apiKey) {
   }
 }
 
+// src/modals.js
+var import_obsidian2 = require("obsidian");
+var ReleaseNotesModal = class extends import_obsidian2.Modal {
+  constructor(app2, version, releaseNotes2) {
+    super(app2);
+    this.version = version;
+    this.releaseNotes = releaseNotes2;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: `Welcome to \u{1F6A9} Pixel Banner v${this.version}` });
+    contentEl.createEl("p", {
+      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab."
+    });
+    const kofiContainer = contentEl.createEl("div");
+    kofiContainer.style.textAlign = "right";
+    const kofiLink = kofiContainer.createEl("a", {
+      href: "https://ko-fi.com/Z8Z212UMBI",
+      target: "_blank"
+    });
+    kofiLink.createEl("img", {
+      attr: {
+        height: "36",
+        style: "border:0px;height:36px;",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png",
+        border: "0",
+        alt: "Buy Me a Coffee at ko-fi.com"
+      }
+    });
+    const notesContainer = contentEl.createDiv("release-notes-container");
+    notesContainer.innerHTML = this.releaseNotes;
+    contentEl.createEl("div", { cls: "release-notes-spacer" }).style.height = "20px";
+    new import_obsidian2.Setting(contentEl).addButton((btn) => btn.setButtonText("Close").onClick(() => this.close()));
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+
+// virtual-module:virtual:release-notes
+var releaseNotes = "<h2>\u{1F389} What&#39;s New in v2.5.0</h2>\n<h3>Added</h3>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
+
 // src/main.js
-module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
+module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "debounceTimer", null);
@@ -874,13 +932,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && activeLeaf.view instanceof import_obsidian2.MarkdownView) {
+      if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
         this.updateBanner(activeLeaf.view, false);
       }
     }, 100));
   }
   async onload() {
     await this.loadSettings();
+    await this.checkVersion();
     this.addSettingTab(new PixelBannerSettingTab(this.app, this));
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", this.handleActiveLeafChange.bind(this))
@@ -941,14 +1000,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
   }
   async handleActiveLeafChange(leaf) {
-    if (leaf && leaf.view instanceof import_obsidian2.MarkdownView && leaf.view.file) {
+    if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, false);
     }
   }
   async handleMetadataChange(file) {
     var _a;
     const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view instanceof import_obsidian2.MarkdownView && activeLeaf.view.file && activeLeaf.view.file === file) {
+    if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView && activeLeaf.view.file && activeLeaf.view.file === file) {
       const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
       const cachedFrontmatter = this.lastFrontmatter.get(file.path);
       if (this.isFrontmatterChange(cachedFrontmatter, currentFrontmatter)) {
@@ -965,13 +1024,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
   handleLayoutChange() {
     setTimeout(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && (activeLeaf.view instanceof import_obsidian2.MarkdownView || activeLeaf.view.getViewType() === "markdown")) {
+      if (activeLeaf && (activeLeaf.view instanceof import_obsidian3.MarkdownView || activeLeaf.view.getViewType() === "markdown")) {
         this.updateBanner(activeLeaf.view, false);
       }
     }, 100);
   }
   async handleModeChange(leaf) {
-    if (leaf && leaf.view instanceof import_obsidian2.MarkdownView && leaf.view.file) {
+    if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, true);
     }
   }
@@ -1188,7 +1247,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
   async fetchPexelsImage(keyword) {
     const apiKey = this.settings.pexelsApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Pexels API key is not set. Please set it in the plugin settings.");
+      new import_obsidian3.Notice("Pexels API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const now = Date.now();
@@ -1201,7 +1260,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     const keywords = [keyword, fallbackKeyword];
     for (const currentKeyword of keywords) {
       try {
-        const response = await (0, import_obsidian2.requestUrl)({
+        const response = await (0, import_obsidian3.requestUrl)({
           url: `https://api.pexels.com/v1/search?query=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&size=${this.settings.imageSize}&orientation=${this.settings.imageOrientation}`,
           method: "GET",
           headers: {
@@ -1230,7 +1289,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
         }
       } catch (error) {
         console.error(`Error fetching image from API for keyword "${currentKeyword}":`, error);
-        new import_obsidian2.Notice(`Failed to fetch image: ${error.message}`);
+        new import_obsidian3.Notice(`Failed to fetch image: ${error.message}`);
       }
     }
     console.error("No images found for any keywords, including the random default.");
@@ -1239,7 +1298,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
   async fetchPixabayImage(keyword) {
     const apiKey = this.settings.pixabayApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Pixabay API key is not set. Please set it in the plugin settings.");
+      new import_obsidian3.Notice("Pixabay API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
@@ -1288,7 +1347,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian2.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
+    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
     return null;
   }
   async makeRequest(url) {
@@ -1298,7 +1357,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
     }
     this.rateLimiter.lastRequestTime = Date.now();
     try {
-      const response = await (0, import_obsidian2.requestUrl)({ url });
+      const response = await (0, import_obsidian3.requestUrl)({ url });
       return response;
     } catch (error) {
       console.error("Request failed:", error);
@@ -1445,6 +1504,19 @@ module.exports = class PixelBannerPlugin extends import_obsidian2.Plugin {
       throw error;
     }
   }
+  async checkVersion() {
+    const currentVersion = this.manifest.version;
+    const lastVersion = this.settings.lastVersion;
+    if (this.settings.showReleaseNotes && (!lastVersion || lastVersion !== currentVersion)) {
+      const releaseNotes2 = await this.getReleaseNotes(currentVersion);
+      new ReleaseNotesModal(this.app, currentVersion, releaseNotes2).open();
+      this.settings.lastVersion = currentVersion;
+      await this.saveSettings();
+    }
+  }
+  async getReleaseNotes(version) {
+    return releaseNotes;
+  }
 };
 function getFrontmatterValue(frontmatter, fieldNames) {
   if (!frontmatter || !Array.isArray(fieldNames)) return void 0;
@@ -1475,7 +1547,7 @@ function addPinIcon(noteElement, imageUrl, plugin) {
       await handlePinIconClick(imageUrl, plugin);
     } catch (error) {
       console.error("Error pinning image:", error);
-      new import_obsidian2.Notice("\u{1F62D} Failed to pin the image.");
+      new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
     }
   });
   noteElement.appendChild(pinIcon);
@@ -1532,7 +1604,7 @@ function hidePinIcon() {
   const pinIcon = document.querySelector(".pin-icon");
   if (pinIcon) pinIcon.style.display = "none";
 }
-var SaveImageModal = class extends import_obsidian2.Modal {
+var SaveImageModal = class extends import_obsidian3.Modal {
   constructor(app2, suggestedName, onSubmit) {
     super(app2);
     this.suggestedName = suggestedName;

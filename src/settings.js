@@ -27,6 +27,8 @@ const DEFAULT_SETTINGS = {
     customBorderRadiusField: ['banner-radius'],
     showPinIcon: true,
     pinnedImageFolder: 'pixel-banners',
+    showReleaseNotes: true,
+    lastVersion: null,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -967,6 +969,29 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
                     inputEl.value = DEFAULT_SETTINGS.borderRadius;
                     inputEl.dispatchEvent(new Event('input'));
+                }));
+
+        new Setting(containerEl)
+            .setName('Show Release Notes')
+            .setDesc('Show release notes after plugin updates')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showReleaseNotes)
+                .onChange(async (value) => {
+                    this.plugin.settings.showReleaseNotes = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
+                    await this.plugin.saveSettings();
+                    // Update the toggle state
+                    const toggleEl = button.extraSettingsEl.parentElement.querySelector('.checkbox-container input');
+                    if (toggleEl) {
+                        toggleEl.checked = DEFAULT_SETTINGS.showReleaseNotes;
+                        toggleEl.dispatchEvent(new Event('change'));
+                    }
                 }));
     }
 

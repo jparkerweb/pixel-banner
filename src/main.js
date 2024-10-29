@@ -1,5 +1,7 @@
 import { Plugin, MarkdownView, requestUrl, Notice, Modal } from 'obsidian';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
+import { ReleaseNotesModal } from './modals';
+import { releaseNotes } from 'virtual:release-notes';
 
 module.exports = class PixelBannerPlugin extends Plugin {
     debounceTimer = null;
@@ -15,6 +17,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     async onload() {
         await this.loadSettings();
+        
+        // Check version and show release notes if needed
+        await this.checkVersion();
+        
         this.addSettingTab(new PixelBannerSettingTab(this.app, this));
         
         this.registerEvent(
@@ -767,6 +773,29 @@ module.exports = class PixelBannerPlugin extends Plugin {
             console.error('Error in cleanOrphanedPins:', error);
             throw error;
         }
+    }
+
+    async checkVersion() {
+        const currentVersion = this.manifest.version;
+        const lastVersion = this.settings.lastVersion;
+
+        if (this.settings.showReleaseNotes && 
+            (!lastVersion || lastVersion !== currentVersion)) {
+            
+            // Get release notes for current version
+            const releaseNotes = await this.getReleaseNotes(currentVersion);
+            
+            // Show the modal
+            new ReleaseNotesModal(this.app, currentVersion, releaseNotes).open();
+            
+            // Update the last shown version
+            this.settings.lastVersion = currentVersion;
+            await this.saveSettings();
+        }
+    }
+
+    async getReleaseNotes(version) {
+        return releaseNotes;
     }
 }
 

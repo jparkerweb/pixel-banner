@@ -63,5 +63,7 @@
     "banner-radius"
   ],
   "showPinIcon": true,
-  "pinnedImageFolder": "pixel-banners"
+  "pinnedImageFolder": "pixel-banners",
+  "showReleaseNotes": true,
+  "lastVersion": "2.5.0"
 }
