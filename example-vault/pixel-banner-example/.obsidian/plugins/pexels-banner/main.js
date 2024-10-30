@@ -920,7 +920,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.3</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners</li>\n<li>Fixed caching issue where banners from notes viewed previously would display on new/other notes</li>\n</ul>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1066,6 +1066,21 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
   }
   async handleActiveLeafChange(leaf) {
+    const previousLeaf = this.app.workspace.activeLeaf;
+    if (previousLeaf && previousLeaf.view instanceof import_obsidian3.MarkdownView) {
+      const previousContentEl = previousLeaf.view.contentEl;
+      previousContentEl.classList.remove("pixel-banner");
+      ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
+        const container = previousContentEl.querySelector(`.${selector}`);
+        if (container) {
+          const previousBanner = container.querySelector(".pixel-banner-image");
+          if (previousBanner) {
+            previousBanner.style.backgroundImage = "";
+            previousBanner.style.display = "none";
+          }
+        }
+      });
+    }
     if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, false);
     }
@@ -1101,218 +1116,88 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
   }
   async updateBanner(view, isContentChange) {
-    var _a;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
     if (!view || !view.file) {
       return;
     }
     const frontmatter = (_a = this.app.metadataCache.getFileCache(view.file)) == null ? void 0 : _a.frontmatter;
     const contentEl = view.contentEl;
-    let yPosition = this.settings.yPosition;
-    let contentStartPosition = this.settings.contentStartPosition;
-    let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField);
-    if (bannerImage && typeof bannerImage === "string" && !bannerImage.startsWith("[[")) {
-      const bannerValues = bannerImage.includes(",") ? bannerImage.split(",").map((v) => v.trim()).filter((v) => v.length > 0).filter(Boolean) : [bannerImage];
-      if (bannerValues.length > 0) {
-        bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-      } else {
-        bannerImage = null;
-      }
-    }
-    if (Array.isArray(bannerImage)) {
-      bannerImage = bannerImage.flat()[0];
-      bannerImage = `[[${bannerImage}]]`;
-    }
-    const folderSpecific = this.getFolderSpecificImage(view.file.path);
-    if (folderSpecific) {
-      bannerImage = bannerImage || folderSpecific.image;
-      yPosition = folderSpecific.yPosition;
-      contentStartPosition = folderSpecific.contentStartPosition;
-    }
-    if (frontmatter) {
-      const customYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
-      if (customYPosition !== void 0) {
-        yPosition = customYPosition;
-      }
-      const customContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
-      if (customContentStart !== void 0) {
-        contentStartPosition = customContentStart;
+    const isEmbedded = view.contentEl.classList.contains("internal-embed");
+    const existingBanner = contentEl.querySelector(".pixel-banner-image");
+    if (!isEmbedded) {
+      contentEl.classList.remove("pixel-banner");
+      if (existingBanner) {
+        existingBanner.style.backgroundImage = "";
+        existingBanner.style.display = "none";
       }
     }
     if (isContentChange) {
       this.loadedImages.delete(view.file.path);
       this.lastKeywords.delete(view.file.path);
     }
-    await this.addPixelBanner(contentEl, {
-      frontmatter,
-      file: view.file,
-      isContentChange,
-      yPosition,
-      contentStartPosition,
-      customBannerField: this.settings.customBannerField,
-      customYPositionField: this.settings.customYPositionField,
-      customContentStartField: this.settings.customContentStartField,
-      bannerImage,
-      isReadingView: view.getMode && view.getMode() === "preview"
-    });
-    this.lastYPositions.set(view.file.path, yPosition);
-    const embeddedNotes = contentEl.querySelectorAll(".internal-embed");
-    for (const embed of embeddedNotes) {
-      const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute("src"), "");
-      if (embedFile) {
-        const embedView = {
-          file: embedFile,
-          contentEl: embed,
-          getMode: () => "preview"
-        };
-        await this.updateBanner(embedView, false);
-      }
-    }
-  }
-  async addPixelBanner(el, ctx) {
-    var _a, _b, _c, _d, _e, _f;
-    const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
-    const viewContent = el;
-    const isEmbedded = viewContent.classList.contains("internal-embed");
-    if (!isEmbedded && !viewContent.classList.contains("view-content")) {
-      return;
-    }
-    viewContent.classList.toggle("pixel-banner", !!bannerImage);
-    let container;
-    if (isEmbedded) {
-      container = viewContent.querySelector(".markdown-embed-content");
-    } else {
-      container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") : viewContent.querySelector(".cm-sizer");
-    }
-    if (!container) {
-      return;
-    }
-    let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
-    let pinIcon = container.querySelector(":scope > .pin-icon");
-    if (!bannerDiv) {
-      bannerDiv = createDiv({ cls: "pixel-banner-image" });
-      container.insertBefore(bannerDiv, container.firstChild);
-      bannerDiv._isPersistentBanner = true;
-      if (!isEmbedded && this.settings.showPinIcon) {
-        pinIcon = createDiv({ cls: "pin-icon" });
-        pinIcon.style.position = "absolute";
-        pinIcon.style.top = "10px";
-        pinIcon.style.left = "5px";
-        pinIcon.style.fontSize = "1.5em";
-        pinIcon.style.cursor = "pointer";
-        pinIcon.innerHTML = "\u{1F4CC}";
-        pinIcon._isPersistentPin = true;
-        container.insertBefore(pinIcon, bannerDiv.nextSibling);
-        if (this.settings.showRefreshIcon) {
-          const refreshIcon = createDiv({ cls: "refresh-icon" });
-          refreshIcon.style.position = "absolute";
-          refreshIcon.style.top = "10px";
-          refreshIcon.style.left = "40px";
-          refreshIcon.style.fontSize = "1.5em";
-          refreshIcon.style.cursor = "pointer";
-          refreshIcon.innerHTML = "\u{1F504}";
-          refreshIcon._isPersistentRefresh = true;
-          container.insertBefore(refreshIcon, pinIcon.nextSibling);
-        }
-      }
-      if (!container._hasOverriddenSetChildrenInPlace) {
-        const originalSetChildrenInPlace = container.setChildrenInPlace;
-        container.setChildrenInPlace = function(children) {
-          const bannerElement = this.querySelector(":scope > .pixel-banner-image");
-          const pinElement = this.querySelector(":scope > .pin-icon");
-          const refreshElement = this.querySelector(":scope > .refresh-icon");
-          children = Array.from(children);
-          if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
-            children = [bannerElement, ...children];
-          }
-          if (pinElement == null ? void 0 : pinElement._isPersistentPin) {
-            children.splice(1, 0, pinElement);
-          }
-          if (refreshElement == null ? void 0 : refreshElement._isPersistentRefresh) {
-            children.splice(2, 0, refreshElement);
-          }
-          originalSetChildrenInPlace.call(this, children);
-        };
-        container._hasOverriddenSetChildrenInPlace = true;
-      }
-    }
+    const folderSpecific = this.getFolderSpecificImage(view.file.path);
+    let yPosition = (_b = folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _b : this.settings.yPosition;
+    let contentStartPosition = (_c = folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _c : this.settings.contentStartPosition;
+    let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
     if (bannerImage) {
-      let imageUrl = this.loadedImages.get(file.path);
-      const lastInput = this.lastKeywords.get(file.path);
-      const inputType = this.getInputType(bannerImage);
-      if (!imageUrl || isContentChange && bannerImage !== lastInput) {
-        imageUrl = await this.getImageUrl(inputType, bannerImage);
-        if (imageUrl) {
-          this.loadedImages.set(file.path, imageUrl);
-          this.lastKeywords.set(file.path, bannerImage);
+      if (Array.isArray(bannerImage)) {
+        bannerImage = bannerImage.flat()[0];
+        bannerImage = `[[${bannerImage}]]`;
+      }
+      if (typeof bannerImage === "string" && !bannerImage.startsWith("[[")) {
+        const bannerValues = bannerImage.includes(",") ? bannerImage.split(",").map((v) => v.trim()).filter((v) => v.length > 0).filter(Boolean) : [bannerImage];
+        if (bannerValues.length > 0) {
+          bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+        } else {
+          bannerImage = null;
         }
       }
-      if (imageUrl) {
-        bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-        bannerDiv.style.backgroundPosition = `center ${yPosition}%`;
-        bannerDiv.style.backgroundSize = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || this.getFolderSpecificSetting(file.path, "imageDisplay") || this.settings.imageDisplay || "cover";
-        const shouldRepeat = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField);
-        if (shouldRepeat !== void 0) {
-          const repeatValue = String(shouldRepeat).toLowerCase() === "true";
-          bannerDiv.style.backgroundRepeat = repeatValue ? "repeat" : "no-repeat";
-        } else {
-          bannerDiv.style.backgroundRepeat = bannerDiv.style.backgroundSize === "contain" && (this.getFolderSpecificSetting(file.path, "imageRepeat") || this.settings.imageRepeat) ? "repeat" : "no-repeat";
-        }
-        const bannerHeight = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField) || this.getFolderSpecificSetting(file.path, "bannerHeight") || this.settings.bannerHeight || 350;
-        bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
-        const fadeValue = (_c = (_b = (_a = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _a : this.getFolderSpecificSetting(file.path, "fade")) != null ? _b : this.settings.fade) != null ? _c : -75;
-        bannerDiv.style.setProperty("--pixel-banner-fade", `${fadeValue}%`);
-        const borderRadius = (_f = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _d : this.getFolderSpecificSetting(file.path, "borderRadius")) != null ? _e : this.settings.borderRadius) != null ? _f : 17;
-        bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
-        bannerDiv.style.display = "block";
-        if (!isEmbedded && inputType === "keyword" && this.settings.showPinIcon) {
-          const refreshIcon = container.querySelector(":scope > .refresh-icon");
-          if (pinIcon) {
-            pinIcon.style.display = "block";
-            pinIcon.onclick = async () => {
-              try {
-                let usedField;
-                for (const field of this.settings.customBannerField) {
-                  if (frontmatter == null ? void 0 : frontmatter[field]) {
-                    usedField = field;
-                    break;
-                  }
-                }
-                await handlePinIconClick(imageUrl, this, usedField);
-              } catch (error) {
-                console.error("Error pinning image:", error);
-                new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
-              }
-            };
+      if (bannerImage && !bannerImage.startsWith("[[") && !bannerImage.startsWith("http")) {
+        const file = this.app.vault.getAbstractFileByPath(bannerImage);
+        if (file && "extension" in file) {
+          if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
+            bannerImage = `[[${bannerImage}]]`;
           }
-          if (refreshIcon && this.settings.showRefreshIcon) {
-            refreshIcon.style.display = "block";
-            refreshIcon.onclick = async () => {
-              try {
-                this.loadedImages.delete(file.path);
-                this.lastKeywords.delete(file.path);
-                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
-                new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
-              } catch (error) {
-                console.error("Error refreshing image:", error);
-                new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
-              }
-            };
-          }
-        } else {
-          if (pinIcon) pinIcon.style.display = "none";
-          const refreshIcon = container.querySelector(":scope > .refresh-icon");
-          if (refreshIcon) refreshIcon.style.display = "none";
         }
-      } else {
-        bannerDiv.style.display = "none";
-        if (pinIcon) pinIcon.style.display = "none";
-        const refreshIcon = container.querySelector(":scope > .refresh-icon");
-        if (refreshIcon) refreshIcon.style.display = "none";
-        this.loadedImages.delete(file.path);
-        this.lastKeywords.delete(file.path);
-        this.applyContentStartPosition(viewContent, 0);
       }
-      this.applyContentStartPosition(viewContent, contentStartPosition);
+    }
+    let imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
+    let imageRepeat = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField)) != null ? _d : folderSpecific == null ? void 0 : folderSpecific.imageRepeat) != null ? _e : this.settings.imageRepeat;
+    let bannerHeight = (_g = (_f = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField)) != null ? _f : folderSpecific == null ? void 0 : folderSpecific.bannerHeight) != null ? _g : this.settings.bannerHeight;
+    let fade = (_i = (_h = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _h : folderSpecific == null ? void 0 : folderSpecific.fade) != null ? _i : this.settings.fade;
+    let borderRadius = (_k = (_j = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _j : folderSpecific == null ? void 0 : folderSpecific.borderRadius) != null ? _k : this.settings.borderRadius;
+    if (bannerImage) {
+      await this.addPixelBanner(contentEl, {
+        frontmatter,
+        file: view.file,
+        isContentChange,
+        yPosition,
+        contentStartPosition,
+        bannerImage,
+        imageDisplay,
+        imageRepeat,
+        bannerHeight,
+        fade,
+        borderRadius,
+        isReadingView: view.getMode && view.getMode() === "preview"
+      });
+      this.lastYPositions.set(view.file.path, yPosition);
+    } else if (existingBanner) {
+      existingBanner.style.display = "none";
+    }
+    if (!isEmbedded) {
+      const embeddedNotes = contentEl.querySelectorAll(".internal-embed");
+      for (const embed of embeddedNotes) {
+        const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute("src"), "");
+        if (embedFile) {
+          const embedView = {
+            file: embedFile,
+            contentEl: embed,
+            getMode: () => "preview"
+          };
+          await this.updateBanner(embedView, false);
+        }
+      }
     }
   }
   setupMutationObserver() {
@@ -1328,6 +1213,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
             (node) => node.nodeType === Node.ELEMENT_NODE && (node.classList.contains("markdown-preview-section") || node.classList.contains("cm-content"))
           );
           if (bannerRemoved || contentChanged) {
+            const activeLeaf = this.app.workspace.activeLeaf;
+            if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
+              const contentEl = activeLeaf.view.contentEl;
+              const hasBanner = contentEl.querySelector('.pixel-banner-image[style*="display: block"]');
+              if (!hasBanner) {
+                contentEl.classList.remove("pixel-banner");
+              }
+            }
             this.debouncedEnsureBanner();
           }
         }
@@ -1340,51 +1233,51 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   getFolderSpecificImage(filePath) {
     const folderPath = this.getFolderPath(filePath);
-    for (const folderImage of this.settings.folderImages) {
-      let folderBannerImage = folderImage.image;
-      if (folderBannerImage && typeof folderBannerImage === "string" && !folderBannerImage.startsWith("[[")) {
-        const bannerValues = folderBannerImage.includes(",") ? folderBannerImage.split(",").map((v) => v.trim()).filter((v) => v.length > 0).filter(Boolean) : [folderBannerImage];
-        if (bannerValues.length > 0) {
-          folderBannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-        } else {
-          folderBannerImage = null;
-        }
+    const sortedFolderImages = [...this.settings.folderImages].sort(
+      (a, b) => {
+        var _a, _b;
+        return (((_a = b.folder) == null ? void 0 : _a.length) || 0) - (((_b = a.folder) == null ? void 0 : _b.length) || 0);
       }
+    );
+    for (const folderImage of sortedFolderImages) {
+      if (!folderImage.folder) continue;
       if (folderImage.folder === "/") {
         if (folderImage.directChildrenOnly) {
           if (!filePath.includes("/")) {
-            return {
-              image: folderBannerImage,
-              yPosition: folderImage.yPosition,
-              contentStartPosition: folderImage.contentStartPosition
-            };
+            return this.createFolderImageSettings(folderImage);
           }
         } else {
-          return {
-            image: folderBannerImage,
-            yPosition: folderImage.yPosition,
-            contentStartPosition: folderImage.contentStartPosition
-          };
+          return this.createFolderImageSettings(folderImage);
         }
         continue;
       }
+      const normalizedFolderPath = folderImage.folder.startsWith("/") ? folderImage.folder : "/" + folderImage.folder;
+      const normalizedFileFolderPath = "/" + folderPath;
       if (folderImage.directChildrenOnly) {
-        if (folderPath === folderImage.folder) {
-          return {
-            image: folderBannerImage,
-            yPosition: folderImage.yPosition,
-            contentStartPosition: folderImage.contentStartPosition
-          };
+        if (normalizedFileFolderPath === normalizedFolderPath) {
+          return this.createFolderImageSettings(folderImage);
         }
-      } else if (folderPath.startsWith(folderImage.folder)) {
-        return {
-          image: folderBannerImage,
-          yPosition: folderImage.yPosition,
-          contentStartPosition: folderImage.contentStartPosition
-        };
+      } else {
+        if (normalizedFileFolderPath.startsWith(normalizedFolderPath)) {
+          return this.createFolderImageSettings(folderImage);
+        }
       }
     }
     return null;
+  }
+  // Helper method to create folder image settings object
+  createFolderImageSettings(folderImage) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    return {
+      image: folderImage.image,
+      yPosition: (_a = folderImage.yPosition) != null ? _a : this.settings.yPosition,
+      contentStartPosition: (_b = folderImage.contentStartPosition) != null ? _b : this.settings.contentStartPosition,
+      imageDisplay: (_c = folderImage.imageDisplay) != null ? _c : this.settings.imageDisplay,
+      imageRepeat: (_d = folderImage.imageRepeat) != null ? _d : this.settings.imageRepeat,
+      bannerHeight: (_e = folderImage.bannerHeight) != null ? _e : this.settings.bannerHeight,
+      fade: (_f = folderImage.fade) != null ? _f : this.settings.fade,
+      borderRadius: (_g = folderImage.borderRadius) != null ? _g : this.settings.borderRadius
+    };
   }
   getFolderPath(filePath) {
     if (!filePath.includes("/")) {
@@ -1557,7 +1450,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       return "invalid";
     }
     input = input.trim().replace(/^["'](.*)["']$/, "$1");
-    if (input.startsWith("[[") && input.endsWith("]]")) {
+    if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?\[{2}.*\]{2}"?$/)) {
       return "obsidianLink";
     }
     try {
@@ -1693,6 +1586,128 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   async getReleaseNotes(version) {
     return releaseNotes;
+  }
+  async addPixelBanner(el, ctx) {
+    const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
+    const viewContent = el;
+    const isEmbedded = viewContent.classList.contains("internal-embed");
+    let container;
+    if (isEmbedded) {
+      container = viewContent.querySelector(".markdown-preview-sizer");
+      if (!container) {
+        container = viewContent.querySelector(".markdown-embed-content");
+      }
+      if (!container) {
+        container = viewContent;
+      }
+    } else {
+      container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") : viewContent.querySelector(".cm-sizer");
+    }
+    if (!container) {
+      return;
+    }
+    let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
+    let pinIcon = container.querySelector(":scope > .pin-icon");
+    if (!bannerDiv) {
+      bannerDiv = createDiv({ cls: "pixel-banner-image" });
+      container.insertBefore(bannerDiv, container.firstChild);
+      bannerDiv._isPersistentBanner = true;
+      if (!isEmbedded && this.settings.showPinIcon) {
+        pinIcon = createDiv({ cls: "pin-icon" });
+        pinIcon.style.position = "absolute";
+        pinIcon.style.top = "10px";
+        pinIcon.style.left = "5px";
+        pinIcon.style.fontSize = "1.5em";
+        pinIcon.style.cursor = "pointer";
+        pinIcon.innerHTML = "\u{1F4CC}";
+        pinIcon._isPersistentPin = true;
+        container.insertBefore(pinIcon, bannerDiv.nextSibling);
+        if (this.settings.showRefreshIcon) {
+          const refreshIcon = createDiv({ cls: "refresh-icon" });
+          refreshIcon.style.position = "absolute";
+          refreshIcon.style.top = "10px";
+          refreshIcon.style.left = "40px";
+          refreshIcon.style.fontSize = "1.5em";
+          refreshIcon.style.cursor = "pointer";
+          refreshIcon.innerHTML = "\u{1F504}";
+          refreshIcon._isPersistentRefresh = true;
+          container.insertBefore(refreshIcon, pinIcon.nextSibling);
+        }
+      }
+    }
+    if (bannerImage) {
+      let imageUrl = this.loadedImages.get(file.path);
+      const lastInput = this.lastKeywords.get(file.path);
+      const inputType = this.getInputType(bannerImage);
+      if (!imageUrl || isContentChange && bannerImage !== lastInput) {
+        imageUrl = await this.getImageUrl(inputType, bannerImage);
+        if (imageUrl) {
+          this.loadedImages.set(file.path, imageUrl);
+          this.lastKeywords.set(file.path, bannerImage);
+        }
+      }
+      if (imageUrl) {
+        bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
+        bannerDiv.style.backgroundPosition = `center ${yPosition}%`;
+        bannerDiv.style.display = "block";
+        this.applyBannerSettings(bannerDiv, ctx);
+        if (!isEmbedded && inputType === "keyword" && this.settings.showPinIcon) {
+          const refreshIcon = container.querySelector(":scope > .refresh-icon");
+          if (pinIcon) {
+            pinIcon.style.display = "block";
+            pinIcon.onclick = async () => {
+              try {
+                let usedField;
+                for (const field of this.settings.customBannerField) {
+                  if (frontmatter == null ? void 0 : frontmatter[field]) {
+                    usedField = field;
+                    break;
+                  }
+                }
+                await handlePinIconClick(imageUrl, this, usedField);
+              } catch (error) {
+                console.error("Error pinning image:", error);
+                new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
+              }
+            };
+          }
+          if (refreshIcon && this.settings.showRefreshIcon) {
+            refreshIcon.style.display = "block";
+            refreshIcon.onclick = async () => {
+              try {
+                this.loadedImages.delete(file.path);
+                this.lastKeywords.delete(file.path);
+                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
+                new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
+              } catch (error) {
+                console.error("Error refreshing image:", error);
+                new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
+              }
+            };
+          }
+        } else {
+          if (pinIcon) pinIcon.style.display = "none";
+          const refreshIcon = container.querySelector(":scope > .refresh-icon");
+          if (refreshIcon) refreshIcon.style.display = "none";
+        }
+      } else {
+        bannerDiv.style.display = "none";
+        if (pinIcon) pinIcon.style.display = "none";
+        const refreshIcon = container.querySelector(":scope > .refresh-icon");
+        if (refreshIcon) refreshIcon.style.display = "none";
+        this.loadedImages.delete(file.path);
+        this.lastKeywords.delete(file.path);
+      }
+      this.applyContentStartPosition(viewContent, contentStartPosition);
+    }
+  }
+  applyBannerSettings(bannerDiv, ctx) {
+    const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
+    bannerDiv.style.backgroundSize = imageDisplay || "cover";
+    bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
+    bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
+    bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
+    bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
   }
 };
 function getFrontmatterValue(frontmatter, fieldNames) {

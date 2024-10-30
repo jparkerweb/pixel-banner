@@ -40,7 +40,8 @@
 }
 
 /* fix overflow issue with embedded notes */
-.internal-embed:not(.image-embed) {
+.internal-embed:not(.image-embed),
+.internal-embed:not(.image-embed) > .markdown-embed-content > .markdown-preview-view {
     overflow: hidden;
 }
 

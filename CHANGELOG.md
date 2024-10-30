@@ -2,6 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.6.3] - 2024-10-30
+
+### Fixed
+- Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners
+- Fixed caching issue where banners from notes viewed previously would display on new/other notes
+
 ## [2.6.2] - 2024-10-30
 
 ### Added

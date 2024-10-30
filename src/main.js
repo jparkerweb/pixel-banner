@@ -176,6 +176,26 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     async handleActiveLeafChange(leaf) {
+        // Clear the banner from the previous note first
+        const previousLeaf = this.app.workspace.activeLeaf;
+        if (previousLeaf && previousLeaf.view instanceof MarkdownView) {
+            const previousContentEl = previousLeaf.view.contentEl;
+            // Remove pixel-banner class
+            previousContentEl.classList.remove('pixel-banner');
+            // Clean up banner in both edit and preview modes
+            ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
+                const container = previousContentEl.querySelector(`.${selector}`);
+                if (container) {
+                    const previousBanner = container.querySelector('.pixel-banner-image');
+                    if (previousBanner) {
+                        previousBanner.style.backgroundImage = '';
+                        previousBanner.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // Then handle the new leaf
         if (leaf && leaf.view instanceof MarkdownView && leaf.view.file) {
             await this.updateBanner(leaf.view, false);
         }
@@ -223,281 +243,125 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         const frontmatter = this.app.metadataCache.getFileCache(view.file)?.frontmatter;
         const contentEl = view.contentEl;
+        const isEmbedded = view.contentEl.classList.contains('internal-embed');
+
+        // Get existing banner before trying to use it
+        const existingBanner = contentEl.querySelector('.pixel-banner-image');
         
-        let yPosition = this.settings.yPosition;
-        let contentStartPosition = this.settings.contentStartPosition;
-        let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField);
-
-        // Handle comma-delimited banner values in frontmatter
-        if (bannerImage && typeof bannerImage === 'string' && !bannerImage.startsWith('[[')) {
-            const bannerValues = bannerImage.includes(',') 
-                ? bannerImage.split(',')
-                    .map(v => v.trim())
-                    .filter(v => v.length > 0)  // Filter out empty strings
-                    .filter(Boolean)  // Filter out null/undefined/empty values
-                : [bannerImage];
-            
-            // Only select random if we have valid values
-            if (bannerValues.length > 0) {
-                bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-            } else {
-                bannerImage = null; // Reset to null if no valid values
+        // Only clear classes and existing banner for non-embedded notes
+        if (!isEmbedded) {
+            contentEl.classList.remove('pixel-banner');
+            if (existingBanner) {
+                existingBanner.style.backgroundImage = '';
+                existingBanner.style.display = 'none';
             }
         }
 
-        // Flatten the bannerImage if it's an array within an array
-        if (Array.isArray(bannerImage)) {
-            bannerImage = bannerImage.flat()[0];
-            bannerImage = `[[${bannerImage}]]`;
-        }
-
-        // Check for folder-specific settings
-        const folderSpecific = this.getFolderSpecificImage(view.file.path);
-        if (folderSpecific) {
-            bannerImage = bannerImage || folderSpecific.image;
-            yPosition = folderSpecific.yPosition;
-            contentStartPosition = folderSpecific.contentStartPosition;
-        }
-
-        // Override with note-specific settings if available
-        if (frontmatter) {
-            const customYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
-            if (customYPosition !== undefined) {
-                yPosition = customYPosition;
-            }
-            const customContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
-            if (customContentStart !== undefined) {
-                contentStartPosition = customContentStart;
-            }
-        }
-        
+        // Clear the loaded image for this file if it's a content change
         if (isContentChange) {
             this.loadedImages.delete(view.file.path);
             this.lastKeywords.delete(view.file.path);
         }
+
+        // Check for folder-specific settings first
+        const folderSpecific = this.getFolderSpecificImage(view.file.path);
         
-        await this.addPixelBanner(contentEl, { 
-            frontmatter, 
-            file: view.file, 
-            isContentChange,
-            yPosition,
-            contentStartPosition,
-            customBannerField: this.settings.customBannerField,
-            customYPositionField: this.settings.customYPositionField,
-            customContentStartField: this.settings.customContentStartField,
-            bannerImage,
-            isReadingView: view.getMode && view.getMode() === 'preview'
-        });
+        // Initialize settings with either folder-specific or default values
+        let yPosition = folderSpecific?.yPosition ?? this.settings.yPosition;
+        let contentStartPosition = folderSpecific?.contentStartPosition ?? this.settings.contentStartPosition;
+        let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || folderSpecific?.image;
 
-        this.lastYPositions.set(view.file.path, yPosition);
-
-        // Process embedded notes
-        const embeddedNotes = contentEl.querySelectorAll('.internal-embed');
-        for (const embed of embeddedNotes) {
-            const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute('src'), '');
-            if (embedFile) {
-                const embedView = {
-                    file: embedFile,
-                    contentEl: embed,
-                    getMode: () => 'preview'
-                };
-                await this.updateBanner(embedView, false);
-            }
-        }
-    }
-
-    async addPixelBanner(el, ctx) {
-        const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
-        const viewContent = el;
-
-        // Check if this is an embedded note
-        const isEmbedded = viewContent.classList.contains('internal-embed');
-
-        if (!isEmbedded && !viewContent.classList.contains('view-content')) {
-            return;
-        }
-
-        viewContent.classList.toggle('pixel-banner', !!bannerImage);
-
-        let container;
-        if (isEmbedded) {
-            container = viewContent.querySelector('.markdown-embed-content');
-        } else {
-            container = isReadingView 
-                ? viewContent.querySelector('.markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)')
-                : viewContent.querySelector('.cm-sizer');
-        }
-
-        if (!container) {
-            return;
-        }
-
-        let bannerDiv = container.querySelector(':scope > .pixel-banner-image');
-        let pinIcon = container.querySelector(':scope > .pin-icon');
-        
-        if (!bannerDiv) {
-            bannerDiv = createDiv({ cls: 'pixel-banner-image' });
-            container.insertBefore(bannerDiv, container.firstChild);
-            
-            bannerDiv._isPersistentBanner = true;
-            
-            if (!isEmbedded && this.settings.showPinIcon) {
-                pinIcon = createDiv({ cls: 'pin-icon' });
-                pinIcon.style.position = 'absolute';
-                pinIcon.style.top = '10px';
-                pinIcon.style.left = '5px';
-                pinIcon.style.fontSize = '1.5em';
-                pinIcon.style.cursor = 'pointer';
-                pinIcon.innerHTML = '📌';
-                pinIcon._isPersistentPin = true;
-                container.insertBefore(pinIcon, bannerDiv.nextSibling);
-
-                if (this.settings.showRefreshIcon) {
-                    const refreshIcon = createDiv({ cls: 'refresh-icon' });
-                    refreshIcon.style.position = 'absolute';
-                    refreshIcon.style.top = '10px';
-                    refreshIcon.style.left = '40px';
-                    refreshIcon.style.fontSize = '1.5em';
-                    refreshIcon.style.cursor = 'pointer';
-                    refreshIcon.innerHTML = '🔄';
-                    refreshIcon._isPersistentRefresh = true;
-                    container.insertBefore(refreshIcon, pinIcon.nextSibling);
-                }
-            }
-            
-            if (!container._hasOverriddenSetChildrenInPlace) {
-                const originalSetChildrenInPlace = container.setChildrenInPlace;
-                container.setChildrenInPlace = function(children) {
-                    const bannerElement = this.querySelector(':scope > .pixel-banner-image');
-                    const pinElement = this.querySelector(':scope > .pin-icon');
-                    const refreshElement = this.querySelector(':scope > .refresh-icon');
-                    
-                    children = Array.from(children);
-                    if (bannerElement?._isPersistentBanner) {
-                        children = [bannerElement, ...children];
-                    }
-                    if (pinElement?._isPersistentPin) {
-                        children.splice(1, 0, pinElement);
-                    }
-                    if (refreshElement?._isPersistentRefresh) {
-                        children.splice(2, 0, refreshElement);
-                    }
-                    
-                    originalSetChildrenInPlace.call(this, children);
-                };
-                container._hasOverriddenSetChildrenInPlace = true;
-            }
-        }
-
+        // Handle array flattening and internal link formatting
         if (bannerImage) {
-            let imageUrl = this.loadedImages.get(file.path);
-            const lastInput = this.lastKeywords.get(file.path);
-            const inputType = this.getInputType(bannerImage);
+            // Flatten the bannerImage if it's an array within an array
+            if (Array.isArray(bannerImage)) {
+                bannerImage = bannerImage.flat()[0];
+                // Format as internal link
+                bannerImage = `[[${bannerImage}]]`;
+            }
 
-            if (!imageUrl || (isContentChange && bannerImage !== lastInput)) {
-                imageUrl = await this.getImageUrl(inputType, bannerImage);
-                if (imageUrl) {
-                    this.loadedImages.set(file.path, imageUrl);
-                    this.lastKeywords.set(file.path, bannerImage);
+            // Handle comma-delimited banner values in frontmatter
+            if (typeof bannerImage === 'string' && !bannerImage.startsWith('[[')) {
+                const bannerValues = bannerImage.includes(',') 
+                    ? bannerImage.split(',')
+                        .map(v => v.trim())
+                        .filter(v => v.length > 0)  // Filter out empty strings
+                        .filter(Boolean)  // Filter out null/undefined/empty values
+                    : [bannerImage];
+                
+                // Only select random if we have valid values
+                if (bannerValues.length > 0) {
+                    bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+                } else {
+                    bannerImage = null;
                 }
             }
 
-            if (imageUrl) {
-                bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-                bannerDiv.style.backgroundPosition = `center ${yPosition}%`;
-                bannerDiv.style.backgroundSize = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || 
-                    this.getFolderSpecificSetting(file.path, 'imageDisplay') || 
-                    this.settings.imageDisplay || 
-                    'cover';
-                
-                const shouldRepeat = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField);
-                if (shouldRepeat !== undefined) {
-                    // Convert the value to a boolean
-                    const repeatValue = String(shouldRepeat).toLowerCase() === 'true';
-                    bannerDiv.style.backgroundRepeat = repeatValue ? 'repeat' : 'no-repeat';
-                } else {
-                    bannerDiv.style.backgroundRepeat = (bannerDiv.style.backgroundSize === 'contain' && 
-                        (this.getFolderSpecificSetting(file.path, 'imageRepeat') || this.settings.imageRepeat)) ? 'repeat' : 'no-repeat';
-                }
-                
-                // Set the banner height
-                const bannerHeight = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField) ||
-                    this.getFolderSpecificSetting(file.path, 'bannerHeight') ||
-                    this.settings.bannerHeight ||
-                    350;
-                bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
-
-                // Set the fade effect
-                const fadeValue = getFrontmatterValue(frontmatter, this.settings.customFadeField) ??
-                    this.getFolderSpecificSetting(file.path, 'fade') ??
-                    this.settings.fade ??
-                    -75;
-                
-                // Apply the fade value directly as a percentage
-                bannerDiv.style.setProperty('--pixel-banner-fade', `${fadeValue}%`);
-
-                // Set the border radius
-                const borderRadius = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField) ??
-                    this.getFolderSpecificSetting(file.path, 'borderRadius') ??
-                    this.settings.borderRadius ??
-                    17;
-                bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
-                
-                bannerDiv.style.display = 'block';
-
-                if (!isEmbedded && inputType === 'keyword' && this.settings.showPinIcon) {
-                    const refreshIcon = container.querySelector(':scope > .refresh-icon');
-                    
-                    if (pinIcon) {
-                        pinIcon.style.display = 'block';
-                        pinIcon.onclick = async () => {
-                            try {
-                                // Determine which banner field is being used
-                                let usedField;
-                                for (const field of this.settings.customBannerField) {
-                                    if (frontmatter?.[field]) {
-                                        usedField = field;
-                                        break;
-                                    }
-                                }
-                                await handlePinIconClick(imageUrl, this, usedField);
-                            } catch (error) {
-                                console.error('Error pinning image:', error);
-                                new Notice('😭 Failed to pin the image.');
-                            }
-                        };
+            // Format internal links
+            if (bannerImage && !bannerImage.startsWith('[[') && !bannerImage.startsWith('http')) {
+                const file = this.app.vault.getAbstractFileByPath(bannerImage);
+                if (file && 'extension' in file) {
+                    if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
+                        bannerImage = `[[${bannerImage}]]`;
                     }
-
-                    if (refreshIcon && this.settings.showRefreshIcon) {
-                        refreshIcon.style.display = 'block';
-                        refreshIcon.onclick = async () => {
-                            try {
-                                this.loadedImages.delete(file.path);
-                                this.lastKeywords.delete(file.path);
-                                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
-                                new Notice('🔄 Refreshed banner image');
-                            } catch (error) {
-                                console.error('Error refreshing image:', error);
-                                new Notice('😭 Failed to refresh image');
-                            }
-                        };
-                    }
-                } else {
-                    if (pinIcon) pinIcon.style.display = 'none';
-                    const refreshIcon = container.querySelector(':scope > .refresh-icon');
-                    if (refreshIcon) refreshIcon.style.display = 'none';
                 }
-            } else {
-                bannerDiv.style.display = 'none';
-                if (pinIcon) pinIcon.style.display = 'none';
-                const refreshIcon = container.querySelector(':scope > .refresh-icon');
-                if (refreshIcon) refreshIcon.style.display = 'none';
-                this.loadedImages.delete(file.path);
-                this.lastKeywords.delete(file.path);
-                this.applyContentStartPosition(viewContent, 0);
             }
+        }
 
-            this.applyContentStartPosition(viewContent, contentStartPosition);
+        let imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || 
+            folderSpecific?.imageDisplay || 
+            this.settings.imageDisplay;
+        let imageRepeat = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField) ?? 
+            folderSpecific?.imageRepeat ?? 
+            this.settings.imageRepeat;
+        let bannerHeight = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField) ?? 
+            folderSpecific?.bannerHeight ?? 
+            this.settings.bannerHeight;
+        let fade = getFrontmatterValue(frontmatter, this.settings.customFadeField) ?? 
+            folderSpecific?.fade ?? 
+            this.settings.fade;
+        let borderRadius = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField) ?? 
+            folderSpecific?.borderRadius ?? 
+            this.settings.borderRadius;
+
+        // Process this note's banner if it exists
+        if (bannerImage) {
+            await this.addPixelBanner(contentEl, { 
+                frontmatter, 
+                file: view.file, 
+                isContentChange,
+                yPosition,
+                contentStartPosition,
+                bannerImage,
+                imageDisplay,
+                imageRepeat,
+                bannerHeight,
+                fade,
+                borderRadius,
+                isReadingView: view.getMode && view.getMode() === 'preview'
+            });
+
+            this.lastYPositions.set(view.file.path, yPosition);
+        } else if (existingBanner) {
+            existingBanner.style.display = 'none';
+        }
+
+        // Process embedded notes if this is not an embedded note itself
+        if (!isEmbedded) {
+            const embeddedNotes = contentEl.querySelectorAll('.internal-embed');
+
+            for (const embed of embeddedNotes) {
+                const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute('src'), '');
+
+                if (embedFile) {
+                    const embedView = {
+                        file: embedFile,
+                        contentEl: embed,
+                        getMode: () => 'preview'
+                    };
+                    await this.updateBanner(embedView, false);
+                }
+            }
         }
     }
 
@@ -519,6 +383,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     );
 
                     if (bannerRemoved || contentChanged) {
+                        // Clean up pixel-banner class if no banner is present
+                        const activeLeaf = this.app.workspace.activeLeaf;
+                        if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+                            const contentEl = activeLeaf.view.contentEl;
+                            const hasBanner = contentEl.querySelector('.pixel-banner-image[style*="display: block"]');
+                            if (!hasBanner) {
+                                contentEl.classList.remove('pixel-banner');
+                            }
+                        }
                         this.debouncedEnsureBanner();
                     }
                 }
@@ -540,69 +413,66 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     getFolderSpecificImage(filePath) {
         const folderPath = this.getFolderPath(filePath);
-        for (const folderImage of this.settings.folderImages) {
-            // Handle comma-delimited image values in folder settings
-            let folderBannerImage = folderImage.image;
-            if (folderBannerImage && typeof folderBannerImage === 'string' && !folderBannerImage.startsWith('[[')) {
-                const bannerValues = folderBannerImage.includes(',') 
-                    ? folderBannerImage.split(',')
-                        .map(v => v.trim())
-                        .filter(v => v.length > 0)
-                        .filter(Boolean)
-                    : [folderBannerImage];
-                
-                // Only select random if we have valid values
-                if (bannerValues.length > 0) {
-                    folderBannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-                } else {
-                    folderBannerImage = null;
-                }
-            }
+        
+        // Sort folder images by path length (descending) to match most specific paths first
+        const sortedFolderImages = [...this.settings.folderImages].sort((a, b) => 
+            (b.folder?.length || 0) - (a.folder?.length || 0)
+        );
 
-            // Special handling for root folder
+        for (const folderImage of sortedFolderImages) {
+            if (!folderImage.folder) continue;
+
+            // Handle root folder case
             if (folderImage.folder === '/') {
                 if (folderImage.directChildrenOnly) {
                     // For root with directChildrenOnly, only match files directly in root
                     if (!filePath.includes('/')) {
-                        return {
-                            image: folderBannerImage,
-                            yPosition: folderImage.yPosition,
-                            contentStartPosition: folderImage.contentStartPosition
-                        };
+                        return this.createFolderImageSettings(folderImage);
                     }
                 } else {
                     // For root without directChildrenOnly, match all files
-                    return {
-                        image: folderBannerImage,
-                        yPosition: folderImage.yPosition,
-                        contentStartPosition: folderImage.contentStartPosition
-                    };
+                    return this.createFolderImageSettings(folderImage);
                 }
                 continue;
             }
 
             // Normal folder path handling
+            const normalizedFolderPath = folderImage.folder.startsWith('/') ? 
+                folderImage.folder : 
+                '/' + folderImage.folder;
+            
+            const normalizedFileFolderPath = '/' + folderPath;
+
             if (folderImage.directChildrenOnly) {
-                if (folderPath === folderImage.folder) {
-                    return {
-                        image: folderBannerImage,
-                        yPosition: folderImage.yPosition,
-                        contentStartPosition: folderImage.contentStartPosition
-                    };
+                // Exact match for direct children
+                if (normalizedFileFolderPath === normalizedFolderPath) {
+                    return this.createFolderImageSettings(folderImage);
                 }
-            } else if (folderPath.startsWith(folderImage.folder)) {
-                return {
-                    image: folderBannerImage,
-                    yPosition: folderImage.yPosition,
-                    contentStartPosition: folderImage.contentStartPosition
-                };
+            } else {
+                // Match any file in this folder or its subfolders
+                if (normalizedFileFolderPath.startsWith(normalizedFolderPath)) {
+                    return this.createFolderImageSettings(folderImage);
+                }
             }
         }
         return null;
     }
 
+    // Helper method to create folder image settings object
+    createFolderImageSettings(folderImage) {
+        return {
+            image: folderImage.image,
+            yPosition: folderImage.yPosition ?? this.settings.yPosition,
+            contentStartPosition: folderImage.contentStartPosition ?? this.settings.contentStartPosition,
+            imageDisplay: folderImage.imageDisplay ?? this.settings.imageDisplay,
+            imageRepeat: folderImage.imageRepeat ?? this.settings.imageRepeat,
+            bannerHeight: folderImage.bannerHeight ?? this.settings.bannerHeight,
+            fade: folderImage.fade ?? this.settings.fade,
+            borderRadius: folderImage.borderRadius ?? this.settings.borderRadius
+        };
+    }
+
     getFolderPath(filePath) {
-        // Special case: if filePath has no slashes, it's in root
         if (!filePath.includes('/')) {
             return '/';
         }
@@ -819,8 +689,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
         // Trim the input and remove surrounding quotes if present
         input = input.trim().replace(/^["'](.*)["']$/, '$1');
 
-        // Check if it's an Obsidian internal link
-        if (input.startsWith('[[') && input.endsWith(']]')) {
+        // Check if it's an Obsidian internal link - handle both [[link]] and "[[link]]" formats
+        if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?\[{2}.*\]{2}"?$/)) {
             return 'obsidianLink';
         }
         
@@ -1002,6 +872,152 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     async getReleaseNotes(version) {
         return releaseNotes;
+    }
+
+    async addPixelBanner(el, ctx) {
+        const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
+        const viewContent = el;
+        const isEmbedded = viewContent.classList.contains('internal-embed');
+
+        let container;
+        if (isEmbedded) {
+            container = viewContent.querySelector('.markdown-preview-sizer');
+            
+            if (!container) {
+                container = viewContent.querySelector('.markdown-embed-content');
+            }
+            
+            if (!container) {
+                container = viewContent;
+            }
+        } else {
+            container = isReadingView 
+                ? viewContent.querySelector('.markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)')
+                : viewContent.querySelector('.cm-sizer');
+        }
+
+        if (!container) {
+            return;
+        }
+
+        let bannerDiv = container.querySelector(':scope > .pixel-banner-image');
+        let pinIcon = container.querySelector(':scope > .pin-icon');
+        
+        if (!bannerDiv) {
+            bannerDiv = createDiv({ cls: 'pixel-banner-image' });
+            container.insertBefore(bannerDiv, container.firstChild);
+            bannerDiv._isPersistentBanner = true;
+            
+            // Only add pin/refresh icons for non-embedded notes
+            if (!isEmbedded && this.settings.showPinIcon) {
+                pinIcon = createDiv({ cls: 'pin-icon' });
+                pinIcon.style.position = 'absolute';
+                pinIcon.style.top = '10px';
+                pinIcon.style.left = '5px';
+                pinIcon.style.fontSize = '1.5em';
+                pinIcon.style.cursor = 'pointer';
+                pinIcon.innerHTML = '📌';
+                pinIcon._isPersistentPin = true;
+                container.insertBefore(pinIcon, bannerDiv.nextSibling);
+
+                if (this.settings.showRefreshIcon) {
+                    const refreshIcon = createDiv({ cls: 'refresh-icon' });
+                    refreshIcon.style.position = 'absolute';
+                    refreshIcon.style.top = '10px';
+                    refreshIcon.style.left = '40px';
+                    refreshIcon.style.fontSize = '1.5em';
+                    refreshIcon.style.cursor = 'pointer';
+                    refreshIcon.innerHTML = '🔄';
+                    refreshIcon._isPersistentRefresh = true;
+                    container.insertBefore(refreshIcon, pinIcon.nextSibling);
+                }
+            }
+        }
+
+        if (bannerImage) {
+            let imageUrl = this.loadedImages.get(file.path);
+            const lastInput = this.lastKeywords.get(file.path);
+            const inputType = this.getInputType(bannerImage);
+
+            if (!imageUrl || (isContentChange && bannerImage !== lastInput)) {
+                imageUrl = await this.getImageUrl(inputType, bannerImage);
+                if (imageUrl) {
+                    this.loadedImages.set(file.path, imageUrl);
+                    this.lastKeywords.set(file.path, bannerImage);
+                }
+            }
+
+            if (imageUrl) {
+                bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
+                bannerDiv.style.backgroundPosition = `center ${yPosition}%`;
+                bannerDiv.style.display = 'block';
+
+                // Apply all the settings
+                this.applyBannerSettings(bannerDiv, ctx);
+
+                if (!isEmbedded && inputType === 'keyword' && this.settings.showPinIcon) {
+                    const refreshIcon = container.querySelector(':scope > .refresh-icon');
+                    
+                    if (pinIcon) {
+                        pinIcon.style.display = 'block';
+                        pinIcon.onclick = async () => {
+                            try {
+                                // Determine which banner field is being used
+                                let usedField;
+                                for (const field of this.settings.customBannerField) {
+                                    if (frontmatter?.[field]) {
+                                        usedField = field;
+                                        break;
+                                    }
+                                }
+                                await handlePinIconClick(imageUrl, this, usedField);
+                            } catch (error) {
+                                console.error('Error pinning image:', error);
+                                new Notice('😭 Failed to pin the image.');
+                            }
+                        };
+                    }
+
+                    if (refreshIcon && this.settings.showRefreshIcon) {
+                        refreshIcon.style.display = 'block';
+                        refreshIcon.onclick = async () => {
+                            try {
+                                this.loadedImages.delete(file.path);
+                                this.lastKeywords.delete(file.path);
+                                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
+                                new Notice('🔄 Refreshed banner image');
+                            } catch (error) {
+                                console.error('Error refreshing image:', error);
+                                new Notice('😭 Failed to refresh image');
+                            }
+                        };
+                    }
+                } else {
+                    if (pinIcon) pinIcon.style.display = 'none';
+                    const refreshIcon = container.querySelector(':scope > .refresh-icon');
+                    if (refreshIcon) refreshIcon.style.display = 'none';
+                }
+            } else {
+                bannerDiv.style.display = 'none';
+                if (pinIcon) pinIcon.style.display = 'none';
+                const refreshIcon = container.querySelector(':scope > .refresh-icon');
+                if (refreshIcon) refreshIcon.style.display = 'none';
+                this.loadedImages.delete(file.path);
+                this.lastKeywords.delete(file.path);
+            }
+
+            this.applyContentStartPosition(viewContent, contentStartPosition);
+        }
+    }
+
+    applyBannerSettings(bannerDiv, ctx) {
+        const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
+
+        bannerDiv.style.backgroundSize = imageDisplay || 'cover';
+        bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
+        bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
+        bannerDiv.style.setProperty('--pixel-banner-fade', `${fade}%`);
+        bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
     }
 }
 
