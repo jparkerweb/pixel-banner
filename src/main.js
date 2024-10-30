@@ -243,13 +243,16 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         const frontmatter = this.app.metadataCache.getFileCache(view.file)?.frontmatter;
         const contentEl = view.contentEl;
-        const isEmbedded = view.contentEl.classList.contains('internal-embed');
+        const isEmbedded = contentEl.classList.contains('internal-embed');
 
         // Get existing banner before trying to use it
         const existingBanner = contentEl.querySelector('.pixel-banner-image');
         
-        // Only clear classes and existing banner for non-embedded notes
-        if (!isEmbedded) {
+        // Only clear classes and existing banner for non-embedded notes AND when there's no banner image
+        const folderSpecific = this.getFolderSpecificImage(view.file.path);
+        let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || folderSpecific?.image;
+        
+        if (!isEmbedded && !bannerImage) {
             contentEl.classList.remove('pixel-banner');
             if (existingBanner) {
                 existingBanner.style.backgroundImage = '';
@@ -263,13 +266,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
             this.lastKeywords.delete(view.file.path);
         }
 
-        // Check for folder-specific settings first
-        const folderSpecific = this.getFolderSpecificImage(view.file.path);
-        
         // Initialize settings with either folder-specific or default values
         let yPosition = folderSpecific?.yPosition ?? this.settings.yPosition;
         let contentStartPosition = folderSpecific?.contentStartPosition ?? this.settings.contentStartPosition;
-        let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || folderSpecific?.image;
 
         // Handle array flattening and internal link formatting
         if (bannerImage) {
@@ -588,14 +587,12 @@ module.exports = class PixelBannerPlugin extends Plugin {
             return null;
         }
 
-        // console.log('Entering fetchPixabayImage with keyword:', keyword);
         const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
         const keywordsToTry = [keyword, ...defaultKeywords];
         const maxAttempts = 4;
 
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
-            // console.log(`Attempt ${attempt + 1} with keyword: ${currentKeyword}`);
 
             const apiUrl = 'https://pixabay.com/api/';
             const params = new URLSearchParams({
@@ -605,8 +602,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 per_page: this.settings.numberOfImages,
                 safesearch: true,
             });
-
-            // console.log('Pixabay API URL:', `${apiUrl}?${params}`);
 
             try {
                 const response = await this.makeRequest(`${apiUrl}?${params}`);
@@ -654,7 +649,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async makeRequest(url) {
         const now = Date.now();
         if (now - this.rateLimiter.lastRequestTime < this.rateLimiter.minInterval) {
-            // console.log('Rate limiting in effect, waiting...');
             await new Promise(resolve => setTimeout(resolve, this.rateLimiter.minInterval));
         }
         this.rateLimiter.lastRequestTime = Date.now();
@@ -739,7 +733,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     updateAllBanners() {
         this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view.getViewType() === "markdown") {
-                // console.log('updateAllBanners', leaf.view);
                 this.updateBanner(leaf.view, true);
             }
         });
@@ -771,6 +764,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     applyContentStartPosition(el, contentStartPosition) {
+        if (!el) {
+            return;
+        }
         el.style.setProperty('--pixel-banner-content-start', `${contentStartPosition}px`);
     }
 
@@ -878,6 +874,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
         const viewContent = el;
         const isEmbedded = viewContent.classList.contains('internal-embed');
+        
+        // Now we can use isEmbedded
+        if (!isEmbedded) {
+            viewContent.classList.add('pixel-banner');
+        }
 
         let container;
         if (isEmbedded) {
@@ -934,6 +935,29 @@ module.exports = class PixelBannerPlugin extends Plugin {
             }
         }
 
+        if (!container._hasOverriddenSetChildrenInPlace) {
+            const originalSetChildrenInPlace = container.setChildrenInPlace;
+            container.setChildrenInPlace = function(children) {
+                const bannerElement = this.querySelector(':scope > .pixel-banner-image');
+                const pinElement = this.querySelector(':scope > .pin-icon');
+                const refreshElement = this.querySelector(':scope > .refresh-icon');
+                
+                children = Array.from(children);
+                if (bannerElement?._isPersistentBanner) {
+                    children = [bannerElement, ...children];
+                }
+                if (pinElement?._isPersistentPin) {
+                    children.splice(1, 0, pinElement);
+                }
+                if (refreshElement?._isPersistentRefresh) {
+                    children.splice(2, 0, refreshElement);
+                }
+                
+                originalSetChildrenInPlace.call(this, children);
+            };
+            container._hasOverriddenSetChildrenInPlace = true;
+        }
+
         if (bannerImage) {
             let imageUrl = this.loadedImages.get(file.path);
             const lastInput = this.lastKeywords.get(file.path);
@@ -948,13 +972,29 @@ module.exports = class PixelBannerPlugin extends Plugin {
             }
 
             if (imageUrl) {
+                // Get the y-position respecting inheritance
+                const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
+                const folderSpecific = this.getFolderSpecificImage(file.path);
+                const effectiveYPosition = frontmatterYPosition ?? 
+                    folderSpecific?.yPosition ?? 
+                    this.settings.yPosition;
+
                 bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-                bannerDiv.style.backgroundPosition = `center ${yPosition}%`;
+                bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
                 bannerDiv.style.display = 'block';
 
                 // Apply all the settings
                 this.applyBannerSettings(bannerDiv, ctx);
 
+                // Get the content start position respecting inheritance
+                const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
+                
+                const effectiveContentStart = frontmatterContentStart ?? 
+                    folderSpecific?.contentStartPosition ?? 
+                    this.settings.contentStartPosition;
+
+                this.applyContentStartPosition(viewContent, effectiveContentStart);
+                
                 if (!isEmbedded && inputType === 'keyword' && this.settings.showPinIcon) {
                     const refreshIcon = container.querySelector(':scope > .refresh-icon');
                     
@@ -1004,9 +1044,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 if (refreshIcon) refreshIcon.style.display = 'none';
                 this.loadedImages.delete(file.path);
                 this.lastKeywords.delete(file.path);
+                // Add this line to remove the pixel-banner class when there's no banner
+                if (!isEmbedded) {
+                    viewContent.classList.remove('pixel-banner');
+                }
             }
-
-            this.applyContentStartPosition(viewContent, contentStartPosition);
         }
     }
 
@@ -1318,7 +1360,6 @@ class SaveImageModal extends Modal {
 async function waitForFileRename(file, plugin) {
     return new Promise((resolve) => {
         const initialPath = file.path;
-        // console.log('🔍 Starting file watch for:', initialPath);
         let timeoutId;
         let renamedPath = null;
 
@@ -1330,9 +1371,6 @@ async function waitForFileRename(file, plugin) {
 
         // Track rename events
         const handleRename = async (theFile) => {
-            // console.log('📂 Rename detected:', {
-            //     theFile: theFile?.path
-            // });
             if (theFile?.path) {
                 renamedPath = theFile?.path;
             }
@@ -1347,37 +1385,23 @@ async function waitForFileRename(file, plugin) {
 
         // Set timeout to validate and resolve
         timeoutId = setTimeout(async () => {
-            // console.log('⏰ Timeout reached, checking paths in order...');
             cleanup();
-
-            // Check paths in preferred order
-            // console.log('Checking paths:', {
-            //     renamedPath: renamedPath,
-            //     initialPath: initialPath
-            // });
 
             // 1. Check renamedPath
             if (renamedPath) {
                 const exists = await validatePath(renamedPath);
-                // console.log('renamedPath exists:', exists);
                 if (exists) {
-                    // console.log('✅ Using renamedPath:', renamedPath);
                     return resolve(renamedPath);
                 }
             }
 
             // 2. Check initialPath
             const initialExists = await validatePath(initialPath);
-            // console.log('initialPath exists:', initialExists);
             if (initialExists) {
-                // console.log('✅ Using initialPath:', initialPath);
                 return resolve(initialPath);
             }
 
-            // No valid paths found
-            // console.log('❌ No valid path found');
             resolve(null);
         }, 1500);
     });
 }
-
