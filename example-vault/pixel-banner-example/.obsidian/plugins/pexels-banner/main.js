@@ -920,7 +920,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.3</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners</li>\n<li>Fixed caching issue where banners from notes viewed previously would display on new/other notes</li>\n</ul>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.3</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Content Start and Y Position inheritance issues</li>\n</ul>\n<h3>v2.6.3</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners</li>\n<li>Fixed caching issue where banners from notes viewed previously would display on new/other notes</li>\n</ul>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1122,9 +1122,11 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     const frontmatter = (_a = this.app.metadataCache.getFileCache(view.file)) == null ? void 0 : _a.frontmatter;
     const contentEl = view.contentEl;
-    const isEmbedded = view.contentEl.classList.contains("internal-embed");
+    const isEmbedded = contentEl.classList.contains("internal-embed");
     const existingBanner = contentEl.querySelector(".pixel-banner-image");
-    if (!isEmbedded) {
+    const folderSpecific = this.getFolderSpecificImage(view.file.path);
+    let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
+    if (!isEmbedded && !bannerImage) {
       contentEl.classList.remove("pixel-banner");
       if (existingBanner) {
         existingBanner.style.backgroundImage = "";
@@ -1135,10 +1137,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       this.loadedImages.delete(view.file.path);
       this.lastKeywords.delete(view.file.path);
     }
-    const folderSpecific = this.getFolderSpecificImage(view.file.path);
     let yPosition = (_b = folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _b : this.settings.yPosition;
     let contentStartPosition = (_c = folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _c : this.settings.contentStartPosition;
-    let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
     if (bannerImage) {
       if (Array.isArray(bannerImage)) {
         bannerImage = bannerImage.flat()[0];
@@ -1517,6 +1517,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
   }
   applyContentStartPosition(el, contentStartPosition) {
+    if (!el) {
+      return;
+    }
     el.style.setProperty("--pixel-banner-content-start", `${contentStartPosition}px`);
   }
   getFolderSpecificSetting(filePath, settingName) {
@@ -1588,9 +1591,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     return releaseNotes;
   }
   async addPixelBanner(el, ctx) {
+    var _a, _b;
     const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains("internal-embed");
+    if (!isEmbedded) {
+      viewContent.classList.add("pixel-banner");
+    }
     let container;
     if (isEmbedded) {
       container = viewContent.querySelector(".markdown-preview-sizer");
@@ -1635,6 +1642,26 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       }
     }
+    if (!container._hasOverriddenSetChildrenInPlace) {
+      const originalSetChildrenInPlace = container.setChildrenInPlace;
+      container.setChildrenInPlace = function(children) {
+        const bannerElement = this.querySelector(":scope > .pixel-banner-image");
+        const pinElement = this.querySelector(":scope > .pin-icon");
+        const refreshElement = this.querySelector(":scope > .refresh-icon");
+        children = Array.from(children);
+        if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
+          children = [bannerElement, ...children];
+        }
+        if (pinElement == null ? void 0 : pinElement._isPersistentPin) {
+          children.splice(1, 0, pinElement);
+        }
+        if (refreshElement == null ? void 0 : refreshElement._isPersistentRefresh) {
+          children.splice(2, 0, refreshElement);
+        }
+        originalSetChildrenInPlace.call(this, children);
+      };
+      container._hasOverriddenSetChildrenInPlace = true;
+    }
     if (bannerImage) {
       let imageUrl = this.loadedImages.get(file.path);
       const lastInput = this.lastKeywords.get(file.path);
@@ -1647,10 +1674,16 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       }
       if (imageUrl) {
+        const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
+        const folderSpecific = this.getFolderSpecificImage(file.path);
+        const effectiveYPosition = (_a = frontmatterYPosition != null ? frontmatterYPosition : folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _a : this.settings.yPosition;
         bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-        bannerDiv.style.backgroundPosition = `center ${yPosition}%`;
+        bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
         bannerDiv.style.display = "block";
         this.applyBannerSettings(bannerDiv, ctx);
+        const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
+        const effectiveContentStart = (_b = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
+        this.applyContentStartPosition(viewContent, effectiveContentStart);
         if (!isEmbedded && inputType === "keyword" && this.settings.showPinIcon) {
           const refreshIcon = container.querySelector(":scope > .refresh-icon");
           if (pinIcon) {
@@ -1697,8 +1730,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         if (refreshIcon) refreshIcon.style.display = "none";
         this.loadedImages.delete(file.path);
         this.lastKeywords.delete(file.path);
+        if (!isEmbedded) {
+          viewContent.classList.remove("pixel-banner");
+        }
       }
-      this.applyContentStartPosition(viewContent, contentStartPosition);
     }
   }
   applyBannerSettings(bannerDiv, ctx) {

@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.6.4] - 2024-10-30
+
+### Fixed
+- Content Start and Y Position inheritance issues
+
 ## [2.6.3] - 2024-10-30
 
 ### Fixed

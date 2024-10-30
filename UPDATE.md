@@ -2,6 +2,10 @@
 
 ### v2.6.3
 #### Fixed
+- Content Start and Y Position inheritance issues
+
+### v2.6.3
+#### Fixed
 - Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners
 - Fixed caching issue where banners from notes viewed previously would display on new/other notes
 
