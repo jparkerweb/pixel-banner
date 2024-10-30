@@ -136,11 +136,12 @@
 	bottom: 0;
 	right: 64px;
     padding-right: 16px;
-    background: var(--background-primary);
+    background: var(--color-secondary);
 }
 .tab-content[data-tab="Folder Images"] .add-folder-image-setting button {
-    color: var(--text-accent);
-    border: 1px solid var(--text-accent);
+    color: var(--text-on-accent);
+    border-bottom: 2px solid var(--text-accent-hover);
+    background: var(--color-accent);
 }
 
 .pixel-banner-section {
@@ -153,7 +154,7 @@
 .pixel-banner-section h3 {
     margin-top: 0;
     margin-bottom: 15px;
-    color: var(--text-accent);
+    color: var(--text-accent-hover);
     font-size: 1.2em;
 }
 
@@ -203,6 +204,13 @@
     position: absolute;
     top: 10px;
     right: 0;
+}
+.pixel-banner-setting--delete-button {
+    border: 1px solid var(--color-accent) !important;
+}
+.pixel-banner-setting--delete-button:hover {
+    background: var(--color-accent) !important;
+    color: var(--text-on-accent) !important;
 }
 
 .setting-item.folder-image-setting > .folder-input-container,
@@ -271,8 +279,9 @@
 }
 
 .pixel-banner-settings-tab.active {
-    color: var(--text-accent);
-    border-bottom: 2px solid var(--text-accent);
+    color: var(--text-on-accent);
+    border-bottom: 2px solid var(--text-accent-hover);
+    background: var(--color-accent);
 }
 
 .pixel-banner-settings-tab-content-container > .tab-content {
@@ -318,7 +327,7 @@
   background-color: var(--background-primary-alt);
   border: 1px solid var(--background-modifier-border);
   border-radius: 5px;
-  color: var(--text-accent);
+  color: var(--text-accent-hover);
 }
 
 .pixel-banner-settings .setting-item {
@@ -349,7 +358,7 @@
 
 .release-notes-section h4 {
     margin: 15px 0 5px 0;
-    color: var(--text-accent);
+    color: var(--text-accent-hover);
 }
 
 .release-notes-container > ul {

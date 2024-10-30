@@ -82,12 +82,11 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
-    const deleteButton = containerEl.createEl("button");
+    const deleteButton = containerEl.createEl("button", { cls: "pixel-banner-setting--delete-button" });
     deleteButton.style.marginLeft = "20px";
     deleteButton.style.width = "30px";
     deleteButton.style.height = "30px";
     deleteButton.style.padding = "0";
-    deleteButton.style.border = "1px solid #80000030";
     deleteButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
     deleteButton.addEventListener("click", async () => {
       this.plugin.settings.folderImages.splice(this.index, 1);
@@ -96,12 +95,6 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       if (this.onDelete) {
         this.onDelete();
       }
-    });
-    deleteButton.addEventListener("mouseover", () => {
-      deleteButton.style.color = "red";
-    });
-    deleteButton.addEventListener("mouseout", () => {
-      deleteButton.style.color = "";
     });
   }
   addFolderInput() {
