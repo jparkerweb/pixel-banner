@@ -40,7 +40,8 @@ var DEFAULT_SETTINGS = {
   showPinIcon: true,
   pinnedImageFolder: "pixel-banner-images",
   showReleaseNotes: true,
-  lastVersion: null
+  lastVersion: null,
+  showRefreshIcon: true
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -429,6 +430,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showPinIcon).onChange(async (value) => {
       this.plugin.settings.showPinIcon = value;
       folderInputSetting.settingEl.style.display = value ? "flex" : "none";
+      refreshIconSetting.settingEl.style.display = value ? "flex" : "none";
       await this.plugin.saveSettings();
     }));
     const folderInputSetting = new import_obsidian.Setting(containerEl).setName("Pinned Images Folder").setDesc("Folder where pinned banner images will be saved").addText((text) => {
@@ -460,7 +462,12 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         button.setDisabled(false);
       }
     }));
+    const refreshIconSetting = new import_obsidian.Setting(containerEl).setName("Show Refresh Icon").setDesc("Show a refresh icon next to the pin icon to get a new random image").addToggle((toggle) => toggle.setValue(this.plugin.settings.showRefreshIcon).onChange(async (value) => {
+      this.plugin.settings.showRefreshIcon = value;
+      await this.plugin.saveSettings();
+    }));
     folderInputSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? "flex" : "none";
+    refreshIconSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? "flex" : "none";
     new import_obsidian.Setting(containerEl).setName("Size").setDesc("Select the size of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("small", "Small").addOption("medium", "Medium").addOption("large", "Large").setValue(this.plugin.settings.imageSize).onChange(async (value) => {
       this.plugin.settings.imageSize = value;
       await this.plugin.saveSettings();
@@ -913,7 +920,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.5.6 - v2.5.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)</li>\n<li><code>Folder Images</code> keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)</li>\n<li>When &quot;Pinning&quot; an image, the plugin now waits for potential a rename/move of the file to the local vault before updating the note frontmatter</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>&quot;Pinnings&quot; now correctly updates note frontmatter to use local image when saving if the note didn&#39;t already have a banner field</li>\n<li>Fix issue where a defined &quot;Folder Images&quot; path of root <code>/</code> was not being respected</li>\n<li>Description messages in settings page is now rendering properly acoss all tabs</li>\n<li>Scroll the pin icon with note content</li>\n</ul>\n<hr>\n<h3>v2.5.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Pin Icon Feature: Save API images to your vault<ul>\n<li>Click the pin icon (\u{1F4CC}) to save random banner images locally</li>\n<li>Choose custom filenames when saving</li>\n<li>Automatically updates note frontmatter to use local image</li>\n<li>Configure save location in settings</li>\n</ul>\n</li>\n<li>Orphaned Pins Cleanup: Utility to remove unused pinned images<ul>\n<li>Clean up button in settings</li>\n<li>Safely moves unused images to trash</li>\n<li>Checks all custom banner field names</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<h3>Added</h3>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1138,18 +1145,33 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         pinIcon.innerHTML = "\u{1F4CC}";
         pinIcon._isPersistentPin = true;
         container.insertBefore(pinIcon, bannerDiv.nextSibling);
+        if (this.settings.showRefreshIcon) {
+          const refreshIcon = createDiv({ cls: "refresh-icon" });
+          refreshIcon.style.position = "absolute";
+          refreshIcon.style.top = "10px";
+          refreshIcon.style.left = "40px";
+          refreshIcon.style.fontSize = "1.5em";
+          refreshIcon.style.cursor = "pointer";
+          refreshIcon.innerHTML = "\u{1F504}";
+          refreshIcon._isPersistentRefresh = true;
+          container.insertBefore(refreshIcon, pinIcon.nextSibling);
+        }
       }
       if (!container._hasOverriddenSetChildrenInPlace) {
         const originalSetChildrenInPlace = container.setChildrenInPlace;
         container.setChildrenInPlace = function(children) {
           const bannerElement = this.querySelector(":scope > .pixel-banner-image");
           const pinElement = this.querySelector(":scope > .pin-icon");
+          const refreshElement = this.querySelector(":scope > .refresh-icon");
           children = Array.from(children);
           if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
             children = [bannerElement, ...children];
           }
           if (pinElement == null ? void 0 : pinElement._isPersistentPin) {
             children.splice(1, 0, pinElement);
+          }
+          if (refreshElement == null ? void 0 : refreshElement._isPersistentRefresh) {
+            children.splice(2, 0, refreshElement);
           }
           originalSetChildrenInPlace.call(this, children);
         };
@@ -1185,30 +1207,49 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const borderRadius = (_f = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _d : this.getFolderSpecificSetting(file.path, "borderRadius")) != null ? _e : this.settings.borderRadius) != null ? _f : 17;
         bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
         bannerDiv.style.display = "block";
-        if (inputType === "keyword" && this.settings.showPinIcon && pinIcon) {
-          pinIcon.style.display = "block";
-          pinIcon.onclick = async () => {
-            try {
-              await handlePinIconClick(imageUrl, this);
-            } catch (error) {
-              console.error("Error pinning image:", error);
-              new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
-            }
-          };
-        } else if (pinIcon) {
-          pinIcon.style.display = "none";
+        if (inputType === "keyword" && this.settings.showPinIcon) {
+          const refreshIcon = container.querySelector(":scope > .refresh-icon");
+          if (pinIcon) {
+            pinIcon.style.display = "block";
+            pinIcon.onclick = async () => {
+              try {
+                await handlePinIconClick(imageUrl, this);
+              } catch (error) {
+                console.error("Error pinning image:", error);
+                new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
+              }
+            };
+          }
+          if (refreshIcon && this.settings.showRefreshIcon) {
+            refreshIcon.style.display = "block";
+            refreshIcon.onclick = async () => {
+              try {
+                this.loadedImages.delete(file.path);
+                this.lastKeywords.delete(file.path);
+                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
+                new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
+              } catch (error) {
+                console.error("Error refreshing image:", error);
+                new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
+              }
+            };
+          }
+        } else {
+          if (pinIcon) pinIcon.style.display = "none";
+          const refreshIcon = container.querySelector(":scope > .refresh-icon");
+          if (refreshIcon) refreshIcon.style.display = "none";
         }
+      } else {
+        bannerDiv.style.display = "none";
+        if (pinIcon) pinIcon.style.display = "none";
+        const refreshIcon = container.querySelector(":scope > .refresh-icon");
+        if (refreshIcon) refreshIcon.style.display = "none";
+        this.loadedImages.delete(file.path);
+        this.lastKeywords.delete(file.path);
+        this.applyContentStartPosition(viewContent, 0);
       }
-    } else {
-      bannerDiv.style.display = "none";
-      if (pinIcon) {
-        pinIcon.style.display = "none";
-      }
-      this.loadedImages.delete(file.path);
-      this.lastKeywords.delete(file.path);
-      this.applyContentStartPosition(viewContent, 0);
+      this.applyContentStartPosition(viewContent, contentStartPosition);
     }
-    this.applyContentStartPosition(viewContent, contentStartPosition);
   }
   setupMutationObserver() {
     this.observer = new MutationObserver((mutations) => {
