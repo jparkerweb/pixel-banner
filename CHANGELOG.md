@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.6.1] - 2024-10-29
+
+### Updated
+- Removed Pin and Refresh Icons from showing in Embedded Notes
+
 ## [2.6.0] - 2024-10-29
 
 ### Added

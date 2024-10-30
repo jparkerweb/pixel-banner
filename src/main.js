@@ -268,7 +268,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             
             bannerDiv._isPersistentBanner = true;
             
-            if (this.settings.showPinIcon) {
+            if (!isEmbedded && this.settings.showPinIcon) {
                 pinIcon = createDiv({ cls: 'pin-icon' });
                 pinIcon.style.position = 'absolute';
                 pinIcon.style.top = '10px';
@@ -372,7 +372,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 
                 bannerDiv.style.display = 'block';
 
-                if (inputType === 'keyword' && this.settings.showPinIcon) {
+                if (!isEmbedded && inputType === 'keyword' && this.settings.showPinIcon) {
                     const refreshIcon = container.querySelector(':scope > .refresh-icon');
                     
                     if (pinIcon) {

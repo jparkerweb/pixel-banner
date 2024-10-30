@@ -1,5 +1,10 @@
 ## 🎉 What's New
 
+### v2.6.1
+
+#### Updated
+- Removed Pin and Refresh Icons from showing in Embedded Notes
+
 ### v2.6.0
 
 #### Added
