@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS = {
     pinnedImageFolder: 'pixel-banner-images',
     showReleaseNotes: true,
     lastVersion: null,
+    showRefreshIcon: true,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -613,8 +614,9 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.showPinIcon)
                 .onChange(async (value) => {
                     this.plugin.settings.showPinIcon = value;
-                    // Show/hide the folder input based on the toggle
+                    // Show/hide dependent settings based on the toggle
                     folderInputSetting.settingEl.style.display = value ? 'flex' : 'none';
+                    refreshIconSetting.settingEl.style.display = value ? 'flex' : 'none';
                     await this.plugin.saveSettings();
                 }));
 
@@ -664,8 +666,20 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        // Set initial visibility of the folder input
+        // Add the refresh icon setting
+        const refreshIconSetting = new Setting(containerEl)
+            .setName('Show Refresh Icon')
+            .setDesc('Show a refresh icon next to the pin icon to get a new random image')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showRefreshIcon)
+                .onChange(async (value) => {
+                    this.plugin.settings.showRefreshIcon = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // Set initial visibility of dependent settings
         folderInputSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? 'flex' : 'none';
+        refreshIconSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? 'flex' : 'none';
 
         new Setting(containerEl)
             .setName('Size')

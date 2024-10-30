@@ -2,25 +2,32 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## [2.5.6] - 2024-10-27
+## [2.6.0] - 2024-10-29
+
+### Added
+- Added a Refresh Icon that appears next to the pin icon for random API images
+- Click the refresh icon (🔄) to instantly fetch a new random image
+- Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)
+
+## [2.5.6] - 2024-10-29
 - Scroll the pin icon with note content
 
-## [2.5.5] - 2024-10-27
+## [2.5.5] - 2024-10-29
 
 ### Added
 - When "Pinning" an image, the plugin now waits for potential a rename/move of the file to the local vault before updating the note frontmatter
 
-## [2.5.4] - 2024-10-27
+## [2.5.4] - 2024-10-29
 
 ### Fixed
 - "Pinnings" now correctly updates note frontmatter to use local image when saving if the note didn't already have a banner field
 
-## [2.5.3] - 2024-10-27
+## [2.5.3] - 2024-10-29
 
 ### Added
 - Note frontmatter now updated to allow for keywords separated by commas when using API (allowing for more random variety per note)
 
-## [2.5.2] - 2024-10-27
+## [2.5.2] - 2024-10-29
 
 ### Added
 - `Folder Images` keywords input now supports multiple keywords separated by commas (allowing for more random variety per folder)
@@ -28,12 +35,12 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 ### Fixed
 - Fix issue where a defined "Folder Images" path of root `/` was not being respected
 
-## [2.5.1] - 2024-10-27
+## [2.5.1] - 2024-10-29
 
 ### Fixed
 - Fix description message in settings not appearing correctly
 
-## [2.5.0] - 2024-10-27
+## [2.5.0] - 2024-10-28
 
 ### Added
 - Pin Icon Feature: Save API images to your vault

@@ -266,13 +266,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
             bannerDiv = createDiv({ cls: 'pixel-banner-image' });
             container.insertBefore(bannerDiv, container.firstChild);
             
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // !!!! PERSISTENT BANNER FIX !!!!
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // Mark banner as persistent
             bannerDiv._isPersistentBanner = true;
             
-            // Create pin icon if needed
             if (this.settings.showPinIcon) {
                 pinIcon = createDiv({ cls: 'pin-icon' });
                 pinIcon.style.position = 'absolute';
@@ -283,22 +278,36 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 pinIcon.innerHTML = '📌';
                 pinIcon._isPersistentPin = true;
                 container.insertBefore(pinIcon, bannerDiv.nextSibling);
+
+                if (this.settings.showRefreshIcon) {
+                    const refreshIcon = createDiv({ cls: 'refresh-icon' });
+                    refreshIcon.style.position = 'absolute';
+                    refreshIcon.style.top = '10px';
+                    refreshIcon.style.left = '40px';
+                    refreshIcon.style.fontSize = '1.5em';
+                    refreshIcon.style.cursor = 'pointer';
+                    refreshIcon.innerHTML = '🔄';
+                    refreshIcon._isPersistentRefresh = true;
+                    container.insertBefore(refreshIcon, pinIcon.nextSibling);
+                }
             }
             
-            // Override the setChildrenInPlace method for this container
             if (!container._hasOverriddenSetChildrenInPlace) {
                 const originalSetChildrenInPlace = container.setChildrenInPlace;
                 container.setChildrenInPlace = function(children) {
-                    // Add our persistent elements to the new children set
                     const bannerElement = this.querySelector(':scope > .pixel-banner-image');
                     const pinElement = this.querySelector(':scope > .pin-icon');
+                    const refreshElement = this.querySelector(':scope > .refresh-icon');
                     
                     children = Array.from(children);
                     if (bannerElement?._isPersistentBanner) {
                         children = [bannerElement, ...children];
                     }
                     if (pinElement?._isPersistentPin) {
-                        children.splice(1, 0, pinElement); // Insert after banner
+                        children.splice(1, 0, pinElement);
+                    }
+                    if (refreshElement?._isPersistentRefresh) {
+                        children.splice(2, 0, refreshElement);
                     }
                     
                     originalSetChildrenInPlace.call(this, children);
@@ -363,34 +372,52 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 
                 bannerDiv.style.display = 'block';
 
-                // Only add pin icon if the image is from an API (keyword type) and showPinIcon is enabled
-                if (inputType === 'keyword' && this.settings.showPinIcon && pinIcon) {
-                    pinIcon.style.display = 'block';
-                    pinIcon.onclick = async () => {
-                        try {
-                            await handlePinIconClick(imageUrl, this);
-                        } catch (error) {
-                            console.error('Error pinning image:', error);
-                            new Notice('😭 Failed to pin the image.');
-                        }
-                    };
-                } else if (pinIcon) {
-                    pinIcon.style.display = 'none';
-                }
-            }
-        } else {
-            bannerDiv.style.display = 'none';
-            if (pinIcon) {
-                pinIcon.style.display = 'none';
-            }
-            this.loadedImages.delete(file.path);
-            this.lastKeywords.delete(file.path);
-            // Reset the content start position when there's no banner
-            this.applyContentStartPosition(viewContent, 0);
-        }
+                if (inputType === 'keyword' && this.settings.showPinIcon) {
+                    const refreshIcon = container.querySelector(':scope > .refresh-icon');
+                    
+                    if (pinIcon) {
+                        pinIcon.style.display = 'block';
+                        pinIcon.onclick = async () => {
+                            try {
+                                await handlePinIconClick(imageUrl, this);
+                            } catch (error) {
+                                console.error('Error pinning image:', error);
+                                new Notice('😭 Failed to pin the image.');
+                            }
+                        };
+                    }
 
-        // Apply the content start position
-        this.applyContentStartPosition(viewContent, contentStartPosition);
+                    if (refreshIcon && this.settings.showRefreshIcon) {
+                        refreshIcon.style.display = 'block';
+                        refreshIcon.onclick = async () => {
+                            try {
+                                this.loadedImages.delete(file.path);
+                                this.lastKeywords.delete(file.path);
+                                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
+                                new Notice('🔄 Refreshed banner image');
+                            } catch (error) {
+                                console.error('Error refreshing image:', error);
+                                new Notice('😭 Failed to refresh image');
+                            }
+                        };
+                    }
+                } else {
+                    if (pinIcon) pinIcon.style.display = 'none';
+                    const refreshIcon = container.querySelector(':scope > .refresh-icon');
+                    if (refreshIcon) refreshIcon.style.display = 'none';
+                }
+            } else {
+                bannerDiv.style.display = 'none';
+                if (pinIcon) pinIcon.style.display = 'none';
+                const refreshIcon = container.querySelector(':scope > .refresh-icon');
+                if (refreshIcon) refreshIcon.style.display = 'none';
+                this.loadedImages.delete(file.path);
+                this.lastKeywords.delete(file.path);
+                this.applyContentStartPosition(viewContent, 0);
+            }
+
+            this.applyContentStartPosition(viewContent, contentStartPosition);
+        }
     }
 
     setupMutationObserver() {
