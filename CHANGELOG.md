@@ -2,6 +2,14 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.6.2] - 2024-10-30
+
+### Added
+- Added command palette commands for Pin and Refresh actions
+  - Commands are contextually available based on current note and settings
+- Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image
+- Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting
+
 ## [2.6.1] - 2024-10-29
 
 ### Updated

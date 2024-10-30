@@ -44,9 +44,18 @@
     overflow: hidden;
 }
 
-/* pin icon */
-.pin-icon {
+/* pin / refresh icons */
+.pin-icon,
+.refresh-icon {
     z-index: var(--layer-modal);
+    opacity: 0.2;
+    transition: all 0.3s ease-in-out;
+}
+.pin-icon:hover,
+.refresh-icon:hover {
+    opacity: 1;
+    cursor: pointer;
+    transform: scale(1.2);
 }
 
 /* ------------------------------------------------------------------ */

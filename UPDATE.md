@@ -1,5 +1,13 @@
 ## 🎉 What's New
 
+### v2.6.2
+
+#### Added
+- Added command palette commands for Pin and Refresh actions
+  - Commands are contextually available based on current note and settings
+- Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image
+- Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting
+
 ### v2.6.1
 
 #### Updated

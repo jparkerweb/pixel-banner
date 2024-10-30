@@ -1,4 +1,4 @@
-import { Plugin, MarkdownView, requestUrl, Notice, Modal } from 'obsidian';
+import { Plugin, MarkdownView, requestUrl, Notice, Modal, FuzzySuggestModal } from 'obsidian';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
 import { ReleaseNotesModal } from './modals';
 import { releaseNotes } from 'virtual:release-notes';
@@ -44,6 +44,79 @@ module.exports = class PixelBannerPlugin extends Plugin {
         this.registerMarkdownPostProcessor(this.postProcessor.bind(this));
 
         this.setupMutationObserver();
+
+        // Add command for pinning current banner image
+        this.addCommand({
+            id: 'pin-banner-image',
+            name: '📌 Pin current banner image',
+            checkCallback: (checking) => {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return false;
+
+                // Get the current banner image URL and check all possible banner fields
+                const imageUrl = this.loadedImages.get(activeView.file.path);
+                const frontmatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
+                let bannerImage, usedField;
+
+                // Check all custom banner fields
+                for (const field of this.settings.customBannerField) {
+                    if (frontmatter?.[field]) {
+                        bannerImage = frontmatter[field];
+                        usedField = field;
+                        break;
+                    }
+                }
+
+                const inputType = this.getInputType(bannerImage);
+                const canPin = imageUrl && inputType === 'keyword' && this.settings.showPinIcon;
+                
+                if (checking) return canPin;
+
+                if (canPin) {
+                    setTimeout(() => handlePinIconClick(imageUrl, this, usedField), 0);
+                }
+                return true;
+            }
+        });
+
+        // Add command for refreshing current banner image
+        this.addCommand({
+            id: 'refresh-banner-image',
+            name: '🔄 Refresh current banner image',
+            checkCallback: (checking) => {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return false;
+
+                // Get the current banner settings and check all possible banner fields
+                const frontmatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
+                let bannerImage;
+
+                // Check all custom banner fields
+                for (const field of this.settings.customBannerField) {
+                    if (frontmatter?.[field]) {
+                        bannerImage = frontmatter[field];
+                        break;
+                    }
+                }
+
+                const inputType = this.getInputType(bannerImage);
+                const canRefresh = inputType === 'keyword' && this.settings.showPinIcon && this.settings.showRefreshIcon;
+                
+                if (checking) return canRefresh;
+
+                if (canRefresh) {
+                    this.loadedImages.delete(activeView.file.path);
+                    this.lastKeywords.delete(activeView.file.path);
+                    this.updateBanner(activeView, true).then(() => {
+                        new Notice('🔄 Refreshed banner image');
+                    }).catch(error => {
+                        console.error('Error refreshing image:', error);
+                        new Notice('😭 Failed to refresh image');
+                    });
+                }
+                return true;
+            }
+        });
     }
 
     async loadSettings() {
@@ -379,7 +452,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         pinIcon.style.display = 'block';
                         pinIcon.onclick = async () => {
                             try {
-                                await handlePinIconClick(imageUrl, this);
+                                // Determine which banner field is being used
+                                let usedField;
+                                for (const field of this.settings.customBannerField) {
+                                    if (frontmatter?.[field]) {
+                                        usedField = field;
+                                        break;
+                                    }
+                                }
+                                await handlePinIconClick(imageUrl, this, usedField);
                             } catch (error) {
                                 console.error('Error pinning image:', error);
                                 new Notice('😭 Failed to pin the image.');
@@ -982,16 +1063,9 @@ function addPinIcon(noteElement, imageUrl, plugin) {
     }
 }
 
-async function handlePinIconClick(imageUrl, plugin) {
-    // console.log('🎯 Starting pin process...');
+async function handlePinIconClick(imageUrl, plugin, usedField = null) {
     const imageBlob = await fetchImage(imageUrl);
-    // console.log('📥 Image fetched successfully');
-    
     const { initialPath, file } = await saveImageLocally(imageBlob, plugin);
-    // console.log('💾 Initial save complete:', { initialPath, file });
-    
-    // Set up file monitoring for potential rename/move
-    // console.log('👀 Waiting for potential file rename...');
     const finalPath = await waitForFileRename(file, plugin);
     
     if (!finalPath) {
@@ -1000,9 +1074,7 @@ async function handlePinIconClick(imageUrl, plugin) {
         return;
     }
     
-    // console.log('✅ File path resolved:', finalPath);
-    await updateNoteFrontmatter(finalPath, plugin);
-    // console.log('📝 Frontmatter updated');
+    await updateNoteFrontmatter(finalPath, plugin, usedField);
     hidePinIcon();
 }
 
@@ -1013,16 +1085,66 @@ async function fetchImage(url) {
     return await response.arrayBuffer();
 }
 
+class FolderSelectionModal extends FuzzySuggestModal {
+    constructor(app, defaultFolder, onChoose) {
+        super(app);
+        this.defaultFolder = defaultFolder;
+        this.onChoose = onChoose;
+        
+        // Set custom placeholder text
+        this.setPlaceholder("Select or type folder path to save Pinned Banner Image");
+        
+        // Set modal title
+        this.titleEl.setText("Choose Folder to save Pinned Banner Image");
+    }
+
+    getItems() {
+        return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles()
+            .filter(file => file.children)
+            .map(folder => folder.path)];
+    }
+
+    getItemText(item) {
+        return item;
+    }
+
+    onChooseItem(item) {
+        this.onChoose(item);
+    }
+
+    onOpen() {
+        super.onOpen();
+        // Pre-populate the search with the default folder
+        const inputEl = this.inputEl;
+        inputEl.value = this.defaultFolder;
+        inputEl.select();
+        // Trigger the search to show matching results
+        this.updateSuggestions();
+    }
+}
+
 async function saveImageLocally(arrayBuffer, plugin) {
     const vault = plugin.app.vault;
-    const folderPath = plugin.settings.pinnedImageFolder;
+    const defaultFolderPath = plugin.settings.pinnedImageFolder;
+
+    // First, prompt for folder selection
+    const folderPath = await new Promise((resolve) => {
+        const modal = new FolderSelectionModal(plugin.app, defaultFolderPath, (result) => {
+            resolve(result);
+        });
+        modal.open();
+    });
+
+    if (!folderPath) {
+        throw new Error('No folder selected');
+    }
 
     // Ensure the folder exists
     if (!await vault.adapter.exists(folderPath)) {
         await vault.createFolder(folderPath);
     }
 
-    // Prompt user for filename
+    // Then prompt for filename
     const suggestedName = 'pixel-banner-image';
     const userInput = await new Promise((resolve) => {
         const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
@@ -1052,46 +1174,53 @@ async function saveImageLocally(arrayBuffer, plugin) {
     const filePath = `${folderPath}/${fileName}`;
     const savedFile = await vault.createBinary(filePath, arrayBuffer);
     
-    // Return both the initial path and the TFile object
     return {
         initialPath: filePath,
         file: savedFile
     };
 }
 
-async function updateNoteFrontmatter(imagePath, plugin) {
+async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
     const activeFile = app.workspace.getActiveFile();
     if (!activeFile) return;
 
-    const fileContent = await app.vault.read(activeFile);
+    let fileContent = await app.vault.read(activeFile);
     const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
     const hasFrontmatter = frontmatterRegex.test(fileContent);
     
-    // Get the first available banner field name from settings
-    const bannerField = Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0
-        ? plugin.settings.customBannerField[0]  // Use first defined custom field name
-        : 'banner';  // Fallback to 'banner' if no custom fields defined
+    const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
+        plugin.settings.customBannerField.length > 0 ? 
+        plugin.settings.customBannerField[0] : 'banner');
+
+    fileContent = fileContent.replace(/^\s+/, '');
 
     let updatedContent;
     if (hasFrontmatter) {
-        // Update existing frontmatter
         updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-            // Check if banner field already exists
             const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
-            if (bannerRegex.test(frontmatter)) {
-                // Update existing banner field
-                return match.replace(bannerRegex, `${bannerField}: ${imagePath}`);
-            } else {
-                // Add new banner field to existing frontmatter
-                return `---\n${frontmatter.trim()}\n${bannerField}: ${imagePath}\n---`;
-            }
+            let cleanedFrontmatter = frontmatter.trim();
+            
+            // Remove any banner fields to prevent duplicates
+            plugin.settings.customBannerField.forEach(field => {
+                const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
+                cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
+            });
+
+            // Add the new banner field at the start, ensuring no extra newlines
+            cleanedFrontmatter = cleanedFrontmatter.trim();
+            const newFrontmatter = `${bannerField}: ${imagePath}${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+            return `---\n${newFrontmatter}\n---`;
         });
     } else {
-        // Create new frontmatter
-        updatedContent = `---\n${bannerField}: ${imagePath}\n---\n\n${fileContent}`;
+        const cleanContent = fileContent.replace(/^\s+/, '');
+        updatedContent = `---\n${bannerField}: ${imagePath}\n---\n\n${cleanContent}`;
     }
 
-    await app.vault.modify(activeFile, updatedContent);
+    updatedContent = updatedContent.replace(/^\s+/, '');
+    
+    if (updatedContent !== fileContent) {
+        await app.vault.modify(activeFile, updatedContent);
+    }
 }
 
 function hidePinIcon() {
@@ -1120,7 +1249,9 @@ class SaveImageModal extends Modal {
             value: this.suggestedName
         });
         input.style.width = '100%';
+        
         input.focus();
+        input.select();
 
         const buttonContainer = contentEl.createDiv();
         buttonContainer.style.display = 'flex';
@@ -1131,7 +1262,9 @@ class SaveImageModal extends Modal {
         const submitButton = buttonContainer.createEl('button', {
             text: 'Save'
         });
-        submitButton.addEventListener('click', () => {
+        submitButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.onSubmit(input.value);
             this.close();
         });
@@ -1139,16 +1272,22 @@ class SaveImageModal extends Modal {
         const cancelButton = buttonContainer.createEl('button', {
             text: 'Cancel'
         });
-        cancelButton.addEventListener('click', () => {
+        cancelButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.onSubmit(null);
             this.close();
         });
 
-        // Handle Enter key
+        // Handle Enter key with event prevention
         input.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                this.onSubmit(input.value);
-                this.close();
+                event.preventDefault();
+                event.stopPropagation();
+                setTimeout(() => {
+                    this.onSubmit(input.value);
+                    this.close();
+                }, 0);
             }
         });
     }

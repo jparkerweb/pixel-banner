@@ -623,7 +623,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
         // Add the folder input setting
         const folderInputSetting = new Setting(containerEl)
             .setName('Pinned Images Folder')
-            .setDesc('Folder where pinned banner images will be saved')
+            .setDesc('Default folder where pinned banner images will be saved')
             .addText(text => {
                 text.setPlaceholder('pixel-banner-images')
                     .setValue(this.plugin.settings.pinnedImageFolder)
@@ -649,7 +649,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
             })
             .addButton(button => button
                 .setButtonText('Clean Orphaned Pins')
-                .setTooltip('Remove pinned images that are not used in any note')
+                .setTooltip('Remove pinned images from the default folder that are no longer referenced in Notes')
                 .onClick(async () => {
                     button.setButtonText('🫧 Cleaning...');
                     button.setDisabled(true);

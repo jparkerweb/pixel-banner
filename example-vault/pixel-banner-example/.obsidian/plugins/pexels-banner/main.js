@@ -433,7 +433,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       refreshIconSetting.settingEl.style.display = value ? "flex" : "none";
       await this.plugin.saveSettings();
     }));
-    const folderInputSetting = new import_obsidian.Setting(containerEl).setName("Pinned Images Folder").setDesc("Folder where pinned banner images will be saved").addText((text) => {
+    const folderInputSetting = new import_obsidian.Setting(containerEl).setName("Pinned Images Folder").setDesc("Default folder where pinned banner images will be saved").addText((text) => {
       text.setPlaceholder("pixel-banner-images").setValue(this.plugin.settings.pinnedImageFolder).onChange(async (value) => {
         this.plugin.settings.pinnedImageFolder = value;
         await this.plugin.saveSettings();
@@ -448,7 +448,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       });
       return text;
-    }).addButton((button) => button.setButtonText("Clean Orphaned Pins").setTooltip("Remove pinned images that are not used in any note").onClick(async () => {
+    }).addButton((button) => button.setButtonText("Clean Orphaned Pins").setTooltip("Remove pinned images from the default folder that are no longer referenced in Notes").onClick(async () => {
       button.setButtonText("\u{1FAE7} Cleaning...");
       button.setDisabled(true);
       try {
@@ -920,7 +920,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -964,6 +964,63 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     );
     this.registerMarkdownPostProcessor(this.postProcessor.bind(this));
     this.setupMutationObserver();
+    this.addCommand({
+      id: "pin-banner-image",
+      name: "\u{1F4CC} Pin current banner image",
+      checkCallback: (checking) => {
+        var _a;
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        if (!activeView || !activeView.file) return false;
+        const imageUrl = this.loadedImages.get(activeView.file.path);
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
+        let bannerImage, usedField;
+        for (const field of this.settings.customBannerField) {
+          if (frontmatter == null ? void 0 : frontmatter[field]) {
+            bannerImage = frontmatter[field];
+            usedField = field;
+            break;
+          }
+        }
+        const inputType = this.getInputType(bannerImage);
+        const canPin = imageUrl && inputType === "keyword" && this.settings.showPinIcon;
+        if (checking) return canPin;
+        if (canPin) {
+          setTimeout(() => handlePinIconClick(imageUrl, this, usedField), 0);
+        }
+        return true;
+      }
+    });
+    this.addCommand({
+      id: "refresh-banner-image",
+      name: "\u{1F504} Refresh current banner image",
+      checkCallback: (checking) => {
+        var _a;
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        if (!activeView || !activeView.file) return false;
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
+        let bannerImage;
+        for (const field of this.settings.customBannerField) {
+          if (frontmatter == null ? void 0 : frontmatter[field]) {
+            bannerImage = frontmatter[field];
+            break;
+          }
+        }
+        const inputType = this.getInputType(bannerImage);
+        const canRefresh = inputType === "keyword" && this.settings.showPinIcon && this.settings.showRefreshIcon;
+        if (checking) return canRefresh;
+        if (canRefresh) {
+          this.loadedImages.delete(activeView.file.path);
+          this.lastKeywords.delete(activeView.file.path);
+          this.updateBanner(activeView, true).then(() => {
+            new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
+          }).catch((error) => {
+            console.error("Error refreshing image:", error);
+            new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
+          });
+        }
+        return true;
+      }
+    });
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -1213,7 +1270,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
             pinIcon.style.display = "block";
             pinIcon.onclick = async () => {
               try {
-                await handlePinIconClick(imageUrl, this);
+                let usedField;
+                for (const field of this.settings.customBannerField) {
+                  if (frontmatter == null ? void 0 : frontmatter[field]) {
+                    usedField = field;
+                    break;
+                  }
+                }
+                await handlePinIconClick(imageUrl, this, usedField);
               } catch (error) {
                 console.error("Error pinning image:", error);
                 new import_obsidian3.Notice("\u{1F62D} Failed to pin the image.");
@@ -1644,7 +1708,7 @@ function getFrontmatterValue(frontmatter, fieldNames) {
   }
   return void 0;
 }
-async function handlePinIconClick(imageUrl, plugin) {
+async function handlePinIconClick(imageUrl, plugin, usedField = null) {
   const imageBlob = await fetchImage(imageUrl);
   const { initialPath, file } = await saveImageLocally(imageBlob, plugin);
   const finalPath = await waitForFileRename(file, plugin);
@@ -1653,7 +1717,7 @@ async function handlePinIconClick(imageUrl, plugin) {
     new import_obsidian3.Notice("Failed to save image - file not found");
     return;
   }
-  await updateNoteFrontmatter(finalPath, plugin);
+  await updateNoteFrontmatter(finalPath, plugin, usedField);
   hidePinIcon();
 }
 async function fetchImage(url) {
@@ -1661,9 +1725,43 @@ async function fetchImage(url) {
   if (!response.ok) throw new Error("Image download failed");
   return await response.arrayBuffer();
 }
+var FolderSelectionModal = class extends import_obsidian3.FuzzySuggestModal {
+  constructor(app2, defaultFolder, onChoose) {
+    super(app2);
+    this.defaultFolder = defaultFolder;
+    this.onChoose = onChoose;
+    this.setPlaceholder("Select or type folder path to save Pinned Banner Image");
+    this.titleEl.setText("Choose Folder to save Pinned Banner Image");
+  }
+  getItems() {
+    return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path)];
+  }
+  getItemText(item) {
+    return item;
+  }
+  onChooseItem(item) {
+    this.onChoose(item);
+  }
+  onOpen() {
+    super.onOpen();
+    const inputEl = this.inputEl;
+    inputEl.value = this.defaultFolder;
+    inputEl.select();
+    this.updateSuggestions();
+  }
+};
 async function saveImageLocally(arrayBuffer, plugin) {
   const vault = plugin.app.vault;
-  const folderPath = plugin.settings.pinnedImageFolder;
+  const defaultFolderPath = plugin.settings.pinnedImageFolder;
+  const folderPath = await new Promise((resolve) => {
+    const modal = new FolderSelectionModal(plugin.app, defaultFolderPath, (result) => {
+      resolve(result);
+    });
+    modal.open();
+  });
+  if (!folderPath) {
+    throw new Error("No folder selected");
+  }
   if (!await vault.adapter.exists(folderPath)) {
     await vault.createFolder(folderPath);
   }
@@ -1694,34 +1792,41 @@ async function saveImageLocally(arrayBuffer, plugin) {
     file: savedFile
   };
 }
-async function updateNoteFrontmatter(imagePath, plugin) {
+async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
   const activeFile = app.workspace.getActiveFile();
   if (!activeFile) return;
-  const fileContent = await app.vault.read(activeFile);
+  let fileContent = await app.vault.read(activeFile);
   const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
   const hasFrontmatter = frontmatterRegex.test(fileContent);
-  const bannerField = Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0 ? plugin.settings.customBannerField[0] : "banner";
+  const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0 ? plugin.settings.customBannerField[0] : "banner");
+  fileContent = fileContent.replace(/^\s+/, "");
   let updatedContent;
   if (hasFrontmatter) {
     updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
       const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
-      if (bannerRegex.test(frontmatter)) {
-        return match.replace(bannerRegex, `${bannerField}: ${imagePath}`);
-      } else {
-        return `---
-${frontmatter.trim()}
-${bannerField}: ${imagePath}
+      let cleanedFrontmatter = frontmatter.trim();
+      plugin.settings.customBannerField.forEach((field) => {
+        const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, "g");
+        cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
+      });
+      cleanedFrontmatter = cleanedFrontmatter.trim();
+      const newFrontmatter = `${bannerField}: ${imagePath}${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+      return `---
+${newFrontmatter}
 ---`;
-      }
     });
   } else {
+    const cleanContent = fileContent.replace(/^\s+/, "");
     updatedContent = `---
 ${bannerField}: ${imagePath}
 ---
 
-${fileContent}`;
+${cleanContent}`;
   }
-  await app.vault.modify(activeFile, updatedContent);
+  updatedContent = updatedContent.replace(/^\s+/, "");
+  if (updatedContent !== fileContent) {
+    await app.vault.modify(activeFile, updatedContent);
+  }
 }
 function hidePinIcon() {
   const pinIcon = document.querySelector(".pin-icon");
@@ -1745,6 +1850,7 @@ var SaveImageModal = class extends import_obsidian3.Modal {
     });
     input.style.width = "100%";
     input.focus();
+    input.select();
     const buttonContainer = contentEl.createDiv();
     buttonContainer.style.display = "flex";
     buttonContainer.style.justifyContent = "flex-end";
@@ -1753,21 +1859,29 @@ var SaveImageModal = class extends import_obsidian3.Modal {
     const submitButton = buttonContainer.createEl("button", {
       text: "Save"
     });
-    submitButton.addEventListener("click", () => {
+    submitButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.onSubmit(input.value);
       this.close();
     });
     const cancelButton = buttonContainer.createEl("button", {
       text: "Cancel"
     });
-    cancelButton.addEventListener("click", () => {
+    cancelButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.onSubmit(null);
       this.close();
     });
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
-        this.onSubmit(input.value);
-        this.close();
+        event.preventDefault();
+        event.stopPropagation();
+        setTimeout(() => {
+          this.onSubmit(input.value);
+          this.close();
+        }, 0);
       }
     });
   }
