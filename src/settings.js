@@ -1154,7 +1154,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
     createExampleSettings(containerEl) {
         new Setting(containerEl)
             .setName('How to use')
-            .setHeading();
+            .setHeading()
+            .settingEl.querySelector('.setting-item-name').style.cssText = 'color: var(--text-accent-hover); font-size: var(--font-ui-large);';
 
         // Helper function to get a random item from an array
         const getRandomFieldName = (fieldNames) => {
