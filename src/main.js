@@ -501,17 +501,22 @@ module.exports = class PixelBannerPlugin extends Plugin {
             const keywords = input.includes(',') 
                 ? input.split(',')
                     .map(k => k.trim())
-                    .filter(k => k.length > 0)  // Filter out empty strings
-                    .filter(Boolean)  // Filter out null/undefined/empty values
+                    .filter(k => k.length > 0)
+                    .filter(Boolean)
                 : [input];
             
             // Only proceed if we have valid keywords
             if (keywords.length > 0) {
                 const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-                if (this.settings.apiProvider === 'pexels') {
+                const provider = this.getActiveApiProvider();
+                // console.log(`provider: ${provider}`);
+                
+                if (provider === 'pexels') {
                     return this.fetchPexelsImage(selectedKeyword);
-                } else if (this.settings.apiProvider === 'pixabay') {
+                } else if (provider === 'pixabay') {
                     return this.fetchPixabayImage(selectedKeyword);
+                } else if (provider === 'flickr') {
+                    return this.fetchFlickrImage(selectedKeyword);
                 }
             }
             return null;
@@ -643,6 +648,67 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         console.error('No images found after all attempts');
         new Notice('Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.');
+        return null;
+    }
+
+    async fetchFlickrImage(keyword) {
+        const apiKey = this.settings.flickrApiKey;
+        if (!apiKey) {
+            new Notice('Flickr API key is not set. Please set it in the plugin settings.');
+            return null;
+        }
+
+        const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
+        const keywordsToTry = [keyword, ...defaultKeywords];
+        const maxAttempts = 4;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
+
+            try {
+                // Use Flickr search API to find photos
+                const searchUrl = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&text=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&format=json&nojsoncallback=1&sort=relevance&content_type=1&media=photos&safe_search=1`;
+                
+                const response = await this.makeRequest(searchUrl);
+                
+                if (response.status !== 200) {
+                    console.error(`Flickr API error: ${response.status} ${response.statusText}`);
+                    continue;
+                }
+
+                const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+                
+                if (data.stat !== 'ok') {
+                    console.error('Flickr API error:', data);
+                    continue;
+                }
+
+                if (data.photos && data.photos.photo && data.photos.photo.length > 0) {
+                    const photos = data.photos.photo;
+                    const randomIndex = Math.floor(Math.random() * photos.length);
+                    const photo = photos[randomIndex];
+                    
+                    // Construct image URL based on size preference
+                    let size = 'z'; // Default to medium 640
+                    switch (this.settings.imageSize) {
+                        case 'small': size = 'n'; break;  // Small 320
+                        case 'medium': size = 'z'; break; // Medium 640
+                        case 'large': size = 'b'; break;  // Large 1024
+                    }
+                    
+                    // Construct Flickr image URL
+                    const imageUrl = `https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}_${size}.jpg`;
+                    return imageUrl;
+                }
+                
+                console.log(`No images found for keyword: ${currentKeyword}`);
+            } catch (error) {
+                console.error('Error fetching image from Flickr:', error);
+            }
+        }
+
+        console.error('No images found after all attempts');
+        new Notice('Failed to fetch an image after multiple attempts');
         return null;
     }
 
@@ -1060,6 +1126,25 @@ module.exports = class PixelBannerPlugin extends Plugin {
         bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
         bannerDiv.style.setProperty('--pixel-banner-fade', `${fade}%`);
         bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
+    }
+
+    // Add this helper method to randomly select an API provider
+    getActiveApiProvider() {
+        if (this.settings.apiProvider !== 'all') {
+            return this.settings.apiProvider;
+        }
+
+        const availableProviders = [];
+        if (this.settings.pexelsApiKey) availableProviders.push('pexels');
+        if (this.settings.pixabayApiKey) availableProviders.push('pixabay');
+        if (this.settings.flickrApiKey) availableProviders.push('flickr');
+
+        if (availableProviders.length === 0) {
+            return 'pexels'; // Default fallback if no API keys are configured
+        }
+
+        // Randomly select from available providers
+        return availableProviders[Math.floor(Math.random() * availableProviders.length)];
     }
 }
 

@@ -1,42 +1,6 @@
 ## 🎉 What's New
 
-### v2.6.7
-#### Fixed
-- fix Note properties z-index
-
-### v2.6.6
-#### Fixed
-- Fix z-index issue with banner image
-
-### v2.6.5
-#### Fixed
-- Fix issue when Note elements have "css float" applied (content being pushed down)
-
-### v2.6.4
-#### Fixed
-- Content Start and Y Position inheritance issues
-
-### v2.6.3
-#### Fixed
-- Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners
-- Fixed caching issue where banners from notes viewed previously would display on new/other notes
-
-### v2.6.2
-
+### v2.7.0
 #### Added
-- Added command palette commands for Pin and Refresh actions
-  - Commands are contextually available based on current note and settings
-- Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image
-- Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting
-
-### v2.6.1
-
-#### Updated
-- Removed Pin and Refresh Icons from showing in Embedded Notes
-
-### v2.6.0
-
-#### Added
-- Added a Refresh Icon that appears next to the pin icon for random API images
-- Click the refresh icon (🔄) to instantly fetch a new random image
-- Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)
+- Flickr API support
+- Random API provider selection

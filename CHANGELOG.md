@@ -2,6 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.7.0] - 2024-11-03
+
+### Added
+- Flickr API support
+- Random API provider selection
+
 ## [2.6.7] - 2024-11-03
 
 ### Fixed

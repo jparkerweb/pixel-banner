@@ -13,9 +13,10 @@ var import_obsidian3 = require("obsidian");
 // src/settings.js
 var import_obsidian = require("obsidian");
 var DEFAULT_SETTINGS = {
-  apiProvider: "pexels",
+  apiProvider: "all",
   pexelsApiKey: "",
   pixabayApiKey: "",
+  flickrApiKey: "",
   imageSize: "medium",
   imageOrientation: "landscape",
   numberOfImages: 10,
@@ -370,7 +371,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
   createAPISettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
     calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
-    new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
       this.plugin.settings.apiProvider = value;
       await this.plugin.saveSettings();
       this.display();
@@ -419,6 +420,27 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       new Notice(isValid ? "\u2705 Pixabay API key is valid!" : "\u274C Invalid Pixabay API key");
     }));
     pixabayApiKeySetting.settingEl.style.width = "100%";
+    new import_obsidian.Setting(containerEl).setName("Flickr API Key");
+    containerEl.createEl("span", { text: "Enter your Flickr API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.flickr.com/services/api/", text: "Flickr API" });
+    const flickrApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
+      text.setPlaceholder("Flickr API key").setValue(this.plugin.settings.flickrApiKey).onChange(async (value) => {
+        this.plugin.settings.flickrApiKey = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "calc(100% - 100px)";
+    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+      const apiKey = this.plugin.settings.flickrApiKey;
+      if (!apiKey) {
+        new Notice("Please enter an API key first");
+        return;
+      }
+      button.setButtonText("Testing...");
+      button.setDisabled(true);
+      const isValid = await testFlickrApi(apiKey);
+      button.setButtonText("Test API");
+      button.setDisabled(false);
+      new Notice(isValid ? "\u2705 Flickr API key is valid!" : "\u274C Invalid Flickr API key");
+    }));
     new import_obsidian.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
     new import_obsidian.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showPinIcon).onChange(async (value) => {
       this.plugin.settings.showPinIcon = value;
@@ -870,6 +892,15 @@ async function testPixabayApi(apiKey) {
     return false;
   }
 }
+async function testFlickrApi(apiKey) {
+  try {
+    const response = await fetch(`https://www.flickr.com/services/rest/?method=flickr.test.echo&api_key=${apiKey}&format=json&nojsoncallback=1`);
+    const data = await response.json();
+    return data.stat === "ok";
+  } catch (error) {
+    return false;
+  }
+}
 
 // src/modals.js
 var import_obsidian2 = require("obsidian");
@@ -913,7 +944,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.6.7</h3>\n<h4>Fixed</h4>\n<ul>\n<li>fix Note properties z-index</li>\n</ul>\n<h3>v2.6.6</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fix z-index issue with banner image</li>\n</ul>\n<h3>v2.6.5</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fix issue when Note elements have &quot;css float&quot; applied (content being pushed down)</li>\n</ul>\n<h3>v2.6.4</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Content Start and Y Position inheritance issues</li>\n</ul>\n<h3>v2.6.3</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed issue where the Pin and Refresh Icons would sometimes display on notes without banners</li>\n<li>Fixed caching issue where banners from notes viewed previously would display on new/other notes</li>\n</ul>\n<h3>v2.6.2</h3>\n<h4>Added</h4>\n<ul>\n<li>Added command palette commands for Pin and Refresh actions<ul>\n<li>Commands are contextually available based on current note and settings</li>\n</ul>\n</li>\n<li>Added Fuzzy Suggest Modal for Folder Selection when Pinning a Banner Image</li>\n<li>Pin and Refresh Icons are now semi-transparent unless hovered over as to not be too distracting</li>\n</ul>\n<h3>v2.6.1</h3>\n<h4>Updated</h4>\n<ul>\n<li>Removed Pin and Refresh Icons from showing in Embedded Notes</li>\n</ul>\n<h3>v2.6.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Added a Refresh Icon that appears next to the pin icon for random API images</li>\n<li>Click the refresh icon (\u{1F504}) to instantly fetch a new random image</li>\n<li>Enable/Disable the Refresh Icon in Settings (dependent on Pin Icon being enabled)</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.7.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Flickr API support</li>\n<li>Random API provider selection</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1297,10 +1328,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       const keywords = input.includes(",") ? input.split(",").map((k) => k.trim()).filter((k) => k.length > 0).filter(Boolean) : [input];
       if (keywords.length > 0) {
         const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-        if (this.settings.apiProvider === "pexels") {
+        const provider = this.getActiveApiProvider();
+        if (provider === "pexels") {
           return this.fetchPexelsImage(selectedKeyword);
-        } else if (this.settings.apiProvider === "pixabay") {
+        } else if (provider === "pixabay") {
           return this.fetchPixabayImage(selectedKeyword);
+        } else if (provider === "flickr") {
+          return this.fetchFlickrImage(selectedKeyword);
         }
       }
       return null;
@@ -1411,6 +1445,59 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     console.error("No images found after all attempts");
     new import_obsidian3.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
+    return null;
+  }
+  async fetchFlickrImage(keyword) {
+    const apiKey = this.settings.flickrApiKey;
+    if (!apiKey) {
+      new import_obsidian3.Notice("Flickr API key is not set. Please set it in the plugin settings.");
+      return null;
+    }
+    const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
+    const keywordsToTry = [keyword, ...defaultKeywords];
+    const maxAttempts = 4;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
+      try {
+        const searchUrl = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&text=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&format=json&nojsoncallback=1&sort=relevance&content_type=1&media=photos&safe_search=1`;
+        const response = await this.makeRequest(searchUrl);
+        if (response.status !== 200) {
+          console.error(`Flickr API error: ${response.status} ${response.statusText}`);
+          continue;
+        }
+        const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+        if (data.stat !== "ok") {
+          console.error("Flickr API error:", data);
+          continue;
+        }
+        if (data.photos && data.photos.photo && data.photos.photo.length > 0) {
+          const photos = data.photos.photo;
+          const randomIndex = Math.floor(Math.random() * photos.length);
+          const photo = photos[randomIndex];
+          let size = "z";
+          switch (this.settings.imageSize) {
+            case "small":
+              size = "n";
+              break;
+            // Small 320
+            case "medium":
+              size = "z";
+              break;
+            // Medium 640
+            case "large":
+              size = "b";
+              break;
+          }
+          const imageUrl = `https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}_${size}.jpg`;
+          return imageUrl;
+        }
+        console.log(`No images found for keyword: ${currentKeyword}`);
+      } catch (error) {
+        console.error("Error fetching image from Flickr:", error);
+      }
+    }
+    console.error("No images found after all attempts");
+    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts");
     return null;
   }
   async makeRequest(url) {
@@ -1736,6 +1823,20 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
     bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
     bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
+  }
+  // Add this helper method to randomly select an API provider
+  getActiveApiProvider() {
+    if (this.settings.apiProvider !== "all") {
+      return this.settings.apiProvider;
+    }
+    const availableProviders = [];
+    if (this.settings.pexelsApiKey) availableProviders.push("pexels");
+    if (this.settings.pixabayApiKey) availableProviders.push("pixabay");
+    if (this.settings.flickrApiKey) availableProviders.push("flickr");
+    if (availableProviders.length === 0) {
+      return "pexels";
+    }
+    return availableProviders[Math.floor(Math.random() * availableProviders.length)];
   }
 };
 function getFrontmatterValue(frontmatter, fieldNames) {

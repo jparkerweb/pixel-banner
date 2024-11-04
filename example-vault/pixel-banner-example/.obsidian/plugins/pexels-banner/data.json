@@ -1,5 +1,5 @@
 {
-  "apiProvider": "pexels",
+  "apiProvider": "all",
   "pexelsApiKey": "",
   "pixabayApiKey": "",
   "imageSize": "large",
@@ -65,6 +65,6 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.6.7",
+  "lastVersion": "2.7.0",
   "showRefreshIcon": true
 }

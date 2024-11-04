@@ -1,9 +1,10 @@
 import { PluginSettingTab, Setting, FuzzySuggestModal } from 'obsidian';
 
 const DEFAULT_SETTINGS = {
-    apiProvider: 'pexels',
+    apiProvider: 'all',
     pexelsApiKey: '',
     pixabayApiKey: '',
+    flickrApiKey: '',
     imageSize: 'medium',
     imageOrientation: 'landscape',
     numberOfImages: 10,
@@ -509,8 +510,10 @@ class PixelBannerSettingTab extends PluginSettingTab {
             .setName('API Provider')
             .setDesc('Select the API provider for fetching images')
             .addDropdown(dropdown => dropdown
+                .addOption('all', 'All (Random)')
                 .addOption('pexels', 'Pexels')
                 .addOption('pixabay', 'Pixabay')
+                .addOption('flickr', 'Flickr')
                 .setValue(this.plugin.settings.apiProvider)
                 .onChange(async (value) => {
                     this.plugin.settings.apiProvider = value;
@@ -593,6 +596,43 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     new Notice(isValid ? '✅ Pixabay API key is valid!' : '❌ Invalid Pixabay API key');
                 }));
         pixabayApiKeySetting.settingEl.style.width = '100%';
+
+        // Add Flickr API key setting
+        new Setting(containerEl)
+            .setName('Flickr API Key');
+        containerEl.createEl('span', { text: 'Enter your Flickr API key. Get your API key from ', cls: 'setting-item-description' })
+            .createEl('a', { href: 'https://www.flickr.com/services/api/', text: 'Flickr API' });
+        const flickrApiKeySetting = new Setting(containerEl)
+            .setClass('full-width-control')
+            .addText(text => {
+                text
+                    .setPlaceholder('Flickr API key')
+                    .setValue(this.plugin.settings.flickrApiKey)
+                    .onChange(async (value) => {
+                        this.plugin.settings.flickrApiKey = value;
+                        await this.plugin.saveSettings();
+                    });
+                text.inputEl.style.width = 'calc(100% - 100px)';
+            })
+            .addButton(button => button
+                .setButtonText('Test API')
+                .onClick(async () => {
+                    const apiKey = this.plugin.settings.flickrApiKey;
+                    if (!apiKey) {
+                        new Notice('Please enter an API key first');
+                        return;
+                    }
+                    
+                    button.setButtonText('Testing...');
+                    button.setDisabled(true);
+                    
+                    const isValid = await testFlickrApi(apiKey);
+                    
+                    button.setButtonText('Test API');
+                    button.setDisabled(false);
+                    
+                    new Notice(isValid ? '✅ Flickr API key is valid!' : '❌ Invalid Flickr API key');
+                }));
 
         new Setting(containerEl)
             .setName('Images')
@@ -1277,6 +1317,16 @@ async function testPixabayApi(apiKey) {
         }
         
         return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+async function testFlickrApi(apiKey) {
+    try {
+        const response = await fetch(`https://www.flickr.com/services/rest/?method=flickr.test.echo&api_key=${apiKey}&format=json&nojsoncallback=1`);
+        const data = await response.json();
+        return data.stat === 'ok';
     } catch (error) {
         return false;
     }
