@@ -23,7 +23,7 @@
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
-    z-index: -1;
+    z-index: 0;
 }
 /* fix for banner image overlapping with note content */
 .pixel-banner-image ~ div {

@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.6.6
+#### Fixed
+- Fix z-index issue with banner image
+
 ### v2.6.5
 #### Fixed
 - Fix issue when Note elements have "css float" applied (content being pushed down)

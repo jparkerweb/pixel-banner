@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.6.6] - 2024-11-03
+
+### Fixed
+- Fix z-index issue with banner image
+
 ## [2.6.5] - 2024-11-03
 
 ### Fixed
