@@ -23,7 +23,7 @@
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
-    z-index: 0;
+    z-index: -1;
 }
 /* fix for banner image overlapping with note content */
 .pixel-banner-image ~ div {
@@ -32,11 +32,6 @@
 .cm-sizer .metadata-container,
 .markdown-preview-sizer .metadata-container {
     z-index: 1;
-}
-.cm-sizer,
-.markdown-preview-sizer {
-    display: flex;
-    flex-direction: column;
 }
 
 /* fix overflow issue with embedded notes */

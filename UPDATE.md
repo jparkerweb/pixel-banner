@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.6.5
+#### Fixed
+- Fix issue when Note elements have "css float" applied (content being pushed down)
+
 ### v2.6.4
 #### Fixed
 - Content Start and Y Position inheritance issues

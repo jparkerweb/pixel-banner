@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.6.5] - 2024-11-03
+
+### Fixed
+- Fix issue when Note elements have "css float" applied (content being pushed down)
+
 ## [2.6.4] - 2024-10-30
 
 ### Fixed
