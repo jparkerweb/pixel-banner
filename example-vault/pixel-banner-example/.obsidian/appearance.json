@@ -1,3 +1,6 @@
 {
-  "accentColor": "#315ab9"
+  "accentColor": "#315ab9",
+  "enabledCssSnippets": [
+    "utils"
+  ]
 }
