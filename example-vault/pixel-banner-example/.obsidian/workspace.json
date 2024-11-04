@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🚩 Pixel Banner - v2.7.0 - 🔵🔴 Flickr Time.md",
+                "file": "🚩 Pixel-Banner.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "🚩 Pixel Banner - v2.7.0 - 🔵🔴 Flickr Time"
+              "title": "🚩 Pixel-Banner"
             }
           }
         ]
@@ -165,8 +165,8 @@
   },
   "active": "3a66c6f70b5b68ff",
   "lastOpenFiles": [
-    "🚩 Pixel-Banner.md",
     "🚩 Pixel Banner - v2.7.0 - 🔵🔴 Flickr Time.md",
+    "🚩 Pixel-Banner.md",
     "misc tests/Image with float-right.md",
     "misc tests",
     "tests/🧪 test - 1 - internal link.md",

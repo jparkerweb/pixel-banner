@@ -2,6 +2,7 @@
   "apiProvider": "all",
   "pexelsApiKey": "",
   "pixabayApiKey": "",
+  "flickrApiKey": "",
   "imageSize": "large",
   "imageOrientation": "landscape",
   "numberOfImages": 10,
