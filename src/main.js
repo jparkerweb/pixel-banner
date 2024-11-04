@@ -517,6 +517,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     return this.fetchPixabayImage(selectedKeyword);
                 } else if (provider === 'flickr') {
                     return this.fetchFlickrImage(selectedKeyword);
+                } else if (provider === 'unsplash') {
+                    return this.fetchUnsplashImage(selectedKeyword);
                 }
             }
             return null;
@@ -712,7 +714,78 @@ module.exports = class PixelBannerPlugin extends Plugin {
         return null;
     }
 
-    async makeRequest(url) {
+    async fetchUnsplashImage(keyword) {
+        const apiKey = this.settings.unsplashApiKey;
+        if (!apiKey) {
+            new Notice('Unsplash API key is not set. Please set it in the plugin settings.');
+            return null;
+        }
+
+        const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
+        const keywordsToTry = [keyword, ...defaultKeywords];
+        const maxAttempts = 4;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
+
+            try {
+                // Use the search endpoint instead of random
+                let apiUrl = 'https://api.unsplash.com/search/photos';
+                const params = new URLSearchParams({
+                    query: currentKeyword,
+                    per_page: this.settings.numberOfImages,
+                    orientation: this.settings.imageOrientation
+                });
+
+                const response = await this.makeRequest(`${apiUrl}?${params}`, {
+                    headers: {
+                        'Authorization': `Client-ID ${apiKey}`,
+                        'Accept-Version': 'v1'
+                    }
+                });
+
+                if (response.status !== 200) {
+                    console.error(`Unsplash API error: ${response.status}`);
+                    continue;
+                }
+
+                const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+                if (!data.results || data.results.length === 0) {
+                    console.log(`No images found for keyword: ${currentKeyword}`);
+                    continue;
+                }
+
+                const randomIndex = Math.floor(Math.random() * data.results.length);
+                const photo = data.results[randomIndex];
+                
+                // Get the appropriate size URL based on settings
+                let imageUrl;
+                switch (this.settings.imageSize) {
+                    case 'small':
+                        imageUrl = photo.urls.small;
+                        break;
+                    case 'medium':
+                        imageUrl = photo.urls.regular;
+                        break;
+                    case 'large':
+                        imageUrl = photo.urls.full;
+                        break;
+                    default:
+                        imageUrl = photo.urls.regular;
+                }
+
+                return imageUrl;
+            } catch (error) {
+                console.error('Error fetching image from Unsplash:', error);
+            }
+        }
+
+        console.error('No images found after all attempts');
+        new Notice('Failed to fetch an image after multiple attempts');
+        return null;
+    }
+
+    async makeRequest(url, options = {}) {
         const now = Date.now();
         if (now - this.rateLimiter.lastRequestTime < this.rateLimiter.minInterval) {
             await new Promise(resolve => setTimeout(resolve, this.rateLimiter.minInterval));
@@ -720,7 +793,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
         this.rateLimiter.lastRequestTime = Date.now();
 
         try {
-            const response = await requestUrl({ url });
+            const response = await requestUrl({
+                url,
+                headers: options.headers || {},
+                ...options
+            });
             return response;
         } catch (error) {
             console.error('Request failed:', error);
@@ -1138,6 +1215,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (this.settings.pexelsApiKey) availableProviders.push('pexels');
         if (this.settings.pixabayApiKey) availableProviders.push('pixabay');
         if (this.settings.flickrApiKey) availableProviders.push('flickr');
+        if (this.settings.unsplashApiKey) availableProviders.push('unsplash');
 
         if (availableProviders.length === 0) {
             return 'pexels'; // Default fallback if no API keys are configured

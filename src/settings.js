@@ -5,6 +5,7 @@ const DEFAULT_SETTINGS = {
     pexelsApiKey: '',
     pixabayApiKey: '',
     flickrApiKey: '',
+    unsplashApiKey: '',
     imageSize: 'medium',
     imageOrientation: 'landscape',
     numberOfImages: 10,
@@ -514,6 +515,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 .addOption('pexels', 'Pexels')
                 .addOption('pixabay', 'Pixabay')
                 .addOption('flickr', 'Flickr')
+                .addOption('unsplash', 'Unsplash')
                 .setValue(this.plugin.settings.apiProvider)
                 .onChange(async (value) => {
                     this.plugin.settings.apiProvider = value;
@@ -632,6 +634,42 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     button.setDisabled(false);
                     
                     new Notice(isValid ? '✅ Flickr API key is valid!' : '❌ Invalid Flickr API key');
+                }));
+
+        new Setting(containerEl)
+            .setName('Unsplash API Key');
+        containerEl.createEl('span', { text: 'Enter your Unsplash API key (Access Key). Get your API key from ', cls: 'setting-item-description' })
+            .createEl('a', { href: 'https://unsplash.com/oauth/applications', text: 'Unsplash API' });
+        const unsplashApiKeySetting = new Setting(containerEl)
+            .setClass('full-width-control')
+            .addText(text => {
+                text
+                    .setPlaceholder('Unsplash API key')
+                    .setValue(this.plugin.settings.unsplashApiKey)
+                    .onChange(async (value) => {
+                        this.plugin.settings.unsplashApiKey = value;
+                        await this.plugin.saveSettings();
+                    });
+                text.inputEl.style.width = 'calc(100% - 100px)';
+            })
+            .addButton(button => button
+                .setButtonText('Test API')
+                .onClick(async () => {
+                    const apiKey = this.plugin.settings.unsplashApiKey;
+                    if (!apiKey) {
+                        new Notice('Please enter an API key first');
+                        return;
+                    }
+                    
+                    button.setButtonText('Testing...');
+                    button.setDisabled(true);
+                    
+                    const isValid = await testUnsplashApi(apiKey);
+                    
+                    button.setButtonText('Test API');
+                    button.setDisabled(false);
+                    
+                    new Notice(isValid ? '✅ Unsplash API key is valid!' : '❌ Invalid Unsplash API key');
                 }));
 
         new Setting(containerEl)
@@ -1327,6 +1365,19 @@ async function testFlickrApi(apiKey) {
         const response = await fetch(`https://www.flickr.com/services/rest/?method=flickr.test.echo&api_key=${apiKey}&format=json&nojsoncallback=1`);
         const data = await response.json();
         return data.stat === 'ok';
+    } catch (error) {
+        return false;
+    }
+}
+
+async function testUnsplashApi(apiKey) {
+    try {
+        const response = await fetch('https://api.unsplash.com/photos/random', {
+            headers: {
+                'Authorization': `Client-ID ${apiKey}`
+            }
+        });
+        return response.ok;
     } catch (error) {
         return false;
     }

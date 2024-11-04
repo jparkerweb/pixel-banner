@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.8.0] - 2024-11-04
+
+### Added
+- Unsplash API support
+
 ## [2.7.0] - 2024-11-03
 
 ### Added

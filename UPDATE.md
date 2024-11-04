@@ -1,6 +1,5 @@
 ## 🎉 What's New
 
-### v2.7.0
+### v2.8.0
 #### Added
-- Flickr API support
-- Random API provider selection
+- Unsplash API support

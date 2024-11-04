@@ -17,6 +17,7 @@ var DEFAULT_SETTINGS = {
   pexelsApiKey: "",
   pixabayApiKey: "",
   flickrApiKey: "",
+  unsplashApiKey: "",
   imageSize: "medium",
   imageOrientation: "landscape",
   numberOfImages: 10,
@@ -371,7 +372,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
   createAPISettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
     calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
-    new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").addOption("unsplash", "Unsplash").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
       this.plugin.settings.apiProvider = value;
       await this.plugin.saveSettings();
       this.display();
@@ -440,6 +441,27 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       button.setButtonText("Test API");
       button.setDisabled(false);
       new Notice(isValid ? "\u2705 Flickr API key is valid!" : "\u274C Invalid Flickr API key");
+    }));
+    new import_obsidian.Setting(containerEl).setName("Unsplash API Key");
+    containerEl.createEl("span", { text: "Enter your Unsplash API key (Access Key). Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://unsplash.com/oauth/applications", text: "Unsplash API" });
+    const unsplashApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
+      text.setPlaceholder("Unsplash API key").setValue(this.plugin.settings.unsplashApiKey).onChange(async (value) => {
+        this.plugin.settings.unsplashApiKey = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "calc(100% - 100px)";
+    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+      const apiKey = this.plugin.settings.unsplashApiKey;
+      if (!apiKey) {
+        new Notice("Please enter an API key first");
+        return;
+      }
+      button.setButtonText("Testing...");
+      button.setDisabled(true);
+      const isValid = await testUnsplashApi(apiKey);
+      button.setButtonText("Test API");
+      button.setDisabled(false);
+      new Notice(isValid ? "\u2705 Unsplash API key is valid!" : "\u274C Invalid Unsplash API key");
     }));
     new import_obsidian.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
     new import_obsidian.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showPinIcon).onChange(async (value) => {
@@ -901,6 +923,18 @@ async function testFlickrApi(apiKey) {
     return false;
   }
 }
+async function testUnsplashApi(apiKey) {
+  try {
+    const response = await fetch("https://api.unsplash.com/photos/random", {
+      headers: {
+        "Authorization": `Client-ID ${apiKey}`
+      }
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
 
 // src/modals.js
 var import_obsidian2 = require("obsidian");
@@ -944,7 +978,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.7.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Flickr API support</li>\n<li>Random API provider selection</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1335,6 +1369,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           return this.fetchPixabayImage(selectedKeyword);
         } else if (provider === "flickr") {
           return this.fetchFlickrImage(selectedKeyword);
+        } else if (provider === "unsplash") {
+          return this.fetchUnsplashImage(selectedKeyword);
         }
       }
       return null;
@@ -1500,14 +1536,76 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     new import_obsidian3.Notice("Failed to fetch an image after multiple attempts");
     return null;
   }
-  async makeRequest(url) {
+  async fetchUnsplashImage(keyword) {
+    const apiKey = this.settings.unsplashApiKey;
+    if (!apiKey) {
+      new import_obsidian3.Notice("Unsplash API key is not set. Please set it in the plugin settings.");
+      return null;
+    }
+    const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
+    const keywordsToTry = [keyword, ...defaultKeywords];
+    const maxAttempts = 4;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
+      try {
+        let apiUrl = "https://api.unsplash.com/search/photos";
+        const params = new URLSearchParams({
+          query: currentKeyword,
+          per_page: this.settings.numberOfImages,
+          orientation: this.settings.imageOrientation
+        });
+        const response = await this.makeRequest(`${apiUrl}?${params}`, {
+          headers: {
+            "Authorization": `Client-ID ${apiKey}`,
+            "Accept-Version": "v1"
+          }
+        });
+        if (response.status !== 200) {
+          console.error(`Unsplash API error: ${response.status}`);
+          continue;
+        }
+        const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+        if (!data.results || data.results.length === 0) {
+          console.log(`No images found for keyword: ${currentKeyword}`);
+          continue;
+        }
+        const randomIndex = Math.floor(Math.random() * data.results.length);
+        const photo = data.results[randomIndex];
+        let imageUrl;
+        switch (this.settings.imageSize) {
+          case "small":
+            imageUrl = photo.urls.small;
+            break;
+          case "medium":
+            imageUrl = photo.urls.regular;
+            break;
+          case "large":
+            imageUrl = photo.urls.full;
+            break;
+          default:
+            imageUrl = photo.urls.regular;
+        }
+        return imageUrl;
+      } catch (error) {
+        console.error("Error fetching image from Unsplash:", error);
+      }
+    }
+    console.error("No images found after all attempts");
+    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts");
+    return null;
+  }
+  async makeRequest(url, options = {}) {
     const now = Date.now();
     if (now - this.rateLimiter.lastRequestTime < this.rateLimiter.minInterval) {
       await new Promise((resolve) => setTimeout(resolve, this.rateLimiter.minInterval));
     }
     this.rateLimiter.lastRequestTime = Date.now();
     try {
-      const response = await (0, import_obsidian3.requestUrl)({ url });
+      const response = await (0, import_obsidian3.requestUrl)({
+        url,
+        headers: options.headers || {},
+        ...options
+      });
       return response;
     } catch (error) {
       console.error("Request failed:", error);
@@ -1833,6 +1931,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (this.settings.pexelsApiKey) availableProviders.push("pexels");
     if (this.settings.pixabayApiKey) availableProviders.push("pixabay");
     if (this.settings.flickrApiKey) availableProviders.push("flickr");
+    if (this.settings.unsplashApiKey) availableProviders.push("unsplash");
     if (availableProviders.length === 0) {
       return "pexels";
     }
