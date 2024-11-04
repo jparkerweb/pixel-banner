@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.6.7
+#### Fixed
+- fix Note properties z-index
+
 ### v2.6.6
 #### Fixed
 - Fix z-index issue with banner image
