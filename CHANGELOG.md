@@ -2,6 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.8.1] - 2024-11-07
+
+### Fixed
+- Banner image overlapping with note content
+- Banner image impacting absolute-positioned and floated elements
+
 ## [2.8.0] - 2024-11-04
 
 ### Added
