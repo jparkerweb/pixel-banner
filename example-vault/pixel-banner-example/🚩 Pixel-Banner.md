@@ -2,7 +2,7 @@
 banner: "[[forest.jpg]]"
 content-start: 2
 ---
-# 🚩 Pixel-Banner
+# 🚩 Pixel-Banner 
 
 > [!info] ⇢ This note uses the `[[` internal link `]]` format for the Banner
 
@@ -21,4 +21,6 @@ content-start: 2
 
 <br>
 
-![[🧪 test - 5- embed tests]]
+![[🧪 test - 7 - embed tests]]
+
+## Move Me { .top-right .color-yellow .bg-black .padding-20 .border-radius }

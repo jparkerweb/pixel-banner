@@ -5,3 +5,7 @@
 ![[🧪 test - 3 - direct url link]]
 
 ![[🧪 test - 4 - all fields]]
+
+![[🧪 test - 5 - absolute position]]
+
+![[🧪 test - 6 - image float right]]

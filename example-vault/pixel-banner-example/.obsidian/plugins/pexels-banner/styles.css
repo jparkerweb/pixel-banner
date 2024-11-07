@@ -1,11 +1,10 @@
+/* ------------------------------------------------------------------ */
+/* -- configure default: move banner image to top, fade/size, etc. -- */
+/* ------------------------------------------------------------------ */
 @keyframes pixel-banner-image--fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
-/* ------------------------------------------------------------------ */
-/* -- configure default: move banner image to top, fade/size, etc. -- */
-/* ------------------------------------------------------------------ */
 .pixel-banner-image {
 	position: absolute;
 	top: 0;
@@ -23,13 +22,16 @@
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
-    z-index: 0;
+    z-index: -1;
 }
+
 /* fix for banner image overlapping with note content */
-.pixel-banner-image ~ div {
-    z-index: 1;
+/* isolate the banner image from the note content */
+.view-content.pixel-banner {
     position: relative;
+    isolation: isolate;
 }
+
 .cm-sizer .metadata-container,
 .markdown-preview-sizer .metadata-container {
     z-index: 1;

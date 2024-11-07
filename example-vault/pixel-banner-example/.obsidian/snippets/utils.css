@@ -2,6 +2,28 @@
   float: right;
 }
 
+.padding-20 {
+  padding: 20px;
+}
+
+.border-radius{
+  border-radius: 15px;
+}
+
 .width-small {
   width: 200px;
+}
+
+.top-right {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.color-yellow {
+  color: yellow !important;
+}
+
+.bg-black {
+  background: black !important;
 }

@@ -3,6 +3,7 @@
   "pexelsApiKey": "",
   "pixabayApiKey": "",
   "flickrApiKey": "",
+  "unsplashApiKey": "",
   "imageSize": "large",
   "imageOrientation": "landscape",
   "numberOfImages": 10,
@@ -66,6 +67,6 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.7.0",
+  "lastVersion": "2.8.0",
   "showRefreshIcon": true
 }

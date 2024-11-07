@@ -978,7 +978,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image overlapping with note content</li>\n<li>Banner image impacting absolute-positioned and floated elements</li>\n</ul>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
