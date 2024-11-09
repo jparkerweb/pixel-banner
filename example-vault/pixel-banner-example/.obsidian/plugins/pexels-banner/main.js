@@ -978,7 +978,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.2</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image not updating when image is replaced</li>\n</ul>\n<h3>v2.8.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image overlapping with note content</li>\n<li>Banner image impacting absolute-positioned and floated elements</li>\n</ul>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.3</h3>\n<h4>Added</h4>\n<ul>\n<li>Event listener to update banner when note frontmatter is updated via Obsidian&#39;s Property Menu</li>\n</ul>\n<h3>v2.8.2</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image not updating when image is replaced</li>\n</ul>\n<h3>v2.8.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image overlapping with note content</li>\n<li>Banner image impacting absolute-positioned and floated elements</li>\n</ul>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1077,6 +1077,33 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         return true;
       }
     });
+    this.registerEvent(
+      this.app.metadataCache.on("changed", async (file) => {
+        var _a;
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
+        if (!frontmatter) return;
+        const relevantFields = [
+          ...this.settings.customBannerField,
+          ...this.settings.customYPositionField,
+          ...this.settings.customContentStartField,
+          ...this.settings.customImageDisplayField,
+          ...this.settings.customImageRepeatField,
+          ...this.settings.customBannerHeightField,
+          ...this.settings.customFadeField,
+          ...this.settings.customBorderRadiusField
+        ];
+        const hasRelevantField = relevantFields.some((field) => field in frontmatter);
+        if (!hasRelevantField) return;
+        const leaves = this.app.workspace.getLeavesOfType("markdown");
+        for (const leaf of leaves) {
+          if (leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file === file && !leaf.containerEl.style.display && leaf.containerEl.matches(".workspace-leaf")) {
+            this.loadedImages.delete(file.path);
+            this.lastKeywords.delete(file.path);
+            await this.updateBanner(leaf.view, true);
+          }
+        }
+      })
+    );
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());

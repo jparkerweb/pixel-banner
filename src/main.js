@@ -116,6 +116,46 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 return true;
             }
         });
+
+        this.registerEvent(
+            this.app.metadataCache.on('changed', async (file) => {
+                // console.log('File changed:', file?.path);
+                
+                // Get the frontmatter
+                const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+                if (!frontmatter) return;
+
+                // Check if any relevant fields exist in the frontmatter
+                const relevantFields = [
+                    ...this.settings.customBannerField,
+                    ...this.settings.customYPositionField,
+                    ...this.settings.customContentStartField,
+                    ...this.settings.customImageDisplayField,
+                    ...this.settings.customImageRepeatField,
+                    ...this.settings.customBannerHeightField,
+                    ...this.settings.customFadeField,
+                    ...this.settings.customBorderRadiusField
+                ];
+
+                const hasRelevantField = relevantFields.some(field => field in frontmatter);
+                if (!hasRelevantField) return;
+
+                // Find all visible markdown leaves for this file
+                const leaves = this.app.workspace.getLeavesOfType("markdown");
+                for (const leaf of leaves) {
+                    // Check if the leaf is visible and matches the file
+                    if (leaf.view instanceof MarkdownView && 
+                        leaf.view.file === file && 
+                        !leaf.containerEl.style.display && 
+                        leaf.containerEl.matches('.workspace-leaf')) {
+                        // Force a refresh of the banner
+                        this.loadedImages.delete(file.path);
+                        this.lastKeywords.delete(file.path);
+                        await this.updateBanner(leaf.view, true);
+                    }
+                }
+            })
+        );
     }
 
     async loadSettings() {

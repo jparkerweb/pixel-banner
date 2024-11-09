@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.8.3] - 2024-11-09
+
+### Added
+- Event listener to update banner when note frontmatter is updated via Obsidian's Property Menu
+
 ## [2.8.2] - 2024-11-09
 
 ### Fixed

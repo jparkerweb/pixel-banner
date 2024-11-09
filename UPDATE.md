@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.8.3
+#### Added
+- Event listener to update banner when note frontmatter is updated via Obsidian's Property Menu
+
 ### v2.8.2
 #### Fixed
 - Banner image not updating when image is replaced
