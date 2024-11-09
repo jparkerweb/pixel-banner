@@ -978,7 +978,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image overlapping with note content</li>\n<li>Banner image impacting absolute-positioned and floated elements</li>\n</ul>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.2</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image not updating when image is replaced</li>\n</ul>\n<h3>v2.8.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image overlapping with note content</li>\n<li>Banner image impacting absolute-positioned and floated elements</li>\n</ul>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -995,7 +995,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     });
     __publicField(this, "lastYPositions", /* @__PURE__ */ new Map());
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
-    __publicField(this, "pendingImageUpdates", /* @__PURE__ */ new Map());
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
       if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
@@ -1003,7 +1002,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     }, 100));
   }
-  // Track files waiting for potential renames
   async onload() {
     await this.loadSettings();
     await this.checkVersion();
@@ -1135,6 +1133,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           if (previousBanner) {
             previousBanner.style.backgroundImage = "";
             previousBanner.style.display = "none";
+            if (previousLeaf.view.file) {
+              const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
+              if (existingUrl == null ? void 0 : existingUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(existingUrl);
+              }
+              this.loadedImages.delete(previousLeaf.view.file.path);
+            }
           }
         }
       });
@@ -1656,7 +1661,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       try {
         const arrayBuffer = await this.app.vault.readBinary(file);
         const blob = new Blob([arrayBuffer], { type: `image/${file.extension}` });
-        return URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        return url;
       } catch (error) {
         console.error("Error reading vault image:", error);
         return null;

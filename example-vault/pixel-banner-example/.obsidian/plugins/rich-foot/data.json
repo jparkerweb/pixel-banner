@@ -1,0 +1,14 @@
+{
+  "borderWidth": 1,
+  "borderStyle": "dashed",
+  "borderOpacity": 1,
+  "borderRadius": 15,
+  "datesOpacity": 1,
+  "linksOpacity": 1,
+  "showReleaseNotes": true,
+  "excludedFolders": [],
+  "lastVersion": "1.5.1",
+  "showBacklinks": true,
+  "showOutlinks": true,
+  "showDates": true
+}

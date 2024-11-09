@@ -1,6 +1,5 @@
 ---
-banner:
-  - - llamas.jpg
+banner: images/llamas.jpg
 banner-y: 70
 content-start: 220
 banner-display: contain

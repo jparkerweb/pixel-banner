@@ -27,10 +27,10 @@ __export(main_exports, {
   default: () => CssEditorPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian5 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/views/CssEditorView.ts
-var import_obsidian = require("obsidian");
+var import_obsidian2 = require("obsidian");
 var import_view5 = require("@codemirror/view");
 
 // node_modules/@replit/codemirror-vim/dist/index.js
@@ -7224,44 +7224,65 @@ function getCM(view) {
   return view.cm || null;
 }
 
+// src/CssFile.ts
+var CssFile = class {
+  constructor(name) {
+    /** File extension. */
+    this.extension = "css";
+    if (typeof name !== "string" || name.length === 0) {
+      throw new Error("Invalid file name.");
+    }
+    const extensionWithDot = `.${this.extension}`;
+    const basename = name.endsWith(extensionWithDot) ? name.slice(0, name.length - extensionWithDot.length) : name;
+    this.name = `${basename}.${this.extension}`;
+    this.basename = basename;
+  }
+};
+
 // src/obsidian/file-system-helpers.ts
+var import_obsidian = require("obsidian");
 function getSnippetDirectory(app) {
   return `${app.vault.configDir}/snippets/`;
 }
-async function readSnippetFile(app, fileName) {
+async function readSnippetFile(app, file) {
   const data = await app.vault.adapter.read(
-    `${getSnippetDirectory(app)}${fileName}`
+    (0, import_obsidian.normalizePath)(`${getSnippetDirectory(app)}${file.name}`)
   );
   return data;
 }
 async function createSnippetFile(app, fileName, data = "") {
-  await _validateFilename(fileName);
+  const file = new CssFile(fileName);
+  await _validateFile(file);
   await _createSnippetDirectoryIfNotExists(app);
   await app.vault.adapter.write(
-    `${getSnippetDirectory(app)}${fileName}`,
+    (0, import_obsidian.normalizePath)(`${getSnippetDirectory(app)}${file.name}`),
     data
   );
+  return file;
 }
-async function writeSnippetFile(app, fileName, data) {
+async function writeSnippetFile(app, file, data) {
   await app.vault.adapter.write(
-    `${getSnippetDirectory(app)}${fileName}`,
+    (0, import_obsidian.normalizePath)(`${getSnippetDirectory(app)}${file.name}`),
     data
   );
 }
 async function checkSnippetExists(app, fileName) {
-  return app.vault.adapter.exists(`${getSnippetDirectory(app)}${fileName}`);
+  return app.vault.adapter.exists(
+    (0, import_obsidian.normalizePath)(`${getSnippetDirectory(app)}${fileName}`)
+  );
 }
-async function deleteSnippetFile(app, fileName) {
-  await app.vault.adapter.remove(`${getSnippetDirectory(app)}${fileName}`);
+async function deleteSnippetFile(app, file) {
+  await app.vault.adapter.remove(
+    (0, import_obsidian.normalizePath)(`${getSnippetDirectory(app)}${file.name}`)
+  );
 }
-function toggleSnippetFileState(app, fileName) {
+function toggleSnippetFileState(app, file) {
   var _a;
-  const snippetName = fileName.replace(".css", "");
   if (!((_a = app.customCss) == null ? void 0 : _a.enabledSnippets) || !app.customCss.setCssEnabledStatus) {
     throw new Error("Failed to enable/disable CSS snippet.");
   }
-  const isEnabled = app.customCss.enabledSnippets.has(snippetName);
-  app.customCss.setCssEnabledStatus(snippetName, !isEnabled);
+  const isEnabled = app.customCss.enabledSnippets.has(file.basename);
+  app.customCss.setCssEnabledStatus(file.basename, !isEnabled);
   return !isEnabled;
 }
 async function _createSnippetDirectoryIfNotExists(app) {
@@ -7269,16 +7290,16 @@ async function _createSnippetDirectoryIfNotExists(app) {
     await app.vault.adapter.mkdir(getSnippetDirectory(app));
   }
 }
-async function _validateFilename(value) {
+async function _validateFile(file) {
   const errors = {
     exists: "",
     regex: ""
   };
-  if (value.length > 0 && await checkSnippetExists(this.app, value)) {
+  if (file.name.length > 0 && await checkSnippetExists(this.app, file.name)) {
     errors.exists = "File already exists.";
   }
   const regex = /^[0-9a-zA-Z\-_ ]+\.css$/;
-  if (!regex.test(value)) {
+  if (!regex.test(file.name)) {
     errors.regex = "Must end with .css and only contain alphanumeric, spaces, dashes, or underscore characters.";
   }
   if (Object.values(errors).some((x) => x !== "")) {
@@ -9919,11 +9940,12 @@ var basicExtensions = [
 
 // src/views/CssEditorView.ts
 var VIEW_TYPE_CSS = "css-editor-view";
-var CssEditorView = class extends import_obsidian.ItemView {
+var CssEditorView = class extends import_obsidian2.ItemView {
   constructor(leaf) {
     var _a, _b;
     super(leaf);
-    this.requestSave = (0, import_obsidian.debounce)(this.save, 1e3);
+    this.file = null;
+    this.requestSave = (0, import_obsidian2.debounce)(this.save, 1e3);
     this.navigation = true;
     this.editor = new import_view5.EditorView({
       parent: this.contentEl,
@@ -9937,7 +9959,6 @@ var CssEditorView = class extends import_obsidian.ItemView {
         })
       ]
     });
-    this.filename = "";
   }
   getViewType() {
     return VIEW_TYPE_CSS;
@@ -9946,17 +9967,10 @@ var CssEditorView = class extends import_obsidian.ItemView {
     return "file-code";
   }
   getDisplayText() {
-    return this.filename;
+    var _a, _b;
+    return (_b = (_a = this.file) == null ? void 0 : _a.basename) != null ? _b : "";
   }
   async onOpen() {
-    var _a;
-    const filename = (_a = this.getState()) == null ? void 0 : _a.filename;
-    if (filename) {
-      this.filename = filename;
-      const data = await readSnippetFile(this.app, filename);
-      this.dispatchEditorData(data);
-      this.app.workspace.requestSaveLayout();
-    }
     const timer = window.setInterval(() => {
       this.editor.focus();
       if (this.editor.hasFocus)
@@ -9977,31 +9991,43 @@ var CssEditorView = class extends import_obsidian.ItemView {
     });
   }
   getState() {
+    var _a;
     return {
-      filename: this.filename
+      file: (_a = this.file) == null ? void 0 : _a.name
     };
   }
   async setState(state, result) {
+    var _a;
+    let file = null;
     if (state && typeof state === "object") {
-      if ("filename" in state && state.filename && typeof state.filename === "string") {
-        if (state.filename !== this.filename) {
-          const data = await readSnippetFile(
-            this.app,
-            state.filename
-          );
-          this.dispatchEditorData(data);
-        }
-        this.filename = state.filename;
+      if ("filename" in state && typeof state.filename === "string") {
+        file = new CssFile(state.filename);
       }
+      if ("file" in state) {
+        if (state.file instanceof CssFile) {
+          file = state.file;
+        } else if (typeof state.file === "string") {
+          file = new CssFile(state.file);
+        }
+      }
+      if (file && file.name !== ((_a = this.file) == null ? void 0 : _a.name)) {
+        const data = await readSnippetFile(this.app, file);
+        this.dispatchEditorData(data);
+        this.file = file;
+        this.app.workspace.requestSaveLayout();
+        result.history = true;
+      }
+    } else {
+      result.history = true;
     }
-    super.setState(state, result);
+    super.setState({ file: file == null ? void 0 : file.name }, result);
   }
   /**
    * You should almost always call `requestSave` instead of `save` to debounce the saving.
    */
   async save(data) {
-    if (this.filename) {
-      writeSnippetFile(this.app, this.filename, data);
+    if (this.file) {
+      writeSnippetFile(this.app, this.file, data);
     }
   }
   async onClose() {
@@ -10010,9 +10036,10 @@ var CssEditorView = class extends import_obsidian.ItemView {
 };
 
 // src/modals/CssSnippetFuzzySuggestModal.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/obsidian/workspace-helpers.ts
+var import_obsidian3 = require("obsidian");
 async function openView(workspace, type, openInNewTab, state) {
   const leaf = workspace.getLeaf(openInNewTab);
   await leaf.setViewState({
@@ -10021,25 +10048,29 @@ async function openView(workspace, type, openInNewTab, state) {
   });
   workspace.setActiveLeaf(leaf);
 }
-function detachLeavesOfTypeAndDisplay(workspace, type, display) {
-  const leaves = workspace.getLeavesOfType(type);
-  leaves.forEach((leaf) => {
-    if (leaf.getDisplayText() === display) {
+async function detachCssFileLeaves(workspace, file) {
+  var _a;
+  const leaves = workspace.getLeavesOfType(VIEW_TYPE_CSS);
+  for (const leaf of leaves) {
+    if ((0, import_obsidian3.requireApiVersion)("1.7.2")) {
+      await leaf.loadIfDeferred();
+    }
+    if (((_a = leaf.getViewState().state) == null ? void 0 : _a.file) === file.name) {
       leaf.detach();
     }
-  });
+  }
 }
 
 // src/obsidian/Notice.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 var DEFAULT_NOTICE_TIMEOUT_SECONDS = 5;
-var InfoNotice = class extends import_obsidian2.Notice {
+var InfoNotice = class extends import_obsidian4.Notice {
   constructor(message, timeout = DEFAULT_NOTICE_TIMEOUT_SECONDS) {
     super(message, timeout * 1e3);
     console.info(`css-editor: ${message}`);
   }
 };
-var ErrorNotice = class extends import_obsidian2.Notice {
+var ErrorNotice = class extends import_obsidian4.Notice {
   constructor(message, timeout = DEFAULT_NOTICE_TIMEOUT_SECONDS) {
     super(message, timeout * 1e3);
     console.error(`css-editor: ${message}`);
@@ -10047,7 +10078,7 @@ var ErrorNotice = class extends import_obsidian2.Notice {
 };
 
 // src/modals/CssSnippetFuzzySuggestModal.ts
-var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestModal {
+var CssSnippetFuzzySuggestModal = class extends import_obsidian5.FuzzySuggestModal {
   constructor(app, plugin) {
     super(app);
     this.plugin = plugin;
@@ -10059,7 +10090,10 @@ var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestMod
     });
     this.scope.register(["Shift"], "Enter", (evt) => {
       this.selectSuggestion(
-        { item: this.inputEl.value, match: { score: 0, matches: [] } },
+        {
+          item: new CssFile(this.inputEl.value),
+          match: { score: 0, matches: [] }
+        },
         evt
       );
       return false;
@@ -10089,12 +10123,12 @@ var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestMod
     this.setInstructions([
       { command: "\u2191\u2193", purpose: "to navigate" },
       {
-        command: import_obsidian3.Platform.isMacOS ? "\u2318 \u21B5" : "ctrl \u21B5",
+        command: import_obsidian5.Platform.isMacOS ? "\u2318 \u21B5" : "ctrl \u21B5",
         purpose: "to open in new tab"
       },
       { command: "shift \u21B5", purpose: "to create" },
       {
-        command: import_obsidian3.Platform.isMacOS ? "\u2318 del" : "ctrl del",
+        command: import_obsidian5.Platform.isMacOS ? "\u2318 del" : "ctrl del",
         purpose: "to delete"
       },
       { command: "tab", purpose: "to enable/disable" },
@@ -10103,19 +10137,20 @@ var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestMod
   }
   isEnabled(item) {
     var _a, _b;
-    const snippetName = item.replace(".css", "");
-    const currentState = (_b = (_a = this.app.customCss) == null ? void 0 : _a.enabledSnippets) == null ? void 0 : _b.has(snippetName);
+    const currentState = (_b = (_a = this.app.customCss) == null ? void 0 : _a.enabledSnippets) == null ? void 0 : _b.has(
+      item.basename
+    );
     return currentState || false;
   }
   getItems() {
     var _a;
     if ((_a = this.app.customCss) == null ? void 0 : _a.snippets) {
-      return this.app.customCss.snippets.map((x) => `${x}.css`);
+      return this.app.customCss.snippets.map((x) => new CssFile(x));
     }
     return [];
   }
   getItemText(item) {
-    return item;
+    return item.name;
   }
   renderSuggestion(item, el) {
     super.renderSuggestion(item, el);
@@ -10140,7 +10175,7 @@ var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestMod
               createDiv(
                 { cls: "css-editor-suggestion-description" },
                 (el2) => el2.appendText(
-                  `${getSnippetDirectory(this.app)}${item.item}`
+                  `${getSnippetDirectory(this.app)}${item.item.name}`
                 )
               )
             );
@@ -10192,7 +10227,10 @@ var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestMod
     const isCreateNewDueToNoSuggestion = this.inputEl.value.trim().length > 0 && item.match.score === 0;
     if (isCreateNewDueToNoSuggestion && item.item) {
       const openInNewTab = evt.metaKey;
-      await this.plugin.createAndOpenSnippet(item.item, openInNewTab);
+      await this.plugin.createAndOpenSnippet(
+        item.item.name,
+        openInNewTab
+      );
     } else {
       await this.onChooseItem(item.item, evt);
     }
@@ -10202,7 +10240,7 @@ var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestMod
     const item = this.inputEl.value.trim();
     if (item.length > 0) {
       (_b = (_a = this.chooser) == null ? void 0 : _a.setSuggestions) == null ? void 0 : _b.call(_a, [
-        { item, match: { score: 0, matches: [] } }
+        { item: new CssFile(item), match: { score: 0, matches: [] } }
       ]);
       (_d = (_c = this.chooser) == null ? void 0 : _c.addMessage) == null ? void 0 : _d.call(
         _c,
@@ -10223,25 +10261,24 @@ var CssSnippetFuzzySuggestModal = class extends import_obsidian3.FuzzySuggestMod
       if (evt.key === "Enter") {
         const openInNewTab = evt.metaKey;
         if (evt.shiftKey) {
-          await this.plugin.createAndOpenSnippet(item, openInNewTab);
+          await this.plugin.createAndOpenSnippet(
+            item.name,
+            openInNewTab
+          );
         } else {
           openView(this.app.workspace, VIEW_TYPE_CSS, openInNewTab, {
-            filename: item
+            file: item
           });
         }
       } else if (evt.key === "Delete") {
-        deleteSnippetFile(this.app, item);
-        detachLeavesOfTypeAndDisplay(
-          this.app.workspace,
-          VIEW_TYPE_CSS,
-          item
-        );
+        await detachCssFileLeaves(this.app.workspace, item);
+        await deleteSnippetFile(this.app, item);
         new InfoNotice(`${item} was deleted.`);
       }
     } else {
       const openInNewTab = evt.metaKey;
       openView(this.app.workspace, VIEW_TYPE_CSS, openInNewTab, {
-        filename: item
+        file: item
       });
     }
   }
@@ -10302,8 +10339,8 @@ function isKeymapInfo(hotkey) {
 }
 
 // src/modals/CssSnippetCreateModal.ts
-var import_obsidian4 = require("obsidian");
-var CssSnippetCreateModal = class extends import_obsidian4.Modal {
+var import_obsidian6 = require("obsidian");
+var CssSnippetCreateModal = class extends import_obsidian6.Modal {
   constructor(app, plugin) {
     super(app);
     this.value = "";
@@ -10316,7 +10353,7 @@ var CssSnippetCreateModal = class extends import_obsidian4.Modal {
     this.buildForm();
   }
   buildForm() {
-    const textInput = new import_obsidian4.TextComponent(this.contentEl);
+    const textInput = new import_obsidian6.TextComponent(this.contentEl);
     textInput.setPlaceholder("CSS snippet file name (ex: snippet.css)");
     textInput.onChange((val) => this.value = val);
     textInput.inputEl.addEventListener("keydown", (evt) => {
@@ -10347,7 +10384,7 @@ var CssSnippetCreateModal = class extends import_obsidian4.Modal {
 
 // src/main.ts
 var DEFAULT_SETTINGS = {};
-var CssEditorPlugin = class extends import_obsidian5.Plugin {
+var CssEditorPlugin = class extends import_obsidian7.Plugin {
   async onload() {
     await this.loadSettings();
     this.addCommand({
@@ -10373,15 +10410,16 @@ var CssEditorPlugin = class extends import_obsidian5.Plugin {
           return false;
         if (checking)
           return true;
-        const { filename } = activeCssEditorView.getState();
-        deleteSnippetFile(this.app, filename).then(() => {
-          detachLeavesOfTypeAndDisplay(
-            this.app.workspace,
-            VIEW_TYPE_CSS,
-            filename
-          );
-          new InfoNotice(`"${filename}" was deleted.`);
-        });
+        const { file } = activeCssEditorView.getState();
+        if (!file)
+          return;
+        const cssFile = new CssFile(file);
+        detachCssFileLeaves(this.app.workspace, cssFile).then(
+          async () => {
+            await deleteSnippetFile(this.app, cssFile);
+            new InfoNotice(`"${cssFile.name}" was deleted.`);
+          }
+        );
       }
     });
     this.addCommand({
@@ -10393,10 +10431,13 @@ var CssEditorPlugin = class extends import_obsidian5.Plugin {
           return false;
         if (checking)
           return true;
-        const { filename } = activeCssEditorView.getState();
-        const isEnabled = toggleSnippetFileState(this.app, filename);
+        const { file } = activeCssEditorView.getState();
+        if (!file)
+          return;
+        const cssFile = new CssFile(file);
+        const isEnabled = toggleSnippetFileState(this.app, cssFile);
         new InfoNotice(
-          `"${filename}" is now ${isEnabled ? "enabled" : "disabled"}.`
+          `"${cssFile.name}" is now ${isEnabled ? "enabled" : "disabled"}.`
         );
       }
     });
@@ -10422,15 +10463,11 @@ var CssEditorPlugin = class extends import_obsidian5.Plugin {
   }
   async createAndOpenSnippet(filename, openInNewTab) {
     var _a, _b;
-    await createSnippetFile(this.app, filename, "");
-    (_b = (_a = this.app.customCss) == null ? void 0 : _a.setCssEnabledStatus) == null ? void 0 : _b.call(
-      _a,
-      filename.replace(".css", ""),
-      true
-    );
-    new InfoNotice(`${filename} was created.`);
+    const file = await createSnippetFile(this.app, filename, "");
+    (_b = (_a = this.app.customCss) == null ? void 0 : _a.setCssEnabledStatus) == null ? void 0 : _b.call(_a, file.basename, true);
+    new InfoNotice(`${file.name} was created.`);
     openView(this.app.workspace, VIEW_TYPE_CSS, openInNewTab, {
-      filename
+      file
     });
   }
 };
