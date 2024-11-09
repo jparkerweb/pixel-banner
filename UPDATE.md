@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.8.2
+#### Fixed
+- Banner image not updating when image is replaced
+
 ### v2.8.1
 #### Fixed
 - Banner image overlapping with note content

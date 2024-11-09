@@ -14,7 +14,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     };
     lastYPositions = new Map();
     lastFrontmatter = new Map();
-    pendingImageUpdates = new Map(); // Track files waiting for potential renames
 
     async onload() {
         await this.loadSettings();
@@ -176,7 +175,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     async handleActiveLeafChange(leaf) {
-        // Clear the banner from the previous note first
+        // Clean up banner from the previous note first
         const previousLeaf = this.app.workspace.activeLeaf;
         if (previousLeaf && previousLeaf.view instanceof MarkdownView) {
             const previousContentEl = previousLeaf.view.contentEl;
@@ -190,6 +189,14 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     if (previousBanner) {
                         previousBanner.style.backgroundImage = '';
                         previousBanner.style.display = 'none';
+                        // Clean up any existing blob URLs
+                        if (previousLeaf.view.file) {
+                            const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
+                            if (existingUrl?.startsWith('blob:')) {
+                                URL.revokeObjectURL(existingUrl);
+                            }
+                            this.loadedImages.delete(previousLeaf.view.file.path);
+                        }
                     }
                 }
             });
@@ -864,7 +871,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
             try {
                 const arrayBuffer = await this.app.vault.readBinary(file);
                 const blob = new Blob([arrayBuffer], { type: `image/${file.extension}` });
-                return URL.createObjectURL(blob);
+                const url = URL.createObjectURL(blob);
+                return url;
             } catch (error) {
                 console.error('Error reading vault image:', error);
                 return null;

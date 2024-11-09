@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.8.2] - 2024-11-09
+
+### Fixed
+- Banner image not updating when image is replaced
+
 ## [2.8.1] - 2024-11-07
 
 ### Fixed
