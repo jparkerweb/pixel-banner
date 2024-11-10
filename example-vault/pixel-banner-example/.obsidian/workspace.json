@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "3c54ea1c16868cac",
+        "id": "c22f19ae09e1d6b4",
         "type": "tabs",
         "children": [
           {
-            "id": "1a2f1a9b806ede53",
+            "id": "2cc421f19b220303",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -88,12 +88,36 @@
         "type": "tabs",
         "children": [
           {
-            "id": "0fdb0b6e455a6855",
+            "id": "4be35a81ddc47423",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "🚩 Pixel-Banner.md"
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 🚩 Pixel-Banner"
+            }
+          },
+          {
+            "id": "cac855cabb82aa42",
+            "type": "leaf",
+            "state": {
+              "type": "file-properties",
+              "state": {
+                "file": "🚩 Pixel-Banner.md"
+              },
+              "icon": "lucide-info",
+              "title": "File properties for 🚩 Pixel-Banner"
+            }
+          },
+          {
+            "id": "fc45a373c4340957",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "🚩 Pexels-Banner.md",
+                "file": "🚩 Pixel-Banner.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,25 +127,25 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for 🚩 Pexels-Banner"
+              "title": "Backlinks for 🚩 Pixel-Banner"
             }
           },
           {
-            "id": "2232668ccffdef68",
+            "id": "3d905785de764240",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "🚩 Pexels-Banner.md",
+                "file": "🚩 Pixel-Banner.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 🚩 Pexels-Banner"
+              "title": "Outgoing links from 🚩 Pixel-Banner"
             }
           },
           {
-            "id": "282c3e6a3a8d3ae5",
+            "id": "942be0e1d291668a",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -134,18 +158,21 @@
             }
           },
           {
-            "id": "4be35a81ddc47423",
+            "id": "2adc4bb58d59082d",
             "type": "leaf",
             "state": {
-              "type": "outline",
+              "type": "all-properties",
               "state": {
-                "file": "🚩 Pexels-Banner.md"
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
               },
-              "icon": "lucide-list",
-              "title": "Outline of 🚩 Pexels-Banner"
+              "icon": "lucide-archive",
+              "title": "All properties"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -163,22 +190,24 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "1a2f1a9b806ede53",
+  "active": "2cc421f19b220303",
   "lastOpenFiles": [
-    "test.md",
+    "🚩 Pixel Banner - v2.9.0 - 🥷 Ninja Fields.md",
     "🚩 Pixel-Banner.md",
-    "tests/🧪 test - 2 - internal link - quoted.md",
+    "pixel-banner-images/ninja.png",
     "tests/🧪 test - 1 - internal link.md",
-    "tests/🧪 test - 7 - embed tests.md",
     "tests/🧪 test - 3 - direct url link.md",
-    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 2 - internal link - quoted.md",
     "tests/🧪 test - 6 - image float right.md",
+    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 4 - all fields.md",
+    "tests/🧪 test - 7 - embed tests.md",
     "notes/📜 Embedded Note with Banner.md",
-    "notes/subfolder/Embedded Note in Subfolder.md",
     "notes/📃 Embedded Note.md",
+    "notes/subfolder/Embedded Note in Subfolder.md",
+    "test.md",
     "pixel-banner-images/foot.jpg",
     "pixel-banner-images/foot3.jpg",
-    "tests/🧪 test - 4 - all fields.md",
     "pixel-banner-images/foot1.jpg",
     "pixel-banner-images/foot2.jpg",
     "pixel-banner-images/rich-feet-2.jpg",
@@ -188,7 +217,6 @@
     "pixel-banner-images/foot 1.jpg",
     "🚩 Pixel Banner - v2.7.0 - 🔵🔴 Flickr Time.md",
     "misc tests",
-    "images/llamas.jpg",
     "test1.md",
     "tests/🧪 test - 6 - embed tests 2.md",
     "plain note.md",

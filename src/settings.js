@@ -1,4 +1,4 @@
-import { PluginSettingTab, Setting, FuzzySuggestModal } from 'obsidian';
+import { PluginSettingTab, Setting, FuzzySuggestModal, MarkdownView } from 'obsidian';
 
 const DEFAULT_SETTINGS = {
     apiProvider: 'all',
@@ -32,6 +32,8 @@ const DEFAULT_SETTINGS = {
     showReleaseNotes: true,
     lastVersion: null,
     showRefreshIcon: true,
+    hidePixelBannerFields: false,
+    hidePropertiesSectionIfOnlyBanner: false,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -454,12 +456,14 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
         const mainContent = containerEl.createEl('div', { cls: 'pixel-banner-main-content' });
 
-        // Create tabs
-        const { tabsEl, tabContentContainer } = this.createTabs(mainContent, ['API Settings', 'General', 'Custom Field Names', 'Folder Images', 'Examples']);
-
-        // API Settings tab content
-        const apiTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'API Settings' } });
-        this.createAPISettings(apiTab);
+        // Create tabs in the desired order
+        const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
+            'General',
+            'Custom Field Names',
+            'API Settings',
+            'Folder Images',
+            'Examples'
+        ]);
 
         // General tab content
         const generalTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'General' } });
@@ -469,6 +473,10 @@ class PixelBannerSettingTab extends PluginSettingTab {
         const customFieldsTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'Custom Field Names' } });
         this.createCustomFieldsSettings(customFieldsTab);
 
+        // API Settings tab content
+        const apiTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'API Settings' } });
+        this.createAPISettings(apiTab);
+
         // Folder Images tab content
         const foldersTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'Folder Images' } });
         this.createFolderSettings(foldersTab);
@@ -477,7 +485,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
         const examplesTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'Examples' } });
         this.createExampleSettings(examplesTab);
 
-        // Activate the API Settings tab by default
+        // Activate the General tab by default
         tabsEl.firstChild.click();
     }
 
@@ -897,60 +905,67 @@ class PixelBannerSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Image Display')
             .setDesc('Set how the banner image should be displayed')
-            .addDropdown(dropdown => dropdown
-                .addOption('auto', 'Auto')
-                .addOption('cover', 'Cover')
-                .addOption('contain', 'Contain')
-                .setValue(this.plugin.settings.imageDisplay || 'cover')
-                .onChange(async (value) => {
-                    this.plugin.settings.imageDisplay = value;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateAllBanners();
-                }))
-            .addExtraButton(button => button
-                .setIcon('reset')
-                .setTooltip('Reset to default')
-                .onClick(async () => {
-                    this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateAllBanners();
-                    // Update the dropdown value
-                    const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
-                    dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-                    dropdownEl.dispatchEvent(new Event('change'));
-                }));
+            .addDropdown(dropdown => {
+                dropdown
+                    .addOption('auto', 'Auto')
+                    .addOption('cover', 'Cover')
+                    .addOption('contain', 'Contain')
+                    .setValue(this.plugin.settings.imageDisplay || 'cover')
+                    .onChange(async (value) => {
+                        this.plugin.settings.imageDisplay = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                    });
+                return dropdown;
+            })
+            .addExtraButton(button => {
+                button
+                    .setIcon('reset')
+                    .setTooltip('Reset to default')
+                    .onClick(async () => {
+                        this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                        const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
+                        dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
+                        dropdownEl.dispatchEvent(new Event('change'));
+                    });
+                return button;
+            });
 
         new Setting(containerEl)
             .setName('Image Repeat')
             .setDesc('Enable image repetition when "Contain" is selected')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.imageRepeat)
-                .onChange(async (value) => {
-                    this.plugin.settings.imageRepeat = value;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateAllBanners();
-                }))
-            .addExtraButton(button => button
-                .setIcon('reset')
-                .setTooltip('Reset to default')
-                .onClick(async () => {
-                    // Update the plugin setting
-                    this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateAllBanners();
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.plugin.settings.imageRepeat)
+                    .onChange(async (value) => {
+                        this.plugin.settings.imageRepeat = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                    });
+                return toggle;
+            })
+            .addExtraButton(button => {
+                button
+                    .setIcon('reset')
+                    .setTooltip('Reset to default')
+                    .onClick(async () => {
+                        this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
 
-                    // Update the toggle state
-                    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
-                    const toggleEl = checkboxContainer.querySelector('input');
-                    if (toggleEl) {
-                        toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-                        // Update the container class
-                        checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.imageRepeat);
-                        // Trigger the change event to ensure the onChange handler runs
-                        const event = new Event('change', { bubbles: true });
-                        toggleEl.dispatchEvent(event);
-                    }
-                }));
+                        const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
+                        const toggleEl = checkboxContainer.querySelector('input');
+                        if (toggleEl) {
+                            toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
+                            checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.imageRepeat);
+                            const event = new Event('change', { bubbles: true });
+                            toggleEl.dispatchEvent(event);
+                        }
+                    });
+                return button;
+            });
 
         new Setting(containerEl)
             .setName('Banner Height')
@@ -1056,6 +1071,107 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     inputEl.dispatchEvent(new Event('input'));
                 }));
 
+        // Create Hide Pixel Banner Fields setting first
+        const hidePixelBannerFieldsSetting = new Setting(containerEl)
+            .setName('Hide Pixel Banner Fields')
+            .setDesc('Hide banner-related frontmatter fields in Reading mode')
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.plugin.settings.hidePixelBannerFields)
+                    .onChange(async (value) => {
+                        this.plugin.settings.hidePixelBannerFields = value;
+                        if (!value) {
+                            // Turn off the dependent setting
+                            this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+                            const dependentToggle = hidePropertiesSection.components[0]; // Get the toggle component
+                            if (dependentToggle) {
+                                dependentToggle.setValue(false);
+                                dependentToggle.setDisabled(true);
+                            }
+                            
+                            // Remove the hidden class from all previously hidden fields
+                            this.app.workspace.iterateAllLeaves(leaf => {
+                                if (leaf.view instanceof MarkdownView && leaf.view.contentEl) {
+                                    const propertiesContainer = leaf.view.contentEl.querySelector('.metadata-container');
+                                    if (propertiesContainer) {
+                                        propertiesContainer.classList.remove('pixel-banner-hidden-section');
+                                        const hiddenFields = propertiesContainer.querySelectorAll('.pixel-banner-hidden-field');
+                                        hiddenFields.forEach(field => {
+                                            field.classList.remove('pixel-banner-hidden-field');
+                                        });
+                                    }
+                                }
+                            });
+                        } else {
+                            // Enable the dependent toggle when this is turned on
+                            const dependentToggle = hidePropertiesSection.components[0];
+                            if (dependentToggle) {
+                                dependentToggle.setDisabled(false);
+                            }
+                        }
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                    });
+                return toggle;
+            })
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    // Reset both settings to their defaults
+                    this.plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
+                    this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+                    await this.plugin.saveSettings();
+                    
+                    // Update the main toggle state
+                    const mainToggle = hidePixelBannerFieldsSetting.components[0];
+                    if (mainToggle) {
+                        mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
+                    }
+
+                    // Update the dependent toggle state
+                    const dependentToggle = hidePropertiesSection.components[0];
+                    if (dependentToggle) {
+                        dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+                        dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
+                    }
+
+                    // Update the UI
+                    this.plugin.updateAllBanners();
+                }));
+
+        // Then create Hide Properties Section setting
+        const hidePropertiesSection = new Setting(containerEl)
+            .setName('Hide Properties Section')
+            .setDesc('Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields')
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner)
+                    .setDisabled(!this.plugin.settings.hidePixelBannerFields)
+                    .onChange(async (value) => {
+                        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                    });
+                return toggle;
+            })
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+                    await this.plugin.saveSettings();
+                    
+                    // Update the toggle state using the component directly
+                    const toggle = hidePropertiesSection.components[0];
+                    if (toggle) {
+                        toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+                    }
+                    
+                    this.plugin.updateAllBanners();
+                }));
+
+        // Add back the Show Release Notes setting
         new Setting(containerEl)
             .setName('Show Release Notes')
             .setDesc('Show release notes after plugin updates')
@@ -1078,6 +1194,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         toggleEl.dispatchEvent(new Event('change'));
                     }
                 }));
+
+        // Remove the old event listener setup since we're handling it in the onChange now
     }
 
     createCustomFieldsSettings(containerEl) {

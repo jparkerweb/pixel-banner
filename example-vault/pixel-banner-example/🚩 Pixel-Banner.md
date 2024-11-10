@@ -1,6 +1,6 @@
 ---
 banner: "[[forest.jpg]]"
-content-start: 2
+content-start: 250
 ---
 # 🚩 Pixel-Banner 
 
@@ -23,4 +23,4 @@ content-start: 2
 
 ![[🧪 test - 7 - embed tests]]
 
-## Move Me { .top-right .color-yellow .bg-black .padding-20 .border-radius }
+## Move Me { .top-right .color-yellow .bg-black .padding-20 .margin-0 .border-radius }

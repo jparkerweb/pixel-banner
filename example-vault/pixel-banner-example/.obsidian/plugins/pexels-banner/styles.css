@@ -43,6 +43,15 @@
     overflow: hidden;
 }
 
+/* hide frontmatter fields in reading mode */
+.markdown-preview-view .pixel-banner-hidden-field {
+    display: none !important;
+}
+/* Add specific targeting for properties view */
+.metadata-property.pixel-banner-hidden-field {
+    display: none !important;
+}
+
 /* pin / refresh icons */
 .pin-icon,
 .refresh-icon {
@@ -378,4 +387,9 @@
 
 .release-notes-spacer {
     margin: 10px 0;
+}
+
+/* Add to your existing CSS */
+.metadata-container.pixel-banner-hidden-section {
+    display: none !important;
 }

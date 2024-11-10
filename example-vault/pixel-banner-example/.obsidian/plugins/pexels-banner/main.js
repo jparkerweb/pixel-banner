@@ -43,7 +43,9 @@ var DEFAULT_SETTINGS = {
   pinnedImageFolder: "pixel-banner-images",
   showReleaseNotes: true,
   lastVersion: null,
-  showRefreshIcon: true
+  showRefreshIcon: true,
+  hidePixelBannerFields: false,
+  hidePropertiesSectionIfOnlyBanner: false
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -342,13 +344,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     containerEl.empty();
     containerEl.addClass("pixel-banner-settings");
     const mainContent = containerEl.createEl("div", { cls: "pixel-banner-main-content" });
-    const { tabsEl, tabContentContainer } = this.createTabs(mainContent, ["API Settings", "General", "Custom Field Names", "Folder Images", "Examples"]);
-    const apiTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "API Settings" } });
-    this.createAPISettings(apiTab);
+    const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
+      "General",
+      "Custom Field Names",
+      "API Settings",
+      "Folder Images",
+      "Examples"
+    ]);
     const generalTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "General" } });
     this.createGeneralSettings(generalTab);
     const customFieldsTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Custom Field Names" } });
     this.createCustomFieldsSettings(customFieldsTab);
+    const apiTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "API Settings" } });
+    this.createAPISettings(apiTab);
     const foldersTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Folder Images" } });
     this.createFolderSettings(foldersTab);
     const examplesTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Examples" } });
@@ -583,35 +591,47 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
       inputEl.dispatchEvent(new Event("input"));
     }));
-    new import_obsidian.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.plugin.settings.imageDisplay || "cover").onChange(async (value) => {
-      this.plugin.settings.imageDisplay = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
-      dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-      dropdownEl.dispatchEvent(new Event("change"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => toggle.setValue(this.plugin.settings.imageRepeat).onChange(async (value) => {
-      this.plugin.settings.imageRepeat = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
-      const toggleEl = checkboxContainer.querySelector("input");
-      if (toggleEl) {
-        toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-        checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
-        const event = new Event("change", { bubbles: true });
-        toggleEl.dispatchEvent(event);
-      }
-    }));
+    new import_obsidian.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => {
+      dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.plugin.settings.imageDisplay || "cover").onChange(async (value) => {
+        this.plugin.settings.imageDisplay = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return dropdown;
+    }).addExtraButton((button) => {
+      button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+        this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+        const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
+        dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
+        dropdownEl.dispatchEvent(new Event("change"));
+      });
+      return button;
+    });
+    new import_obsidian.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => {
+      toggle.setValue(this.plugin.settings.imageRepeat).onChange(async (value) => {
+        this.plugin.settings.imageRepeat = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return toggle;
+    }).addExtraButton((button) => {
+      button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+        this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+        const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
+        const toggleEl = checkboxContainer.querySelector("input");
+        if (toggleEl) {
+          toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
+          checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
+          const event = new Event("change", { bubbles: true });
+          toggleEl.dispatchEvent(event);
+        }
+      });
+      return button;
+    });
     new import_obsidian.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (100-2500 pixels)").addText((text) => {
       text.setPlaceholder("350").setValue(String(this.plugin.settings.bannerHeight)).onChange(async (value) => {
         if (value === "" || !isNaN(Number(value))) {
@@ -676,6 +696,69 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
       inputEl.value = DEFAULT_SETTINGS.borderRadius;
       inputEl.dispatchEvent(new Event("input"));
+    }));
+    const hidePixelBannerFieldsSetting = new import_obsidian.Setting(containerEl).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => {
+      toggle.setValue(this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+        this.plugin.settings.hidePixelBannerFields = value;
+        if (!value) {
+          this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+          const dependentToggle = hidePropertiesSection.components[0];
+          if (dependentToggle) {
+            dependentToggle.setValue(false);
+            dependentToggle.setDisabled(true);
+          }
+          this.app.workspace.iterateAllLeaves((leaf) => {
+            if (leaf.view instanceof import_obsidian.MarkdownView && leaf.view.contentEl) {
+              const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
+              if (propertiesContainer) {
+                propertiesContainer.classList.remove("pixel-banner-hidden-section");
+                const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
+                hiddenFields.forEach((field) => {
+                  field.classList.remove("pixel-banner-hidden-field");
+                });
+              }
+            }
+          });
+        } else {
+          const dependentToggle = hidePropertiesSection.components[0];
+          if (dependentToggle) {
+            dependentToggle.setDisabled(false);
+          }
+        }
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return toggle;
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
+      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+      await this.plugin.saveSettings();
+      const mainToggle = hidePixelBannerFieldsSetting.components[0];
+      if (mainToggle) {
+        mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
+      }
+      const dependentToggle = hidePropertiesSection.components[0];
+      if (dependentToggle) {
+        dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+        dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
+      }
+      this.plugin.updateAllBanners();
+    }));
+    const hidePropertiesSection = new import_obsidian.Setting(containerEl).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => {
+      toggle.setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      });
+      return toggle;
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+      await this.plugin.saveSettings();
+      const toggle = hidePropertiesSection.components[0];
+      if (toggle) {
+        toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+      }
+      this.plugin.updateAllBanners();
     }));
     new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
       this.plugin.settings.showReleaseNotes = value;
@@ -978,7 +1061,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.8.3</h3>\n<h4>Added</h4>\n<ul>\n<li>Event listener to update banner when note frontmatter is updated via Obsidian&#39;s Property Menu</li>\n</ul>\n<h3>v2.8.2</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image not updating when image is replaced</li>\n</ul>\n<h3>v2.8.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Banner image overlapping with note content</li>\n<li>Banner image impacting absolute-positioned and floated elements</li>\n</ul>\n<h3>v2.8.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Unsplash API support</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.9.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Option to Hide Pixel Banner property fields from displaying when in Reading Mode</li>\n<li>Option to Hide the Property Section from displaying in Reading Mode if the only fields are Pixel Banner fields</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1143,10 +1226,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     this.loadedImages.clear();
     this.lastKeywords.clear();
     this.imageCache.clear();
-    const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view.getViewType() === "markdown") {
-      await this.updateBanner(activeLeaf.view, true);
-    }
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      if (leaf.view instanceof import_obsidian3.MarkdownView) {
+        this.updateBanner(leaf.view, true);
+        if (this.settings.hidePixelBannerFields) {
+          this.updateFieldVisibility(leaf.view);
+        }
+      }
+    });
   }
   async handleActiveLeafChange(leaf) {
     const previousLeaf = this.app.workspace.activeLeaf;
@@ -1203,6 +1290,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async handleModeChange(leaf) {
     if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, true);
+      if (this.settings.hidePixelBannerFields) {
+        this.updateFieldVisibility(leaf.view);
+      }
     }
   }
   async updateBanner(view, isContentChange) {
@@ -1288,6 +1378,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           await this.updateBanner(embedView, false);
         }
       }
+    }
+    if (this.settings.hidePixelBannerFields && view.getMode() === "preview") {
+      this.updateFieldVisibility(view);
     }
   }
   setupMutationObserver() {
@@ -1720,6 +1813,28 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         customImageRepeatField: this.settings.customImageRepeatField,
         bannerImage: frontmatter[this.settings.customBannerField]
       });
+      if (this.settings.hidePixelBannerFields) {
+        const frontmatterEl = el.querySelector(".frontmatter");
+        if (frontmatterEl) {
+          const fieldsToHide = [
+            ...this.settings.customBannerField,
+            ...this.settings.customYPositionField,
+            ...this.settings.customContentStartField,
+            ...this.settings.customImageDisplayField,
+            ...this.settings.customImageRepeatField,
+            ...this.settings.customBannerHeightField,
+            ...this.settings.customFadeField,
+            ...this.settings.customBorderRadiusField
+          ];
+          const rows = frontmatterEl.querySelectorAll(".frontmatter-container .frontmatter-section-label");
+          rows.forEach((row) => {
+            const label = row.textContent.replace(":", "").trim();
+            if (fieldsToHide.includes(label)) {
+              row.closest(".frontmatter-section").classList.add("pixel-banner-hidden-field");
+            }
+          });
+        }
+      }
     }
   }
   onunload() {
@@ -1969,6 +2084,39 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       return "pexels";
     }
     return availableProviders[Math.floor(Math.random() * availableProviders.length)];
+  }
+  // Add this new method to handle field visibility
+  updateFieldVisibility(view) {
+    if (!view || view.getMode() !== "preview") return;
+    const fieldsToHide = [
+      ...this.settings.customBannerField,
+      ...this.settings.customYPositionField,
+      ...this.settings.customContentStartField,
+      ...this.settings.customImageDisplayField,
+      ...this.settings.customImageRepeatField,
+      ...this.settings.customBannerHeightField,
+      ...this.settings.customFadeField,
+      ...this.settings.customBorderRadiusField
+    ];
+    const propertiesContainer = view.contentEl.querySelector(".metadata-container");
+    if (!propertiesContainer) return;
+    const propertyElements = propertiesContainer.querySelectorAll(".metadata-property");
+    let visiblePropertiesCount = 0;
+    let bannerPropertiesCount = 0;
+    propertyElements.forEach((propertyEl) => {
+      const key = propertyEl.getAttribute("data-property-key");
+      if (fieldsToHide.includes(key)) {
+        propertyEl.classList.add("pixel-banner-hidden-field");
+        bannerPropertiesCount++;
+      } else {
+        visiblePropertiesCount++;
+      }
+    });
+    if (this.settings.hidePropertiesSectionIfOnlyBanner && this.settings.hidePixelBannerFields && visiblePropertiesCount === 0 && bannerPropertiesCount > 0) {
+      propertiesContainer.classList.add("pixel-banner-hidden-section");
+    } else {
+      propertiesContainer.classList.remove("pixel-banner-hidden-section");
+    }
   }
 };
 function getFrontmatterValue(frontmatter, fieldNames) {

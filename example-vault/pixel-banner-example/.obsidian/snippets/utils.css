@@ -2,6 +2,10 @@
   float: right;
 }
 
+.margin-0 {
+  margin: 0 !important;
+}
+
 .padding-20 {
   padding: 20px;
 }

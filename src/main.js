@@ -203,15 +203,19 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
-        // Clear the image cache when settings are saved
         this.loadedImages.clear();
         this.lastKeywords.clear();
         this.imageCache.clear();
-        // Trigger an update for the active leaf
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (activeLeaf && activeLeaf.view.getViewType() === "markdown") {
-            await this.updateBanner(activeLeaf.view, true);
-        }
+        
+        // Update all banners and field visibility
+        this.app.workspace.iterateAllLeaves(leaf => {
+            if (leaf.view instanceof MarkdownView) {
+                this.updateBanner(leaf.view, true);
+                if (this.settings.hidePixelBannerFields) {
+                    this.updateFieldVisibility(leaf.view);
+                }
+            }
+        });
     }
 
     async handleActiveLeafChange(leaf) {
@@ -280,6 +284,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async handleModeChange(leaf) {
         if (leaf && leaf.view instanceof MarkdownView && leaf.view.file) {
             await this.updateBanner(leaf.view, true);
+            // Handle field visibility when mode changes
+            if (this.settings.hidePixelBannerFields) {
+                this.updateFieldVisibility(leaf.view);
+            }
         }
     }
 
@@ -408,6 +416,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     await this.updateBanner(embedView, false);
                 }
             }
+        }
+
+        if (this.settings.hidePixelBannerFields && view.getMode() === 'preview') {
+            this.updateFieldVisibility(view);
         }
     }
 
@@ -945,6 +957,32 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 customImageRepeatField: this.settings.customImageRepeatField,
                 bannerImage: frontmatter[this.settings.customBannerField]
             });
+
+            if (this.settings.hidePixelBannerFields) {
+                const frontmatterEl = el.querySelector('.frontmatter');
+                if (frontmatterEl) {
+                    // Get all custom fields that should be hidden
+                    const fieldsToHide = [
+                        ...this.settings.customBannerField,
+                        ...this.settings.customYPositionField,
+                        ...this.settings.customContentStartField,
+                        ...this.settings.customImageDisplayField,
+                        ...this.settings.customImageRepeatField,
+                        ...this.settings.customBannerHeightField,
+                        ...this.settings.customFadeField,
+                        ...this.settings.customBorderRadiusField
+                    ];
+
+                    // Add hide class to matching fields
+                    const rows = frontmatterEl.querySelectorAll('.frontmatter-container .frontmatter-section-label');
+                    rows.forEach(row => {
+                        const label = row.textContent.replace(':', '').trim();
+                        if (fieldsToHide.includes(label)) {
+                            row.closest('.frontmatter-section').classList.add('pixel-banner-hidden-field');
+                        }
+                    });
+                }
+            }
         }
     }
 
@@ -1271,6 +1309,51 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // Randomly select from available providers
         return availableProviders[Math.floor(Math.random() * availableProviders.length)];
+    }
+
+    // Add this new method to handle field visibility
+    updateFieldVisibility(view) {
+        if (!view || view.getMode() !== 'preview') return;
+
+        const fieldsToHide = [
+            ...this.settings.customBannerField,
+            ...this.settings.customYPositionField,
+            ...this.settings.customContentStartField,
+            ...this.settings.customImageDisplayField,
+            ...this.settings.customImageRepeatField,
+            ...this.settings.customBannerHeightField,
+            ...this.settings.customFadeField,
+            ...this.settings.customBorderRadiusField
+        ];
+
+        // Get the properties container
+        const propertiesContainer = view.contentEl.querySelector('.metadata-container');
+        if (!propertiesContainer) return;
+
+        // Get all property elements
+        const propertyElements = propertiesContainer.querySelectorAll('.metadata-property');
+        let visiblePropertiesCount = 0;
+        let bannerPropertiesCount = 0;
+
+        propertyElements.forEach(propertyEl => {
+            const key = propertyEl.getAttribute('data-property-key');
+            if (fieldsToHide.includes(key)) {
+                propertyEl.classList.add('pixel-banner-hidden-field');
+                bannerPropertiesCount++;
+            } else {
+                visiblePropertiesCount++;
+            }
+        });
+
+        // If hidePropertiesSectionIfOnlyBanner is enabled and all properties are banner-related
+        if (this.settings.hidePropertiesSectionIfOnlyBanner && 
+            this.settings.hidePixelBannerFields && 
+            visiblePropertiesCount === 0 && 
+            bannerPropertiesCount > 0) {
+            propertiesContainer.classList.add('pixel-banner-hidden-section');
+        } else {
+            propertiesContainer.classList.remove('pixel-banner-hidden-section');
+        }
     }
 }
 

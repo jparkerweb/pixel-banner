@@ -25,6 +25,7 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 - Pin API images to your vault for permanent use (saves to local vault and updates note frontmatter)
 - Refresh random API images with a single click to get a new image for the same keyword(s)
 - Clean up orphaned pinned images
+- Option to hide Pixel Banner fields (in the properties section) from displaying in Reading Mode
 
 ## Installation
 

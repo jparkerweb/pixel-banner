@@ -1,7 +1,7 @@
 {
   "apiProvider": "all",
-  "pexelsApiKey": "",
-  "pixabayApiKey": "",
+  "pexelsApiKey": "RoKgyYgLEu0BEzqw5Z4LMnknOquciriNYvtfEe2yHh0sbVLG422J58qq",
+  "pixabayApiKey": "19065148-e84a3647d61b9f147d3674670",
   "flickrApiKey": "",
   "unsplashApiKey": "",
   "imageSize": "large",
@@ -67,6 +67,8 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.8.1",
-  "showRefreshIcon": true
+  "lastVersion": "2.8.3",
+  "showRefreshIcon": true,
+  "hidePixelBannerFields": false,
+  "hidePropertiesSectionIfOnlyBanner": false
 }
