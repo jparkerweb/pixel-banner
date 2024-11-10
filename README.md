@@ -177,8 +177,3 @@ If you enjoy this plugin please consider sending me a tip to support my work ðŸ˜
 ## Feedback and Support
 
 If you encounter any issues or have suggestions for improvements, please [open an issue](https://github.com/jparkerweb/pixel-banner/issues) on the GitHub repository.
-
-## Credits
-
-This plugin optionally uses the [Pexels](https://www.pexels.com/api/) and [Pixabay](https://pixabay.com/api/docs/) APIs to fetch images. Special thanks to Pexels / Pixabay for providing this service.
-
