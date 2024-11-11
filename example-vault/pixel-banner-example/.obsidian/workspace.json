@@ -104,9 +104,11 @@
             "type": "leaf",
             "state": {
               "type": "file-properties",
-              "state": {},
+              "state": {
+                "file": "Untitled.md"
+              },
               "icon": "lucide-info",
-              "title": "File properties"
+              "title": "File properties for Untitled"
             }
           },
           {
@@ -189,8 +191,10 @@
   },
   "active": "c98ed0f3d92eb093",
   "lastOpenFiles": [
-    "tests/🧪 test - 5 - absolute position.md",
+    "Untitled.md",
     "🚩 Pixel-Banner.md",
+    "test.md",
+    "tests/🧪 test - 5 - absolute position.md",
     "🚩 Pixel Banner - v2.9.0 - 🥷 Ninja Fields.md",
     "pixel-banner-images/ninja.png",
     "tests/🧪 test - 1 - internal link.md",
@@ -202,7 +206,6 @@
     "notes/📜 Embedded Note with Banner.md",
     "notes/📃 Embedded Note.md",
     "notes/subfolder/Embedded Note in Subfolder.md",
-    "test.md",
     "pixel-banner-images/foot.jpg",
     "pixel-banner-images/foot3.jpg",
     "pixel-banner-images/foot1.jpg",

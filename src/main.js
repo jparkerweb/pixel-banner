@@ -28,7 +28,55 @@ module.exports = class PixelBannerPlugin extends Plugin {
         );
 
         this.registerEvent(
-            this.app.metadataCache.on('changed', this.handleMetadataChange.bind(this))
+            this.app.metadataCache.on('changed', async (file) => {
+                // Get the frontmatter
+                const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+                if (!frontmatter) return;
+
+                // Get the previous frontmatter
+                const previousFrontmatter = this.lastFrontmatter.get(file.path);
+                
+                // Check if frontmatter actually changed
+                if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
+                    return;
+                }
+
+                // Check if any relevant fields exist and changed in the frontmatter
+                const relevantFields = [
+                    ...this.settings.customBannerField,
+                    ...this.settings.customYPositionField,
+                    ...this.settings.customContentStartField,
+                    ...this.settings.customImageDisplayField,
+                    ...this.settings.customImageRepeatField,
+                    ...this.settings.customBannerHeightField,
+                    ...this.settings.customFadeField,
+                    ...this.settings.customBorderRadiusField
+                ];
+
+                const hasRelevantFieldChange = relevantFields.some(field => 
+                    frontmatter[field] !== previousFrontmatter?.[field]
+                );
+                
+                if (!hasRelevantFieldChange) return;
+
+                // Update the stored frontmatter
+                this.lastFrontmatter.set(file.path, frontmatter);
+
+                // Find all visible markdown leaves for this file
+                const leaves = this.app.workspace.getLeavesOfType("markdown");
+                for (const leaf of leaves) {
+                    // Check if the leaf is visible and matches the file
+                    if (leaf.view instanceof MarkdownView && 
+                        leaf.view.file === file && 
+                        !leaf.containerEl.style.display && 
+                        leaf.containerEl.matches('.workspace-leaf')) {
+                        // Force a refresh of the banner
+                        this.loadedImages.delete(file.path);
+                        this.lastKeywords.delete(file.path);
+                        await this.updateBanner(leaf.view, true);
+                    }
+                }
+            })
         );
 
         this.registerEvent(
@@ -118,42 +166,32 @@ module.exports = class PixelBannerPlugin extends Plugin {
         });
 
         this.registerEvent(
-            this.app.metadataCache.on('changed', async (file) => {
-                // console.log('File changed:', file?.path);
+            this.app.workspace.on('editor-change', async (editor) => {
+                // Get the active view and file
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return;
+
+                // Get the current frontmatter
+                const currentFrontmatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
                 
-                // Get the frontmatter
-                const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-                if (!frontmatter) return;
-
-                // Check if any relevant fields exist in the frontmatter
-                const relevantFields = [
-                    ...this.settings.customBannerField,
-                    ...this.settings.customYPositionField,
-                    ...this.settings.customContentStartField,
-                    ...this.settings.customImageDisplayField,
-                    ...this.settings.customImageRepeatField,
-                    ...this.settings.customBannerHeightField,
-                    ...this.settings.customFadeField,
-                    ...this.settings.customBorderRadiusField
-                ];
-
-                const hasRelevantField = relevantFields.some(field => field in frontmatter);
-                if (!hasRelevantField) return;
-
-                // Find all visible markdown leaves for this file
-                const leaves = this.app.workspace.getLeavesOfType("markdown");
-                for (const leaf of leaves) {
-                    // Check if the leaf is visible and matches the file
-                    if (leaf.view instanceof MarkdownView && 
-                        leaf.view.file === file && 
-                        !leaf.containerEl.style.display && 
-                        leaf.containerEl.matches('.workspace-leaf')) {
-                        // Force a refresh of the banner
-                        this.loadedImages.delete(file.path);
-                        this.lastKeywords.delete(file.path);
-                        await this.updateBanner(leaf.view, true);
-                    }
+                // Only proceed if we have frontmatter with pixel banner fields
+                if (!currentFrontmatter || 
+                    (!currentFrontmatter.hasOwnProperty('pixel-banner') && 
+                     !currentFrontmatter.hasOwnProperty('pixel-banner-query'))) {
+                    return;
                 }
+
+                // Get the changed content
+                const cursor = editor.getCursor();
+                const line = editor.getLine(cursor.line);
+                
+                // Check if the edited line contains pixel banner fields
+                if (!line.includes('pixel-banner') && !line.includes('pixel-banner-query')) {
+                    return;
+                }
+
+                // Existing code to handle the banner update
+                await this.updateBanner(activeView, true);
             })
         );
     }
@@ -250,25 +288,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (leaf && leaf.view instanceof MarkdownView && leaf.view.file) {
             await this.updateBanner(leaf.view, false);
         }
-    }
-
-    async handleMetadataChange(file) {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (activeLeaf && activeLeaf.view instanceof MarkdownView && activeLeaf.view.file && activeLeaf.view.file === file) {
-            const currentFrontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-            const cachedFrontmatter = this.lastFrontmatter.get(file.path);
-
-            if (this.isFrontmatterChange(cachedFrontmatter, currentFrontmatter)) {
-                this.lastFrontmatter.set(file.path, currentFrontmatter);
-                await this.updateBanner(activeLeaf.view, true);
-            }
-        }
-    }
-
-    isFrontmatterChange(cachedFrontmatter, currentFrontmatter) {
-        if (!cachedFrontmatter && !currentFrontmatter) return false;
-        if (!cachedFrontmatter || !currentFrontmatter) return true;
-        return JSON.stringify(cachedFrontmatter) !== JSON.stringify(currentFrontmatter);
     }
 
     handleLayoutChange() {

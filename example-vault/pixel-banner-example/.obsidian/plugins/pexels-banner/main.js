@@ -971,7 +971,7 @@ function debounce(func, wait) {
 }
 async function testPexelsApi(apiKey) {
   try {
-    const response = await fetch("https://api.pexels.com/v1/search?query=test&per_page=3", {
+    const response = await fetch("https://api.pexels.com/v1/search?query=dog&per_page=3", {
       headers: {
         "Authorization": apiKey
       }
@@ -1062,7 +1062,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.9.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Option to Hide Pixel Banner property fields from displaying when in Reading Mode</li>\n<li>Option to Hide the Property Section from displaying in Reading Mode if the only fields are Pixel Banner fields</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.9.0.jpg" alt="Ninja Fields"></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.9.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed overaggressive banner API refresh when editor content changed</li>\n<li>Fixed Pexels API key test</li>\n</ul>\n<h3>v2.9.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Option to Hide Pixel Banner property fields from displaying when in Reading Mode</li>\n<li>Option to Hide the Property Section from displaying in Reading Mode if the only fields are Pixel Banner fields</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.9.0.jpg" alt="Ninja Fields"></p>\n';
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1094,7 +1094,38 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       this.app.workspace.on("active-leaf-change", this.handleActiveLeafChange.bind(this))
     );
     this.registerEvent(
-      this.app.metadataCache.on("changed", this.handleMetadataChange.bind(this))
+      this.app.metadataCache.on("changed", async (file) => {
+        var _a;
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
+        if (!frontmatter) return;
+        const previousFrontmatter = this.lastFrontmatter.get(file.path);
+        if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
+          return;
+        }
+        const relevantFields = [
+          ...this.settings.customBannerField,
+          ...this.settings.customYPositionField,
+          ...this.settings.customContentStartField,
+          ...this.settings.customImageDisplayField,
+          ...this.settings.customImageRepeatField,
+          ...this.settings.customBannerHeightField,
+          ...this.settings.customFadeField,
+          ...this.settings.customBorderRadiusField
+        ];
+        const hasRelevantFieldChange = relevantFields.some(
+          (field) => frontmatter[field] !== (previousFrontmatter == null ? void 0 : previousFrontmatter[field])
+        );
+        if (!hasRelevantFieldChange) return;
+        this.lastFrontmatter.set(file.path, frontmatter);
+        const leaves = this.app.workspace.getLeavesOfType("markdown");
+        for (const leaf of leaves) {
+          if (leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file === file && !leaf.containerEl.style.display && leaf.containerEl.matches(".workspace-leaf")) {
+            this.loadedImages.delete(file.path);
+            this.lastKeywords.delete(file.path);
+            await this.updateBanner(leaf.view, true);
+          }
+        }
+      })
     );
     this.registerEvent(
       this.app.workspace.on("layout-change", this.handleLayoutChange.bind(this))
@@ -1162,30 +1193,20 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     });
     this.registerEvent(
-      this.app.metadataCache.on("changed", async (file) => {
+      this.app.workspace.on("editor-change", async (editor) => {
         var _a;
-        const frontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
-        if (!frontmatter) return;
-        const relevantFields = [
-          ...this.settings.customBannerField,
-          ...this.settings.customYPositionField,
-          ...this.settings.customContentStartField,
-          ...this.settings.customImageDisplayField,
-          ...this.settings.customImageRepeatField,
-          ...this.settings.customBannerHeightField,
-          ...this.settings.customFadeField,
-          ...this.settings.customBorderRadiusField
-        ];
-        const hasRelevantField = relevantFields.some((field) => field in frontmatter);
-        if (!hasRelevantField) return;
-        const leaves = this.app.workspace.getLeavesOfType("markdown");
-        for (const leaf of leaves) {
-          if (leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file === file && !leaf.containerEl.style.display && leaf.containerEl.matches(".workspace-leaf")) {
-            this.loadedImages.delete(file.path);
-            this.lastKeywords.delete(file.path);
-            await this.updateBanner(leaf.view, true);
-          }
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        if (!activeView || !activeView.file) return;
+        const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
+        if (!currentFrontmatter || !currentFrontmatter.hasOwnProperty("pixel-banner") && !currentFrontmatter.hasOwnProperty("pixel-banner-query")) {
+          return;
         }
+        const cursor = editor.getCursor();
+        const line = editor.getLine(cursor.line);
+        if (!line.includes("pixel-banner") && !line.includes("pixel-banner-query")) {
+          return;
+        }
+        await this.updateBanner(activeView, true);
       })
     );
   }
@@ -1262,23 +1283,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, false);
     }
-  }
-  async handleMetadataChange(file) {
-    var _a;
-    const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView && activeLeaf.view.file && activeLeaf.view.file === file) {
-      const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
-      const cachedFrontmatter = this.lastFrontmatter.get(file.path);
-      if (this.isFrontmatterChange(cachedFrontmatter, currentFrontmatter)) {
-        this.lastFrontmatter.set(file.path, currentFrontmatter);
-        await this.updateBanner(activeLeaf.view, true);
-      }
-    }
-  }
-  isFrontmatterChange(cachedFrontmatter, currentFrontmatter) {
-    if (!cachedFrontmatter && !currentFrontmatter) return false;
-    if (!cachedFrontmatter || !currentFrontmatter) return true;
-    return JSON.stringify(cachedFrontmatter) !== JSON.stringify(currentFrontmatter);
   }
   handleLayoutChange() {
     setTimeout(() => {

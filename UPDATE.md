@@ -1,5 +1,10 @@
 ## 🎉 What's New
 
+### v2.9.1
+#### Fixed
+- Fixed overaggressive banner API refresh when editor content changed
+- Fixed Pexels API key test
+
 ### v2.9.0
 #### Added
 - Option to Hide Pixel Banner property fields from displaying when in Reading Mode

@@ -2,6 +2,18 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.9.1] - 2024-11-10
+
+### Fixed
+- Fixed overaggressive banner API refresh when editor content changed
+- Fixed Pexels API key test
+
+## [2.9.0] - 2024-11-10
+
+### Added
+- Option to Hide Pixel Banner property fields from displaying when in Reading Mode
+- Option to Hide the Property Section from displaying in Reading Mode if the only fields are Pixel Banner fields  
+
 ## [2.8.3] - 2024-11-09
 
 ### Added

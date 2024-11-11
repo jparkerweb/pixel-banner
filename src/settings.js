@@ -1446,7 +1446,7 @@ function debounce(func, wait) {
 // API test functions
 async function testPexelsApi(apiKey) {
     try {
-        const response = await fetch('https://api.pexels.com/v1/search?query=test&per_page=3', {
+        const response = await fetch('https://api.pexels.com/v1/search?query=dog&per_page=3', {
             headers: {
                 'Authorization': apiKey
             }
@@ -1457,7 +1457,7 @@ async function testPexelsApi(apiKey) {
         }
         
         const data = await response.json();
-        return data.photos && data.photos.length > 0;
+        return data.photos && data.photos.length > 0; // Ensure photos are present
     } catch (error) {
         return false;
     }
