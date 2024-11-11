@@ -11,6 +11,20 @@
       "name": "Reload app without saving",
       "mode": "any",
       "color": "#ffea00"
+    },
+    {
+      "id": "open-plugin-settings:pexels-banner",
+      "icon": "lucide-flag",
+      "name": "Open Plugin Settings: Pixel Banner",
+      "mode": "any",
+      "color": "#ff0000"
+    },
+    {
+      "id": "open-plugin-settings:rich-foot",
+      "icon": "lucide-footprints",
+      "name": "Open Plugin Settings: Rich Foot",
+      "mode": "any",
+      "color": "#ff8800"
     }
   ],
   "rightRibbon": [],

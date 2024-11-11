@@ -1,0 +1,19 @@
+{
+  "pluginCmdr": [
+    {
+      "id": "open-plugin-settings",
+      "name": "Open Plugin Settings",
+      "commandName": "Open Plugin Settings"
+    },
+    {
+      "id": "pexels-banner",
+      "name": "Pixel Banner",
+      "commandName": "Pixel Banner"
+    },
+    {
+      "id": "rich-foot",
+      "name": "Rich Foot",
+      "commandName": "Rich Foot"
+    }
+  ]
+}
