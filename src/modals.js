@@ -16,7 +16,8 @@ export class ReleaseNotesModal extends Modal {
 
         // Message
         contentEl.createEl('p', { 
-            text: 'After each update you\'ll be prompted with the release notes. You can disable this in the plugin settings General tab.' 
+            text: 'After each update you\'ll be prompted with the release notes. You can disable this in the plugin settings General tab.',
+            cls: 'release-notes-instructions'
         });
 
         const kofiContainer = contentEl.createEl('div');

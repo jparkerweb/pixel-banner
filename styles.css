@@ -359,6 +359,16 @@
     background-color: var(--background-secondary);
 }
 
+.release-notes-container img {
+    max-width: 100%;
+}
+
+.release-notes-instructions {
+    font-size: 0.75em;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
 .release-notes-section {
     margin: 10px 0;
 }

@@ -1032,7 +1032,8 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
     contentEl.empty();
     contentEl.createEl("h2", { text: `Welcome to \u{1F6A9} Pixel Banner v${this.version}` });
     contentEl.createEl("p", {
-      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab."
+      text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab.",
+      cls: "release-notes-instructions"
     });
     const kofiContainer = contentEl.createEl("div");
     kofiContainer.style.textAlign = "right";
@@ -1061,7 +1062,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.9.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Option to Hide Pixel Banner property fields from displaying when in Reading Mode</li>\n<li>Option to Hide the Property Section from displaying in Reading Mode if the only fields are Pixel Banner fields</li>\n</ul>\n";
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.9.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Option to Hide Pixel Banner property fields from displaying when in Reading Mode</li>\n<li>Option to Hide the Property Section from displaying in Reading Mode if the only fields are Pixel Banner fields</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.9.0.jpg" alt="Ninja Fields"></p>\n';
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
