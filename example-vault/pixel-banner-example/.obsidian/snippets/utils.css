@@ -31,3 +31,33 @@
 .bg-black {
   background: black !important;
 }
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.padding-20 { padding: 20px; }
+
+.border-radius { border-radius: 17px; }
+
+.bg-shaded { background: #00000070; }
+
+.color-white { color: white; }
+
+.markdown-rendered code {
+  color: var(--interactive-accent);
+  filter: brightness(150%);
+}

@@ -36,7 +36,8 @@
       "imageDisplay": "cover",
       "imageRepeat": false,
       "directChildrenOnly": true,
-      "borderRadius": 0
+      "borderRadius": 0,
+      "titleColor": "#ff0000"
     },
     {
       "folder": "tests",
@@ -46,7 +47,8 @@
       "borderRadius": 5,
       "imageDisplay": "cover",
       "imageRepeat": false,
-      "directChildrenOnly": false
+      "directChildrenOnly": false,
+      "titleColor": "#ff0088"
     }
   ],
   "contentStartPosition": 150,
@@ -67,8 +69,12 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.9.0",
+  "lastVersion": "2.9.1",
   "showRefreshIcon": true,
-  "hidePixelBannerFields": false,
-  "hidePropertiesSectionIfOnlyBanner": false
+  "hidePixelBannerFields": true,
+  "hidePropertiesSectionIfOnlyBanner": true,
+  "titleColor": "#ff0000",
+  "customTitleColorField": [
+    "banner-title-color"
+  ]
 }

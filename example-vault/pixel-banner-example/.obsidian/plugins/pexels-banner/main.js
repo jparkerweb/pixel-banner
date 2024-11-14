@@ -45,7 +45,9 @@ var DEFAULT_SETTINGS = {
   lastVersion: null,
   showRefreshIcon: true,
   hidePixelBannerFields: false,
-  hidePropertiesSectionIfOnlyBanner: false
+  hidePropertiesSectionIfOnlyBanner: false,
+  titleColor: "#000000",
+  customTitleColorField: ["banner-title-color"]
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -83,6 +85,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addFadeAndBannerHeight();
     const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
     this.addBorderRadiusInput(controlEl);
+    this.addTitleColorInput(controlEl);
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
@@ -268,6 +271,15 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     label.appendChild(sliderContainer);
     containerEl.appendChild(label);
   }
+  addColorSettings() {
+    const colorContainer = this.settingEl.createDiv("color-settings-container");
+    new import_obsidian.Setting(colorContainer).setName("title color").addColorPicker((color) => {
+      color.setValue(this.folderImage.titleColor || this.plugin.settings.titleColor).onChange(async (value) => {
+        this.folderImage.titleColor = value;
+        await this.plugin.saveSettings();
+      });
+    });
+  }
   // Add this method
   addDirectChildrenOnlyToggle() {
     new import_obsidian.Setting(this.settingEl).setName("Direct Children Only").setDesc("Apply banner only to direct children of the folder").addToggle((toggle) => {
@@ -305,6 +317,21 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       await this.plugin.saveSettings();
     });
     label.appendChild(radiusInput);
+    containerEl.appendChild(label);
+  }
+  addTitleColorInput(containerEl) {
+    const label = containerEl.createEl("label", { text: "title color", cls: "setting-item-name__label" });
+    label.style.marginLeft = "20px";
+    const colorInput = containerEl.createEl("input", {
+      type: "color",
+      value: this.folderImage.titleColor || this.plugin.settings.titleColor
+    });
+    colorInput.style.marginLeft = "10px";
+    colorInput.addEventListener("change", async () => {
+      this.folderImage.titleColor = colorInput.value;
+      await this.plugin.saveSettings();
+    });
+    label.appendChild(colorInput);
     containerEl.appendChild(label);
   }
 };
@@ -556,7 +583,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
   }
   createGeneralSettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-    calloutEl.createEl("div", { text: "Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings." });
+    calloutEl.createEl("div", { text: "Configure default settings for all notes. These can be overridden per folder or per note." });
     new import_obsidian.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
       (slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
         this.plugin.settings.yPosition = value;
@@ -697,7 +724,21 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.borderRadius;
       inputEl.dispatchEvent(new Event("input"));
     }));
-    const hidePixelBannerFieldsSetting = new import_obsidian.Setting(containerEl).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => {
+    new import_obsidian.Setting(containerEl).setName("Title Color").setDesc("Set the default color for note titles").addColorPicker((color) => color.setValue(this.plugin.settings.titleColor).onChange(async (value) => {
+      this.plugin.settings.titleColor = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+      const colorPicker = button.extraSettingsEl.parentElement.querySelector(".color-input");
+      if (colorPicker) {
+        colorPicker.value = DEFAULT_SETTINGS.titleColor;
+        colorPicker.dispatchEvent(new Event("input"));
+      }
+    }));
+    new import_obsidian.Setting(containerEl).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => {
       toggle.setValue(this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
         this.plugin.settings.hidePixelBannerFields = value;
         if (!value) {
@@ -824,6 +865,12 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         name: "Border Radius Field Names",
         desc: "Set custom field names for the border radius in frontmatter (comma-separated)",
         placeholder: "banner-radius, border-radius, banner-corner-radius"
+      },
+      {
+        setting: "customTitleColorField",
+        name: "Title Color Field Names",
+        desc: "Set custom field names for the title color in frontmatter (comma-separated)",
+        placeholder: "banner-title-color, title-color, header-color"
       }
     ];
     customFields.forEach((field) => {
@@ -905,6 +952,7 @@ ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 400
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 25
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff0000
 ---
 
 # Or use a direct URL:
@@ -916,6 +964,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 0
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #00ff00
 ---
 
 # Or use a path to an image in the vault:
@@ -927,6 +976,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 50
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #0000ff
 ---
 
 # Or use an Obsidian internal link:
@@ -939,6 +989,7 @@ ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 500
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 17
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff00ff
 ---`
     });
     instructionsEl.createEl("p", { text: 'Note: The image display options are "auto", "cover", or "contain". The image repeat option is only applicable when the display is set to "contain".' });
@@ -1062,7 +1113,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.9.1</h3>\n<h4>Fixed</h4>\n<ul>\n<li>Fixed overaggressive banner API refresh when editor content changed</li>\n<li>Fixed Pexels API key test</li>\n</ul>\n<h3>v2.9.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Option to Hide Pixel Banner property fields from displaying when in Reading Mode</li>\n<li>Option to Hide the Property Section from displaying in Reading Mode if the only fields are Pixel Banner fields</li>\n</ul>\n<p><img src="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.9.0.jpg" alt="Ninja Fields"></p>\n';
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.10.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker for Inline Titles<ul>\n<li>Only applied if Inline Titles are enabled in Obsidian Settings:<ul>\n<li><code>Appearance</code> &gt; <code>Show inline title</code></li>\n</ul>\n</li>\n<li>Can be defined on the General, Custom Field Names, and Folder Images tabs</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1455,7 +1506,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   // Helper method to create folder image settings object
   createFolderImageSettings(folderImage) {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     return {
       image: folderImage.image,
       yPosition: (_a = folderImage.yPosition) != null ? _a : this.settings.yPosition,
@@ -1464,7 +1515,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       imageRepeat: (_d = folderImage.imageRepeat) != null ? _d : this.settings.imageRepeat,
       bannerHeight: (_e = folderImage.bannerHeight) != null ? _e : this.settings.bannerHeight,
       fade: (_f = folderImage.fade) != null ? _f : this.settings.fade,
-      borderRadius: (_g = folderImage.borderRadius) != null ? _g : this.settings.borderRadius
+      borderRadius: (_g = folderImage.borderRadius) != null ? _g : this.settings.borderRadius,
+      titleColor: (_h = folderImage.titleColor) != null ? _h : this.settings.titleColor
     };
   }
   getFolderPath(filePath) {
@@ -2069,11 +2121,17 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   applyBannerSettings(bannerDiv, ctx) {
     const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
+    const folderSpecific = this.getFolderSpecificImage(ctx.file.path);
+    const titleColor = getFrontmatterValue(frontmatter, this.settings.customTitleColorField) || (folderSpecific == null ? void 0 : folderSpecific.titleColor) || this.settings.titleColor;
     bannerDiv.style.backgroundSize = imageDisplay || "cover";
     bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
     bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
     bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
     bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
+    const container = bannerDiv.closest(".markdown-preview-view, .markdown-source-view");
+    if (container) {
+      container.style.setProperty("--pixel-banner-title-color", titleColor);
+    }
   }
   // Add this helper method to randomly select an API provider
   getActiveApiProvider() {
