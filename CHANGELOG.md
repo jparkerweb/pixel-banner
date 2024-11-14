@@ -2,7 +2,14 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## [2.10.0] - 2024-11-13
+## [v2.10.1] - 2024-11-14
+### Added
+- Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)
+
+### Fixed
+- Display the correct color in the Color Picker for Inline Titles when the control is reset
+
+## [v2.10.0] - 2024-11-13
 
 ### Added
 - Color Picker for Inline Titles
