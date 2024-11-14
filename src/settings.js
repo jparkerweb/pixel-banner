@@ -34,8 +34,8 @@ const DEFAULT_SETTINGS = {
     showRefreshIcon: true,
     hidePixelBannerFields: false,
     hidePropertiesSectionIfOnlyBanner: false,
-    titleColor: '#000000',
-    customTitleColorField: ['banner-title-color'],
+    titleColor: 'var(--inline-title-color)',
+    customTitleColorField: ['banner-inline-title-color'],
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -86,7 +86,7 @@ class FolderImageSetting extends Setting {
 
         const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
         this.addBorderRadiusInput(controlEl);
-        this.addTitleColorInput(controlEl);
+        this.addColorSettings(controlEl);
         
         this.addDirectChildrenOnlyToggle();
     }
@@ -323,22 +323,81 @@ class FolderImageSetting extends Setting {
         containerEl.appendChild(label);
     }
 
-    addColorSettings() {
-        const colorContainer = this.settingEl.createDiv('color-settings-container');
+    addColorSettings(containerEl) {
+        const colorContainer = containerEl.createDiv('color-settings-container');
         
-        // Title Color
+        // Inline Title Color
         new Setting(colorContainer)
-            .setName("title color")
-            .addColorPicker(color => {
-                color.setValue(this.folderImage.titleColor || this.plugin.settings.titleColor)
-                    .onChange(async (value) => {
-                        this.folderImage.titleColor = value;
-                        await this.plugin.saveSettings();
-                    });
-            });
+            .setName("inline title color")
+            .addColorPicker(color => color
+                .setValue((() => {
+                    const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
+                    console.log('Current color:', currentColor);
+                    
+                    if (currentColor.startsWith('var(--')) {
+                        console.log('Processing CSS variable');
+                        const temp = document.createElement('div');
+                        temp.style.color = currentColor;
+                        document.body.appendChild(temp);
+                        const computedColor = getComputedStyle(temp).color;
+                        console.log('Computed color:', computedColor);
+                        document.body.removeChild(temp);
+                        
+                        // Parse RGB values
+                        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                        console.log('RGB match:', rgbMatch);
+                        if (rgbMatch) {
+                            const [_, r, g, b] = rgbMatch;
+                            const hexColor = '#' + 
+                                parseInt(r).toString(16).padStart(2, '0') +
+                                parseInt(g).toString(16).padStart(2, '0') +
+                                parseInt(b).toString(16).padStart(2, '0');
+                            console.log('Final hex color:', hexColor);
+                            return hexColor;
+                        }
+                        return '#000000';
+                    }
+                    return currentColor;
+                })())
+                .onChange(async (value) => {
+                    this.folderImage.titleColor = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    // Reset to the general settings color
+                    this.folderImage.titleColor = this.plugin.settings.titleColor;
+                    await this.plugin.saveSettings();
+                    
+                    // Update color picker to show computed value
+                    const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+                    if (colorPickerEl) {
+                        const currentColor = this.plugin.settings.titleColor;
+                        if (currentColor.startsWith('var(--')) {
+                            const temp = document.createElement('div');
+                            temp.style.color = currentColor;
+                            document.body.appendChild(temp);
+                            const computedColor = getComputedStyle(temp).color;
+                            document.body.removeChild(temp);
+                            
+                            const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                            if (rgbMatch) {
+                                const [_, r, g, b] = rgbMatch;
+                                const hexColor = '#' + 
+                                    parseInt(r).toString(16).padStart(2, '0') +
+                                    parseInt(g).toString(16).padStart(2, '0') +
+                                    parseInt(b).toString(16).padStart(2, '0');
+                                colorPickerEl.value = hexColor;
+                            }
+                        } else {
+                            colorPickerEl.value = currentColor;
+                        }
+                    }
+                }));
     }
 
-    // Add this method
     addDirectChildrenOnlyToggle() {
         new Setting(this.settingEl)
             .setName("Direct Children Only")
@@ -353,7 +412,6 @@ class FolderImageSetting extends Setting {
             });
     }
 
-    // In FolderImageSetting class, add this method
     addBorderRadiusInput(containerEl) {
         const label = containerEl.createEl('label', { text: 'border radius', cls: 'setting-item-name__label' });
         const radiusInput = containerEl.createEl('input', {
@@ -382,24 +440,6 @@ class FolderImageSetting extends Setting {
         });
 
         label.appendChild(radiusInput);
-        containerEl.appendChild(label);
-    }
-
-    addTitleColorInput(containerEl) {
-        const label = containerEl.createEl('label', { text: 'title color', cls: 'setting-item-name__label' });
-        label.style.marginLeft = '20px';
-        
-        const colorInput = containerEl.createEl('input', {
-            type: 'color',
-            value: this.folderImage.titleColor || this.plugin.settings.titleColor
-        });
-        colorInput.style.marginLeft = '10px';
-        colorInput.addEventListener('change', async () => {
-            this.folderImage.titleColor = colorInput.value;
-            await this.plugin.saveSettings();
-        });
-
-        label.appendChild(colorInput);
         containerEl.appendChild(label);
     }
 }
@@ -952,20 +992,17 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     });
                 return dropdown;
             })
-            .addExtraButton(button => {
-                button
-                    .setIcon('reset')
-                    .setTooltip('Reset to default')
-                    .onClick(async () => {
-                        this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
-                        await this.plugin.saveSettings();
-                        this.plugin.updateAllBanners();
-                        const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
-                        dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-                        dropdownEl.dispatchEvent(new Event('change'));
-                    });
-                return button;
-            });
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                    const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
+                    dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
+                    dropdownEl.dispatchEvent(new Event('change'));
+                }));
 
         new Setting(containerEl)
             .setName('Image Repeat')
@@ -980,26 +1017,23 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     });
                 return toggle;
             })
-            .addExtraButton(button => {
-                button
-                    .setIcon('reset')
-                    .setTooltip('Reset to default')
-                    .onClick(async () => {
-                        this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
-                        await this.plugin.saveSettings();
-                        this.plugin.updateAllBanners();
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
 
-                        const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
-                        const toggleEl = checkboxContainer.querySelector('input');
-                        if (toggleEl) {
-                            toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-                            checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.imageRepeat);
-                            const event = new Event('change', { bubbles: true });
-                            toggleEl.dispatchEvent(event);
-                        }
-                    });
-                return button;
-            });
+                    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
+                    const toggleEl = checkboxContainer.querySelector('input');
+                    if (toggleEl) {
+                        toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
+                        checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.imageRepeat);
+                        const event = new Event('change', { bubbles: true });
+                        toggleEl.dispatchEvent(event);
+                    }
+                }));
 
         new Setting(containerEl)
             .setName('Banner Height')
@@ -1105,12 +1139,40 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         inputEl.value = DEFAULT_SETTINGS.borderRadius;
                         inputEl.dispatchEvent(new Event('input'));
                     }));
-    
+
             new Setting(containerEl)
-                .setName('Title Color')
-                .setDesc('Set the default color for note titles')
+                .setName('Inline Title Color')
+                .setDesc('Set the default inline title color for all banners')
                 .addColorPicker(color => color
-                    .setValue(this.plugin.settings.titleColor)
+                    .setValue((() => {
+                        const currentColor = this.plugin.settings.titleColor;
+                        console.log('General tab - Current color:', currentColor);
+                        
+                        if (currentColor.startsWith('var(--')) {
+                            console.log('General tab - Processing CSS variable');
+                            const temp = document.createElement('div');
+                            temp.style.color = currentColor;
+                            document.body.appendChild(temp);
+                            const computedColor = getComputedStyle(temp).color;
+                            console.log('General tab - Computed color:', computedColor);
+                            document.body.removeChild(temp);
+                            
+                            // Parse RGB values
+                            const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                            console.log('General tab - RGB match:', rgbMatch);
+                            if (rgbMatch) {
+                                const [_, r, g, b] = rgbMatch;
+                                const hexColor = '#' + 
+                                    parseInt(r).toString(16).padStart(2, '0') +
+                                    parseInt(g).toString(16).padStart(2, '0') +
+                                    parseInt(b).toString(16).padStart(2, '0');
+                                console.log('General tab - Final hex color:', hexColor);
+                                return hexColor;
+                            }
+                            return '#000000';
+                        }
+                        return currentColor;
+                    })())
                     .onChange(async (value) => {
                         this.plugin.settings.titleColor = value;
                         await this.plugin.saveSettings();
@@ -1123,11 +1185,25 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
                         await this.plugin.saveSettings();
                         this.plugin.updateAllBanners();
-                        // Update the color picker value
-                        const colorPicker = button.extraSettingsEl.parentElement.querySelector('.color-input');
-                        if (colorPicker) {
-                            colorPicker.value = DEFAULT_SETTINGS.titleColor;
-                            colorPicker.dispatchEvent(new Event('input'));
+                        
+                        // Update color picker to show computed value
+                        const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+                        if (colorPickerEl) {
+                            const temp = document.createElement('div');
+                            temp.style.color = DEFAULT_SETTINGS.titleColor;
+                            document.body.appendChild(temp);
+                            const computedColor = getComputedStyle(temp).color;
+                            document.body.removeChild(temp);
+                            
+                            const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                            if (rgbMatch) {
+                                const [_, r, g, b] = rgbMatch;
+                                const hexColor = '#' + 
+                                    parseInt(r).toString(16).padStart(2, '0') +
+                                    parseInt(g).toString(16).padStart(2, '0') +
+                                    parseInt(b).toString(16).padStart(2, '0');
+                                colorPickerEl.value = hexColor;
+                            }
                         }
                     }));
         
@@ -1313,8 +1389,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
             },
             {
                 setting: 'customTitleColorField',
-                name: 'Title Color Field Names',
-                desc: 'Set custom field names for the title color in frontmatter (comma-separated)',
+                name: 'Inline Title Color Field Names',
+                desc: 'Set custom field names for the inline title color in frontmatter (comma-separated)',
                 placeholder: 'banner-title-color, title-color, header-color'
             },
         ];
