@@ -25,6 +25,12 @@
     z-index: -1;
 }
 
+/* Apply title color to both reading and editing mode */
+.pixel-banner div.inline-title,
+.markdown-source-view div.inline-title {
+    color: var(--pixel-banner-title-color, var(--inline-title-color));
+}
+
 /* fix for banner image overlapping with note content */
 /* isolate the banner image from the note content */
 .view-content.pixel-banner {

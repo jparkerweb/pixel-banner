@@ -34,6 +34,8 @@ const DEFAULT_SETTINGS = {
     showRefreshIcon: true,
     hidePixelBannerFields: false,
     hidePropertiesSectionIfOnlyBanner: false,
+    titleColor: '#000000',
+    customTitleColorField: ['banner-title-color'],
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -81,10 +83,10 @@ class FolderImageSetting extends Setting {
         this.addImageDisplaySettings();
         this.addYPostionAndContentStart();
         this.addFadeAndBannerHeight();
-        
-        // Create a new container for the border radius input
+
         const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
         this.addBorderRadiusInput(controlEl);
+        this.addTitleColorInput(controlEl);
         
         this.addDirectChildrenOnlyToggle();
     }
@@ -321,6 +323,21 @@ class FolderImageSetting extends Setting {
         containerEl.appendChild(label);
     }
 
+    addColorSettings() {
+        const colorContainer = this.settingEl.createDiv('color-settings-container');
+        
+        // Title Color
+        new Setting(colorContainer)
+            .setName("title color")
+            .addColorPicker(color => {
+                color.setValue(this.folderImage.titleColor || this.plugin.settings.titleColor)
+                    .onChange(async (value) => {
+                        this.folderImage.titleColor = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+    }
+
     // Add this method
     addDirectChildrenOnlyToggle() {
         new Setting(this.settingEl)
@@ -365,6 +382,24 @@ class FolderImageSetting extends Setting {
         });
 
         label.appendChild(radiusInput);
+        containerEl.appendChild(label);
+    }
+
+    addTitleColorInput(containerEl) {
+        const label = containerEl.createEl('label', { text: 'title color', cls: 'setting-item-name__label' });
+        label.style.marginLeft = '20px';
+        
+        const colorInput = containerEl.createEl('input', {
+            type: 'color',
+            value: this.folderImage.titleColor || this.plugin.settings.titleColor
+        });
+        colorInput.style.marginLeft = '10px';
+        colorInput.addEventListener('change', async () => {
+            this.folderImage.titleColor = colorInput.value;
+            await this.plugin.saveSettings();
+        });
+
+        label.appendChild(colorInput);
         containerEl.appendChild(label);
     }
 }
@@ -685,7 +720,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
             .setDesc('Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.')
             .setHeading();
 
-
         new Setting(containerEl)
             .setName('Show Pin Icon')
             .setDesc('Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.')
@@ -841,7 +875,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
     createGeneralSettings(containerEl) {
         // section callout
         const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
-        calloutEl.createEl('div', { text: 'Set the default vertical position of the image, how it should be displayed, and where the content should start. These are global settings and apply to all notes with banners unless overridden by folder or note-specific settings.' });
+        calloutEl.createEl('div', { text: 'Configure default settings for all notes. These can be overridden per folder or per note.' });
 
         new Setting(containerEl)
             .setName('Image Vertical Position')
@@ -1040,39 +1074,64 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     sliderEl.dispatchEvent(new Event('input'));
                 }));
 
-        new Setting(containerEl)
-            .setName('Border Radius')
-            .setDesc('Set the default border radius of the banner image (0-50 pixels)')
-            .addText(text => {
-                text.setPlaceholder('17')
-                    .setValue(String(this.plugin.settings.borderRadius))
+                new Setting(containerEl)
+                .setName('Border Radius')
+                .setDesc('Set the default border radius of the banner image (0-50 pixels)')
+                .addText(text => {
+                    text.setPlaceholder('17')
+                        .setValue(String(this.plugin.settings.borderRadius))
+                        .onChange(async (value) => {
+                            const numValue = Number(value);
+                            if (!isNaN(numValue)) {
+                                this.plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
+                                await this.plugin.saveSettings();
+                                this.plugin.updateAllBanners();
+                            }
+                        });
+                    text.inputEl.type = 'number';
+                    text.inputEl.min = '0';
+                    text.inputEl.max = '50';
+                    text.inputEl.style.width = '50px';
+                })
+                .addExtraButton(button => button
+                    .setIcon('reset')
+                    .setTooltip('Reset to default')
+                    .onClick(async () => {
+                        this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                        // Update the input value
+                        const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
+                        inputEl.value = DEFAULT_SETTINGS.borderRadius;
+                        inputEl.dispatchEvent(new Event('input'));
+                    }));
+    
+            new Setting(containerEl)
+                .setName('Title Color')
+                .setDesc('Set the default color for note titles')
+                .addColorPicker(color => color
+                    .setValue(this.plugin.settings.titleColor)
                     .onChange(async (value) => {
-                        const numValue = Number(value);
-                        if (!isNaN(numValue)) {
-                            this.plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
-                            await this.plugin.saveSettings();
-                            this.plugin.updateAllBanners();
+                        this.plugin.settings.titleColor = value;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                    }))
+                .addExtraButton(button => button
+                    .setIcon('reset')
+                    .setTooltip('Reset to default')
+                    .onClick(async () => {
+                        this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
+                        await this.plugin.saveSettings();
+                        this.plugin.updateAllBanners();
+                        // Update the color picker value
+                        const colorPicker = button.extraSettingsEl.parentElement.querySelector('.color-input');
+                        if (colorPicker) {
+                            colorPicker.value = DEFAULT_SETTINGS.titleColor;
+                            colorPicker.dispatchEvent(new Event('input'));
                         }
-                    });
-                text.inputEl.type = 'number';
-                text.inputEl.min = '0';
-                text.inputEl.max = '50';
-                text.inputEl.style.width = '50px';
-            })
-            .addExtraButton(button => button
-                .setIcon('reset')
-                .setTooltip('Reset to default')
-                .onClick(async () => {
-                    this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
-                    await this.plugin.saveSettings();
-                    this.plugin.updateAllBanners();
-                    const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
-                    inputEl.value = DEFAULT_SETTINGS.borderRadius;
-                    inputEl.dispatchEvent(new Event('input'));
-                }));
-
-        // Create Hide Pixel Banner Fields setting first
-        const hidePixelBannerFieldsSetting = new Setting(containerEl)
+                    }));
+        
+        new Setting(containerEl)
             .setName('Hide Pixel Banner Fields')
             .setDesc('Hide banner-related frontmatter fields in Reading mode')
             .addToggle(toggle => {
@@ -1251,7 +1310,13 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 name: 'Border Radius Field Names',
                 desc: 'Set custom field names for the border radius in frontmatter (comma-separated)',
                 placeholder: 'banner-radius, border-radius, banner-corner-radius'
-            }
+            },
+            {
+                setting: 'customTitleColorField',
+                name: 'Title Color Field Names',
+                desc: 'Set custom field names for the title color in frontmatter (comma-separated)',
+                placeholder: 'banner-title-color, title-color, header-color'
+            },
         ];
 
         customFields.forEach(field => {
@@ -1372,6 +1437,7 @@ ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 400
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 25
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff0000
 ---
 
 # Or use a direct URL:
@@ -1383,6 +1449,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 0
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #00ff00
 ---
 
 # Or use a path to an image in the vault:
@@ -1394,6 +1461,7 @@ ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 50
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #0000ff
 ---
 
 # Or use an Obsidian internal link:
@@ -1406,6 +1474,7 @@ ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 500
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 17
+${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff00ff
 ---`
         });
 

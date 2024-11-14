@@ -2,6 +2,14 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [2.10.0] - 2024-11-13
+
+### Added
+- Color Picker for Inline Titles
+  - Only applied if Inline Titles are enabled in Obsidian Settings:
+    - `Appearance` > `Show inline title`
+  - Can be defined on the General, Custom Field Names, and Folder Images tabs
+
 ## [2.9.1] - 2024-11-10
 
 ### Fixed

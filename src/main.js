@@ -545,7 +545,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
             imageRepeat: folderImage.imageRepeat ?? this.settings.imageRepeat,
             bannerHeight: folderImage.bannerHeight ?? this.settings.bannerHeight,
             fade: folderImage.fade ?? this.settings.fade,
-            borderRadius: folderImage.borderRadius ?? this.settings.borderRadius
+            borderRadius: folderImage.borderRadius ?? this.settings.borderRadius,
+            titleColor: folderImage.titleColor ?? this.settings.titleColor
         };
     }
 
@@ -1302,12 +1303,24 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     applyBannerSettings(bannerDiv, ctx) {
         const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
+        const folderSpecific = this.getFolderSpecificImage(ctx.file.path);
+        
+        // Get title color from frontmatter, folder settings, or default
+        const titleColor = getFrontmatterValue(frontmatter, this.settings.customTitleColorField) || 
+            folderSpecific?.titleColor || 
+            this.settings.titleColor;
 
         bannerDiv.style.backgroundSize = imageDisplay || 'cover';
         bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
         bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
         bannerDiv.style.setProperty('--pixel-banner-fade', `${fade}%`);
         bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
+
+        // Find the parent container for both reading and editing modes
+        const container = bannerDiv.closest('.markdown-preview-view, .markdown-source-view');
+        if (container) {
+            container.style.setProperty('--pixel-banner-title-color', titleColor);
+        }
     }
 
     // Add this helper method to randomly select an API provider

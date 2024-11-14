@@ -26,6 +26,7 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 - Refresh random API images with a single click to get a new image for the same keyword(s)
 - Clean up orphaned pinned images
 - Option to hide Pixel Banner fields (in the properties section) from displaying in Reading Mode
+- Customize inline title color globally, per folder, or per note (requires Obsidian's "Show inline title" setting)
 
 ## Installation
 
@@ -77,6 +78,7 @@ banner-repeat: true
 banner-height: 500
 banner-fade: -75
 banner-radius: 50
+banner-title-color: "#FF5733"
 ---
 ```
 
@@ -115,7 +117,8 @@ In the plugin settings, you can customize:
 - Global fade effect (-1500 to 100, default -75)
 - Custom field names for all settings
 - Folder-specific default banner images
-- Global border radius (0-100 pixels, default 17)
+- Global border radius (0-50 pixels, default 17)
+- Global title color (requires Obsidian's "Show inline title" setting)
 
 All global settings can be overridden on a per-folder or per-note basis.
 
