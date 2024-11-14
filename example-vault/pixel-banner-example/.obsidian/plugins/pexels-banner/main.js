@@ -46,8 +46,8 @@ var DEFAULT_SETTINGS = {
   showRefreshIcon: true,
   hidePixelBannerFields: false,
   hidePropertiesSectionIfOnlyBanner: false,
-  titleColor: "#000000",
-  customTitleColorField: ["banner-title-color"]
+  titleColor: "var(--inline-title-color)",
+  customTitleColorField: ["banner-inline-title-color"]
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -85,7 +85,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addFadeAndBannerHeight();
     const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
     this.addBorderRadiusInput(controlEl);
-    this.addTitleColorInput(controlEl);
+    this.addColorSettings(controlEl);
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
@@ -271,16 +271,57 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     label.appendChild(sliderContainer);
     containerEl.appendChild(label);
   }
-  addColorSettings() {
-    const colorContainer = this.settingEl.createDiv("color-settings-container");
-    new import_obsidian.Setting(colorContainer).setName("title color").addColorPicker((color) => {
-      color.setValue(this.folderImage.titleColor || this.plugin.settings.titleColor).onChange(async (value) => {
-        this.folderImage.titleColor = value;
-        await this.plugin.saveSettings();
-      });
-    });
+  addColorSettings(containerEl) {
+    const colorContainer = containerEl.createDiv("color-settings-container");
+    new import_obsidian.Setting(colorContainer).setName("inline title color").addColorPicker((color) => color.setValue((() => {
+      const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
+      console.log("Current color:", currentColor);
+      if (currentColor.startsWith("var(--")) {
+        console.log("Processing CSS variable");
+        const temp = document.createElement("div");
+        temp.style.color = currentColor;
+        document.body.appendChild(temp);
+        const computedColor = getComputedStyle(temp).color;
+        console.log("Computed color:", computedColor);
+        document.body.removeChild(temp);
+        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        console.log("RGB match:", rgbMatch);
+        if (rgbMatch) {
+          const [_, r, g, b] = rgbMatch;
+          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+          console.log("Final hex color:", hexColor);
+          return hexColor;
+        }
+        return "#000000";
+      }
+      return currentColor;
+    })()).onChange(async (value) => {
+      this.folderImage.titleColor = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.folderImage.titleColor = this.plugin.settings.titleColor;
+      await this.plugin.saveSettings();
+      const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+      if (colorPickerEl) {
+        const currentColor = this.plugin.settings.titleColor;
+        if (currentColor.startsWith("var(--")) {
+          const temp = document.createElement("div");
+          temp.style.color = currentColor;
+          document.body.appendChild(temp);
+          const computedColor = getComputedStyle(temp).color;
+          document.body.removeChild(temp);
+          const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+          if (rgbMatch) {
+            const [_, r, g, b] = rgbMatch;
+            const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+            colorPickerEl.value = hexColor;
+          }
+        } else {
+          colorPickerEl.value = currentColor;
+        }
+      }
+    }));
   }
-  // Add this method
   addDirectChildrenOnlyToggle() {
     new import_obsidian.Setting(this.settingEl).setName("Direct Children Only").setDesc("Apply banner only to direct children of the folder").addToggle((toggle) => {
       toggle.setValue(this.folderImage.directChildrenOnly || false).onChange(async (value) => {
@@ -289,7 +330,6 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       });
     });
   }
-  // In FolderImageSetting class, add this method
   addBorderRadiusInput(containerEl) {
     var _a;
     const label = containerEl.createEl("label", { text: "border radius", cls: "setting-item-name__label" });
@@ -317,21 +357,6 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       await this.plugin.saveSettings();
     });
     label.appendChild(radiusInput);
-    containerEl.appendChild(label);
-  }
-  addTitleColorInput(containerEl) {
-    const label = containerEl.createEl("label", { text: "title color", cls: "setting-item-name__label" });
-    label.style.marginLeft = "20px";
-    const colorInput = containerEl.createEl("input", {
-      type: "color",
-      value: this.folderImage.titleColor || this.plugin.settings.titleColor
-    });
-    colorInput.style.marginLeft = "10px";
-    colorInput.addEventListener("change", async () => {
-      this.folderImage.titleColor = colorInput.value;
-      await this.plugin.saveSettings();
-    });
-    label.appendChild(colorInput);
     containerEl.appendChild(label);
   }
 };
@@ -625,17 +650,14 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         this.plugin.updateAllBanners();
       });
       return dropdown;
-    }).addExtraButton((button) => {
-      button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-        this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-        const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
-        dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-        dropdownEl.dispatchEvent(new Event("change"));
-      });
-      return button;
-    });
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+      const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
+      dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
+      dropdownEl.dispatchEvent(new Event("change"));
+    }));
     new import_obsidian.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => {
       toggle.setValue(this.plugin.settings.imageRepeat).onChange(async (value) => {
         this.plugin.settings.imageRepeat = value;
@@ -643,22 +665,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         this.plugin.updateAllBanners();
       });
       return toggle;
-    }).addExtraButton((button) => {
-      button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-        this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-        const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
-        const toggleEl = checkboxContainer.querySelector("input");
-        if (toggleEl) {
-          toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-          checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
-          const event = new Event("change", { bubbles: true });
-          toggleEl.dispatchEvent(event);
-        }
-      });
-      return button;
-    });
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+      const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
+      const toggleEl = checkboxContainer.querySelector("input");
+      if (toggleEl) {
+        toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
+        checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
+        const event = new Event("change", { bubbles: true });
+        toggleEl.dispatchEvent(event);
+      }
+    }));
     new import_obsidian.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (100-2500 pixels)").addText((text) => {
       text.setPlaceholder("350").setValue(String(this.plugin.settings.bannerHeight)).onChange(async (value) => {
         if (value === "" || !isNaN(Number(value))) {
@@ -724,7 +743,29 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.borderRadius;
       inputEl.dispatchEvent(new Event("input"));
     }));
-    new import_obsidian.Setting(containerEl).setName("Title Color").setDesc("Set the default color for note titles").addColorPicker((color) => color.setValue(this.plugin.settings.titleColor).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
+      const currentColor = this.plugin.settings.titleColor;
+      console.log("General tab - Current color:", currentColor);
+      if (currentColor.startsWith("var(--")) {
+        console.log("General tab - Processing CSS variable");
+        const temp = document.createElement("div");
+        temp.style.color = currentColor;
+        document.body.appendChild(temp);
+        const computedColor = getComputedStyle(temp).color;
+        console.log("General tab - Computed color:", computedColor);
+        document.body.removeChild(temp);
+        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        console.log("General tab - RGB match:", rgbMatch);
+        if (rgbMatch) {
+          const [_, r, g, b] = rgbMatch;
+          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+          console.log("General tab - Final hex color:", hexColor);
+          return hexColor;
+        }
+        return "#000000";
+      }
+      return currentColor;
+    })()).onChange(async (value) => {
       this.plugin.settings.titleColor = value;
       await this.plugin.saveSettings();
       this.plugin.updateAllBanners();
@@ -732,10 +773,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
       await this.plugin.saveSettings();
       this.plugin.updateAllBanners();
-      const colorPicker = button.extraSettingsEl.parentElement.querySelector(".color-input");
-      if (colorPicker) {
-        colorPicker.value = DEFAULT_SETTINGS.titleColor;
-        colorPicker.dispatchEvent(new Event("input"));
+      const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+      if (colorPickerEl) {
+        const temp = document.createElement("div");
+        temp.style.color = DEFAULT_SETTINGS.titleColor;
+        document.body.appendChild(temp);
+        const computedColor = getComputedStyle(temp).color;
+        document.body.removeChild(temp);
+        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          const [_, r, g, b] = rgbMatch;
+          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+          colorPickerEl.value = hexColor;
+        }
       }
     }));
     new import_obsidian.Setting(containerEl).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => {
@@ -868,8 +918,8 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       },
       {
         setting: "customTitleColorField",
-        name: "Title Color Field Names",
-        desc: "Set custom field names for the title color in frontmatter (comma-separated)",
+        name: "Inline Title Color Field Names",
+        desc: "Set custom field names for the inline title color in frontmatter (comma-separated)",
         placeholder: "banner-title-color, title-color, header-color"
       }
     ];
@@ -1113,7 +1163,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.10.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker for Inline Titles<ul>\n<li>Only applied if Inline Titles are enabled in Obsidian Settings:<ul>\n<li><code>Appearance</code> &gt; <code>Show inline title</code></li>\n</ul>\n</li>\n<li>Can be defined on the General, Custom Field Names, and Folder Images tabs</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.10.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>Display the correct color in the Color Picker for Inline Titles when the control is reset</li>\n</ul>\n<h3>v2.10.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker for Inline Titles<ul>\n<li>Only applied if Inline Titles are enabled in Obsidian Settings:<ul>\n<li><code>Appearance</code> &gt; <code>Show inline title</code></li>\n</ul>\n</li>\n<li>Can be defined on the General, Custom Field Names, and Folder Images tabs</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
