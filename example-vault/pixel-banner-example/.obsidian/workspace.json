@@ -22,47 +22,16 @@
             }
           },
           {
-            "id": "aaed5ec9d123f388",
+            "id": "71b2079ccd109ef2",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "tests/🧪 test - 1 - internal link.md",
-                "mode": "preview",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "🧪 test - 1 - internal link"
-            }
-          },
-          {
-            "id": "f21baef48b53cbba",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "🚩 Pixel-Banner.md",
-                "mode": "preview",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "🚩 Pixel-Banner"
-            }
-          },
-          {
-            "id": "a08509a00622cc1a",
-            "type": "leaf",
-            "state": {
-              "type": "css-editor-view",
-              "state": {
-                "file": "utils.css"
-              },
-              "icon": "file-code",
-              "title": "utils"
+              "type": "custom-frames-📄-release-notes",
+              "state": {},
+              "icon": "lucide-notebook-pen",
+              "title": "📄 release notes"
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -211,9 +180,59 @@
               "icon": "lucide-archive",
               "title": "All properties"
             }
+          },
+          {
+            "id": "712f51a03bc49e3e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f57e921ed0ad32db",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "049785e0657f04a0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a1bd3f3e759524ae",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1d31f2bc6d9c8505",
+            "type": "leaf",
+            "state": {
+              "type": "Saved Queries View",
+              "state": {},
+              "icon": "feather-mouse-pointer",
+              "title": "Saved Queries"
+            }
           }
         ],
-        "currentTab": 1
+        "currentTab": 10
       }
     ],
     "direction": "horizontal",
@@ -222,29 +241,31 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Open quick switcher": false,
-      "templates:Insert template": false,
-      "command-palette:Open command palette": false,
+      "switcher:Open quick switcher": true,
+      "templates:Insert template": true,
+      "obsidian-custom-frames:Open 📄 release notes": false,
       "cmdr:Reload app without saving": false,
       "cmdr:Open Plugin Settings: Pixel Banner": false,
-      "cmdr:Open Plugin Settings: Rich Foot": false
+      "cmdr:Open Plugin Settings: Rich Foot": false,
+      "command-palette:Open command palette": false
     }
   },
-  "active": "f21baef48b53cbba",
+  "active": "1d31f2bc6d9c8505",
   "lastOpenFiles": [
+    "🚩 Pixel-Banner.md",
+    "tests/🧪 test - 1 - internal link.md",
+    "releases/v2.10.0 - 🖌️ Title Color.md",
+    "new.md",
     "images/releases/v2.10.0.jpg",
     "pixel-banner-images/🖌️ Title Color.png",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
     "releases",
     "images/releases",
     "images/New folder",
-    "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
     "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 4 - all fields.md",
     "tests/🧪 test - 5 - absolute position.md",
     "tests/🧪 test - 7 - embed tests.md",
-    "🚩 Pixel-Banner.md",
     "Test Note.md",
     "notes/📜 Embedded Note with Banner.md",
     "tests/🧪 test - 6 - image float right.md",

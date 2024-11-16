@@ -1,0 +1,17 @@
+{
+  "frames": [
+    {
+      "url": "https://jparkerweb.github.io/release-notes/",
+      "displayName": "📄 release notes",
+      "icon": "notebook-pen",
+      "hideOnMobile": true,
+      "addRibbonIcon": true,
+      "openInCenter": true,
+      "zoomLevel": 1,
+      "forceIframe": false,
+      "customCss": "",
+      "customJs": ""
+    }
+  ],
+  "padding": 5
+}

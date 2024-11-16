@@ -1,3 +1,13 @@
+.release-title {
+  border-radius: 15px;
+  background: #00000070;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
 .float-right {
   float: right;
 }
