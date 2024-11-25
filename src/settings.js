@@ -11,7 +11,6 @@ const DEFAULT_SETTINGS = {
     numberOfImages: 10,
     defaultKeywords: 'nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns',
     yPosition: 50,
-    // Update these fields to be arrays
     customBannerField: ['banner'],
     customYPositionField: ['banner-y'],
     customContentStartField: ['content-start'],
@@ -332,27 +331,22 @@ class FolderImageSetting extends Setting {
             .addColorPicker(color => color
                 .setValue((() => {
                     const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
-                    console.log('Current color:', currentColor);
                     
                     if (currentColor.startsWith('var(--')) {
-                        console.log('Processing CSS variable');
                         const temp = document.createElement('div');
                         temp.style.color = currentColor;
                         document.body.appendChild(temp);
                         const computedColor = getComputedStyle(temp).color;
-                        console.log('Computed color:', computedColor);
                         document.body.removeChild(temp);
                         
                         // Parse RGB values
                         const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-                        console.log('RGB match:', rgbMatch);
                         if (rgbMatch) {
                             const [_, r, g, b] = rgbMatch;
                             const hexColor = '#' + 
                                 parseInt(r).toString(16).padStart(2, '0') +
                                 parseInt(g).toString(16).padStart(2, '0') +
                                 parseInt(b).toString(16).padStart(2, '0');
-                            console.log('Final hex color:', hexColor);
                             return hexColor;
                         }
                         return '#000000';
@@ -1146,27 +1140,21 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 .addColorPicker(color => color
                     .setValue((() => {
                         const currentColor = this.plugin.settings.titleColor;
-                        console.log('General tab - Current color:', currentColor);
-                        
                         if (currentColor.startsWith('var(--')) {
-                            console.log('General tab - Processing CSS variable');
                             const temp = document.createElement('div');
                             temp.style.color = currentColor;
                             document.body.appendChild(temp);
                             const computedColor = getComputedStyle(temp).color;
-                            console.log('General tab - Computed color:', computedColor);
                             document.body.removeChild(temp);
                             
                             // Parse RGB values
                             const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-                            console.log('General tab - RGB match:', rgbMatch);
                             if (rgbMatch) {
                                 const [_, r, g, b] = rgbMatch;
                                 const hexColor = '#' + 
                                     parseInt(r).toString(16).padStart(2, '0') +
                                     parseInt(g).toString(16).padStart(2, '0') +
                                     parseInt(b).toString(16).padStart(2, '0');
-                                console.log('General tab - Final hex color:', hexColor);
                                 return hexColor;
                             }
                             return '#000000';
