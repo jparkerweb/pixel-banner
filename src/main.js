@@ -588,7 +588,17 @@ module.exports = class PixelBannerPlugin extends Plugin {
             if (keywords.length > 0) {
                 const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
                 const provider = this.getActiveApiProvider();
-                // console.log(`provider: ${provider}`);
+                
+                // Check if the selected provider has an API key before attempting to fetch
+                const apiKey = provider === 'pexels' ? this.settings.pexelsApiKey :
+                             provider === 'pixabay' ? this.settings.pixabayApiKey :
+                             provider === 'flickr' ? this.settings.flickrApiKey :
+                             provider === 'unsplash' ? this.settings.unsplashApiKey : null;
+                
+                if (!apiKey) {
+                    // Just save the keyword without showing a warning
+                    return null;
+                }
                 
                 if (provider === 'pexels') {
                     return this.fetchPexelsImage(selectedKeyword);
@@ -609,7 +619,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async fetchPexelsImage(keyword) {
         const apiKey = this.settings.pexelsApiKey;
         if (!apiKey) {
-            new Notice('Pexels API key is not set. Please set it in the plugin settings.');
             return null;
         }
 
@@ -669,7 +678,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async fetchPixabayImage(keyword) {
         const apiKey = this.settings.pixabayApiKey;
         if (!apiKey) {
-            new Notice('Pixabay API key is not set. Please set it in the plugin settings.');
             return null;
         }
 
@@ -735,7 +743,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async fetchFlickrImage(keyword) {
         const apiKey = this.settings.flickrApiKey;
         if (!apiKey) {
-            new Notice('Flickr API key is not set. Please set it in the plugin settings.');
             return null;
         }
 
@@ -796,7 +803,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async fetchUnsplashImage(keyword) {
         const apiKey = this.settings.unsplashApiKey;
         if (!apiKey) {
-            new Notice('Unsplash API key is not set. Please set it in the plugin settings.');
             return null;
         }
 

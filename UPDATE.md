@@ -1,5 +1,12 @@
 ## 🎉 What's New
 
+### v2.10.2
+#### 🐛 Fixed
+- Banners were being applied to the background of embedded media (images, videos, etc.)
+
+#### 📦 Updated
+- Improved Pexels API key validation
+
 ### v2.10.1
 #### ✨ Added
 - Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)

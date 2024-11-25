@@ -20,16 +20,6 @@
               "icon": "lucide-file",
               "title": "🚩 Pixel-Banner"
             }
-          },
-          {
-            "id": "71b2079ccd109ef2",
-            "type": "leaf",
-            "state": {
-              "type": "custom-frames-📄-release-notes",
-              "state": {},
-              "icon": "lucide-notebook-pen",
-              "title": "📄 release notes"
-            }
           }
         ]
       }
@@ -225,6 +215,166 @@
             "id": "1d31f2bc6d9c8505",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f453e1b9ac894044",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "aff975017ab51be6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9167caa8ca6b029d",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "55ef405a427d4faf",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f621d5acfe686635",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "80eb500598253ccd",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "52d219d148aacfba",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "62ab1fc4092c9696",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0311a1464f3616de",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1732faa49323aea0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c1131b3ed9b6e24b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b3d68960b934e872",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6f3abdf0e4dbf0f3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9b7c1f1248882fe7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d251889ea6539f9c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9e5ac88011cd3fed",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -232,7 +382,7 @@
             }
           }
         ],
-        "currentTab": 10
+        "currentTab": 26
       }
     ],
     "direction": "horizontal",
@@ -250,14 +400,21 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "1d31f2bc6d9c8505",
+  "active": "c98ed0f3d92eb093",
   "lastOpenFiles": [
     "🚩 Pixel-Banner.md",
-    "tests/🧪 test - 1 - internal link.md",
+    "notes/📃 Embedded Note.md",
+    "tests/🧪 test - 7 - embed tests.md",
+    "notes/📜 Embedded Note with Banner.md",
+    "test.md",
+    "pixel-banner-images/dog.png",
+    "notes/Untitled.md",
+    "pixel-banner-images/🖌️ Title Color.png",
     "releases/v2.10.0 - 🖌️ Title Color.md",
+    "tests/🧪 test - 6 - image float right.md",
+    "tests/🧪 test - 1 - internal link.md",
     "new.md",
     "images/releases/v2.10.0.jpg",
-    "pixel-banner-images/🖌️ Title Color.png",
     "releases",
     "images/releases",
     "images/New folder",
@@ -265,15 +422,10 @@
     "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 4 - all fields.md",
     "tests/🧪 test - 5 - absolute position.md",
-    "tests/🧪 test - 7 - embed tests.md",
     "Test Note.md",
-    "notes/📜 Embedded Note with Banner.md",
-    "tests/🧪 test - 6 - image float right.md",
-    "notes/📃 Embedded Note.md",
     "notes/subfolder/Embedded Note in Subfolder.md",
     "= attachments/blocks-the-robot.png",
     "= attachments",
-    "test.md",
     "🚩 Pixel Banner - v2.9.0 - 🥷 Ninja Fields.md",
     "pixel-banner-images/ninja.png",
     "pixel-banner-images/foot.jpg",
@@ -281,7 +433,6 @@
     "pixel-banner-images/foot1.jpg",
     "pixel-banner-images/foot2.jpg",
     "pixel-banner-images/rich-feet-2.jpg",
-    "pixel-banner-images/rich-feet-3.jpg",
     "🚩 Pixel Banner - v2.7.0 - 🔵🔴 Flickr Time.md",
     "misc tests",
     "test1.md",
@@ -294,9 +445,6 @@
     "tests",
     "notes/subfolder",
     "bay.md",
-    "🚩 Pexels-Banner.md",
-    "Clippings/Official Obsidian web clipper now available!  rObsidianMD.md",
-    "Clippings",
-    "embeds/📃 Embedded Note without Banner.md"
+    "Clippings"
   ]
 }

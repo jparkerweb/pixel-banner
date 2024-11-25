@@ -1576,10 +1576,19 @@ function debounce(func, wait) {
     };
 }
 
+function random20characters() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 20; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
 // API test functions
 async function testPexelsApi(apiKey) {
     try {
-        const response = await fetch('https://api.pexels.com/v1/search?query=dog&per_page=3', {
+        const response = await fetch(`https://api.pexels.com/v1/search?query=${random20characters()}&per_page=3`, {
             headers: {
                 'Authorization': apiKey
             }
@@ -1590,7 +1599,9 @@ async function testPexelsApi(apiKey) {
         }
         
         const data = await response.json();
-        return data.photos && data.photos.length > 0; // Ensure photos are present
+        console.log(`random20characters: ${random20characters()}`);
+        console.log(`Pexels API response:`, data);
+        return data.photos; // Ensure photos are present
     } catch (error) {
         return false;
     }

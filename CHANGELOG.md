@@ -2,6 +2,14 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## v2.10.2
+#### 🐛 Fixed
+- Banners were being applied to the background of embedded media (images, videos, etc.)
+
+#### 📦 Updated
+- Improved Pexels API key validation
+- Removed old console logs entries
+
 ## [v2.10.1] - 2024-11-14
 ### ✨ Added
 - Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)

@@ -23,7 +23,6 @@ var DEFAULT_SETTINGS = {
   numberOfImages: 10,
   defaultKeywords: "nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns",
   yPosition: 50,
-  // Update these fields to be arrays
   customBannerField: ["banner"],
   customYPositionField: ["banner-y"],
   customContentStartField: ["content-start"],
@@ -275,21 +274,16 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     const colorContainer = containerEl.createDiv("color-settings-container");
     new import_obsidian.Setting(colorContainer).setName("inline title color").addColorPicker((color) => color.setValue((() => {
       const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
-      console.log("Current color:", currentColor);
       if (currentColor.startsWith("var(--")) {
-        console.log("Processing CSS variable");
         const temp = document.createElement("div");
         temp.style.color = currentColor;
         document.body.appendChild(temp);
         const computedColor = getComputedStyle(temp).color;
-        console.log("Computed color:", computedColor);
         document.body.removeChild(temp);
         const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-        console.log("RGB match:", rgbMatch);
         if (rgbMatch) {
           const [_, r, g, b] = rgbMatch;
           const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
-          console.log("Final hex color:", hexColor);
           return hexColor;
         }
         return "#000000";
@@ -745,21 +739,16 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     }));
     new import_obsidian.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
       const currentColor = this.plugin.settings.titleColor;
-      console.log("General tab - Current color:", currentColor);
       if (currentColor.startsWith("var(--")) {
-        console.log("General tab - Processing CSS variable");
         const temp = document.createElement("div");
         temp.style.color = currentColor;
         document.body.appendChild(temp);
         const computedColor = getComputedStyle(temp).color;
-        console.log("General tab - Computed color:", computedColor);
         document.body.removeChild(temp);
         const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-        console.log("General tab - RGB match:", rgbMatch);
         if (rgbMatch) {
           const [_, r, g, b] = rgbMatch;
           const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
-          console.log("General tab - Final hex color:", hexColor);
           return hexColor;
         }
         return "#000000";
@@ -1070,9 +1059,17 @@ function debounce(func, wait) {
     timeout = setTimeout(later, wait);
   };
 }
+function random20characters() {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 20; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 async function testPexelsApi(apiKey) {
   try {
-    const response = await fetch("https://api.pexels.com/v1/search?query=dog&per_page=3", {
+    const response = await fetch(`https://api.pexels.com/v1/search?query=${random20characters()}&per_page=3`, {
       headers: {
         "Authorization": apiKey
       }
@@ -1081,7 +1078,9 @@ async function testPexelsApi(apiKey) {
       throw new Error("\u274C Invalid Pexels API key");
     }
     const data = await response.json();
-    return data.photos && data.photos.length > 0;
+    console.log(`random20characters: ${random20characters()}`);
+    console.log(`Pexels API response:`, data);
+    return data.photos;
   } catch (error) {
     return false;
   }
@@ -1136,17 +1135,45 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
       text: "After each update you'll be prompted with the release notes. You can disable this in the plugin settings General tab.",
       cls: "release-notes-instructions"
     });
-    const kofiContainer = contentEl.createEl("div");
-    kofiContainer.style.textAlign = "right";
-    const kofiLink = kofiContainer.createEl("a", {
+    const promotionalLinks = contentEl.createEl("div");
+    promotionalLinks.style.display = "flex";
+    promotionalLinks.style.flexDirection = "row";
+    promotionalLinks.style.justifyContent = "space-around";
+    const equilllabsLink = promotionalLinks.createEl("a", {
+      href: "https://www.equilllabs.com",
+      target: "equilllabs"
+    });
+    equilllabsLink.createEl("img", {
+      attr: {
+        height: "36",
+        style: "border:0px;height:36px;",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/equilllabs.png?raw=true",
+        border: "0",
+        alt: "eQuill Labs"
+      }
+    });
+    const discordLink = promotionalLinks.createEl("a", {
+      href: "https://discord.gg/sp8AQQhMJ7",
+      target: "discord"
+    });
+    discordLink.createEl("img", {
+      attr: {
+        height: "36",
+        style: "border:0px;height:36px;",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/discord.png?raw=true",
+        border: "0",
+        alt: "Discord"
+      }
+    });
+    const kofiLink = promotionalLinks.createEl("a", {
       href: "https://ko-fi.com/Z8Z212UMBI",
-      target: "_blank"
+      target: "kofi"
     });
     kofiLink.createEl("img", {
       attr: {
         height: "36",
         style: "border:0px;height:36px;",
-        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png",
+        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png?raw=true",
         border: "0",
         alt: "Buy Me a Coffee at ko-fi.com"
       }
@@ -1163,7 +1190,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.10.1</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)</li>\n</ul>\n<h4>Fixed</h4>\n<ul>\n<li>Display the correct color in the Color Picker for Inline Titles when the control is reset</li>\n</ul>\n<h3>v2.10.0</h3>\n<h4>Added</h4>\n<ul>\n<li>Color Picker for Inline Titles<ul>\n<li>Only applied if Inline Titles are enabled in Obsidian Settings:<ul>\n<li><code>Appearance</code> &gt; <code>Show inline title</code></li>\n</ul>\n</li>\n<li>Can be defined on the General, Custom Field Names, and Folder Images tabs</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.10.2</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Banners were being applied to the background of embedded media (images, videos, etc.)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved Pexels API key validation</li>\n</ul>\n<h3>v2.10.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Display the correct color in the Color Picker for Inline Titles when the control is reset</li>\n</ul>\n<h3>v2.10.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Color Picker for Inline Titles<ul>\n<li>Only applied if Inline Titles are enabled in Obsidian Settings:<ul>\n<li><code>Appearance</code> &gt; <code>Show inline title</code></li>\n</ul>\n</li>\n<li>Can be defined on the General, Custom Field Names, and Folder Images tabs</li>\n</ul>\n</li>\n</ul>\n";
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1408,7 +1435,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     const frontmatter = (_a = this.app.metadataCache.getFileCache(view.file)) == null ? void 0 : _a.frontmatter;
     const contentEl = view.contentEl;
-    const isEmbedded = contentEl.classList.contains("internal-embed");
+    const isEmbedded = contentEl.classList.contains("internal-embed") && contentEl.classList.contains("markdown-embed");
     const existingBanner = contentEl.querySelector(".pixel-banner-image");
     const folderSpecific = this.getFolderSpecificImage(view.file.path);
     let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
@@ -1472,7 +1499,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       existingBanner.style.display = "none";
     }
     if (!isEmbedded) {
-      const embeddedNotes = contentEl.querySelectorAll(".internal-embed");
+      const embeddedNotes = contentEl.querySelectorAll(".internal-embed.markdown-embed");
       for (const embed of embeddedNotes) {
         const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute("src"), "");
         if (embedFile) {
@@ -1595,6 +1622,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       if (keywords.length > 0) {
         const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
         const provider = this.getActiveApiProvider();
+        const apiKey = provider === "pexels" ? this.settings.pexelsApiKey : provider === "pixabay" ? this.settings.pixabayApiKey : provider === "flickr" ? this.settings.flickrApiKey : provider === "unsplash" ? this.settings.unsplashApiKey : null;
+        if (!apiKey) {
+          return null;
+        }
         if (provider === "pexels") {
           return this.fetchPexelsImage(selectedKeyword);
         } else if (provider === "pixabay") {
@@ -1612,7 +1643,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async fetchPexelsImage(keyword) {
     const apiKey = this.settings.pexelsApiKey;
     if (!apiKey) {
-      new import_obsidian3.Notice("Pexels API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const now = Date.now();
@@ -1663,7 +1693,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async fetchPixabayImage(keyword) {
     const apiKey = this.settings.pixabayApiKey;
     if (!apiKey) {
-      new import_obsidian3.Notice("Pixabay API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
@@ -1718,7 +1747,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async fetchFlickrImage(keyword) {
     const apiKey = this.settings.flickrApiKey;
     if (!apiKey) {
-      new import_obsidian3.Notice("Flickr API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
@@ -1771,7 +1799,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async fetchUnsplashImage(keyword) {
     const apiKey = this.settings.unsplashApiKey;
     if (!apiKey) {
-      new import_obsidian3.Notice("Unsplash API key is not set. Please set it in the plugin settings.");
       return null;
     }
     const defaultKeywords = this.settings.defaultKeywords.split(",").map((k) => k.trim());
@@ -2027,7 +2054,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     var _a, _b;
     const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
-    const isEmbedded = viewContent.classList.contains("internal-embed");
+    const isEmbedded = viewContent.classList.contains("internal-embed") && viewContent.classList.contains("markdown-embed");
     if (!isEmbedded) {
       viewContent.classList.add("pixel-banner");
     }
