@@ -317,7 +317,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         const frontmatter = this.app.metadataCache.getFileCache(view.file)?.frontmatter;
         const contentEl = view.contentEl;
-        const isEmbedded = contentEl.classList.contains('internal-embed');
+        const isEmbedded = contentEl.classList.contains('internal-embed') && contentEl.classList.contains('markdown-embed');
 
         // Get existing banner before trying to use it
         const existingBanner = contentEl.querySelector('.pixel-banner-image');
@@ -421,7 +421,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // Process embedded notes if this is not an embedded note itself
         if (!isEmbedded) {
-            const embeddedNotes = contentEl.querySelectorAll('.internal-embed');
+            const embeddedNotes = contentEl.querySelectorAll('.internal-embed.markdown-embed');
 
             for (const embed of embeddedNotes) {
                 const embedFile = this.app.metadataCache.getFirstLinkpathDest(embed.getAttribute('src'), '');
@@ -1122,7 +1122,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async addPixelBanner(el, ctx) {
         const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
         const viewContent = el;
-        const isEmbedded = viewContent.classList.contains('internal-embed');
+        const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
         
         // Now we can use isEmbedded
         if (!isEmbedded) {
