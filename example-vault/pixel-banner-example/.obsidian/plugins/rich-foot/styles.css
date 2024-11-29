@@ -28,7 +28,7 @@
     position: relative;
     bottom: 0;
     font-size: 0.7em;
-    color: var(--text-accent);
+    color: var(--rich-foot-link-color, var(--text-accent));
 }
 
 .rich-foot--backlinks ul,
@@ -58,9 +58,10 @@
     margin: 0 4px;
     cursor: pointer;
     border-radius: var(--rich-foot-border-radius, 15px);
-    border: 1px solid rgba(255, 255, 255, 0.204);
-    background-color: var(--tag-background);
+    border: 1px solid var(--rich-foot-link-border-color, rgba(255, 255, 255, 0.204));
     transition: 150ms ease-in-out all;
+    color: var(--rich-foot-link-color, var(--link-color));
+    background-color: var(--rich-foot-link-background, var(--tag-background));
 }
 
 .rich-foot--backlinks ul li a::before,
@@ -89,7 +90,7 @@
     padding-left: 0;
     font-size: .8em;
     filter: brightness(85%);
-    color: var(--text-accent);
+    color: var(--rich-foot-date-color, var(--text-accent));
     opacity: var(--rich-foot-dates-opacity, 1);
 }
 
@@ -103,6 +104,7 @@
     font-size: .7em;
     text-transform: uppercase;
     padding: 2px 8px 0 0;
+    color: var(--rich-foot-date-color, var(--text-accent));
 }
 
 .rich-foot--created-date::before {
@@ -154,12 +156,19 @@ body.theme-light .rich-foot--backlinks ul li a {
     padding-bottom: 0 !important;
 }
 
+/* fix note embed height scroll in canvas */
+.canvas-node-content.markdown-embed div.cm-sizer,
+.canvas-node-content.markdown-embed div.markdown-preview-sizer {
+	min-height: unset !important;
+}
+
+
 .cm-sizer .rich-foot--backlinks {
     margin-top: 0;
 }
 
 .markdown-preview-sizer > div {
-    flex: 0;
+    flex: 0 auto;
 }
 
 .markdown-preview-sizer > .rich-foot {
@@ -181,6 +190,7 @@ body.theme-light .rich-foot--backlinks ul li a {
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
+    color: var(--rich-foot-date-color);
 }
 
 
@@ -283,6 +293,16 @@ body.theme-light .rich-foot--backlinks ul li a {
     margin: 10px 0;
     border-radius: 5px;
     background-color: var(--background-secondary);
+}
+
+.release-notes-container img {
+    max-width: 100%;
+}
+
+.release-notes-instructions {
+    font-size: 0.75em;
+    font-weight: 300;
+    letter-spacing: 2px;
 }
 
 .release-notes-section {

@@ -375,6 +375,26 @@
             "id": "9e5ac88011cd3fed",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e8c358bc1ba9cd51",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3c29c6f348aa51c2",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -382,7 +402,7 @@
             }
           }
         ],
-        "currentTab": 26
+        "currentTab": 28
       }
     ],
     "direction": "horizontal",
@@ -402,6 +422,7 @@
   },
   "active": "c98ed0f3d92eb093",
   "lastOpenFiles": [
+    "releases/v2.10.0 - 🖌️ Title Color.md",
     "🚩 Pixel-Banner.md",
     "notes/📃 Embedded Note.md",
     "tests/🧪 test - 7 - embed tests.md",
@@ -410,7 +431,6 @@
     "pixel-banner-images/dog.png",
     "notes/Untitled.md",
     "pixel-banner-images/🖌️ Title Color.png",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
     "tests/🧪 test - 6 - image float right.md",
     "tests/🧪 test - 1 - internal link.md",
     "new.md",
