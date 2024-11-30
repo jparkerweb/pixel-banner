@@ -115,7 +115,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 }
 
                 const inputType = this.getInputType(bannerImage);
-                const canPin = imageUrl && inputType === 'keyword' && this.settings.showPinIcon;
+                const canPin = imageUrl && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon;
                 
                 if (checking) return canPin;
 
@@ -1250,7 +1250,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
                 this.applyContentStartPosition(viewContent, effectiveContentStart);
                 
-                if (!isEmbedded && inputType === 'keyword' && this.settings.showPinIcon) {
+                if (!isEmbedded && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon) {
                     const refreshIcon = container.querySelector(':scope > .refresh-icon');
                     
                     if (pinIcon) {
@@ -1273,7 +1273,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         };
                     }
 
-                    if (refreshIcon && this.settings.showRefreshIcon) {
+                    if (refreshIcon && inputType === 'keyword' && this.settings.showRefreshIcon) {
                         refreshIcon.style.display = 'block';
                         refreshIcon.onclick = async () => {
                             try {
@@ -1286,6 +1286,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
                                 new Notice('😭 Failed to refresh image');
                             }
                         };
+                    } else if (refreshIcon) {
+                        refreshIcon.style.display = 'none';
                     }
                 } else {
                     if (pinIcon) pinIcon.style.display = 'none';

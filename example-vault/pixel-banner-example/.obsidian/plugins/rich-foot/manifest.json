@@ -1,7 +1,7 @@
 {
     "id": "rich-foot",
     "name": "Rich Foot",
-    "version": "1.7.2",
+    "version": "1.8.0",
     "minAppVersion": "1.5.0",
     "description": "Adds backlink tags and created/modified dates to the footer of your notes.",
     "author": "Justin Parker (eQui\\\\ Labs)",

@@ -1,22 +1,9 @@
 ## 🎉 What's New
 
-### v2.10.2
-#### 🐛 Fixed
-- Banners were being applied to the background of embedded media (images, videos, etc.)
-
-#### 📦 Updated
-- Improved Pexels API key validation
-
-### v2.10.1
+### v2.11.0
 #### ✨ Added
-- Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)
+- Ability to 📌 Pin URL banners
 
-#### 🐛 Fixed
-- Display the correct color in the Color Picker for Inline Titles when the control is reset
+  _Great for when you find a URL for an image you want to use in Pixel Banner, you can quickly save it by adding the URL and then "Pinning" it._
 
-### v2.10.0
-#### ✨ Added
-- Color Picker for Inline Titles
-  - Only applied if Inline Titles are enabled in Obsidian Settings:
-    - `Appearance` > `Show inline title`
-  - Can be defined on the General, Custom Field Names, and Folder Images tabs
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg)](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg)

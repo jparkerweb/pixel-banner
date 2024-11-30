@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## v2.11.0
+#### ✨ Added
+- Abity to 📌 Pin URL banners
+
 ## v2.10.2
 #### 🐛 Fixed
 - Banners were being applied to the background of embedded media (images, videos, etc.)
