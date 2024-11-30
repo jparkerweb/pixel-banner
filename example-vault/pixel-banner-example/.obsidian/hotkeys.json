@@ -5,7 +5,7 @@
         "Mod",
         "Shift"
       ],
-      "key": "D"
+      "key": "K"
     }
   ],
   "advanced-cursors:add-next-match-to-selections": [
@@ -66,6 +66,15 @@
         "Alt"
       ],
       "key": "ArrowUp"
+    }
+  ],
+  "app:delete-file": [
+    {
+      "modifiers": [
+        "Mod",
+        "Shift"
+      ],
+      "key": "D"
     }
   ]
 }

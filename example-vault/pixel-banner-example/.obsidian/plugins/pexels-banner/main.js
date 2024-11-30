@@ -1190,7 +1190,7 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = "<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.10.2</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Banners were being applied to the background of embedded media (images, videos, etc.)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved Pexels API key validation</li>\n</ul>\n<h3>v2.10.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Color Picker Reset button for Folder Images tab (only applies if Inline Titles are enabled in Obsidian Settings)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Display the correct color in the Color Picker for Inline Titles when the control is reset</li>\n</ul>\n<h3>v2.10.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Color Picker for Inline Titles<ul>\n<li>Only applied if Inline Titles are enabled in Obsidian Settings:<ul>\n<li><code>Appearance</code> &gt; <code>Show inline title</code></li>\n</ul>\n</li>\n<li>Can be defined on the General, Custom Field Names, and Folder Images tabs</li>\n</ul>\n</li>\n</ul>\n";
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.11.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><p>Ability to \u{1F4CC} Pin URL banners</p>\n<p><em>Great for when you find a URL for an image you want to use in Pixel Banner, you can quickly save it by adding the URL and then &quot;Pinning&quot; it.</em></p>\n</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
@@ -1281,7 +1281,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           }
         }
         const inputType = this.getInputType(bannerImage);
-        const canPin = imageUrl && inputType === "keyword" && this.settings.showPinIcon;
+        const canPin = imageUrl && (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon;
         if (checking) return canPin;
         if (canPin) {
           setTimeout(() => handlePinIconClick(imageUrl, this, usedField), 0);
@@ -2144,7 +2144,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
         const effectiveContentStart = (_b = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
         this.applyContentStartPosition(viewContent, effectiveContentStart);
-        if (!isEmbedded && inputType === "keyword" && this.settings.showPinIcon) {
+        if (!isEmbedded && (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon) {
           const refreshIcon = container.querySelector(":scope > .refresh-icon");
           if (pinIcon) {
             pinIcon.style.display = "block";
@@ -2164,7 +2164,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
               }
             };
           }
-          if (refreshIcon && this.settings.showRefreshIcon) {
+          if (refreshIcon && inputType === "keyword" && this.settings.showRefreshIcon) {
             refreshIcon.style.display = "block";
             refreshIcon.onclick = async () => {
               try {
@@ -2177,6 +2177,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
                 new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
               }
             };
+          } else if (refreshIcon) {
+            refreshIcon.style.display = "none";
           }
         } else {
           if (pinIcon) pinIcon.style.display = "none";

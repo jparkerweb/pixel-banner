@@ -1,6 +1,6 @@
 {
   "apiProvider": "all",
-  "pexelsApiKey": "",
+  "pexelsApiKey": "RoKgyYgLEu0BEzqw5Z4LMnknOquciriNYvtfEe2yHh0sbVLG422J58qq",
   "pixabayApiKey": "",
   "flickrApiKey": "",
   "unsplashApiKey": "",
@@ -69,7 +69,7 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.10.2",
+  "lastVersion": "2.11.0",
   "showRefreshIcon": true,
   "hidePixelBannerFields": true,
   "hidePropertiesSectionIfOnlyBanner": true,

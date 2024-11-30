@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F4C6} Dates Your Way</h2>\n<h3>v1.7.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Date Display Format</code> option to allow users to specify their own date format</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Date not formatted correctly if timestamp was included in the Custom Created/Modified Date Property</li>\n</ul>\n<h3>v1.7.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Note embeds in canvas now have the correct height</li>\n<li>Duplicate &quot;show dates&quot; option in settings</li>\n</ul>\n<h4>\u2728 Added</h4>\n<ul>\n<li>If using custom created/modified date properties, the date now displays in the format of &quot;Month Day, Year&quot; if in proper date format, otherwise it displays the raw frontmatter filed string value.</li>\n</ul>\n<h3>v1.7.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><code>Custom Created/Modified Date Property</code> fields to allow users to specify their own frontmatter properties for dates, useful when file system dates are affected by sync processes and you track them separately.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/develop/img/releases/rich-foot-v1.7.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1FAE3} Page Preview Support</h2>\n<h3>[1.8.0] - 2024-11-29</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for <code>Page Preview</code> core plugin for <code>Outlinks</code> &amp; <code>Backlinks</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/rich-foot/refs/heads/main/img/releases/rich-foot-v1.8.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 var DEFAULT_SETTINGS = {
@@ -352,8 +352,10 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
           const li = backlinksUl.createEl("li");
           const link = li.createEl("a", {
             href: linkPath,
-            text: linkPath.split("/").pop().slice(0, -3)
+            text: linkPath.split("/").pop().slice(0, -3),
+            cls: this.isEditMode() ? "cm-hmd-internal-link" : "internal-link"
           });
+          link.dataset.href = linkPath;
           link.addEventListener("click", (event) => {
             event.preventDefault();
             this.app.workspace.openLinkText(linkPath, file.path);
@@ -375,8 +377,10 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
           const li = outlinksUl.createEl("li");
           const link = li.createEl("a", {
             href: linkPath,
-            text: displayName
+            text: displayName,
+            cls: this.isEditMode() ? "cm-hmd-internal-link" : "internal-link"
           });
+          link.dataset.href = linkPath;
           link.addEventListener("click", (event) => {
             event.preventDefault();
             this.app.workspace.openLinkText(linkPath, file.path);
@@ -551,6 +555,12 @@ var RichFootPlugin = class extends import_obsidian2.Plugin {
       return false;
     }
     return this.settings.excludedFolders.some((folder) => filePath.startsWith(folder));
+  }
+  isEditMode() {
+    var _a, _b;
+    const activeView = this.app.workspace.getActiveViewOfType(import_obsidian2.MarkdownView);
+    if (!activeView) return false;
+    return ((_b = (_a = activeView.getMode) == null ? void 0 : _a.call(activeView)) != null ? _b : activeView.mode) === "source";
   }
 };
 var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
