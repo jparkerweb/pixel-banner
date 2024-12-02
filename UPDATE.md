@@ -1,9 +1,11 @@
 ## 🎉 What's New
 
-### v2.11.0
+### v2.12.0
 #### ✨ Added
-- Ability to 📌 Pin URL banners
+- 🔀 Random Image Shuffle functionality.
+- Folder Images: You can enable random image selection from a specified folder in settings.
+- Frontmatter Support: Use `banner-shuffle` in frontmatter to specify a folder path for random image selection.
+- Images are randomly selected each time the note is opened.
+- This feature is perfect for adding variety to your notes with minimal setup using local images.
 
-  _Great for when you find a URL for an image you want to use in Pixel Banner, you can quickly save it by adding the URL and then "Pinning" it._
-
-[![screenshot](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg)](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg)
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.12.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.12.0.jpg)

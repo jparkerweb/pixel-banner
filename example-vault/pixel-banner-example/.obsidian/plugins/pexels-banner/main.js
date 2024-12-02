@@ -28,16 +28,18 @@ var DEFAULT_SETTINGS = {
   customContentStartField: ["content-start"],
   customImageDisplayField: ["banner-display"],
   customImageRepeatField: ["banner-repeat"],
+  customBannerHeightField: ["banner-height"],
+  customFadeField: ["banner-fade"],
+  customBorderRadiusField: ["banner-radius"],
+  customTitleColorField: ["banner-inline-title-color"],
+  customBannerShuffleField: ["banner-shuffle"],
   folderImages: [],
   contentStartPosition: 150,
   imageDisplay: "cover",
   imageRepeat: false,
   bannerHeight: 350,
-  customBannerHeightField: ["banner-height"],
   fade: -75,
-  customFadeField: ["banner-fade"],
   borderRadius: 17,
-  customBorderRadiusField: ["banner-radius"],
   showPinIcon: true,
   pinnedImageFolder: "pixel-banner-images",
   showReleaseNotes: true,
@@ -46,7 +48,7 @@ var DEFAULT_SETTINGS = {
   hidePixelBannerFields: false,
   hidePropertiesSectionIfOnlyBanner: false,
   titleColor: "var(--inline-title-color)",
-  customTitleColorField: ["banner-inline-title-color"]
+  enableImageShuffle: false
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -105,7 +107,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   }
   addFolderInput() {
     const folderInputContainer = this.settingEl.createDiv("folder-input-container");
-    const folderInput = new import_obsidian.Setting(folderInputContainer).setName("folder path").addText((text) => {
+    const folderInput = new import_obsidian.Setting(folderInputContainer).setName("Folder Path").addText((text) => {
       text.setValue(this.folderImage.folder || "").onChange(async (value) => {
         this.folderImage.folder = value;
         await this.plugin.saveSettings();
@@ -120,10 +122,44 @@ var FolderImageSetting = class extends import_obsidian.Setting {
         this.plugin.saveSettings();
       }).open();
     }));
+    const shuffleContainer = this.settingEl.createDiv("shuffle-container");
+    const shuffleToggle = new import_obsidian.Setting(shuffleContainer).setName("Enable Image Shuffle").setDesc("Randomly select an image from a specified folder each time the note loads").addToggle((toggle) => {
+      toggle.setValue(this.folderImage.enableImageShuffle || false).onChange(async (value) => {
+        this.folderImage.enableImageShuffle = value;
+        if (value) {
+          shuffleFolderInput.settingEl.style.display = "flex";
+          this.imageInputContainer.style.display = "none";
+        } else {
+          shuffleFolderInput.settingEl.style.display = "none";
+          this.imageInputContainer.style.display = "block";
+        }
+        await this.plugin.saveSettings();
+      });
+    });
+    const shuffleFolderInput = new import_obsidian.Setting(shuffleContainer).setName("Image Shuffle Folder").setDesc("Folder containing images to randomly select from").addText((text) => {
+      text.setValue(this.folderImage.shuffleFolder || "").onChange(async (value) => {
+        this.folderImage.shuffleFolder = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "300px";
+    });
+    shuffleFolderInput.addButton((button) => button.setButtonText("Browse").onClick(() => {
+      new FolderSuggestModal(this.plugin.app, (chosenPath) => {
+        this.folderImage.shuffleFolder = chosenPath;
+        shuffleFolderInput.controlEl.querySelector("input").value = chosenPath;
+        this.plugin.saveSettings();
+      }).open();
+    }));
+    if (!this.folderImage.enableImageShuffle) {
+      shuffleFolderInput.settingEl.style.display = "none";
+    }
   }
   addImageInput() {
-    const folderInputContainer = this.settingEl.createDiv("folder-input-container");
-    const imageInput = new import_obsidian.Setting(folderInputContainer).setName("image url or keyword").addText((text) => {
+    this.imageInputContainer = this.settingEl.createDiv("folder-input-container");
+    if (this.folderImage.enableImageShuffle) {
+      this.imageInputContainer.style.display = "none";
+    }
+    const imageInput = new import_obsidian.Setting(this.imageInputContainer).setName("Image URL or Keyword").addText((text) => {
       text.setValue(this.folderImage.image || "").onChange(async (value) => {
         this.folderImage.image = value;
         await this.plugin.saveSettings();
@@ -134,7 +170,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   }
   addImageDisplaySettings(containerEl) {
     const displayContainer = this.settingEl.createDiv("display-and-repeat-container");
-    const displaySetting = new import_obsidian.Setting(displayContainer).setName("image display").addDropdown((dropdown) => {
+    const displaySetting = new import_obsidian.Setting(displayContainer).setName("Image Display").addDropdown((dropdown) => {
       dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.folderImage.imageDisplay || "cover").onChange(async (value) => {
         this.folderImage.imageDisplay = value;
         await this.plugin.saveSettings();
@@ -161,7 +197,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addBannerHeightInput(controlEl);
   }
   addYPositionInput(containerEl) {
-    const label = containerEl.createEl("label", { text: "y-position", cls: "setting-item-name__label" });
+    const label = containerEl.createEl("label", { text: "Y-Position", cls: "setting-item-name__label" });
     const sliderContainer = containerEl.createEl("div", { cls: "slider-container" });
     const slider = sliderContainer.createEl("input", {
       type: "range",
@@ -192,7 +228,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     containerEl.appendChild(label);
   }
   addContentStartInput(containerEl) {
-    const label = containerEl.createEl("label", { text: "content start", cls: "setting-item-name__label" });
+    const label = containerEl.createEl("label", { text: "Content Start", cls: "setting-item-name__label" });
     label.style.marginLeft = "20px";
     const contentStartInput = containerEl.createEl("input", {
       type: "number",
@@ -211,7 +247,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     containerEl.appendChild(label);
   }
   addBannerHeightInput(containerEl) {
-    const label = containerEl.createEl("label", { text: "banner height", cls: "setting-item-name__label" });
+    const label = containerEl.createEl("label", { text: "Banner Height", cls: "setting-item-name__label" });
     label.style.marginLeft = "20px";
     const heightInput = containerEl.createEl("input", {
       type: "number",
@@ -240,7 +276,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     containerEl.appendChild(label);
   }
   addFadeInput(containerEl) {
-    const label = containerEl.createEl("label", { text: "fade", cls: "setting-item-name__label" });
+    const label = containerEl.createEl("label", { text: "Fade", cls: "setting-item-name__label" });
     const sliderContainer = containerEl.createEl("div", { cls: "slider-container" });
     const slider = sliderContainer.createEl("input", {
       type: "range",
@@ -272,7 +308,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   }
   addColorSettings(containerEl) {
     const colorContainer = containerEl.createDiv("color-settings-container");
-    new import_obsidian.Setting(colorContainer).setName("inline title color").addColorPicker((color) => color.setValue((() => {
+    new import_obsidian.Setting(colorContainer).setName("Inline Title Color").addColorPicker((color) => color.setValue((() => {
       const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
       if (currentColor.startsWith("var(--")) {
         const temp = document.createElement("div");
@@ -326,7 +362,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   }
   addBorderRadiusInput(containerEl) {
     var _a;
-    const label = containerEl.createEl("label", { text: "border radius", cls: "setting-item-name__label" });
+    const label = containerEl.createEl("label", { text: "Border Radius", cls: "setting-item-name__label" });
     const radiusInput = containerEl.createEl("input", {
       type: "number",
       attr: {
@@ -529,7 +565,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         this.plugin.settings.pinnedImageFolder = value;
         await this.plugin.saveSettings();
       });
-      text.inputEl.addEventListener("blur", async () => {
+      text.inputEl.addEventListener("blur", async (event) => {
         let value = text.inputEl.value.trim();
         if (!value) {
           value = "pixel-banner-images";
@@ -910,6 +946,12 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         name: "Inline Title Color Field Names",
         desc: "Set custom field names for the inline title color in frontmatter (comma-separated)",
         placeholder: "banner-title-color, title-color, header-color"
+      },
+      {
+        setting: "customBannerShuffleField",
+        name: "Banner Shuffle Field Names",
+        desc: "Set custom field names for the banner shuffle in frontmatter (comma-separated)",
+        placeholder: "banner-shuffle, shuffle-folder, random-image-folder"
       }
     ];
     customFields.forEach((field) => {
@@ -1190,9 +1232,23 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.11.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li><p>Ability to \u{1F4CC} Pin URL banners</p>\n<p><em>Great for when you find a URL for an image you want to use in Pixel Banner, you can quickly save it by adding the URL and then &quot;Pinning&quot; it.</em></p>\n</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/releases/pixel-banner-v2.11.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.12.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>\u{1F500} Random Image Shuffle functionality.</li>\n<li>Folder Images: You can enable random image selection from a specified folder in settings.</li>\n<li>Frontmatter Support: Use <code>banner-shuffle</code> in frontmatter to specify a folder path for random image selection.</li>\n<li>Images are randomly selected each time the note is opened.</li>\n<li>This feature is perfect for adding variety to your notes with minimal setup using local images.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.12.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.12.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
+function getFrontmatterValue(frontmatter, fieldNames) {
+  if (!frontmatter || !fieldNames) return null;
+  const fields = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
+  for (const field of fields) {
+    if (frontmatter.hasOwnProperty(field)) {
+      const value = frontmatter[field];
+      if (typeof value === "string" && (value.toLowerCase() === "true" || value.toLowerCase() === "false")) {
+        return value.toLowerCase() === "true";
+      }
+      return value;
+    }
+  }
+  return null;
+}
 module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   constructor() {
     super(...arguments);
@@ -1358,7 +1414,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       "customYPositionField",
       "customContentStartField",
       "customImageDisplayField",
-      "customImageRepeatField"
+      "customImageRepeatField",
+      "customBannerHeightField",
+      "customFadeField",
+      "customBorderRadiusField"
     ];
     fieldsToMigrate.forEach((field) => {
       if (typeof this.settings[field] === "string") {
@@ -1438,7 +1497,17 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     const isEmbedded = contentEl.classList.contains("internal-embed") && contentEl.classList.contains("markdown-embed");
     const existingBanner = contentEl.querySelector(".pixel-banner-image");
     const folderSpecific = this.getFolderSpecificImage(view.file.path);
-    let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
+    let bannerImage = null;
+    const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
+    if (shufflePath) {
+      const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
+      if (randomImagePath) {
+        bannerImage = `[[${randomImagePath}]]`;
+      }
+    }
+    if (!bannerImage) {
+      bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
+    }
     if (!isEmbedded && !bannerImage) {
       contentEl.classList.remove("pixel-banner");
       if (existingBanner) {
@@ -1583,18 +1652,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   // Helper method to create folder image settings object
   createFolderImageSettings(folderImage) {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
-    return {
-      image: folderImage.image,
-      yPosition: (_a = folderImage.yPosition) != null ? _a : this.settings.yPosition,
-      contentStartPosition: (_b = folderImage.contentStartPosition) != null ? _b : this.settings.contentStartPosition,
-      imageDisplay: (_c = folderImage.imageDisplay) != null ? _c : this.settings.imageDisplay,
-      imageRepeat: (_d = folderImage.imageRepeat) != null ? _d : this.settings.imageRepeat,
-      bannerHeight: (_e = folderImage.bannerHeight) != null ? _e : this.settings.bannerHeight,
-      fade: (_f = folderImage.fade) != null ? _f : this.settings.fade,
-      borderRadius: (_g = folderImage.borderRadius) != null ? _g : this.settings.borderRadius,
-      titleColor: (_h = folderImage.titleColor) != null ? _h : this.settings.titleColor
-    };
+    const settings = { ...folderImage };
+    if (folderImage.enableImageShuffle && folderImage.shuffleFolder) {
+      const randomImagePath = this.getRandomImageFromFolder(folderImage.shuffleFolder);
+      if (randomImagePath) {
+        settings.image = randomImagePath;
+      }
+    }
+    return settings;
   }
   getFolderPath(filePath) {
     if (!filePath.includes("/")) {
@@ -2238,7 +2303,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       ...this.settings.customImageRepeatField,
       ...this.settings.customBannerHeightField,
       ...this.settings.customFadeField,
-      ...this.settings.customBorderRadiusField
+      ...this.settings.customBorderRadiusField,
+      ...this.settings.customTitleColorField,
+      ...this.settings.customBannerShuffleField
     ];
     const propertiesContainer = view.contentEl.querySelector(".metadata-container");
     if (!propertiesContainer) return;
@@ -2260,20 +2327,23 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       propertiesContainer.classList.remove("pixel-banner-hidden-section");
     }
   }
-};
-function getFrontmatterValue(frontmatter, fieldNames) {
-  if (!frontmatter || !Array.isArray(fieldNames)) return void 0;
-  for (const fieldName of fieldNames) {
-    if (fieldName in frontmatter) {
-      const value = frontmatter[fieldName];
-      if (typeof value === "string" && (value.toLowerCase() === "true" || value.toLowerCase() === "false")) {
-        return value.toLowerCase() === "true";
-      }
-      return value;
+  // get random image from folder
+  getRandomImageFromFolder(folderPath) {
+    try {
+      const folder = this.app.vault.getAbstractFileByPath(folderPath);
+      if (!folder || !folder.children) return null;
+      const imageFiles = folder.children.filter(
+        (file) => file.extension && ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(file.extension.toLowerCase())
+      );
+      if (imageFiles.length === 0) return null;
+      const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
+      return randomImage.path;
+    } catch (error) {
+      console.error("Error getting random image:", error);
+      return null;
     }
   }
-  return void 0;
-}
+};
 async function handlePinIconClick(imageUrl, plugin, usedField = null) {
   const imageBlob = await fetchImage(imageUrl);
   const { initialPath, file } = await saveImageLocally(imageBlob, plugin);

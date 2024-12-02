@@ -9,20 +9,29 @@
     margin-top: 30px !important;
     margin-bottom: 20px !important;
     padding-top: 10px !important;
+    opacity: 1;
+    transition: opacity 600ms ease-in-out; /* fade in rich-foot */
+}
+
+.rich-foot--hidden {
+    opacity: 0;
 }
 
 /* ---------------------- */
 /* -- Backlinks Styles -- */
 /* ---------------------- */
 .rich-foot--backlinks,
-.rich-foot--outlinks {
+.rich-foot--outlinks,
+.rich-foot--links {
     opacity: var(--rich-foot-links-opacity, 1);
 }
 
 .rich-foot--backlinks::before { content: 'Backlinks';}
 .rich-foot--outlinks::before { content: 'Outlinks';}
+.rich-foot--links::before { content: 'Links';}
 .rich-foot--backlinks::before,
-.rich-foot--outlinks::before {
+.rich-foot--outlinks::before,
+.rich-foot--links::before {
     text-transform: uppercase;
     filter: brightness(150%);
     position: relative;
@@ -32,7 +41,8 @@
 }
 
 .rich-foot--backlinks ul,
-.rich-foot--outlinks ul {
+.rich-foot--outlinks ul,
+.rich-foot--links ul {
     list-style: none;
     display: flex;
     flex-direction: row;
@@ -42,12 +52,14 @@
 }
 
 .rich-foot--backlinks ul li,
-.rich-foot--outlinks ul li {
+.rich-foot--outlinks ul li,
+.rich-foot--links ul li {
     margin-inline-start: 0 !important;
 }
 
 .rich-foot--backlinks ul li a,
-.rich-foot--outlinks ul li a {
+.rich-foot--outlinks ul li a,
+.rich-foot--links ul li a {
     filter: brightness(120%);
     text-decoration: none !important;
     font-size: 12px;
@@ -65,13 +77,20 @@
 }
 
 .rich-foot--backlinks ul li a::before,
-.rich-foot--outlinks ul li a::before {
-    content: "← ";
+.rich-foot--links ul li a[data-is-backlink="true"]::before {
+    content: "⇠ ";
+    opacity: .5;
+}
+
+.rich-foot--outlinks ul li a::after,
+.rich-foot--links ul li a[data-is-outlink="true"]::after {
+    content: " ⇢";
     opacity: .5;
 }
 
 .rich-foot--backlinks ul li a:hover,
-.rich-foot--outlinks ul li a:hover {
+.rich-foot--outlinks ul li a:hover,
+.rich-foot--links ul li a:hover {
     filter: brightness(170%);
     border: 1px solid transparent !important;
     text-decoration: none;
@@ -126,6 +145,19 @@ body.theme-light .rich-foot--backlinks ul li a {
 /* ---------------------------- */
 /* -- Editor-specific Styles -- */
 /* ---------------------------- */
+.cm-sizer {
+    width: 100%;
+    padding-bottom: 0 !important;
+}
+
+.cm-sizer > .rich-foot {
+    margin-top: 15px !important;
+}
+
+.cm-sizer .rich-foot--backlinks {
+    margin-top: 0;
+}
+
 .cm-scroller .cm-contentContainer > .cm-content,
 .markdown-source-view .cm-contentContainer > .cm-content {
     padding-bottom: 30px !important;
@@ -146,36 +178,33 @@ body.theme-light .rich-foot--backlinks ul li a {
     margin-right: 20px;
 }
 
-.cm-sizer,
+/* ---------------------------- */
+/* -- Preview-specific Styles -- */
+/* ---------------------------- */
 .markdown-preview-sizer {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
     width: 100%;
-    min-height: 100% !important;
     padding-bottom: 0 !important;
 }
+
+.markdown-reading-view .markdown-preview-sizer {
+    width: 100%;
+}
+
+/* Update the rich foot positioning */
+.markdown-reading-view .markdown-preview-sizer > .rich-foot {
+    padding-top: var(--rich-foot-top-padding, 10px) !important;
+    padding-bottom: 0 !important;
+    margin-bottom: var(--rich-foot-margin-bottom, 0) !important;
+}
+
+/* ----------- */
+/* -- other -- */
+/* ----------- */
 
 /* fix note embed height scroll in canvas */
 .canvas-node-content.markdown-embed div.cm-sizer,
 .canvas-node-content.markdown-embed div.markdown-preview-sizer {
 	min-height: unset !important;
-}
-
-
-.cm-sizer .rich-foot--backlinks {
-    margin-top: 0;
-}
-
-.markdown-preview-sizer > div {
-    flex: 0 auto;
-}
-
-.markdown-preview-sizer > .rich-foot {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
 }
 
 .rich-foot > .rich-foot--dashed-line {
@@ -193,6 +222,11 @@ body.theme-light .rich-foot--backlinks ul li a {
     color: var(--rich-foot-date-color);
 }
 
+/* Settings styles */
+.rich-foot-settings input[type='text'],
+.rich-foot-settings input[type='number'] {
+    text-align: right;
+}
 
 /* --------------------- */
 /* -- Settings Styles -- */

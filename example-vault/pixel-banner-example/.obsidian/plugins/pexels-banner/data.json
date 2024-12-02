@@ -27,6 +27,21 @@
   "customImageRepeatField": [
     "banner-repeat"
   ],
+  "customBannerHeightField": [
+    "banner-height"
+  ],
+  "customFadeField": [
+    "banner-fade"
+  ],
+  "customBorderRadiusField": [
+    "banner-radius"
+  ],
+  "customTitleColorField": [
+    "banner-title-color"
+  ],
+  "customBannerShuffleField": [
+    "banner-shuffle"
+  ],
   "folderImages": [
     {
       "folder": "notes",
@@ -37,7 +52,20 @@
       "imageRepeat": false,
       "directChildrenOnly": true,
       "borderRadius": 0,
-      "titleColor": "#ff0000"
+      "titleColor": "#ff0000",
+      "enableImageShuffle": false,
+      "shuffleFolder": ""
+    },
+    {
+      "folder": "Random Shuffle",
+      "image": "",
+      "yPosition": 20,
+      "contentStartPosition": 200,
+      "enableImageShuffle": true,
+      "shuffleFolder": "shuffle-images",
+      "imageDisplay": "cover",
+      "imageRepeat": false,
+      "directChildrenOnly": false
     },
     {
       "folder": "tests",
@@ -55,17 +83,8 @@
   "imageDisplay": "cover",
   "imageRepeat": false,
   "bannerHeight": 350,
-  "customBannerHeightField": [
-    "banner-height"
-  ],
   "fade": -75,
-  "customFadeField": [
-    "banner-fade"
-  ],
   "borderRadius": 17,
-  "customBorderRadiusField": [
-    "banner-radius"
-  ],
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
@@ -74,7 +93,5 @@
   "hidePixelBannerFields": true,
   "hidePropertiesSectionIfOnlyBanner": true,
   "titleColor": "#ff0000",
-  "customTitleColorField": [
-    "banner-title-color"
-  ]
+  "enableImageShuffle": false
 }
