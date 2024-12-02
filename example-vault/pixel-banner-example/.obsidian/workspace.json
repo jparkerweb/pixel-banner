@@ -8,31 +8,20 @@
         "type": "tabs",
         "children": [
           {
-            "id": "70492a4e8d3de293",
+            "id": "0ff195b43537bf1f",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
-                "mode": "preview",
+                "file": "🚩 Pixel-Banner.md",
+                "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "v2.12.0 - 🔀 Random Image Shuffle"
-            }
-          },
-          {
-            "id": "0ff195b43537bf1f",
-            "type": "leaf",
-            "state": {
-              "type": "custom-frames-📄-release-notes",
-              "state": {},
-              "icon": "lucide-notebook-pen",
-              "title": "📄 release notes"
+              "title": "🚩 Pixel-Banner"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -223,15 +212,16 @@
   },
   "active": "0ff195b43537bf1f",
   "lastOpenFiles": [
+    "tests/🧪 test - 8 - embed tests.md",
+    "tests/🧪 test - 7- shuffle time!.md",
     "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
     "pixel-banner-images/shuffle.png",
+    "tests/🧪 test - 7 - embed tests.md",
     "releases/v2.11.0 - 📌 Pin my URL Please.md",
     "🚩 Pixel-Banner.md",
     "Random Shuffle/Disney Lorcana.md",
-    "tests/🧪 test - 7- shuffle time!.md",
     "tests/🧪 test - 5 - absolute position.md",
     "tests/🧪 test - 6 - image float right.md",
-    "tests/🧪 test - 8 - embed tests.md",
     "notes/📜 Embedded Note with Banner.md",
     "releases/v2.10.0 - 🖌️ Title Color.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
@@ -263,7 +253,6 @@
     "images/New folder",
     "Test Note.md",
     "= attachments",
-    "🚩 Pixel Banner - v2.9.0 - 🥷 Ninja Fields.md",
     "misc tests",
     "pixel-banner-images",
     "pixel-banners",
