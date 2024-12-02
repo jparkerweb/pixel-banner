@@ -3,6 +3,27 @@ import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
 import { ReleaseNotesModal } from './modals';
 import { releaseNotes } from 'virtual:release-notes';
 
+// get frontmatter value helper
+function getFrontmatterValue(frontmatter, fieldNames) {
+    if (!frontmatter || !fieldNames) return null;
+    
+    // Ensure fieldNames is an array
+    const fields = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
+    
+    // Check each field name
+    for (const field of fields) {
+        if (frontmatter.hasOwnProperty(field)) {
+            const value = frontmatter[field];
+            // Convert 'true' and 'false' strings to actual boolean values
+            if (typeof value === 'string' && (value.toLowerCase() === 'true' || value.toLowerCase() === 'false')) {
+                return value.toLowerCase() === 'true';
+            }
+            return value;
+        }
+    }
+    return null;
+}
+
 module.exports = class PixelBannerPlugin extends Plugin {
     debounceTimer = null;
     loadedImages = new Map();
@@ -222,7 +243,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
             'customYPositionField',
             'customContentStartField',
             'customImageDisplayField',
-            'customImageRepeatField'
+            'customImageRepeatField',
+            'customBannerHeightField',
+            'customFadeField',
+            'customBorderRadiusField'
         ];
 
         fieldsToMigrate.forEach(field => {
@@ -322,9 +346,24 @@ module.exports = class PixelBannerPlugin extends Plugin {
         // Get existing banner before trying to use it
         const existingBanner = contentEl.querySelector('.pixel-banner-image');
         
-        // Only clear classes and existing banner for non-embedded notes AND when there's no banner image
+        // Get folder-specific settings first
         const folderSpecific = this.getFolderSpecificImage(view.file.path);
-        let bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || folderSpecific?.image;
+        let bannerImage = null;
+
+        // Check for banner shuffle path in frontmatter first
+        const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
+        if (shufflePath) {
+            // If shuffle path exists in frontmatter, use it
+            const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
+            if (randomImagePath) {
+                bannerImage = `[[${randomImagePath}]]`;
+            }
+        }
+        
+        // If no shuffle path or no image found, fall back to regular banner or folder-specific image
+        if (!bannerImage) {
+            bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || folderSpecific?.image;
+        }
         
         if (!isEmbedded && !bannerImage) {
             contentEl.classList.remove('pixel-banner');
@@ -396,7 +435,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
         let borderRadius = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField) ?? 
             folderSpecific?.borderRadius ?? 
             this.settings.borderRadius;
-
         // Process this note's banner if it exists
         if (bannerImage) {
             await this.addPixelBanner(contentEl, { 
@@ -537,17 +575,18 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     // Helper method to create folder image settings object
     createFolderImageSettings(folderImage) {
-        return {
-            image: folderImage.image,
-            yPosition: folderImage.yPosition ?? this.settings.yPosition,
-            contentStartPosition: folderImage.contentStartPosition ?? this.settings.contentStartPosition,
-            imageDisplay: folderImage.imageDisplay ?? this.settings.imageDisplay,
-            imageRepeat: folderImage.imageRepeat ?? this.settings.imageRepeat,
-            bannerHeight: folderImage.bannerHeight ?? this.settings.bannerHeight,
-            fade: folderImage.fade ?? this.settings.fade,
-            borderRadius: folderImage.borderRadius ?? this.settings.borderRadius,
-            titleColor: folderImage.titleColor ?? this.settings.titleColor
-        };
+        const settings = { ...folderImage };
+
+        // If image shuffle is enabled and shuffle folder is specified, get a random image
+        if (folderImage.enableImageShuffle && folderImage.shuffleFolder) {
+            const randomImagePath = this.getRandomImageFromFolder(folderImage.shuffleFolder);
+            if (randomImagePath) {
+                // Format as internal link for Obsidian
+                settings.image = randomImagePath;
+            }
+        }
+
+        return settings;
     }
 
     getFolderPath(filePath) {
@@ -1227,7 +1266,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
             }
 
             if (imageUrl) {
-                // Get the y-position respecting inheritance
                 const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
                 const folderSpecific = this.getFolderSpecificImage(file.path);
                 const effectiveYPosition = frontmatterYPosition ?? 
@@ -1363,7 +1401,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
             ...this.settings.customImageRepeatField,
             ...this.settings.customBannerHeightField,
             ...this.settings.customFadeField,
-            ...this.settings.customBorderRadiusField
+            ...this.settings.customBorderRadiusField,
+            ...this.settings.customTitleColorField,
+            ...this.settings.customBannerShuffleField
         ];
 
         // Get the properties container
@@ -1395,25 +1435,31 @@ module.exports = class PixelBannerPlugin extends Plugin {
             propertiesContainer.classList.remove('pixel-banner-hidden-section');
         }
     }
-}
 
-// Add this helper function at the top level
-function getFrontmatterValue(frontmatter, fieldNames) {
-    if (!frontmatter || !Array.isArray(fieldNames)) return undefined;
-    
-    for (const fieldName of fieldNames) {
-        if (fieldName in frontmatter) {
-            const value = frontmatter[fieldName];
-            // Convert 'true' and 'false' strings to actual boolean values
-            if (typeof value === 'string' && (value.toLowerCase() === 'true' || value.toLowerCase() === 'false')) {
-                return value.toLowerCase() === 'true';
-            }
-            return value;
+    // get random image from folder
+    getRandomImageFromFolder(folderPath) {
+        try {
+            const folder = this.app.vault.getAbstractFileByPath(folderPath);
+            if (!folder || !folder.children) return null;
+
+            // Filter for image files
+            const imageFiles = folder.children.filter(file => 
+                file.extension && ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(file.extension.toLowerCase())
+            );
+
+            if (imageFiles.length === 0) return null;
+
+            // Select random image
+            const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
+            return randomImage.path;
+        } catch (error) {
+            console.error('Error getting random image:', error);
+            return null;
         }
     }
-    return undefined;
 }
 
+// Add pin icon
 function addPinIcon(noteElement, imageUrl, plugin) {
     // Remove any existing pin icons first
     const existingPins = noteElement.querySelectorAll('.pin-icon');
@@ -1470,6 +1516,7 @@ async function handlePinIconClick(imageUrl, plugin, usedField = null) {
     hidePinIcon();
 }
 
+// Fetch image
 async function fetchImage(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Image download failed');
@@ -1477,6 +1524,7 @@ async function fetchImage(url) {
     return await response.arrayBuffer();
 }
 
+// Folder selection modal
 class FolderSelectionModal extends FuzzySuggestModal {
     constructor(app, defaultFolder, onChoose) {
         super(app);
@@ -1515,6 +1563,7 @@ class FolderSelectionModal extends FuzzySuggestModal {
     }
 }
 
+// Save image
 async function saveImageLocally(arrayBuffer, plugin) {
     const vault = plugin.app.vault;
     const defaultFolderPath = plugin.settings.pinnedImageFolder;
@@ -1572,6 +1621,7 @@ async function saveImageLocally(arrayBuffer, plugin) {
     };
 }
 
+// Update note frontmatter
 async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
     const activeFile = app.workspace.getActiveFile();
     if (!activeFile) return;
@@ -1615,12 +1665,13 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
     }
 }
 
+// Hide pin icon
 function hidePinIcon() {
     const pinIcon = document.querySelector('.pin-icon');
     if (pinIcon) pinIcon.style.display = 'none';
 }
 
-// Add this new class for the modal
+// Save image modal
 class SaveImageModal extends Modal {
     constructor(app, suggestedName, onSubmit) {
         super(app);
@@ -1690,7 +1741,7 @@ class SaveImageModal extends Modal {
     }
 }
 
-// Add new function to wait for potential file rename
+// function to wait for potential file rename
 async function waitForFileRename(file, plugin) {
     return new Promise((resolve) => {
         const initialPath = file.path;

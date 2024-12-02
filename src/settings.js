@@ -16,16 +16,18 @@ const DEFAULT_SETTINGS = {
     customContentStartField: ['content-start'],
     customImageDisplayField: ['banner-display'],
     customImageRepeatField: ['banner-repeat'],
+    customBannerHeightField: ['banner-height'],
+    customFadeField: ['banner-fade'],
+    customBorderRadiusField: ['banner-radius'],
+    customTitleColorField: ['banner-inline-title-color'],
+    customBannerShuffleField: ['banner-shuffle'],
     folderImages: [],
     contentStartPosition: 150,
     imageDisplay: 'cover',
     imageRepeat: false,
     bannerHeight: 350,
-    customBannerHeightField: ['banner-height'],
     fade: -75,
-    customFadeField: ['banner-fade'],
     borderRadius: 17,
-    customBorderRadiusField: ['banner-radius'],
     showPinIcon: true,
     pinnedImageFolder: 'pixel-banner-images',
     showReleaseNotes: true,
@@ -34,7 +36,7 @@ const DEFAULT_SETTINGS = {
     hidePixelBannerFields: false,
     hidePropertiesSectionIfOnlyBanner: false,
     titleColor: 'var(--inline-title-color)',
-    customTitleColorField: ['banner-inline-title-color'],
+    enableImageShuffle: false,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -111,7 +113,7 @@ class FolderImageSetting extends Setting {
         const folderInputContainer = this.settingEl.createDiv('folder-input-container');
         
         const folderInput = new Setting(folderInputContainer)
-            .setName("folder path")
+            .setName("Folder Path")
             .addText(text => {
                 text.setValue(this.folderImage.folder || "")
                     .onChange(async (value) => {
@@ -131,13 +133,68 @@ class FolderImageSetting extends Setting {
                     this.plugin.saveSettings();
                 }).open();
             }));
+
+        // Add shuffle toggle and folder input
+        const shuffleContainer = this.settingEl.createDiv('shuffle-container');
+        const shuffleToggle = new Setting(shuffleContainer)
+            .setName("Enable Image Shuffle")
+            .setDesc("Randomly select an image from a specified folder each time the note loads")
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.folderImage.enableImageShuffle || false)
+                    .onChange(async (value) => {
+                        this.folderImage.enableImageShuffle = value;
+                        // Show/hide shuffle folder input based on toggle
+                        if (value) {
+                            shuffleFolderInput.settingEl.style.display = 'flex';
+                            this.imageInputContainer.style.display = 'none';
+                        } else {
+                            shuffleFolderInput.settingEl.style.display = 'none';
+                            this.imageInputContainer.style.display = 'block';
+                        }
+                        await this.plugin.saveSettings();
+                    });
+            });
+
+        // Add shuffle folder input
+        const shuffleFolderInput = new Setting(shuffleContainer)
+            .setName("Image Shuffle Folder")
+            .setDesc("Folder containing images to randomly select from")
+            .addText(text => {
+                text.setValue(this.folderImage.shuffleFolder || "")
+                    .onChange(async (value) => {
+                        this.folderImage.shuffleFolder = value;
+                        await this.plugin.saveSettings();
+                    });
+                text.inputEl.style.width = '300px';
+            });
+
+        shuffleFolderInput.addButton(button => button
+            .setButtonText("Browse")
+            .onClick(() => {
+                new FolderSuggestModal(this.plugin.app, (chosenPath) => {
+                    this.folderImage.shuffleFolder = chosenPath;
+                    shuffleFolderInput.controlEl.querySelector('input').value = chosenPath;
+                    this.plugin.saveSettings();
+                }).open();
+            }));
+
+        // Initially hide shuffle folder input if shuffle is disabled
+        if (!this.folderImage.enableImageShuffle) {
+            shuffleFolderInput.settingEl.style.display = 'none';
+        }
     }
 
     addImageInput() {
-        const folderInputContainer = this.settingEl.createDiv('folder-input-container');
+        this.imageInputContainer = this.settingEl.createDiv('folder-input-container');
         
-        const imageInput = new Setting(folderInputContainer)
-            .setName("image url or keyword")
+        // Hide container if shuffle is enabled
+        if (this.folderImage.enableImageShuffle) {
+            this.imageInputContainer.style.display = 'none';
+        }
+        
+        const imageInput = new Setting(this.imageInputContainer)
+            .setName("Image URL or Keyword")
             .addText(text => {
                 text.setValue(this.folderImage.image || "")
                     .onChange(async (value) => {
@@ -153,7 +210,7 @@ class FolderImageSetting extends Setting {
         const displayContainer = this.settingEl.createDiv('display-and-repeat-container');
         
         const displaySetting = new Setting(displayContainer)
-            .setName("image display")
+            .setName("Image Display")
             .addDropdown(dropdown => {
                 dropdown
                     .addOption('auto', 'Auto')
@@ -194,7 +251,7 @@ class FolderImageSetting extends Setting {
     }
 
     addYPositionInput(containerEl) {
-        const label = containerEl.createEl('label', { text: 'y-position', cls: 'setting-item-name__label' });
+        const label = containerEl.createEl('label', { text: 'Y-Position', cls: 'setting-item-name__label' });
         const sliderContainer = containerEl.createEl('div', { cls: 'slider-container' });
         const slider = sliderContainer.createEl('input', {
             type: 'range',
@@ -232,7 +289,7 @@ class FolderImageSetting extends Setting {
     }
 
     addContentStartInput(containerEl) {
-        const label = containerEl.createEl('label', { text: 'content start', cls: 'setting-item-name__label' });
+        const label = containerEl.createEl('label', { text: 'Content Start', cls: 'setting-item-name__label' });
         label.style.marginLeft = '20px';
 
         const contentStartInput = containerEl.createEl('input', {
@@ -254,7 +311,7 @@ class FolderImageSetting extends Setting {
     }
 
     addBannerHeightInput(containerEl) {
-        const label = containerEl.createEl('label', { text: 'banner height', cls: 'setting-item-name__label' });
+        const label = containerEl.createEl('label', { text: 'Banner Height', cls: 'setting-item-name__label' });
         label.style.marginLeft = '20px';
         const heightInput = containerEl.createEl('input', {
             type: 'number',
@@ -285,7 +342,7 @@ class FolderImageSetting extends Setting {
     }
 
     addFadeInput(containerEl) {
-        const label = containerEl.createEl('label', { text: 'fade', cls: 'setting-item-name__label' });
+        const label = containerEl.createEl('label', { text: 'Fade', cls: 'setting-item-name__label' });
         const sliderContainer = containerEl.createEl('div', { cls: 'slider-container' });
         const slider = sliderContainer.createEl('input', {
             type: 'range',
@@ -327,7 +384,7 @@ class FolderImageSetting extends Setting {
         
         // Inline Title Color
         new Setting(colorContainer)
-            .setName("inline title color")
+            .setName("Inline Title Color")
             .addColorPicker(color => color
                 .setValue((() => {
                     const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
@@ -407,7 +464,7 @@ class FolderImageSetting extends Setting {
     }
 
     addBorderRadiusInput(containerEl) {
-        const label = containerEl.createEl('label', { text: 'border radius', cls: 'setting-item-name__label' });
+        const label = containerEl.createEl('label', { text: 'Border Radius', cls: 'setting-item-name__label' });
         const radiusInput = containerEl.createEl('input', {
             type: 'number',
             attr: {
@@ -780,7 +837,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     });
 
                 // Add blur handler for validation
-                text.inputEl.addEventListener('blur', async () => {
+                text.inputEl.addEventListener('blur', async (event) => {
                     let value = text.inputEl.value.trim();
                     
                     if (!value) {
@@ -1380,6 +1437,12 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 name: 'Inline Title Color Field Names',
                 desc: 'Set custom field names for the inline title color in frontmatter (comma-separated)',
                 placeholder: 'banner-title-color, title-color, header-color'
+            },
+            {
+                setting: 'customBannerShuffleField',
+                name: 'Banner Shuffle Field Names',
+                desc: 'Set custom field names for the banner shuffle in frontmatter (comma-separated)',
+                placeholder: 'banner-shuffle, shuffle-folder, random-image-folder'
             },
         ];
 

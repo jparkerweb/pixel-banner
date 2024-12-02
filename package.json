@@ -1,11 +1,13 @@
 {
     "scripts": {
-        "test-build": "node esbuild.config.mjs production && cp styles.css main.js manifest.json example-vault/pixel-banner-example/.obsidian/plugins/pexels-banner",
-        "build": "node esbuild.config.mjs production && cp styles.css main.js manifest.json example-vault/pixel-banner-example/.obsidian/plugins/pexels-banner && zip -r example-vault.zip example-vault"
+      "test-build": "node scripts/esbuild.config.mjs production && node scripts/copy-build.mjs",
+      "build": "npm run test-build && zip -r example-vault.zip example-vault"
     },
     "devDependencies": {
-        "builtin-modules": "4.0.0",
-        "esbuild": "0.24.0",
-        "marked": "^14.1.3"
+      "builtin-modules": "4.0.0",
+      "esbuild": "0.24.0",
+      "fs-extra": "^11.2.0",
+      "marked": "^14.1.3"
     }
-}
+  }
+  
