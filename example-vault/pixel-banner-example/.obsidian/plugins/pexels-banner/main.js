@@ -45,6 +45,7 @@ var DEFAULT_SETTINGS = {
   showReleaseNotes: true,
   lastVersion: null,
   showRefreshIcon: true,
+  showViewImageIcon: false,
   hidePixelBannerFields: false,
   hidePropertiesSectionIfOnlyBanner: false,
   titleColor: "var(--inline-title-color)",
@@ -797,7 +798,6 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
       this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
       await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
       const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
       if (colorPickerEl) {
         const temp = document.createElement("div");
@@ -813,39 +813,52 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         }
       }
     }));
-    new import_obsidian.Setting(containerEl).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => {
-      toggle.setValue(this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
-        this.plugin.settings.hidePixelBannerFields = value;
-        if (!value) {
-          this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
-          const dependentToggle = hidePropertiesSection.components[0];
-          if (dependentToggle) {
-            dependentToggle.setValue(false);
-            dependentToggle.setDisabled(true);
-          }
-          this.app.workspace.iterateAllLeaves((leaf) => {
-            if (leaf.view instanceof import_obsidian.MarkdownView && leaf.view.contentEl) {
-              const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
-              if (propertiesContainer) {
-                propertiesContainer.classList.remove("pixel-banner-hidden-section");
-                const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
-                hiddenFields.forEach((field) => {
-                  field.classList.remove("pixel-banner-hidden-field");
-                });
-              }
-            }
-          });
-        } else {
-          const dependentToggle = hidePropertiesSection.components[0];
-          if (dependentToggle) {
-            dependentToggle.setDisabled(false);
-          }
+    const showViewImageIconSetting = new import_obsidian.Setting(containerEl).setName("Show View Image Icon").setDesc("Show an icon to view the banner image in full screen").addToggle((toggle) => toggle.setValue(this.plugin.settings.showViewImageIcon).onChange(async (value) => {
+      this.plugin.settings.showViewImageIcon = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
+      await this.plugin.saveSettings();
+      const toggleComponent = showViewImageIconSetting.components[0];
+      if (toggleComponent) {
+        toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+      }
+      this.plugin.updateAllBanners();
+    }));
+    const hideSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
+    const hidePixelBannerFieldsSetting = new import_obsidian.Setting(hideSettingsGroup).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => toggle.setValue(this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+      this.plugin.settings.hidePixelBannerFields = value;
+      if (!value) {
+        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+        const dependentToggle = hidePropertiesSection.components[0];
+        if (dependentToggle) {
+          dependentToggle.setValue(false);
+          dependentToggle.setDisabled(true);
         }
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      });
-      return toggle;
-    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+        hidePropertiesSection.settingEl.addClass("is-disabled");
+        this.app.workspace.iterateAllLeaves((leaf) => {
+          if (leaf.view instanceof import_obsidian.MarkdownView && leaf.view.contentEl) {
+            const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
+            if (propertiesContainer) {
+              propertiesContainer.classList.remove("pixel-banner-hidden-section");
+              const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
+              hiddenFields.forEach((field) => {
+                field.classList.remove("pixel-banner-hidden-field");
+              });
+            }
+          }
+        });
+      } else {
+        const dependentToggle = hidePropertiesSection.components[0];
+        if (dependentToggle) {
+          dependentToggle.setDisabled(false);
+        }
+        hidePropertiesSection.settingEl.removeClass("is-disabled");
+      }
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
       this.plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
       this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
       await this.plugin.saveSettings();
@@ -858,16 +871,14 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
         dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
       }
+      hidePropertiesSection.settingEl.toggleClass("is-disabled", !DEFAULT_SETTINGS.hidePixelBannerFields);
       this.plugin.updateAllBanners();
     }));
-    const hidePropertiesSection = new import_obsidian.Setting(containerEl).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => {
-      toggle.setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
-        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      });
-      return toggle;
-    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    const hidePropertiesSection = new import_obsidian.Setting(hideSettingsGroup).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => toggle.setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
       this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
       await this.plugin.saveSettings();
       const toggle = hidePropertiesSection.components[0];
@@ -876,16 +887,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       }
       this.plugin.updateAllBanners();
     }));
-    new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
+    hidePropertiesSection.settingEl.addClass("setting-dependent");
+    if (!this.plugin.settings.hidePixelBannerFields) {
+      hidePropertiesSection.settingEl.addClass("is-disabled");
+    }
+    const showReleaseNotesSetting = new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
       this.plugin.settings.showReleaseNotes = value;
       await this.plugin.saveSettings();
     })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
       this.plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
       await this.plugin.saveSettings();
-      const toggleEl = button.extraSettingsEl.parentElement.querySelector(".checkbox-container input");
-      if (toggleEl) {
-        toggleEl.checked = DEFAULT_SETTINGS.showReleaseNotes;
-        toggleEl.dispatchEvent(new Event("change"));
+      const toggleComponent = showReleaseNotesSetting.components[0];
+      if (toggleComponent) {
+        toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
       }
     }));
   }
@@ -1230,9 +1244,39 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
     contentEl.empty();
   }
 };
+var ImageViewModal = class extends import_obsidian2.Modal {
+  constructor(app2, imageUrl) {
+    super(app2);
+    this.imageUrl = imageUrl;
+  }
+  onOpen() {
+    this.modalEl.addClass("pixel-banner-image-modal");
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("pixel-banner-image-view-modal");
+    const imageContainer = contentEl.createDiv("image-container");
+    const img = imageContainer.createEl("img", {
+      attr: {
+        src: this.imageUrl,
+        style: "max-width: 100%; max-height: 90vh; object-fit: contain;"
+      }
+    });
+    const closeButton = contentEl.createEl("button", {
+      text: "Close",
+      cls: "mod-cta"
+    });
+    closeButton.style.marginTop = "10px";
+    closeButton.addEventListener("click", () => this.close());
+    this.scope.register([], "Escape", () => this.close());
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.12.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>\u{1F500} Random Image Shuffle functionality.</li>\n<li>Folder Images: You can enable random image selection from a specified folder in settings.</li>\n<li>Frontmatter Support: Use <code>banner-shuffle</code> in frontmatter to specify a folder path for random image selection.</li>\n<li>Images are randomly selected each time the note is opened.</li>\n<li>This feature is perfect for adding variety to your notes with minimal setup using local images.</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.12.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.12.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.13.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New <code>view image</code> button icon option to open the banner image in a full-screen modal \xA0<br>(works with plugins like <code>image toolkit</code>, etc.)</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -2144,26 +2188,60 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       bannerDiv = createDiv({ cls: "pixel-banner-image" });
       container.insertBefore(bannerDiv, container.firstChild);
       bannerDiv._isPersistentBanner = true;
-      if (!isEmbedded && this.settings.showPinIcon) {
-        pinIcon = createDiv({ cls: "pin-icon" });
-        pinIcon.style.position = "absolute";
-        pinIcon.style.top = "10px";
-        pinIcon.style.left = "5px";
-        pinIcon.style.fontSize = "1.5em";
-        pinIcon.style.cursor = "pointer";
-        pinIcon.innerHTML = "\u{1F4CC}";
-        pinIcon._isPersistentPin = true;
-        container.insertBefore(pinIcon, bannerDiv.nextSibling);
-        if (this.settings.showRefreshIcon) {
-          const refreshIcon = createDiv({ cls: "refresh-icon" });
-          refreshIcon.style.position = "absolute";
-          refreshIcon.style.top = "10px";
-          refreshIcon.style.left = "40px";
-          refreshIcon.style.fontSize = "1.5em";
-          refreshIcon.style.cursor = "pointer";
-          refreshIcon.innerHTML = "\u{1F504}";
-          refreshIcon._isPersistentRefresh = true;
-          container.insertBefore(refreshIcon, pinIcon.nextSibling);
+      if (!isEmbedded) {
+        const existingViewIcon = container.querySelector(".view-image-icon");
+        const existingPinIcon = container.querySelector(".pin-icon");
+        const existingRefreshIcon = container.querySelector(".refresh-icon");
+        if (existingViewIcon) existingViewIcon.remove();
+        if (existingPinIcon) existingPinIcon.remove();
+        if (existingRefreshIcon) existingRefreshIcon.remove();
+        let leftOffset = 5;
+        if (!isEmbedded && this.settings.showViewImageIcon) {
+          const viewImageIcon = createDiv({ cls: "view-image-icon" });
+          viewImageIcon.style.position = "absolute";
+          viewImageIcon.style.top = "10px";
+          viewImageIcon.style.left = `${leftOffset}px`;
+          viewImageIcon.style.fontSize = "1.5em";
+          viewImageIcon.style.cursor = "pointer";
+          viewImageIcon.innerHTML = "\u{1F5BC}\uFE0F";
+          viewImageIcon._isPersistentViewImage = true;
+          viewImageIcon.style.display = "none";
+          container.insertBefore(viewImageIcon, bannerDiv.nextSibling);
+          leftOffset += 35;
+          const updateViewIcon = (imageUrl) => {
+            if (imageUrl) {
+              viewImageIcon.style.display = "block";
+              viewImageIcon.onclick = () => {
+                new ImageViewModal(this.app, imageUrl).open();
+              };
+            } else {
+              viewImageIcon.style.display = "none";
+            }
+          };
+          viewImageIcon._updateVisibility = updateViewIcon;
+        }
+        if (this.settings.showPinIcon) {
+          const pinIcon2 = createDiv({ cls: "pin-icon" });
+          pinIcon2.style.position = "absolute";
+          pinIcon2.style.top = "10px";
+          pinIcon2.style.left = `${leftOffset}px`;
+          pinIcon2.style.fontSize = "1.5em";
+          pinIcon2.style.cursor = "pointer";
+          pinIcon2.innerHTML = "\u{1F4CC}";
+          pinIcon2._isPersistentPin = true;
+          container.insertBefore(pinIcon2, bannerDiv.nextSibling);
+          leftOffset += 35;
+          if (this.settings.showRefreshIcon) {
+            const refreshIcon = createDiv({ cls: "refresh-icon" });
+            refreshIcon.style.position = "absolute";
+            refreshIcon.style.top = "10px";
+            refreshIcon.style.left = `${leftOffset}px`;
+            refreshIcon.style.fontSize = "1.5em";
+            refreshIcon.style.cursor = "pointer";
+            refreshIcon.innerHTML = "\u{1F504}";
+            refreshIcon._isPersistentRefresh = true;
+            container.insertBefore(refreshIcon, pinIcon2.nextSibling);
+          }
         }
       }
     }
@@ -2171,17 +2249,27 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       const originalSetChildrenInPlace = container.setChildrenInPlace;
       container.setChildrenInPlace = function(children) {
         const bannerElement = this.querySelector(":scope > .pixel-banner-image");
+        const viewImageElement = this.querySelector(":scope > .view-image-icon");
         const pinElement = this.querySelector(":scope > .pin-icon");
         const refreshElement = this.querySelector(":scope > .refresh-icon");
-        children = Array.from(children);
+        children = Array.from(children).filter(
+          (child) => {
+            var _a2, _b2, _c, _d;
+            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c = child.classList) == null ? void 0 : _c.contains("pin-icon")) && !((_d = child.classList) == null ? void 0 : _d.contains("refresh-icon"));
+          }
+        );
         if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
-          children = [bannerElement, ...children];
+          children.unshift(bannerElement);
+        }
+        let insertIndex = 1;
+        if (viewImageElement == null ? void 0 : viewImageElement._isPersistentViewImage) {
+          children.splice(insertIndex++, 0, viewImageElement);
         }
         if (pinElement == null ? void 0 : pinElement._isPersistentPin) {
-          children.splice(1, 0, pinElement);
+          children.splice(insertIndex++, 0, pinElement);
         }
         if (refreshElement == null ? void 0 : refreshElement._isPersistentRefresh) {
-          children.splice(2, 0, refreshElement);
+          children.splice(insertIndex, 0, refreshElement);
         }
         originalSetChildrenInPlace.call(this, children);
       };
@@ -2205,6 +2293,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
         bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
         bannerDiv.style.display = "block";
+        const viewImageIcon = container.querySelector(":scope > .view-image-icon");
+        if (viewImageIcon && viewImageIcon._updateVisibility) {
+          viewImageIcon._updateVisibility(imageUrl);
+        }
         this.applyBannerSettings(bannerDiv, ctx);
         const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
         const effectiveContentStart = (_b = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
@@ -2255,6 +2347,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         if (pinIcon) pinIcon.style.display = "none";
         const refreshIcon = container.querySelector(":scope > .refresh-icon");
         if (refreshIcon) refreshIcon.style.display = "none";
+        const viewImageIcon = container.querySelector(":scope > .view-image-icon");
+        if (viewImageIcon && viewImageIcon._updateVisibility) {
+          viewImageIcon._updateVisibility(null);
+        }
         this.loadedImages.delete(file.path);
         this.lastKeywords.delete(file.path);
         if (!isEmbedded) {

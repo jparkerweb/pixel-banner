@@ -33,6 +33,7 @@ const DEFAULT_SETTINGS = {
     showReleaseNotes: true,
     lastVersion: null,
     showRefreshIcon: true,
+    showViewImageIcon: false,
     hidePixelBannerFields: false,
     hidePropertiesSectionIfOnlyBanner: false,
     titleColor: 'var(--inline-title-color)',
@@ -1229,7 +1230,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     .onClick(async () => {
                         this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
                         await this.plugin.saveSettings();
-                        this.plugin.updateAllBanners();
                         
                         // Update color picker to show computed value
                         const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
@@ -1252,48 +1252,77 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         }
                     }));
         
-        new Setting(containerEl)
+        // Add the showViewImageIcon setting
+        const showViewImageIconSetting = new Setting(containerEl)
+            .setName('Show View Image Icon')
+            .setDesc('Show an icon to view the banner image in full screen')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showViewImageIcon)
+                .onChange(async (value) => {
+                    this.plugin.settings.showViewImageIcon = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
+                    await this.plugin.saveSettings();
+                    
+                    const toggleComponent = showViewImageIconSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+                    }
+                    
+                    this.plugin.updateAllBanners();
+                }));
+        
+        // Create a group for the hide settings
+        const hideSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
+
+        // For Hide Pixel Banner Fields
+        const hidePixelBannerFieldsSetting = new Setting(hideSettingsGroup)
             .setName('Hide Pixel Banner Fields')
             .setDesc('Hide banner-related frontmatter fields in Reading mode')
-            .addToggle(toggle => {
-                toggle
-                    .setValue(this.plugin.settings.hidePixelBannerFields)
-                    .onChange(async (value) => {
-                        this.plugin.settings.hidePixelBannerFields = value;
-                        if (!value) {
-                            // Turn off the dependent setting
-                            this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
-                            const dependentToggle = hidePropertiesSection.components[0]; // Get the toggle component
-                            if (dependentToggle) {
-                                dependentToggle.setValue(false);
-                                dependentToggle.setDisabled(true);
-                            }
-                            
-                            // Remove the hidden class from all previously hidden fields
-                            this.app.workspace.iterateAllLeaves(leaf => {
-                                if (leaf.view instanceof MarkdownView && leaf.view.contentEl) {
-                                    const propertiesContainer = leaf.view.contentEl.querySelector('.metadata-container');
-                                    if (propertiesContainer) {
-                                        propertiesContainer.classList.remove('pixel-banner-hidden-section');
-                                        const hiddenFields = propertiesContainer.querySelectorAll('.pixel-banner-hidden-field');
-                                        hiddenFields.forEach(field => {
-                                            field.classList.remove('pixel-banner-hidden-field');
-                                        });
-                                    }
-                                }
-                            });
-                        } else {
-                            // Enable the dependent toggle when this is turned on
-                            const dependentToggle = hidePropertiesSection.components[0];
-                            if (dependentToggle) {
-                                dependentToggle.setDisabled(false);
-                            }
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.hidePixelBannerFields)
+                .onChange(async (value) => {
+                    this.plugin.settings.hidePixelBannerFields = value;
+                    if (!value) {
+                        // Turn off the dependent setting
+                        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+                        const dependentToggle = hidePropertiesSection.components[0];
+                        if (dependentToggle) {
+                            dependentToggle.setValue(false);
+                            dependentToggle.setDisabled(true);
                         }
-                        await this.plugin.saveSettings();
-                        this.plugin.updateAllBanners();
-                    });
-                return toggle;
-            })
+                        hidePropertiesSection.settingEl.addClass('is-disabled');
+                        
+                        // Remove the hidden class from all previously hidden fields
+                        this.app.workspace.iterateAllLeaves(leaf => {
+                            if (leaf.view instanceof MarkdownView && leaf.view.contentEl) {
+                                const propertiesContainer = leaf.view.contentEl.querySelector('.metadata-container');
+                                if (propertiesContainer) {
+                                    propertiesContainer.classList.remove('pixel-banner-hidden-section');
+                                    const hiddenFields = propertiesContainer.querySelectorAll('.pixel-banner-hidden-field');
+                                    hiddenFields.forEach(field => {
+                                        field.classList.remove('pixel-banner-hidden-field');
+                                    });
+                                }
+                            }
+                        });
+                    } else {
+                        // Enable the dependent toggle when this is turned on
+                        const dependentToggle = hidePropertiesSection.components[0];
+                        if (dependentToggle) {
+                            dependentToggle.setDisabled(false);
+                        }
+                        hidePropertiesSection.settingEl.removeClass('is-disabled');
+                    }
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                }))
             .addExtraButton(button => button
                 .setIcon('reset')
                 .setTooltip('Reset to default')
@@ -1315,26 +1344,23 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
                         dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
                     }
-
-                    // Update the UI
+                    hidePropertiesSection.settingEl.toggleClass('is-disabled', !DEFAULT_SETTINGS.hidePixelBannerFields);
+                    
                     this.plugin.updateAllBanners();
                 }));
 
         // Then create Hide Properties Section setting
-        const hidePropertiesSection = new Setting(containerEl)
+        const hidePropertiesSection = new Setting(hideSettingsGroup)
             .setName('Hide Properties Section')
             .setDesc('Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields')
-            .addToggle(toggle => {
-                toggle
-                    .setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner)
-                    .setDisabled(!this.plugin.settings.hidePixelBannerFields)
-                    .onChange(async (value) => {
-                        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
-                        await this.plugin.saveSettings();
-                        this.plugin.updateAllBanners();
-                    });
-                return toggle;
-            })
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner)
+                .setDisabled(!this.plugin.settings.hidePixelBannerFields)
+                .onChange(async (value) => {
+                    this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                }))
             .addExtraButton(button => button
                 .setIcon('reset')
                 .setTooltip('Reset to default')
@@ -1342,7 +1368,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
                     await this.plugin.saveSettings();
                     
-                    // Update the toggle state using the component directly
                     const toggle = hidePropertiesSection.components[0];
                     if (toggle) {
                         toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
@@ -1351,8 +1376,14 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     this.plugin.updateAllBanners();
                 }));
 
+        // Add dependent styling
+        hidePropertiesSection.settingEl.addClass('setting-dependent');
+        if (!this.plugin.settings.hidePixelBannerFields) {
+            hidePropertiesSection.settingEl.addClass('is-disabled');
+        }
+
         // Add back the Show Release Notes setting
-        new Setting(containerEl)
+        const showReleaseNotesSetting = new Setting(containerEl)
             .setName('Show Release Notes')
             .setDesc('Show release notes after plugin updates')
             .addToggle(toggle => toggle
@@ -1367,11 +1398,10 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
                     await this.plugin.saveSettings();
-                    // Update the toggle state
-                    const toggleEl = button.extraSettingsEl.parentElement.querySelector('.checkbox-container input');
-                    if (toggleEl) {
-                        toggleEl.checked = DEFAULT_SETTINGS.showReleaseNotes;
-                        toggleEl.dispatchEvent(new Event('change'));
+                    
+                    const toggleComponent = showReleaseNotesSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
                     }
                 }));
 

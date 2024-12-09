@@ -15,10 +15,12 @@
   "customCreatedDateProp": "",
   "customModifiedDateProp": "",
   "dateDisplayFormat": "mmmm dd, yyyy",
-  "showBacklinks": false,
-  "showOutlinks": false,
+  "showBacklinks": true,
+  "showOutlinks": true,
   "showDates": true,
-  "combineLinks": true,
+  "combineLinks": false,
   "updateDelay": 3000,
-  "lastVersion": "1.9.2"
+  "excludedParentSelectors": [],
+  "frontmatterExclusionField": "",
+  "lastVersion": "1.10.0"
 }

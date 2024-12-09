@@ -420,3 +420,35 @@ body.theme-light .rich-foot--backlinks ul li a {
     padding: 4px 8px;
     margin-left: 8px;
 }
+
+/* Add these styles */
+.excluded-selectors-container {
+    margin-bottom: 24px;
+}
+
+.excluded-selector-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    margin: 4px 0;
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+}
+
+.excluded-selector-delete {
+    padding: 4px 8px;
+    color: var(--text-error);
+    background-color: transparent;
+    border: 1px solid var(--text-error);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.excluded-selector-delete:hover {
+    background-color: var(--text-error);
+    color: var(--text-on-accent);
+}
