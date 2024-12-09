@@ -1,6 +1,6 @@
 import { Plugin, MarkdownView, requestUrl, Notice, Modal, FuzzySuggestModal } from 'obsidian';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
-import { ReleaseNotesModal } from './modals';
+import { ReleaseNotesModal, ImageViewModal } from './modals';
 import { releaseNotes } from 'virtual:release-notes';
 
 // get frontmatter value helper
@@ -1203,50 +1203,121 @@ module.exports = class PixelBannerPlugin extends Plugin {
             container.insertBefore(bannerDiv, container.firstChild);
             bannerDiv._isPersistentBanner = true;
             
-            // Only add pin/refresh icons for non-embedded notes
-            if (!isEmbedded && this.settings.showPinIcon) {
-                pinIcon = createDiv({ cls: 'pin-icon' });
-                pinIcon.style.position = 'absolute';
-                pinIcon.style.top = '10px';
-                pinIcon.style.left = '5px';
-                pinIcon.style.fontSize = '1.5em';
-                pinIcon.style.cursor = 'pointer';
-                pinIcon.innerHTML = '📌';
-                pinIcon._isPersistentPin = true;
-                container.insertBefore(pinIcon, bannerDiv.nextSibling);
+            // Only add view/pin/refresh icons for non-embedded notes
+            if (!isEmbedded) {
+                // Clean up any existing icons first
+                const existingViewIcon = container.querySelector('.view-image-icon');
+                const existingPinIcon = container.querySelector('.pin-icon');
+                const existingRefreshIcon = container.querySelector('.refresh-icon');
 
-                if (this.settings.showRefreshIcon) {
-                    const refreshIcon = createDiv({ cls: 'refresh-icon' });
-                    refreshIcon.style.position = 'absolute';
-                    refreshIcon.style.top = '10px';
-                    refreshIcon.style.left = '40px';
-                    refreshIcon.style.fontSize = '1.5em';
-                    refreshIcon.style.cursor = 'pointer';
-                    refreshIcon.innerHTML = '🔄';
-                    refreshIcon._isPersistentRefresh = true;
-                    container.insertBefore(refreshIcon, pinIcon.nextSibling);
+                if (existingViewIcon) existingViewIcon.remove();
+                if (existingPinIcon) existingPinIcon.remove();
+                if (existingRefreshIcon) existingRefreshIcon.remove();
+
+                let leftOffset = 5;  // Starting position
+
+                // Add view image icon first (independent of pin icon)
+                if (!isEmbedded && this.settings.showViewImageIcon) {
+                    const viewImageIcon = createDiv({ cls: 'view-image-icon' });
+                    viewImageIcon.style.position = 'absolute';
+                    viewImageIcon.style.top = '10px';
+                    viewImageIcon.style.left = `${leftOffset}px`;
+                    viewImageIcon.style.fontSize = '1.5em';
+                    viewImageIcon.style.cursor = 'pointer';
+                    viewImageIcon.innerHTML = '🖼️';
+                    viewImageIcon._isPersistentViewImage = true;
+
+                    // Initially hide the icon
+                    viewImageIcon.style.display = 'none';
+
+                    // Add the icon to the DOM
+                    container.insertBefore(viewImageIcon, bannerDiv.nextSibling);
+                    leftOffset += 35;  // Increment offset for next icon
+
+                    // We'll update the icon's visibility and click handler after we have the image URL
+                    const updateViewIcon = (imageUrl) => {
+                        if (imageUrl) {
+                            viewImageIcon.style.display = 'block';
+                            viewImageIcon.onclick = () => {
+                                new ImageViewModal(this.app, imageUrl).open();
+                            };
+                        } else {
+                            viewImageIcon.style.display = 'none';
+                        }
+                    };
+
+                    // Store the update function for later use
+                    viewImageIcon._updateVisibility = updateViewIcon;
+                }
+
+                // Add pin icon if enabled
+                if (this.settings.showPinIcon) {
+                    const pinIcon = createDiv({ cls: 'pin-icon' });
+                    pinIcon.style.position = 'absolute';
+                    pinIcon.style.top = '10px';
+                    pinIcon.style.left = `${leftOffset}px`;
+                    pinIcon.style.fontSize = '1.5em';
+                    pinIcon.style.cursor = 'pointer';
+                    pinIcon.innerHTML = '📌';
+                    pinIcon._isPersistentPin = true;
+                    container.insertBefore(pinIcon, bannerDiv.nextSibling);
+                    leftOffset += 35;  // Increment offset for next icon
+
+                    // Add refresh icon if enabled
+                    if (this.settings.showRefreshIcon) {
+                        const refreshIcon = createDiv({ cls: 'refresh-icon' });
+                        refreshIcon.style.position = 'absolute';
+                        refreshIcon.style.top = '10px';
+                        refreshIcon.style.left = `${leftOffset}px`;
+                        refreshIcon.style.fontSize = '1.5em';
+                        refreshIcon.style.cursor = 'pointer';
+                        refreshIcon.innerHTML = '🔄';
+                        refreshIcon._isPersistentRefresh = true;
+                        container.insertBefore(refreshIcon, pinIcon.nextSibling);
+                    }
                 }
             }
         }
 
+        // Update the setChildrenInPlace override with more robust handling
         if (!container._hasOverriddenSetChildrenInPlace) {
             const originalSetChildrenInPlace = container.setChildrenInPlace;
             container.setChildrenInPlace = function(children) {
+                // Get all persistent elements
                 const bannerElement = this.querySelector(':scope > .pixel-banner-image');
+                const viewImageElement = this.querySelector(':scope > .view-image-icon');
                 const pinElement = this.querySelector(':scope > .pin-icon');
                 const refreshElement = this.querySelector(':scope > .refresh-icon');
                 
-                children = Array.from(children);
+                // Convert children to array and remove any old persistent elements
+                children = Array.from(children).filter(child => 
+                    !child.classList?.contains('pixel-banner-image') &&
+                    !child.classList?.contains('view-image-icon') &&
+                    !child.classList?.contains('pin-icon') &&
+                    !child.classList?.contains('refresh-icon')
+                );
+
+                // Add banner first if it exists and is persistent
                 if (bannerElement?._isPersistentBanner) {
-                    children = [bannerElement, ...children];
+                    children.unshift(bannerElement);
                 }
+
+                // Add icons in the correct order
+                let insertIndex = 1;  // Start after banner
+
+                if (viewImageElement?._isPersistentViewImage) {
+                    children.splice(insertIndex++, 0, viewImageElement);
+                }
+
                 if (pinElement?._isPersistentPin) {
-                    children.splice(1, 0, pinElement);
+                    children.splice(insertIndex++, 0, pinElement);
                 }
+
                 if (refreshElement?._isPersistentRefresh) {
-                    children.splice(2, 0, refreshElement);
+                    children.splice(insertIndex, 0, refreshElement);
                 }
-                
+
+                // Call original function with updated children array
                 originalSetChildrenInPlace.call(this, children);
             };
             container._hasOverriddenSetChildrenInPlace = true;
@@ -1275,6 +1346,12 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
                 bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
                 bannerDiv.style.display = 'block';
+
+                // Update the view image icon if it exists
+                const viewImageIcon = container.querySelector(':scope > .view-image-icon');
+                if (viewImageIcon && viewImageIcon._updateVisibility) {
+                    viewImageIcon._updateVisibility(imageUrl);
+                }
 
                 // Apply all the settings
                 this.applyBannerSettings(bannerDiv, ctx);
@@ -1337,6 +1414,13 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 if (pinIcon) pinIcon.style.display = 'none';
                 const refreshIcon = container.querySelector(':scope > .refresh-icon');
                 if (refreshIcon) refreshIcon.style.display = 'none';
+                
+                // Update the view image icon if it exists
+                const viewImageIcon = container.querySelector(':scope > .view-image-icon');
+                if (viewImageIcon && viewImageIcon._updateVisibility) {
+                    viewImageIcon._updateVisibility(null);
+                }
+
                 this.loadedImages.delete(file.path);
                 this.lastKeywords.delete(file.path);
                 // Add this line to remove the pixel-banner class when there's no banner
@@ -1481,7 +1565,7 @@ function addPinIcon(noteElement, imageUrl, plugin) {
                 await handlePinIconClick(imageUrl, plugin);
             } catch (error) {
                 console.error('Error pinning image:', error);
-                new Notice('😭 Failed to pin the image.');
+                new Notice('Failed to pin the image.');
             }
         });
 

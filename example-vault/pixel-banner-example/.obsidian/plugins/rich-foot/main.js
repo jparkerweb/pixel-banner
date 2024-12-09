@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F959} Stuffed Links</h2>\n<h3>[1.9.2] - 2024-12-01</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>dynamic <code>css</code> in <code>reading</code> mode disrupting document flow of floated elements (e.g. ITS callouts)</li>\n<li>debounced <code>updateRichFoot</code> in <code>editing</code> mode (new settings option that allows delay in milliseconds)</li>\n</ul>\n<h3>[1.9.1] - 2024-12-01</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Links</code> defined in frontmatter were not being displayed</li>\n</ul>\n<h3>[1.9.0] - 2024-11-30</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to combine <code>Outlinks</code> / <code>Backlinks</code> in one view called <code>Links</code></li>\n<li>Directional arrows for <code>Links</code></li>\n<li>Outlinks for <code>footnote</code> internal links</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li><code>Page Preview</code> not displaying properly in <code>editing mode</code></li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.9.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -132,7 +132,9 @@ var DEFAULT_SETTINGS = {
   showOutlinks: true,
   showDates: true,
   combineLinks: false,
-  updateDelay: 3e3
+  updateDelay: 3e3,
+  excludedParentSelectors: [],
+  frontmatterExclusionField: ""
 };
 function rgbToHex(color) {
   if (color.startsWith("hsl")) {
@@ -190,51 +192,15 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
+    this.excludedParentSelectors = [];
+    this.frontmatterExclusionField = "";
   }
   display() {
-    var _a;
+    var _a, _b;
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass("rich-foot-settings");
-    containerEl.createEl("h2", { text: "Rich Foot Settings" });
     containerEl.createEl("div", { cls: "rich-foot-info", text: "\u{1F9B6} Rich Foot adds a footer to your notes with useful information such as backlinks, creation date, and last modified date. Use the settings below to customize the appearance." });
-    containerEl.createEl("h3", { text: "Excluded Folders" });
-    containerEl.createEl("p", {
-      text: "Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don't want footer information to appear.",
-      cls: "setting-item-description"
-    });
-    const excludedFoldersContainer = containerEl.createDiv("excluded-folders-container");
-    if ((_a = this.plugin.settings) == null ? void 0 : _a.excludedFolders) {
-      this.plugin.settings.excludedFolders.forEach((folder, index) => {
-        const folderDiv = excludedFoldersContainer.createDiv("excluded-folder-item");
-        folderDiv.createSpan({ text: folder });
-        const deleteButton = folderDiv.createEl("button", {
-          text: "Delete",
-          cls: "excluded-folder-delete"
-        });
-        deleteButton.addEventListener("click", async () => {
-          this.plugin.settings.excludedFolders.splice(index, 1);
-          await this.plugin.saveSettings();
-          this.display();
-        });
-      });
-    }
-    const newFolderSetting = new import_obsidian2.Setting(containerEl).setName("Add excluded folder").setDesc("Enter a folder path or browse to select").addText((text) => text.setPlaceholder("folder/subfolder")).addButton((button) => button.setButtonText("Browse").onClick(async () => {
-      const folder = await this.browseForFolder();
-      if (folder) {
-        const textComponent = newFolderSetting.components[0];
-        textComponent.setValue(folder);
-      }
-    })).addButton((button) => button.setButtonText("Add").onClick(async () => {
-      const textComponent = newFolderSetting.components[0];
-      const newFolder = textComponent.getValue().trim();
-      if (newFolder && !this.plugin.settings.excludedFolders.includes(newFolder)) {
-        this.plugin.settings.excludedFolders.push(newFolder);
-        await this.plugin.saveSettings();
-        textComponent.setValue("");
-        this.display();
-      }
-    }));
     containerEl.createEl("h3", { text: "Visibility Settings" });
     new import_obsidian2.Setting(containerEl).setName("Show Backlinks").setDesc("Show backlinks in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showBacklinks).onChange(async (value) => {
       this.plugin.settings.showBacklinks = value;
@@ -276,6 +242,7 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
         this.plugin.debouncedUpdateRichFoot.callback = updateRichFootCallback;
       }
     }));
+    containerEl.createEl("hr");
     containerEl.createEl("h3", { text: "Date Settings" });
     new import_obsidian2.Setting(containerEl).setName("Show Dates").setDesc("Show creation and modification dates in the footer").addToggle((toggle) => toggle.setValue(this.plugin.settings.showDates).onChange(async (value) => {
       this.plugin.settings.showDates = value;
@@ -336,6 +303,7 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
       await this.plugin.updateRichFoot();
       this.modifiedDateInput.setValue("");
     }));
+    containerEl.createEl("hr");
     containerEl.createEl("h3", { text: "Style Settings" });
     new import_obsidian2.Setting(containerEl).setName("Border Width").setDesc("Adjust the width of the footer border (1-10px)").addSlider((slider) => slider.setLimits(1, 10, 1).setValue(this.plugin.settings.borderWidth).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.borderWidth = value;
@@ -535,6 +503,86 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
         const color = getComputedStyle(temp).color;
         document.body.removeChild(temp);
         colorPicker.value = rgbToHex(color);
+      }
+    }));
+    containerEl.createEl("hr");
+    containerEl.createEl("h3", { text: "Exclusion Rules" });
+    containerEl.createEl("h4", { text: "Excluded Folders" });
+    containerEl.createEl("p", {
+      text: "Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don't want footer information to appear.",
+      cls: "setting-item-description"
+    });
+    const excludedFoldersContainer = containerEl.createDiv("excluded-folders-container");
+    if ((_a = this.plugin.settings) == null ? void 0 : _a.excludedFolders) {
+      this.plugin.settings.excludedFolders.forEach((folder, index) => {
+        const folderDiv = excludedFoldersContainer.createDiv("excluded-folder-item");
+        folderDiv.createSpan({ text: folder });
+        const deleteButton = folderDiv.createEl("button", {
+          text: "Delete",
+          cls: "excluded-folder-delete"
+        });
+        deleteButton.addEventListener("click", async () => {
+          this.plugin.settings.excludedFolders.splice(index, 1);
+          await this.plugin.saveSettings();
+          this.display();
+        });
+      });
+    }
+    containerEl.createEl("h4", { text: "Exclude Rich Foot via Frontmatter" });
+    new import_obsidian2.Setting(containerEl).setName("Frontmatter Exclusion Field").setDesc("If this frontmatter field exists and has a truthy value (true, yes, 1, on), Rich Foot will not be shown on that note").addText((text) => text.setPlaceholder("e.g., exclude-rich-foot").setValue(this.plugin.settings.frontmatterExclusionField).onChange(async (value) => {
+      this.plugin.settings.frontmatterExclusionField = value.trim();
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+    })).addButton((button) => button.setButtonText("Reset").onClick(async () => {
+      this.plugin.settings.frontmatterExclusionField = "";
+      await this.plugin.saveSettings();
+      await this.plugin.updateRichFoot();
+      const textComponent = button.buttonEl.parentElement.parentElement.querySelector('input[type="text"]');
+      if (textComponent) textComponent.value = "";
+    }));
+    containerEl.createEl("h4", { text: "Excluded Parent Selectors" });
+    containerEl.createEl("p", {
+      text: "Rich Foot will not be added to notes that have any of these parent selectors in their DOM hierarchy. Useful for compatibility with other plugins.",
+      cls: "setting-item-description"
+    });
+    const excludedSelectorsContainer = containerEl.createDiv("excluded-selectors-container");
+    if ((_b = this.plugin.settings) == null ? void 0 : _b.excludedParentSelectors) {
+      this.plugin.settings.excludedParentSelectors.forEach((selector, index) => {
+        const selectorDiv = excludedSelectorsContainer.createDiv("excluded-selector-item");
+        selectorDiv.createSpan({ text: selector });
+        const deleteButton = selectorDiv.createEl("button", {
+          text: "Delete",
+          cls: "excluded-selector-delete"
+        });
+        deleteButton.addEventListener("click", async () => {
+          this.plugin.settings.excludedParentSelectors.splice(index, 1);
+          await this.plugin.saveSettings();
+          this.display();
+        });
+      });
+    }
+    const newSelectorSetting = new import_obsidian2.Setting(containerEl).setName("Add excluded parent selector").setDesc('Enter a CSS selector (e.g., .some-class, #some-id, [data-type="special"])').addText((text) => text.setPlaceholder("Enter selector").onChange(() => {
+      try {
+        document.querySelector(text.getValue());
+        text.inputEl.style.color = "";
+      } catch (e) {
+        text.inputEl.style.color = "var(--text-error)";
+      }
+    })).addButton((button) => button.setButtonText("Add").onClick(async () => {
+      const textComponent = newSelectorSetting.components[0];
+      const newSelector = textComponent.getValue().trim();
+      if (!newSelector) return;
+      try {
+        document.querySelector(newSelector);
+      } catch (e) {
+        new Notice("Invalid CSS selector");
+        return;
+      }
+      if (!this.plugin.settings.excludedParentSelectors.includes(newSelector)) {
+        this.plugin.settings.excludedParentSelectors.push(newSelector);
+        await this.plugin.saveSettings();
+        textComponent.setValue("");
+        this.display();
       }
     }));
     containerEl.createEl("h3", { text: "Example Screenshot", cls: "rich-foot-example-title" });
@@ -743,7 +791,7 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     }
   }
   async addRichFoot(view) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     try {
       const file = view.file;
       if (!file || !file.path) {
@@ -762,6 +810,21 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
         container = content.querySelector(".cm-sizer");
       }
       if (!container) {
+        return;
+      }
+      if ((_h = (_g = this.settings) == null ? void 0 : _g.excludedParentSelectors) == null ? void 0 : _h.some((selector) => {
+        try {
+          const matchingElements = document.querySelectorAll(selector);
+          return Array.from(matchingElements).some(
+            (el) => el === container || el.contains(container)
+          );
+        } catch (e) {
+          console.error(`Invalid selector in Rich Foot settings: ${selector}`);
+          return false;
+        }
+      })) {
+        const existingRichFoots2 = document.querySelectorAll(".rich-foot");
+        existingRichFoots2.forEach((el) => el.remove());
         return;
       }
       const existingRichFoots = document.querySelectorAll(".rich-foot");
@@ -1123,11 +1186,33 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
   }
   // check if a file should be excluded
   shouldExcludeFile(filePath) {
-    var _a;
-    if (!((_a = this.settings) == null ? void 0 : _a.excludedFolders)) {
-      return false;
+    var _a, _b, _c, _d, _e, _f;
+    if ((_b = (_a = this.settings) == null ? void 0 : _a.excludedFolders) == null ? void 0 : _b.some((folder) => filePath.startsWith(folder))) {
+      return true;
     }
-    return this.settings.excludedFolders.some((folder) => filePath.startsWith(folder));
+    const file = this.app.vault.getAbstractFileByPath(filePath);
+    if (file && this.settings.frontmatterExclusionField) {
+      const cache = this.app.metadataCache.getFileCache(file);
+      const frontmatterValue = (_c = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _c[this.settings.frontmatterExclusionField];
+      if (this.isTruthy(frontmatterValue)) {
+        return true;
+      }
+    }
+    const activeLeaf = this.app.workspace.activeLeaf;
+    if ((_d = activeLeaf == null ? void 0 : activeLeaf.view) == null ? void 0 : _d.containerEl) {
+      return (_f = (_e = this.settings) == null ? void 0 : _e.excludedParentSelectors) == null ? void 0 : _f.some((selector) => {
+        try {
+          const matchingElements = document.querySelectorAll(selector);
+          return Array.from(matchingElements).some(
+            (el) => el === activeLeaf.view.containerEl || el.contains(activeLeaf.view.containerEl)
+          );
+        } catch (e) {
+          console.error(`Invalid selector in Rich Foot settings: ${selector}`);
+          return false;
+        }
+      });
+    }
+    return false;
   }
   isEditMode() {
     var _a, _b;
@@ -1157,6 +1242,11 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
         readingView.style.setProperty("--rich-foot-margin-bottom", "20px");
       }
     }, 100);
+  }
+  isTruthy(value) {
+    if (!value) return false;
+    const truthyValues = ["true", "yes", "1", "on"];
+    return truthyValues.includes(String(value).toLowerCase());
   }
 };
 var main_default = RichFootPlugin;

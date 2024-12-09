@@ -1,5 +1,6 @@
 ---
-banner: [[jp-cover4a.jpg]]
+banner:
+  - - jp-cover4a.jpg
 ---
 
 ![[jp-cover.jpg]] { .float-right .width-small}

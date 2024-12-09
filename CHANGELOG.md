@@ -2,7 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## v2.12.0
+## [v2.13.0] - 2024-12-09
+#### ✨ Added
+- New `view image` button icon option to open the banner image in a full-screen modal  
+  (works with plugins like `image toolkit`, etc.)
+
+## [v2.12.0] - 2024-12-02
 #### ✨ Added
 - 🔀 Random Image Shuffle functionality.
 - Folder Images: You can enable random image selection from a specified folder in settings.
@@ -10,11 +15,11 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 - Images are randomly selected each time the note is opened.
 - This feature is perfect for adding variety to your notes with minimal setup using local images.
 
-## v2.11.0
+## [v2.11.0] - 2024-11-29
 #### ✨ Added
 - Abity to 📌 Pin URL banners
 
-## v2.10.2
+## [v2.10.2] - 2024-11-25
 #### 🐛 Fixed
 - Banners were being applied to the background of embedded media (images, videos, etc.)
 
