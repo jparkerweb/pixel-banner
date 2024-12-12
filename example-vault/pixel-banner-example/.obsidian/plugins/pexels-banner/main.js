@@ -1276,7 +1276,7 @@ var ImageViewModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.13.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New <code>view image</code> button icon option to open the banner image in a full-screen modal \xA0<br>(works with plugins like <code>image toolkit</code>, etc.)</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.13.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Banner width now updates when the window is resized</li>\n<li>Banner width is now compatible with the popular <code>minimal</code> theme</li>\n</ul>\n<h3>v2.13.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New <code>view image</code> button icon option to open the banner image in a full-screen modal \xA0<br>(works with plugins like <code>image toolkit</code>, etc.)</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -2084,12 +2084,29 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (this.observer) {
       this.observer.disconnect();
     }
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      if (leaf.view instanceof import_obsidian3.MarkdownView) {
+        const viewContent = leaf.view.contentEl;
+        if (viewContent._resizeObserver) {
+          viewContent._resizeObserver.disconnect();
+          delete viewContent._resizeObserver;
+        }
+      }
+    });
   }
   applyContentStartPosition(el, contentStartPosition) {
     if (!el) {
       return;
     }
     el.style.setProperty("--pixel-banner-content-start", `${contentStartPosition}px`);
+  }
+  applyBannerWidth(el) {
+    if (!el) {
+      return;
+    }
+    const elWidth = el.clientWidth;
+    const scrollbarWidth = 12;
+    el.style.setProperty("--pixel-banner-width", `${elWidth - scrollbarWidth}px`);
   }
   getFolderSpecificSetting(filePath, settingName) {
     var _a;
@@ -2178,6 +2195,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     } else {
       container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") : viewContent.querySelector(".cm-sizer");
+      if (!viewContent._resizeObserver) {
+        const debouncedResize = debounce(() => {
+          this.applyBannerWidth(viewContent);
+        }, 100);
+        viewContent._resizeObserver = new ResizeObserver(debouncedResize);
+        viewContent._resizeObserver.observe(viewContent);
+      }
     }
     if (!container) {
       return;
@@ -2301,6 +2325,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
         const effectiveContentStart = (_b = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
         this.applyContentStartPosition(viewContent, effectiveContentStart);
+        this.applyBannerWidth(viewContent);
         if (!isEmbedded && (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon) {
           const refreshIcon = container.querySelector(":scope > .refresh-icon");
           if (pinIcon) {

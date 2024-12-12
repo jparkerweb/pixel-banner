@@ -10,6 +10,8 @@
 	top: 0;
 	left: 0;
 	right: 0;
+    width: var(--pixel-banner-width, 100vw) !important; /* fix banner width with some themes */
+    max-width: var(--pixel-banner-width, 100vw) !important; /* fix banner width with some themes */
 	background-size: cover; 
 	background-position: 50% 50%;
 	overflow: hidden;  
@@ -23,6 +25,11 @@
 	transform: translateZ(0);
 	background-repeat: no-repeat;
     z-index: -1;
+}
+
+/* for embedded notes, do not override the width */
+.markdown-embed .pixel-banner-image {
+    width: inherit !important;
 }
 
 /* Apply title color to both reading and editing mode */
