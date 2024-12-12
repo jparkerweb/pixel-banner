@@ -1055,6 +1055,17 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (this.observer) {
             this.observer.disconnect();
         }
+        
+        // Clean up resize observers
+        this.app.workspace.iterateAllLeaves(leaf => {
+            if (leaf.view instanceof MarkdownView) {
+                const viewContent = leaf.view.contentEl;
+                if (viewContent._resizeObserver) {
+                    viewContent._resizeObserver.disconnect();
+                    delete viewContent._resizeObserver;
+                }
+            }
+        });
     }
 
     applyContentStartPosition(el, contentStartPosition) {
@@ -1062,6 +1073,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
             return;
         }
         el.style.setProperty('--pixel-banner-content-start', `${contentStartPosition}px`);
+    }
+
+    applyBannerWidth(el) {
+        if (!el) {
+            return;
+        }
+        const elWidth = el.clientWidth;
+        const scrollbarWidth = 12;
+        el.style.setProperty('--pixel-banner-width', `${elWidth - scrollbarWidth}px`);
     }
 
     getFolderSpecificSetting(filePath, settingName) {
@@ -1189,6 +1209,16 @@ module.exports = class PixelBannerPlugin extends Plugin {
             container = isReadingView 
                 ? viewContent.querySelector('.markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)')
                 : viewContent.querySelector('.cm-sizer');
+
+            // Add resize observer if not already added
+            if (!viewContent._resizeObserver) {
+                const debouncedResize = debounce(() => {
+                    this.applyBannerWidth(viewContent);
+                }, 100);
+
+                viewContent._resizeObserver = new ResizeObserver(debouncedResize);
+                viewContent._resizeObserver.observe(viewContent);
+            }
         }
 
         if (!container) {
@@ -1364,6 +1394,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     this.settings.contentStartPosition;
 
                 this.applyContentStartPosition(viewContent, effectiveContentStart);
+                this.applyBannerWidth(viewContent);
                 
                 if (!isEmbedded && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon) {
                     const refreshIcon = container.querySelector(':scope > .refresh-icon');

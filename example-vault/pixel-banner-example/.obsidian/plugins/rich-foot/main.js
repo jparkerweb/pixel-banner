@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -507,7 +507,7 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
     }));
     containerEl.createEl("hr");
     containerEl.createEl("h3", { text: "Exclusion Rules" });
-    containerEl.createEl("h4", { text: "Excluded Folders" });
+    containerEl.createEl("h3", { text: "Excluded Folders" });
     containerEl.createEl("p", {
       text: "Notes in excluded folders (and their subfolders) will not display the Rich Foot footer. This is useful for system folders or areas where you don't want footer information to appear.",
       cls: "setting-item-description"
@@ -528,6 +528,22 @@ var RichFootSettingTab = class extends import_obsidian2.PluginSettingTab {
         });
       });
     }
+    const newFolderSetting = new import_obsidian2.Setting(containerEl).setName("Add excluded folder").setDesc("Enter a folder path or browse to select").addText((text) => text.setPlaceholder("folder/subfolder")).addButton((button) => button.setButtonText("Browse").onClick(async () => {
+      const folder = await this.browseForFolder();
+      if (folder) {
+        const textComponent = newFolderSetting.components[0];
+        textComponent.setValue(folder);
+      }
+    })).addButton((button) => button.setButtonText("Add").onClick(async () => {
+      const textComponent = newFolderSetting.components[0];
+      const newFolder = textComponent.getValue().trim();
+      if (newFolder && !this.plugin.settings.excludedFolders.includes(newFolder)) {
+        this.plugin.settings.excludedFolders.push(newFolder);
+        await this.plugin.saveSettings();
+        textComponent.setValue("");
+        this.display();
+      }
+    }));
     containerEl.createEl("h4", { text: "Exclude Rich Foot via Frontmatter" });
     new import_obsidian2.Setting(containerEl).setName("Frontmatter Exclusion Field").setDesc("If this frontmatter field exists and has a truthy value (true, yes, 1, on), Rich Foot will not be shown on that note").addText((text) => text.setPlaceholder("e.g., exclude-rich-foot").setValue(this.plugin.settings.frontmatterExclusionField).onChange(async (value) => {
       this.plugin.settings.frontmatterExclusionField = value.trim();

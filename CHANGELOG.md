@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [v2.13.1] - 2024-12-11
+### 📦 Updated
+- Banner width now updates when the window is resized
+- Banner width is now compatible with the popular `minimal` theme
+
 ## [v2.13.0] - 2024-12-09
 #### ✨ Added
 - New `view image` button icon option to open the banner image in a full-screen modal  
