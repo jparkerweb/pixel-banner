@@ -2106,7 +2106,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     const elWidth = el.clientWidth;
     const scrollbarWidth = 12;
-    el.style.setProperty("--pixel-banner-width", `${elWidth - scrollbarWidth}px`);
+    el.style.setProperty("--pixel-banner-width", `${elWidth - scrollbarWidth * 2}px`);
+    el.style.setProperty("--pixel-banner-scrollbar-width", `${scrollbarWidth}px`);
   }
   getFolderSpecificSetting(filePath, settingName) {
     var _a;
@@ -2219,7 +2220,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         if (existingViewIcon) existingViewIcon.remove();
         if (existingPinIcon) existingPinIcon.remove();
         if (existingRefreshIcon) existingRefreshIcon.remove();
-        let leftOffset = 5;
+        let leftOffset = 17;
         if (!isEmbedded && this.settings.showViewImageIcon) {
           const viewImageIcon = createDiv({ cls: "view-image-icon" });
           viewImageIcon.style.position = "absolute";

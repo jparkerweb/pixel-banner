@@ -8,7 +8,8 @@
 .pixel-banner-image {
 	position: absolute;
 	top: 0;
-	left: 0;
+	/* left: 0; */
+	left: var(--pixel-banner-scrollbar-width, 0);
 	right: 0;
     width: var(--pixel-banner-width, 100vw) !important; /* fix banner width with some themes */
     max-width: var(--pixel-banner-width, 100vw) !important; /* fix banner width with some themes */
@@ -87,6 +88,7 @@
 .pixel-banner .cm-sizer:first-of-type,
 .pixel-banner .markdown-preview-sizer:first-of-type {
     padding-top: var(--pixel-banner-content-start, 150px);
+    padding-bottom: 0 !important;
 }
 /* fix for embedded notes */
 .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
