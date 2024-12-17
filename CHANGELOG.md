@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [v2.13.2] - 2024-12-17
+### 📦 Updated
+- Adjusted dynamic CSS calculations for banner positioning, padding, and scrollbar width
+
 ## [v2.13.1] - 2024-12-11
 ### 📦 Updated
 - Banner width now updates when the window is resized

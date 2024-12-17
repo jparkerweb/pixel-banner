@@ -1081,7 +1081,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
         const elWidth = el.clientWidth;
         const scrollbarWidth = 12;
-        el.style.setProperty('--pixel-banner-width', `${elWidth - scrollbarWidth}px`);
+        el.style.setProperty('--pixel-banner-width', `${elWidth - (scrollbarWidth * 2)}px`);
+        el.style.setProperty('--pixel-banner-scrollbar-width', `${scrollbarWidth}px`);
     }
 
     getFolderSpecificSetting(filePath, settingName) {
@@ -1244,7 +1245,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 if (existingPinIcon) existingPinIcon.remove();
                 if (existingRefreshIcon) existingRefreshIcon.remove();
 
-                let leftOffset = 5;  // Starting position
+                let leftOffset = 17;  // Starting position
 
                 // Add view image icon first (independent of pin icon)
                 if (!isEmbedded && this.settings.showViewImageIcon) {

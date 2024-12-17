@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "06d32115e5d16eea",
+        "id": "bf2cf265e57519be",
         "type": "tabs",
         "children": [
           {
-            "id": "30004f68e3725549",
+            "id": "8a351605633e1d53",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -795,6 +795,86 @@
             "id": "231f77241f6388f2",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e9efece7fe5475f1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c11b35f1198ee0cf",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "419b8a7bf120cab7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "16c26f485ec116d8",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a2cb3ed221bf4f65",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "ebf8ce48f9ecfdda",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f58056063641b988",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7743f22daa025111",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -802,7 +882,7 @@
             }
           }
         ],
-        "currentTab": 68
+        "currentTab": 76
       }
     ],
     "direction": "horizontal",
@@ -820,20 +900,24 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "30004f68e3725549",
+  "active": "8a351605633e1d53",
   "lastOpenFiles": [
-    "Lorem.Ipsum.md",
     "🚩 Pixel-Banner.md",
-    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
-    "Random Shuffle/Disney Lorcana.md",
-    "notes/📃 Embedded Note.md",
-    "tests/🧪 test - 7- shuffle time!.md",
-    "tests/🧪 test - 6 - image float right.md",
+    "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 8 - embed tests.md",
-    "releases/v2.13.0 - 🖼️ View my Banner.md",
+    "tests/🧪 test - 3 - direct url link.md",
+    "tests/🧪 test - 4 - all fields.md",
     "releases/v2.11.0 - 📌 Pin my URL Please.md",
     "releases/v2.10.0 - 🖌️ Title Color.md",
-    "tests/🧪 test - 1 - internal link.md",
+    "Random Shuffle/Disney Lorcana.md",
+    "releases/v2.13.0 - 🖼️ View my Banner.md",
+    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
+    "tests/🧪 test - 7- shuffle time!.md",
+    "tests/🧪 test - 6 - image float right.md",
+    "tests/🧪 test - 5 - absolute position.md",
+    "notes/📜 Embedded Note with Banner.md",
+    "notes/📃 Embedded Note.md",
+    "Lorem.Ipsum.md",
     "pixel-banner-images/artwork.png",
     "pixel-banner-images/🖌️ Title Color.png",
     "pixel-banner-images/dog.png",
@@ -842,10 +926,6 @@
     "pixel-banner-images/blue.png",
     "test.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
-    "tests/🧪 test - 3 - direct url link.md",
-    "tests/🧪 test - 4 - all fields.md",
-    "tests/🧪 test - 5 - absolute position.md",
-    "notes/📜 Embedded Note with Banner.md",
     "images/releases/v2.10.0.jpg",
     "shuffle-images/bell-hidden-archer.jpg",
     "tests/🧪 test - 7 - embed tests.md",
