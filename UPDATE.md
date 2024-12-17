@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.13.2
+#### 📦 Updated
+- Adjusted dynamic CSS calculations for banner positioning, padding, and scrollbar width
+
 ### v2.13.1
 #### 📦 Updated
 - Banner width now updates when the window is resized
