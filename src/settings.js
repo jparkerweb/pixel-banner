@@ -38,6 +38,7 @@ const DEFAULT_SETTINGS = {
     hidePropertiesSectionIfOnlyBanner: false,
     titleColor: 'var(--inline-title-color)',
     enableImageShuffle: false,
+    hideEmbeddedNoteTitles: false,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -1252,6 +1253,32 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         }
                     }));
         
+        // Add hide embedded note titles setting
+        const hideEmbeddedNoteTitlesSetting = new Setting(containerEl)
+            .setName('Hide Embedded Note Titles')
+            .setDesc('Hide titles of embedded notes')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.hideEmbeddedNoteTitles)
+                .onChange(async (value) => {
+                    this.plugin.settings.hideEmbeddedNoteTitles = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateEmbeddedTitlesVisibility();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
+                    await this.plugin.saveSettings();
+                    
+                    const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
+                    }
+                    
+                    this.plugin.updateEmbeddedTitlesVisibility();
+                }));
+
         // Add the showViewImageIcon setting
         const showViewImageIconSetting = new Setting(containerEl)
             .setName('Show View Image Icon')
@@ -1404,8 +1431,6 @@ class PixelBannerSettingTab extends PluginSettingTab {
                         toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
                     }
                 }));
-
-        // Remove the old event listener setup since we're handling it in the onChange now
     }
 
     createCustomFieldsSettings(containerEl) {

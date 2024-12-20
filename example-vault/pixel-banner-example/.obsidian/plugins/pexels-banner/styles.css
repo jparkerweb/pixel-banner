@@ -28,9 +28,10 @@
     z-index: -1;
 }
 
-/* for embedded notes, do not override the width */
-.markdown-embed .pixel-banner-image {
-    width: inherit !important;
+/* for embedded notes, set width and left position */
+.markdown-embed-content .pixel-banner-image {
+	left: 0 !important;
+	width: 100vw !important;
 }
 
 /* Apply title color to both reading and editing mode */

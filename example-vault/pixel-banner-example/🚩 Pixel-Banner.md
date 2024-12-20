@@ -3,6 +3,9 @@ banner: "[[forest.jpg]]"
 content-start: 250
 ---
 # 🚩 Pixel-Banner 
+🐙 [GitHub](https://github.com/jparkerweb/pixel-banner)
+📝 [Release Notes Generator](https://jparkerweb.github.io/release-notes/)
+
 
 > [!info] ⇢ This note uses the `[[` internal link `]]` format for the Banner
 

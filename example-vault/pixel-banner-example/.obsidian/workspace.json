@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🚩 Pixel-Banner.md",
+                "file": "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "🚩 Pixel-Banner"
+              "title": "v2.14.0 - 👩‍👧‍👦 Hide the Children"
             }
           }
         ]
@@ -875,6 +875,116 @@
             "id": "7743f22daa025111",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f78361b9ee42961a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "cd9ed2ca5be4fab3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a0c08d1ce7282f3b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c0a1af54694b0ea6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "2cfab35df9b8bb04",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e99a6018a6d8ea89",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7ee4ff16464b0d75",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f410dce623a6e612",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e0b364b46c2510a7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "940a908dfff2bb4f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4c54ba78f713ed8a",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -882,7 +992,7 @@
             }
           }
         ],
-        "currentTab": 76
+        "currentTab": 87
       }
     ],
     "direction": "horizontal",
@@ -902,15 +1012,17 @@
   },
   "active": "8a351605633e1d53",
   "lastOpenFiles": [
+    "releases/v2.13.0 - 🖼️ View my Banner.md",
+    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
+    "pixel-banner-images/father-and-child.png",
     "🚩 Pixel-Banner.md",
-    "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 8 - embed tests.md",
-    "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 4 - all fields.md",
+    "tests/🧪 test - 1 - internal link.md",
+    "tests/🧪 test - 3 - direct url link.md",
     "releases/v2.11.0 - 📌 Pin my URL Please.md",
     "releases/v2.10.0 - 🖌️ Title Color.md",
     "Random Shuffle/Disney Lorcana.md",
-    "releases/v2.13.0 - 🖼️ View my Banner.md",
     "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
     "tests/🧪 test - 7- shuffle time!.md",
     "tests/🧪 test - 6 - image float right.md",
@@ -932,14 +1044,11 @@
     "shuffle-images/daisy-duck-secret-agent.jpg",
     "Random Shuffle",
     "notes/subfolder/Embedded Note in Subfolder.md",
-    "shuffle-images/captain-hook-thinking-a-happy-thought.jpg",
     "shuffle-images",
     "dog.md",
     "Untitled 1.md",
     "docker.md",
     "junk.md",
-    "notes/Untitled.md",
-    "new.md",
     "releases",
     "images/releases",
     "images/New folder",

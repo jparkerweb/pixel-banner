@@ -49,7 +49,8 @@ var DEFAULT_SETTINGS = {
   hidePixelBannerFields: false,
   hidePropertiesSectionIfOnlyBanner: false,
   titleColor: "var(--inline-title-color)",
-  enableImageShuffle: false
+  enableImageShuffle: false,
+  hideEmbeddedNoteTitles: false
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -813,6 +814,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         }
       }
     }));
+    const hideEmbeddedNoteTitlesSetting = new import_obsidian.Setting(containerEl).setName("Hide Embedded Note Titles").setDesc("Hide titles of embedded notes").addToggle((toggle) => toggle.setValue(this.plugin.settings.hideEmbeddedNoteTitles).onChange(async (value) => {
+      this.plugin.settings.hideEmbeddedNoteTitles = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateEmbeddedTitlesVisibility();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
+      await this.plugin.saveSettings();
+      const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
+      if (toggleComponent) {
+        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
+      }
+      this.plugin.updateEmbeddedTitlesVisibility();
+    }));
     const showViewImageIconSetting = new import_obsidian.Setting(containerEl).setName("Show View Image Icon").setDesc("Show an icon to view the banner image in full screen").addToggle((toggle) => toggle.setValue(this.plugin.settings.showViewImageIcon).onChange(async (value) => {
       this.plugin.settings.showViewImageIcon = value;
       await this.plugin.saveSettings();
@@ -1276,7 +1290,7 @@ var ImageViewModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.13.2</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Adjusted dynamic CSS calculations for banner positioning, padding, and scrollbar width</li>\n</ul>\n<h3>v2.13.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Banner width now updates when the window is resized</li>\n<li>Banner width is now compatible with the popular <code>minimal</code> theme</li>\n</ul>\n<h3>v2.13.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New <code>view image</code> button icon option to open the banner image in a full-screen modal \xA0<br>(works with plugins like <code>image toolkit</code>, etc.)</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.13.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.14.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New setting to hide embedded note titles</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.14.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.14.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -1316,6 +1330,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   async onload() {
     await this.loadSettings();
+    this.updateEmbeddedTitlesVisibility();
     await this.checkVersion();
     this.addSettingTab(new PixelBannerSettingTab(this.app, this));
     this.registerEvent(
@@ -2093,6 +2108,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       }
     });
+    const styleEl = document.getElementById("pixel-banner-embedded-titles");
+    if (styleEl) styleEl.remove();
   }
   applyContentStartPosition(el, contentStartPosition) {
     if (!el) {
@@ -2463,6 +2480,20 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     } catch (error) {
       console.error("Error getting random image:", error);
       return null;
+    }
+  }
+  updateEmbeddedTitlesVisibility() {
+    const styleId = "pixel-banner-embedded-titles";
+    let styleEl = document.getElementById(styleId);
+    if (this.settings.hideEmbeddedNoteTitles) {
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = ".embed-title.markdown-embed-title { display: none !important; }";
+    } else if (styleEl) {
+      styleEl.remove();
     }
   }
 };
