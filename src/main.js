@@ -1,6 +1,6 @@
 import { Plugin, MarkdownView, requestUrl, Notice, Modal, FuzzySuggestModal } from 'obsidian';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
-import { ReleaseNotesModal, ImageViewModal } from './modals';
+import { ReleaseNotesModal, ImageViewModal, ImageSelectionModal } from './modals';
 import { releaseNotes } from 'virtual:release-notes';
 
 // get frontmatter value helper
@@ -218,6 +218,14 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 await this.updateBanner(activeView, true);
             })
         );
+
+        // Add this command in the onload() method
+        // Add it after the other command registrations
+        this.addCommand({
+            id: 'set-banner-image',
+            name: '🏷️ Select Image',
+            callback: () => this.handleSelectImage()
+        });
     }
 
     async loadSettings() {
@@ -438,6 +446,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         let borderRadius = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField) ?? 
             folderSpecific?.borderRadius ?? 
             this.settings.borderRadius;
+
         // Process this note's banner if it exists
         if (bannerImage) {
             await this.addPixelBanner(contentEl, { 
@@ -474,6 +483,44 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         getMode: () => 'preview'
                     };
                     await this.updateBanner(embedView, false);
+                }
+            }
+        }
+
+        if (!bannerImage) {
+            const viewContent = view.contentEl;
+            const isReadingView = view.getMode && view.getMode() === 'preview';
+            const container = isReadingView 
+            ? viewContent.querySelector('.markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)')
+            : viewContent.querySelector('.cm-sizer');
+            
+            // Add select image icon for notes without a banner
+            if (this.settings.showSelectImageIcon && container) {
+                const existingSelectIcon = container.querySelector('.select-image-icon');
+                if (!existingSelectIcon) {
+                    const selectImageIcon = createDiv({ cls: 'select-image-icon' });
+                    selectImageIcon.style.position = 'absolute';
+                    selectImageIcon.style.top = '10px';
+                    selectImageIcon.style.left = '17px';
+                    selectImageIcon.style.fontSize = '1.5em';
+                    selectImageIcon.style.cursor = 'pointer';
+                    selectImageIcon.innerHTML = '🏷️';
+                    selectImageIcon._isPersistentSelectImage = true;
+                    selectImageIcon.onclick = () => this.handleSelectImage();
+                    container.insertBefore(selectImageIcon, container.firstChild);
+                }
+            } else if (!this.settings.showSelectImageIcon && container) {
+                const existingSelectIcon = container.querySelector('.select-image-icon');
+                if (existingSelectIcon) {
+                    existingSelectIcon.remove();
+                }
+            }
+
+            // cleanup view image icon if it still exists
+            if (container) {
+                const existingViewImageIcon = container.querySelector('.view-image-icon');
+                if (existingViewImageIcon) {
+                    existingViewImageIcon.remove();
                 }
             }
         }
@@ -1239,79 +1286,110 @@ module.exports = class PixelBannerPlugin extends Plugin {
             bannerDiv = createDiv({ cls: 'pixel-banner-image' });
             container.insertBefore(bannerDiv, container.firstChild);
             bannerDiv._isPersistentBanner = true;
-            
-            // Only add view/pin/refresh icons for non-embedded notes
-            if (!isEmbedded) {
-                // Clean up any existing icons first
-                const existingViewIcon = container.querySelector('.view-image-icon');
-                const existingPinIcon = container.querySelector('.pin-icon');
-                const existingRefreshIcon = container.querySelector('.refresh-icon');
+        }
 
-                if (existingViewIcon) existingViewIcon.remove();
-                if (existingPinIcon) existingPinIcon.remove();
-                if (existingRefreshIcon) existingRefreshIcon.remove();
+        // Move icon handling outside the if (!bannerDiv) block
+        if (!isEmbedded) {
+            // Clean up any existing icons first
+            const existingViewIcon = container.querySelector('.view-image-icon');
+            const existingPinIcon = container.querySelector('.pin-icon');
+            const existingRefreshIcon = container.querySelector('.refresh-icon');
+            const existingSelectIcon = container.querySelector('.select-image-icon');
 
-                let leftOffset = 17;  // Starting position
+            if (existingViewIcon) existingViewIcon.remove();
+            if (existingPinIcon) existingPinIcon.remove();
+            if (existingRefreshIcon) existingRefreshIcon.remove();
+            if (existingSelectIcon) existingSelectIcon.remove();
 
-                // Add view image icon first (independent of pin icon)
-                if (!isEmbedded && this.settings.showViewImageIcon) {
-                    const viewImageIcon = createDiv({ cls: 'view-image-icon' });
-                    viewImageIcon.style.position = 'absolute';
-                    viewImageIcon.style.top = '10px';
-                    viewImageIcon.style.left = `${leftOffset}px`;
-                    viewImageIcon.style.fontSize = '1.5em';
-                    viewImageIcon.style.cursor = 'pointer';
-                    viewImageIcon.innerHTML = '🖼️';
-                    viewImageIcon._isPersistentViewImage = true;
+            let leftOffset = 17;  // Starting position
 
-                    // Initially hide the icon
-                    viewImageIcon.style.display = 'none';
+            // Add select image icon if enabled
+            if (this.settings.showSelectImageIcon) {
+                const selectImageIcon = createDiv({ cls: 'select-image-icon' });
+                selectImageIcon.style.position = 'absolute';
+                selectImageIcon.style.top = '10px';
+                selectImageIcon.style.left = `${leftOffset}px`;
+                selectImageIcon.style.fontSize = '1.5em';
+                selectImageIcon.style.cursor = 'pointer';
+                selectImageIcon.innerHTML = '🏷️';
+                selectImageIcon._isPersistentSelectImage = true;
 
-                    // Add the icon to the DOM
-                    container.insertBefore(viewImageIcon, bannerDiv.nextSibling);
-                    leftOffset += 35;  // Increment offset for next icon
+                selectImageIcon.onclick = () => this.handleSelectImage();
+                container.appendChild(selectImageIcon);
+                leftOffset += 35;
+            }
 
-                    // We'll update the icon's visibility and click handler after we have the image URL
-                    const updateViewIcon = (imageUrl) => {
-                        if (imageUrl) {
-                            viewImageIcon.style.display = 'block';
-                            viewImageIcon.onclick = () => {
-                                new ImageViewModal(this.app, imageUrl).open();
-                            };
-                        } else {
-                            viewImageIcon.style.display = 'none';
-                        }
-                    };
+            // Add view image icon
+            if (this.settings.showViewImageIcon) {
+                const viewImageIcon = createDiv({ cls: 'view-image-icon' });
+                viewImageIcon.style.position = 'absolute';
+                viewImageIcon.style.top = '10px';
+                viewImageIcon.style.left = `${leftOffset}px`;
+                viewImageIcon.style.fontSize = '1.5em';
+                viewImageIcon.style.cursor = 'pointer';
+                viewImageIcon.innerHTML = '🖼️';
+                viewImageIcon._isPersistentViewImage = true;
 
-                    // Store the update function for later use
-                    viewImageIcon._updateVisibility = updateViewIcon;
-                }
+                // Initially hide the icon
+                viewImageIcon.style.display = 'none';
 
-                // Add pin icon if enabled
-                if (this.settings.showPinIcon) {
-                    const pinIcon = createDiv({ cls: 'pin-icon' });
-                    pinIcon.style.position = 'absolute';
-                    pinIcon.style.top = '10px';
-                    pinIcon.style.left = `${leftOffset}px`;
-                    pinIcon.style.fontSize = '1.5em';
-                    pinIcon.style.cursor = 'pointer';
-                    pinIcon.innerHTML = '📌';
-                    pinIcon._isPersistentPin = true;
-                    container.insertBefore(pinIcon, bannerDiv.nextSibling);
-                    leftOffset += 35;  // Increment offset for next icon
+                // Add the icon to the DOM
+                container.appendChild(viewImageIcon);
+                leftOffset += 35;
 
-                    // Add refresh icon if enabled
-                    if (this.settings.showRefreshIcon) {
-                        const refreshIcon = createDiv({ cls: 'refresh-icon' });
-                        refreshIcon.style.position = 'absolute';
-                        refreshIcon.style.top = '10px';
-                        refreshIcon.style.left = `${leftOffset}px`;
-                        refreshIcon.style.fontSize = '1.5em';
-                        refreshIcon.style.cursor = 'pointer';
-                        refreshIcon.innerHTML = '🔄';
-                        refreshIcon._isPersistentRefresh = true;
-                        container.insertBefore(refreshIcon, pinIcon.nextSibling);
+                // We'll update the icon's visibility and click handler after we have the image URL
+                const updateViewIcon = (imageUrl) => {
+                    if (imageUrl) {
+                        viewImageIcon.style.display = 'block';
+                        viewImageIcon.onclick = () => {
+                            new ImageViewModal(this.app, imageUrl).open();
+                        };
+                    } else {
+                        viewImageIcon.style.display = 'none';
                     }
+                };
+
+                // Store the update function for later use
+                viewImageIcon._updateVisibility = updateViewIcon;
+            }
+
+            // Add pin icon if enabled and we have an image URL
+            const imageUrl = this.loadedImages.get(file.path);
+            const inputType = this.getInputType(bannerImage);
+            const canPin = imageUrl && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon;
+            if (canPin) {
+                const pinIcon = createDiv({ cls: 'pin-icon' });
+                pinIcon.style.position = 'absolute';
+                pinIcon.style.top = '10px';
+                pinIcon.style.left = `${leftOffset}px`;
+                pinIcon.style.fontSize = '1.5em';
+                pinIcon.style.cursor = 'pointer';
+                pinIcon.innerHTML = '📌';
+                pinIcon._isPersistentPin = true;
+                
+                pinIcon.onclick = async () => {
+                    try {
+                        await handlePinIconClick(imageUrl, this);
+                    } catch (error) {
+                        console.error('Error pinning image:', error);
+                        new Notice('Failed to pin the image.');
+                    }
+                };
+
+                container.appendChild(pinIcon);
+                leftOffset += 35;
+
+                // Add refresh icon if enabled
+                if (this.settings.showRefreshIcon) {
+                    const refreshIcon = createDiv({ cls: 'refresh-icon' });
+                    refreshIcon.style.position = 'absolute';
+                    refreshIcon.style.top = '10px';
+                    refreshIcon.style.left = `${leftOffset}px`;
+                    refreshIcon.style.fontSize = '1.5em';
+                    refreshIcon.style.cursor = 'pointer';
+                    refreshIcon.innerHTML = '🔄';
+                    refreshIcon._isPersistentRefresh = true;
+                    container.appendChild(refreshIcon);
                 }
             }
         }
@@ -1325,37 +1403,36 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 const viewImageElement = this.querySelector(':scope > .view-image-icon');
                 const pinElement = this.querySelector(':scope > .pin-icon');
                 const refreshElement = this.querySelector(':scope > .refresh-icon');
+                const selectImageElement = this.querySelector(':scope > .select-image-icon');
                 
                 // Convert children to array and remove any old persistent elements
                 children = Array.from(children).filter(child => 
                     !child.classList?.contains('pixel-banner-image') &&
                     !child.classList?.contains('view-image-icon') &&
                     !child.classList?.contains('pin-icon') &&
-                    !child.classList?.contains('refresh-icon')
+                    !child.classList?.contains('refresh-icon') &&
+                    !child.classList?.contains('select-image-icon')
                 );
 
-                // Add banner first if it exists and is persistent
+                // Add persistent elements back in the correct order
                 if (bannerElement?._isPersistentBanner) {
                     children.unshift(bannerElement);
                 }
-
-                // Add icons in the correct order
-                let insertIndex = 1;  // Start after banner
-
+                if (selectImageElement?._isPersistentSelectImage) {
+                    children.push(selectImageElement);
+                }
                 if (viewImageElement?._isPersistentViewImage) {
-                    children.splice(insertIndex++, 0, viewImageElement);
+                    children.push(viewImageElement);
                 }
-
                 if (pinElement?._isPersistentPin) {
-                    children.splice(insertIndex++, 0, pinElement);
+                    children.push(pinElement);
                 }
-
                 if (refreshElement?._isPersistentRefresh) {
-                    children.splice(insertIndex, 0, refreshElement);
+                    children.push(refreshElement);
                 }
 
-                // Call original function with updated children array
-                originalSetChildrenInPlace.call(this, children);
+                // Call original function with filtered children
+                return originalSetChildrenInPlace.call(this, children);
             };
             container._hasOverriddenSetChildrenInPlace = true;
         }
@@ -1406,37 +1483,48 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 if (!isEmbedded && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon) {
                     const refreshIcon = container.querySelector(':scope > .refresh-icon');
                     
-                    if (pinIcon) {
-                        pinIcon.style.display = 'block';
-                        pinIcon.onclick = async () => {
-                            try {
-                                // Determine which banner field is being used
-                                let usedField;
-                                for (const field of this.settings.customBannerField) {
-                                    if (frontmatter?.[field]) {
-                                        usedField = field;
-                                        break;
-                                    }
-                                }
-                                await handlePinIconClick(imageUrl, this, usedField);
-                            } catch (error) {
-                                console.error('Error pinning image:', error);
-                                new Notice('😭 Failed to pin the image.');
-                            }
-                        };
-                    }
-
                     if (refreshIcon && inputType === 'keyword' && this.settings.showRefreshIcon) {
                         refreshIcon.style.display = 'block';
                         refreshIcon.onclick = async () => {
                             try {
+                                // Clear the cached image and keywords
                                 this.loadedImages.delete(file.path);
                                 this.lastKeywords.delete(file.path);
-                                await this.updateBanner(this.app.workspace.activeLeaf.view, true);
-                                new Notice('🔄 Refreshed banner image');
+                                
+                                // Get new image URL
+                                const newImageUrl = await this.getImageUrl(inputType, bannerImage);
+                                if (newImageUrl) {
+                                    // Update the cache with new image
+                                    this.loadedImages.set(file.path, newImageUrl);
+                                    this.lastKeywords.set(file.path, bannerImage);
+                                    
+                                    // Update banner image
+                                    bannerDiv.style.backgroundImage = `url('${newImageUrl}')`;
+
+                                    // Update view image icon if it exists
+                                    const viewImageIcon = container.querySelector(':scope > .view-image-icon');
+                                    if (viewImageIcon && viewImageIcon._updateVisibility) {
+                                        viewImageIcon._updateVisibility(newImageUrl);
+                                    }
+
+                                    // Update pin icon click handler with new URL
+                                    const pinIcon = container.querySelector(':scope > .pin-icon');
+                                    if (pinIcon) {
+                                        pinIcon.onclick = async () => {
+                                            try {
+                                                await handlePinIconClick(newImageUrl, this);
+                                            } catch (error) {
+                                                console.error('Error pinning image:', error);
+                                                new Notice('Failed to pin the image.');
+                                            }
+                                        };
+                                    }
+
+                                    new Notice('🔄 Refreshed banner image');
+                                }
                             } catch (error) {
                                 console.error('Error refreshing image:', error);
-                                new Notice('😭 Failed to refresh image');
+                                new Notice('Failed to refresh image');
                             }
                         };
                     } else if (refreshIcon) {
@@ -1461,7 +1549,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
                 this.loadedImages.delete(file.path);
                 this.lastKeywords.delete(file.path);
-                // Add this line to remove the pixel-banner class when there's no banner
+
+                // Remove the pixel-banner class when there's no banner
                 if (!isEmbedded) {
                     viewContent.classList.remove('pixel-banner');
                 }
@@ -1594,6 +1683,59 @@ module.exports = class PixelBannerPlugin extends Plugin {
         } else if (styleEl) {
             styleEl.remove();
         }
+    }
+
+    async handleSelectImage() {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) {
+            new Notice('No active file');
+            return;
+        }
+
+        new ImageSelectionModal(
+            this.app, 
+            async (selectedFile) => {
+                let fileContent = await this.app.vault.read(activeFile);
+                const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+                const hasFrontmatter = frontmatterRegex.test(fileContent);
+                
+                const bannerField = Array.isArray(this.settings.customBannerField) && 
+                    this.settings.customBannerField.length > 0 ? 
+                    this.settings.customBannerField[0] : 'banner';
+
+                fileContent = fileContent.replace(/^\s+/, '');
+
+                let updatedContent;
+                if (hasFrontmatter) {
+                    updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+                        const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
+                        let cleanedFrontmatter = frontmatter.trim();
+                        
+                        // Remove any banner fields to prevent duplicates
+                        this.settings.customBannerField.forEach(field => {
+                            const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
+                            cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
+                        });
+
+                        // Add the new banner field at the start, ensuring no extra newlines
+                        cleanedFrontmatter = cleanedFrontmatter.trim();
+                        const newFrontmatter = `${bannerField}: [[${selectedFile.path}]]${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+                        return `---\n${newFrontmatter}\n---`;
+                    });
+                } else {
+                    const cleanContent = fileContent.replace(/^\s+/, '');
+                    updatedContent = `---\n${bannerField}: [[${selectedFile.path}]]\n---\n\n${cleanContent}`;
+                }
+
+                updatedContent = updatedContent.replace(/^\s+/, '');
+                
+                if (updatedContent !== fileContent) {
+                    await this.app.vault.modify(activeFile, updatedContent);
+                    new Notice('Banner image updated');
+                }
+            },
+            this.settings.defaultSelectImagePath // Pass the default path here
+        ).open();
     }
 }
 

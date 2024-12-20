@@ -4,24 +4,53 @@
     "type": "split",
     "children": [
       {
-        "id": "bf2cf265e57519be",
+        "id": "76497e16176dbc07",
         "type": "tabs",
         "children": [
           {
-            "id": "8a351605633e1d53",
+            "id": "09be7daa6ab6e3e1",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
+                "file": "🚩 Pixel-Banner.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "v2.14.0 - 👩‍👧‍👦 Hide the Children"
+              "title": "🚩 Pixel-Banner"
+            }
+          },
+          {
+            "id": "2216deeb3d0a4b87",
+            "type": "leaf",
+            "state": {
+              "type": "webviewer",
+              "state": {
+                "url": "https://jparkerweb.github.io/release-notes/",
+                "title": "Release Notes Generator",
+                "mode": "webview"
+              },
+              "icon": "globe-2",
+              "title": "Release Notes Generator"
+            }
+          },
+          {
+            "id": "4221d2341700bbe1",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "v2.15.0 - 🏷️ Streamlined Banner Bliss"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -985,6 +1014,526 @@
             "id": "4c54ba78f713ed8a",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "042244f907afd347",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "95d4954fbe5b0708",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4cb3e02de9e40df0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fa5ebe66ef5a5cb7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "05639bc7328ee9cb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e2d3ec69192b010c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5d33aee02684b255",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "337db9288f7dbea7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1ea2265cf7c67e94",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "04e03786e4905651",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4e6433c00cddcf42",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "09dc50b0fe2a6bf4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4b5b4a7dceb32f11",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "84013ca2778478b3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5680ac4d538f4546",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d4bf08a7b2371a1f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "376af179deb502b7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "da94455aa4f00557",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5eb2977dd340b124",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "2941e7d68ff6b781",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e89acfc8b865c948",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f1336bcc99346fef",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b0861f1e7872b75c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "87b47c43e1519174",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f543ccf58a756bd0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d681df46ea62dad8",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "eb11de42811dc783",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d3d8d4a82400d90a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f154e528b07bf2f9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9aba0c2c9ded483f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a723aae5bd361663",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0129b042f7fa5a5f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1973388555f93401",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "44e354856f3220c2",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "db59ce048fe7168d",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e0a291336896f578",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "bc524372c090a7db",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "16655a227dbac691",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "62a383826a00885c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "698303d594f08c37",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fd0b62debb7fca87",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3a367687e55676b0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "034dcdeebacee859",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e145754a5719ec31",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "2ad9c1dbaeb4d527",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5907e384c1324620",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d3f9d269eafbb281",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "47aba4db78312e7f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c19d0e61586ac7fb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d6209ff8324d711a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3c327b988c787f03",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "513d3f7c691db93a",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -992,7 +1541,7 @@
             }
           }
         ],
-        "currentTab": 87
+        "currentTab": 139
       }
     ],
     "direction": "horizontal",
@@ -1010,23 +1559,30 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "8a351605633e1d53",
+  "active": "2216deeb3d0a4b87",
   "lastOpenFiles": [
-    "releases/v2.13.0 - 🖼️ View my Banner.md",
-    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
-    "pixel-banner-images/father-and-child.png",
+    "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
     "🚩 Pixel-Banner.md",
-    "tests/🧪 test - 8 - embed tests.md",
-    "tests/🧪 test - 4 - all fields.md",
-    "tests/🧪 test - 1 - internal link.md",
-    "tests/🧪 test - 3 - direct url link.md",
-    "releases/v2.11.0 - 📌 Pin my URL Please.md",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
-    "Random Shuffle/Disney Lorcana.md",
+    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
     "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
-    "tests/🧪 test - 7- shuffle time!.md",
+    "releases/v2.11.0 - 📌 Pin my URL Please.md",
+    "tests/🧪 test - 4 - all fields.md",
+    "tests/🧪 test - 8 - embed tests.md",
     "tests/🧪 test - 6 - image float right.md",
+    "releases/v2.13.0 - 🖼️ View my Banner.md",
+    "tests/🧪 test - 7- shuffle time!.md",
+    "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 5 - absolute position.md",
+    "releases/v2.10.0 - 🖌️ Title Color.md",
+    "Untitled 1.md",
+    "test.md",
+    "api.md",
+    "Untitled.md",
+    "Random Shuffle/Disney Lorcana.md",
+    "tests/🧪 test - 1 - internal link.md",
+    "tests/🧪 test - 2 - internal link - quoted.md",
+    "pixel-banner-images/test.png",
+    "pixel-banner-images/father-and-child.png",
     "notes/📜 Embedded Note with Banner.md",
     "notes/📃 Embedded Note.md",
     "Lorem.Ipsum.md",
@@ -1036,19 +1592,13 @@
     "pixel-banner-images/pin-clouds.png",
     "pixel-banner-images/shuffle.png",
     "pixel-banner-images/blue.png",
-    "test.md",
-    "tests/🧪 test - 2 - internal link - quoted.md",
     "images/releases/v2.10.0.jpg",
     "shuffle-images/bell-hidden-archer.jpg",
     "tests/🧪 test - 7 - embed tests.md",
-    "shuffle-images/daisy-duck-secret-agent.jpg",
     "Random Shuffle",
     "notes/subfolder/Embedded Note in Subfolder.md",
     "shuffle-images",
     "dog.md",
-    "Untitled 1.md",
-    "docker.md",
-    "junk.md",
     "releases",
     "images/releases",
     "images/New folder",

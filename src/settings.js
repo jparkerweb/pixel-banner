@@ -39,6 +39,8 @@ const DEFAULT_SETTINGS = {
     titleColor: 'var(--inline-title-color)',
     enableImageShuffle: false,
     hideEmbeddedNoteTitles: false,
+    showSelectImageIcon: true,
+    defaultSelectImagePath: '',
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -1279,6 +1281,74 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     this.plugin.updateEmbeddedTitlesVisibility();
                 }));
 
+        // Create a group for the hide settings
+        const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
+
+        // Add the showSelectImageIcon setting
+        const showSelectImageIconSetting = new Setting(SelectImageSettingsGroup)
+            .setName('Show Select Image Icon')
+            .setDesc('Show an icon to select banner image in the top-left corner')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showSelectImageIcon)
+                .onChange(async (value) => {
+                    this.plugin.settings.showSelectImageIcon = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+                    await this.plugin.saveSettings();
+                    
+                    const toggleComponent = showSelectImageIconSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
+                    }
+                    
+                    this.plugin.updateAllBanners();
+                }));
+
+        // Add the defaultSelectImagePath setting
+        const defaultSelectImagePathSetting = new Setting(SelectImageSettingsGroup)
+            .setName('Default Select Image Path')
+            .setDesc('Set a default folder path to filter images when opening the Select Image modal')
+            .addText(text => {
+                text.setPlaceholder('Example: Images/Banners')
+                    .setValue(this.plugin.settings.defaultSelectImagePath)
+                    .onChange(async (value) => {
+                        this.plugin.settings.defaultSelectImagePath = value;
+                        await this.plugin.saveSettings();
+                    });
+                text.inputEl.style.width = '200px';
+                return text;
+            })
+            .addButton(button => button
+                .setButtonText('Browse')
+                .onClick(() => {
+                    new FolderSuggestModal(this.plugin.app, (chosenPath) => {
+                        this.plugin.settings.defaultSelectImagePath = chosenPath;
+                        const textInput = defaultSelectImagePathSetting.components[0];
+                        if (textInput) {
+                            textInput.setValue(chosenPath);
+                        }
+                        this.plugin.saveSettings();
+                    }).open();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
+                    await this.plugin.saveSettings();
+                    
+                    const textComponent = defaultSelectImagePathSetting.components[0];
+                    if (textComponent) {
+                        textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
+                    }
+                }));
+
         // Add the showViewImageIcon setting
         const showViewImageIconSetting = new Setting(containerEl)
             .setName('Show View Image Icon')
@@ -1717,8 +1787,7 @@ async function testPexelsApi(apiKey) {
         }
         
         const data = await response.json();
-        console.log(`random20characters: ${random20characters()}`);
-        console.log(`Pexels API response:`, data);
+        // console.log(`Pexels API response:`, data);
         return data.photos; // Ensure photos are present
     } catch (error) {
         return false;

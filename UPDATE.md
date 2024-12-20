@@ -1,7 +1,11 @@
 ## 🎉 What's New
 
-### v2.14.0
+### v2.15.0
 #### ✨ Added
-- New setting to hide embedded note titles
+- New 🏷️ `Select Image` button icon to streamline selecting banner images via an image search modal (enabled by default)
+- Default path setting to pre-filter the image search modal to a specific folder in your vault
+- New command palette option to quickly open the image search/selection modal
+- These enhancements make applying Pixel Banners to your notes simpler and more intuitive than ever
 
-[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.14.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.14.0.jpg)
+
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg)
