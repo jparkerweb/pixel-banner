@@ -107,7 +107,7 @@ var ReleaseNotesModal = class extends import_obsidian.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F6D1} Exclude Me Please</h2>\n<h3>[1.10.3] - 2024-12-14</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Improved parent selector matching to properly detect and exclude Rich Foot when specified selectors are present in the view or its parent elements</li>\n</ul>\n<h3>[1.10.2] - 2024-12-11</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Missing <code>Excluded Folders</code> section in the settings</li>\n</ul>\n<h3>[1.10.1] - 2024-12-10</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Extra padding on the bottom of the editor in Canvas / Kanban Cards</li>\n</ul>\n<h3>[1.10.0] - 2024-12-08</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Exclusion rule via <code>frontmatter</code> field</li>\n<li>Custom exclusions using specified DOM parent selectors for advanced control</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/rich-foot/rich-foot-v1.10.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/settings.js
 var import_obsidian2 = require("obsidian");
@@ -1217,11 +1217,19 @@ var RichFootPlugin = class extends import_obsidian3.Plugin {
     const activeLeaf = this.app.workspace.activeLeaf;
     if ((_d = activeLeaf == null ? void 0 : activeLeaf.view) == null ? void 0 : _d.containerEl) {
       return (_f = (_e = this.settings) == null ? void 0 : _e.excludedParentSelectors) == null ? void 0 : _f.some((selector) => {
+        var _a2, _b2;
         try {
-          const matchingElements = document.querySelectorAll(selector);
-          return Array.from(matchingElements).some(
-            (el) => el === activeLeaf.view.containerEl || el.contains(activeLeaf.view.containerEl)
-          );
+          let element = activeLeaf.view.containerEl;
+          while (element) {
+            if ((_a2 = element.matches) == null ? void 0 : _a2.call(element, selector)) {
+              return true;
+            }
+            if ((_b2 = element.querySelector) == null ? void 0 : _b2.call(element, selector)) {
+              return true;
+            }
+            element = element.parentElement;
+          }
+          return false;
         } catch (e) {
           console.error(`Invalid selector in Rich Foot settings: ${selector}`);
           return false;

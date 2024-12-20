@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [v2.14.0] - 2024-12-19
+### ✨ Added
+- New setting to hide embedded note titles
+
 ## [v2.13.2] - 2024-12-17
 ### 📦 Updated
 - Adjusted dynamic CSS calculations for banner positioning, padding, and scrollbar width

@@ -39,6 +39,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
         
+        // hide embedded note titles
+        this.updateEmbeddedTitlesVisibility();
+        
         // Check version and show release notes if needed
         await this.checkVersion();
         
@@ -1066,6 +1069,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 }
             }
         });
+        
+        const styleEl = document.getElementById('pixel-banner-embedded-titles');
+        if (styleEl) styleEl.remove();
     }
 
     applyContentStartPosition(el, contentStartPosition) {
@@ -1571,6 +1577,22 @@ module.exports = class PixelBannerPlugin extends Plugin {
         } catch (error) {
             console.error('Error getting random image:', error);
             return null;
+        }
+    }
+
+    updateEmbeddedTitlesVisibility() {
+        const styleId = 'pixel-banner-embedded-titles';
+        let styleEl = document.getElementById(styleId);
+        
+        if (this.settings.hideEmbeddedNoteTitles) {
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = styleId;
+                document.head.appendChild(styleEl);
+            }
+            styleEl.textContent = '.embed-title.markdown-embed-title { display: none !important; }';
+        } else if (styleEl) {
+            styleEl.remove();
         }
     }
 }
