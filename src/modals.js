@@ -124,4 +124,115 @@ export class ImageViewModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
     }
+}
+
+export class ImageSelectionModal extends Modal {
+    constructor(app, onChoose, defaultPath = '') {
+        super(app);
+        this.onChoose = onChoose;
+        this.defaultPath = defaultPath;
+        this.searchQuery = defaultPath.toLowerCase();
+        this.imageFiles = this.app.vault.getFiles()
+            .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp)$/));
+    }
+
+    onOpen() {
+        // Add custom class to the modal element
+        this.modalEl.addClass('pixel-banner-image-select-modal');
+
+        const { contentEl } = this;
+        contentEl.empty();
+
+        // Add title
+        contentEl.createEl('h2', { text: 'Select Banner Image' });
+
+        // Add search input
+        const searchContainer = contentEl.createDiv({ cls: 'pixel-banner-search-container' });
+        searchContainer.style.display = 'flex';
+        searchContainer.style.gap = '8px';
+        searchContainer.style.alignItems = 'center';
+        searchContainer.style.marginBottom = '1em';
+
+        const searchInput = searchContainer.createEl('input', {
+            type: 'text',
+            placeholder: 'Search images...',
+            value: this.defaultPath
+        });
+        searchInput.style.flex = '1';
+
+        const clearButton = searchContainer.createEl('button', {
+            text: 'Clear'
+        });
+
+        clearButton.addEventListener('click', () => {
+            searchInput.value = '';
+            this.searchQuery = '';
+            this.updateImageGrid();
+        });
+
+        searchInput.addEventListener('input', () => {
+            this.searchQuery = searchInput.value.toLowerCase();
+            this.updateImageGrid();
+        });
+
+        // Create grid container
+        this.gridContainer = contentEl.createDiv({ cls: 'pixel-banner-image-grid' });
+        
+        // Update grid with initial filter
+        this.updateImageGrid();
+    }
+
+    updateImageGrid() {
+        this.gridContainer.empty();
+
+        const filteredFiles = this.imageFiles.filter(file => {
+            const filePath = file.path.toLowerCase();
+            const fileName = file.name.toLowerCase();
+            return filePath.includes(this.searchQuery) || fileName.includes(this.searchQuery);
+        });
+
+        filteredFiles.forEach(file => {
+            const imageContainer = this.gridContainer.createDiv({ cls: 'pixel-banner-image-container' });
+            
+            // Create thumbnail container
+            const thumbnailContainer = imageContainer.createDiv();
+            
+            // Try to create thumbnail
+            this.app.vault.readBinary(file).then(arrayBuffer => {
+                const blob = new Blob([arrayBuffer]);
+                const url = URL.createObjectURL(blob);
+                const img = thumbnailContainer.createEl('img', {
+                    cls: 'pixel-banner-image-thumbnail',
+                    attr: { src: url }
+                });
+                
+                // Clean up blob URL when image loads or errors
+                const cleanup = () => URL.revokeObjectURL(url);
+                img.addEventListener('load', cleanup);
+                img.addEventListener('error', cleanup);
+            }).catch(() => {
+                thumbnailContainer.createEl('div', {
+                    cls: 'pixel-banner-image-error',
+                    text: 'Error loading image'
+                });
+            });
+
+            // Add file path
+            imageContainer.createEl('div', {
+                cls: 'pixel-banner-image-path',
+                text: file.path
+            });
+
+            // Add click handler
+            imageContainer.addEventListener('click', () => {
+                this.onChoose(file);
+                this.close();
+            });
+        });
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
 } 

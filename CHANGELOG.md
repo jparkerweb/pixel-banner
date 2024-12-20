@@ -2,6 +2,13 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [v2.15.0] - 2024-12-20
+### ✨ Added
+- New 🏷️ `Select Image` button icon to streamline selecting banner images via an image search modal (enabled by default)
+- Default path setting to pre-filter the image search modal to a specific folder in your vault
+- New command palette option to quickly open the image search/selection modal
+- These enhancements make applying Pixel Banners to your notes simpler and more intuitive than ever
+
 ## [v2.14.0] - 2024-12-19
 ### ✨ Added
 - New setting to hide embedded note titles
@@ -22,11 +29,11 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## [v2.12.0] - 2024-12-02
 #### ✨ Added
-- 🔀 Random Image Shuffle functionality.
-- Folder Images: You can enable random image selection from a specified folder in settings.
-- Frontmatter Support: Use `banner-shuffle` in frontmatter to specify a folder path for random image selection.
-- Images are randomly selected each time the note is opened.
-- This feature is perfect for adding variety to your notes with minimal setup using local images.
+- 🔀 Random Image Shuffle functionality
+- Folder Images: You can enable random image selection from a specified folder in settings
+- Frontmatter Support: Use `banner-shuffle` in frontmatter to specify a folder path for random image selection
+- Images are randomly selected each time the note is opened
+- This feature is perfect for adding variety to your notes with minimal setup using local images
 
 ## [v2.11.0] - 2024-11-29
 #### ✨ Added
