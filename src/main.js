@@ -367,7 +367,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             // If shuffle path exists in frontmatter, use it
             const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
             if (randomImagePath) {
-                bannerImage = `[[${randomImagePath}]]`;
+                bannerImage = `"${randomImagePath}"`;
             }
         }
         
@@ -1720,12 +1720,12 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
                         // Add the new banner field at the start, ensuring no extra newlines
                         cleanedFrontmatter = cleanedFrontmatter.trim();
-                        const newFrontmatter = `${bannerField}: [[${selectedFile.path}]]${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+                        const newFrontmatter = `${bannerField}: "${selectedFile.path}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
                         return `---\n${newFrontmatter}\n---`;
                     });
                 } else {
                     const cleanContent = fileContent.replace(/^\s+/, '');
-                    updatedContent = `---\n${bannerField}: [[${selectedFile.path}]]\n---\n\n${cleanContent}`;
+                    updatedContent = `---\n${bannerField}: "${selectedFile.path}"\n---\n\n${cleanContent}`;
                 }
 
                 updatedContent = updatedContent.replace(/^\s+/, '');

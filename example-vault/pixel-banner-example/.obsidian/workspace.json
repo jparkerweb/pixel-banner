@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🚩 Pixel-Banner.md",
+                "file": "Random Shuffle/Disney Lorcana.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "🚩 Pixel-Banner"
+              "title": "Disney Lorcana"
             }
           }
         ]
@@ -1615,6 +1615,26 @@
             "id": "885a094721cb9cec",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f3d5566ab6e20998",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b34c7709d94f729f",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -1622,7 +1642,7 @@
             }
           }
         ],
-        "currentTab": 150
+        "currentTab": 152
       }
     ],
     "direction": "horizontal",
@@ -1642,6 +1662,10 @@
   },
   "active": "5772e414935a6c5e",
   "lastOpenFiles": [
+    "🚩 Pixel-Banner.md",
+    "Untitled.md",
+    "pixel-banner-images/garden[1].jpg",
+    "Untitled 1.md",
     "shuffle-images/bell-hidden-archer.jpg",
     "test blank note.png",
     "test blank note.md",
@@ -1654,13 +1678,10 @@
     "pixel-banner-images/good-art-is-never-forgotten.png",
     "pixel-banner-images/justin.png",
     "pixel-banner-images/father-and-child.png",
-    "pixel-banner-images/dog.png",
-    "pixel-banner-images/double-stack2.jpg",
     "notes/📜 Embedded Note with Banner.md",
     "notes/subfolder/Embedded Note in Subfolder.md",
     "notes/📃 Embedded Note.md",
     "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
-    "🚩 Pixel-Banner.md",
     "releases/v2.10.0 - 🖌️ Title Color.md",
     "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
     "releases/v2.11.0 - 📌 Pin my URL Please.md",
@@ -1671,13 +1692,11 @@
     "tests/🧪 test - 7- shuffle time!.md",
     "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 5 - absolute position.md",
-    "Untitled 1.md",
     "test.md",
     "api.md",
     "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
     "Lorem.Ipsum.md",
-    "tests/🧪 test - 7 - embed tests.md",
     "Random Shuffle",
     "shuffle-images",
     "releases",

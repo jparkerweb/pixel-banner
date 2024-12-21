@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.15.2
+#### 🐛 Fixed
+- Fixed an issue with using the `Select Image` button to select an image with a `[` in the filename
+
 ### v2.15.1
 #### ✨ Added
 - Option to select/upload images from your file system when using the `Select Image` button
