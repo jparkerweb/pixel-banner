@@ -1693,7 +1693,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
 
         new ImageSelectionModal(
-            this.app, 
+            this.app,
+            this,  // Pass the plugin instance
             async (selectedFile) => {
                 let fileContent = await this.app.vault.read(activeFile);
                 const frontmatterRegex = /^---\n([\s\S]*?)\n---/;

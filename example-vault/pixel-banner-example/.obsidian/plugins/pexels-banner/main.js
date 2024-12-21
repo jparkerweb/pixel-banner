@@ -1327,8 +1327,9 @@ var ImageViewModal = class extends import_obsidian2.Modal {
   }
 };
 var ImageSelectionModal = class extends import_obsidian2.Modal {
-  constructor(app2, onChoose, defaultPath = "") {
+  constructor(app2, plugin, onChoose, defaultPath = "") {
     super(app2);
+    this.plugin = plugin;
     this.onChoose = onChoose;
     this.defaultPath = defaultPath;
     this.searchQuery = defaultPath.toLowerCase();
@@ -1352,6 +1353,60 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
     searchInput.style.flex = "1";
     const clearButton = searchContainer.createEl("button", {
       text: "Clear"
+    });
+    const uploadButton = searchContainer.createEl("button", {
+      text: "\u{1F4E4} Upload External Image"
+    });
+    const fileInput = searchContainer.createEl("input", {
+      type: "file",
+      attr: {
+        accept: "image/*",
+        style: "display: none;"
+      }
+    });
+    uploadButton.addEventListener("click", () => {
+      fileInput.click();
+    });
+    fileInput.addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const arrayBuffer = reader.result;
+          const defaultFolder = this.plugin.settings.pinnedImageFolder || "";
+          const folderPath = await new Promise((resolve) => {
+            new FolderSelectionModal(this.app, defaultFolder, (result) => {
+              resolve(result);
+            }).open();
+          });
+          if (!folderPath) {
+            new import_obsidian2.Notice("No folder selected");
+            return;
+          }
+          if (!await this.app.vault.adapter.exists(folderPath)) {
+            await this.app.vault.createFolder(folderPath);
+          }
+          const suggestedName = file.name;
+          const fileName = await new Promise((resolve) => {
+            new SaveImageModal(this.app, suggestedName, (result) => {
+              resolve(result);
+            }).open();
+          });
+          if (!fileName) {
+            new import_obsidian2.Notice("No file name provided");
+            return;
+          }
+          try {
+            const fullPath = `${folderPath}/${fileName}`.replace(/\/+/g, "/");
+            const newFile = await this.app.vault.createBinary(fullPath, arrayBuffer);
+            this.onChoose(newFile);
+            this.close();
+          } catch (error) {
+            new import_obsidian2.Notice("Failed to save image: " + error.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
     });
     clearButton.addEventListener("click", () => {
       searchInput.value = "";
@@ -1406,9 +1461,73 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
     contentEl.empty();
   }
 };
+var FolderSelectionModal = class extends import_obsidian2.FuzzySuggestModal {
+  constructor(app2, defaultFolder, onChoose) {
+    super(app2);
+    this.defaultFolder = defaultFolder;
+    this.onChoose = onChoose;
+    this.setPlaceholder("Select or type folder path to save Banner Image");
+    this.titleEl.setText("Choose Folder to save Banner Image");
+  }
+  getItems() {
+    return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path)];
+  }
+  getItemText(item) {
+    return item;
+  }
+  onChooseItem(item) {
+    this.onChoose(item);
+  }
+  onOpen() {
+    super.onOpen();
+    const inputEl = this.inputEl;
+    inputEl.value = this.defaultFolder;
+    inputEl.select();
+    this.updateSuggestions();
+  }
+};
+var SaveImageModal = class extends import_obsidian2.Modal {
+  constructor(app2, suggestedName, onSubmit) {
+    super(app2);
+    this.suggestedName = suggestedName;
+    this.onSubmit = onSubmit;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: "Save Image" });
+    contentEl.createEl("p", { text: "Enter a name for the image file." });
+    const fileNameSetting = new import_obsidian2.Setting(contentEl).setName("File name").addText((text) => text.setValue(this.suggestedName).onChange((value) => {
+      this.suggestedName = value;
+    }));
+    const buttonContainer = contentEl.createDiv();
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.justifyContent = "flex-end";
+    buttonContainer.style.gap = "8px";
+    buttonContainer.style.marginTop = "1em";
+    const cancelButton = buttonContainer.createEl("button", { text: "Cancel" });
+    const saveButton = buttonContainer.createEl("button", {
+      text: "Save",
+      cls: "mod-cta"
+    });
+    cancelButton.addEventListener("click", () => this.close());
+    saveButton.addEventListener("click", () => {
+      if (this.suggestedName) {
+        this.onSubmit(this.suggestedName);
+        this.close();
+      } else {
+        new import_obsidian2.Notice("Please enter a file name");
+      }
+    });
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.15.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New \u{1F3F7}\uFE0F <code>Select Image</code> button icon to streamline selecting banner images via an image search modal (enabled by default)</li>\n<li>Default path setting to pre-filter the image search modal to a specific folder in your vault</li>\n<li>New command palette option to quickly open the image search/selection modal</li>\n<li>These enhancements make applying Pixel Banners to your notes simpler and more intuitive than ever</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.15.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to select/upload images from your file system when using the <code>Select Image</code> button</li>\n</ul>\n<h3>v2.15.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New \u{1F3F7}\uFE0F <code>Select Image</code> button icon to streamline selecting banner images via an image search modal (enabled by default)</li>\n<li>Default path setting to pre-filter the image search modal to a specific folder in your vault</li>\n<li>New command palette option to quickly open the image search/selection modal</li>\n<li>These enhancements make applying Pixel Banners to your notes simpler and more intuitive than ever</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -2689,6 +2808,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     new ImageSelectionModal(
       this.app,
+      this,
+      // Pass the plugin instance
       async (selectedFile) => {
         let fileContent = await this.app.vault.read(activeFile);
         const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
@@ -2746,7 +2867,7 @@ async function fetchImage(url) {
   if (!response.ok) throw new Error("Image download failed");
   return await response.arrayBuffer();
 }
-var FolderSelectionModal = class extends import_obsidian3.FuzzySuggestModal {
+var FolderSelectionModal2 = class extends import_obsidian3.FuzzySuggestModal {
   constructor(app2, defaultFolder, onChoose) {
     super(app2);
     this.defaultFolder = defaultFolder;
@@ -2775,7 +2896,7 @@ async function saveImageLocally(arrayBuffer, plugin) {
   const vault = plugin.app.vault;
   const defaultFolderPath = plugin.settings.pinnedImageFolder;
   const folderPath = await new Promise((resolve) => {
-    const modal = new FolderSelectionModal(plugin.app, defaultFolderPath, (result) => {
+    const modal = new FolderSelectionModal2(plugin.app, defaultFolderPath, (result) => {
       resolve(result);
     });
     modal.open();
@@ -2788,7 +2909,7 @@ async function saveImageLocally(arrayBuffer, plugin) {
   }
   const suggestedName = "pixel-banner-image";
   const userInput = await new Promise((resolve) => {
-    const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
+    const modal = new SaveImageModal2(plugin.app, suggestedName, (result) => {
       resolve(result);
     });
     modal.open();
@@ -2853,7 +2974,7 @@ function hidePinIcon() {
   const pinIcon = document.querySelector(".pin-icon");
   if (pinIcon) pinIcon.style.display = "none";
 }
-var SaveImageModal = class extends import_obsidian3.Modal {
+var SaveImageModal2 = class extends import_obsidian3.Modal {
   constructor(app2, suggestedName, onSubmit) {
     super(app2);
     this.suggestedName = suggestedName;

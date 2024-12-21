@@ -90,12 +90,12 @@
   "showReleaseNotes": true,
   "lastVersion": "2.15.0",
   "showRefreshIcon": true,
-  "showViewImageIcon": false,
+  "showViewImageIcon": true,
   "hidePixelBannerFields": true,
   "hidePropertiesSectionIfOnlyBanner": true,
   "titleColor": "var(--inline-title-color)",
   "enableImageShuffle": false,
   "hideEmbeddedNoteTitles": true,
   "showSelectImageIcon": true,
-  "defaultSelectImagePath": ""
+  "defaultSelectImagePath": "pixel-banner-images"
 }
