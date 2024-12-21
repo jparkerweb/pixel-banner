@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "76497e16176dbc07",
+        "id": "cbb9f73f33547d8f",
         "type": "tabs",
         "children": [
           {
-            "id": "09be7daa6ab6e3e1",
+            "id": "5772e414935a6c5e",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -20,37 +20,8 @@
               "icon": "lucide-file",
               "title": "🚩 Pixel-Banner"
             }
-          },
-          {
-            "id": "2216deeb3d0a4b87",
-            "type": "leaf",
-            "state": {
-              "type": "webviewer",
-              "state": {
-                "url": "https://jparkerweb.github.io/release-notes/",
-                "title": "Release Notes Generator",
-                "mode": "webview"
-              },
-              "icon": "globe-2",
-              "title": "Release Notes Generator"
-            }
-          },
-          {
-            "id": "4221d2341700bbe1",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "v2.15.0 - 🏷️ Streamlined Banner Bliss"
-            }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -1534,6 +1505,116 @@
             "id": "513d3f7c691db93a",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9fd722445fc09be3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "68e3fdefccbf2756",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c4d4ce9b51af5b51",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "dbaa9acf144ec362",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "01a870ee7e802f5a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e39ddb21dd678718",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "128fc6df49ec5617",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b18c08997bedea30",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3f574424c723283e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7cd04fabdb4f9e8c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "885a094721cb9cec",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -1541,7 +1622,7 @@
             }
           }
         ],
-        "currentTab": 139
+        "currentTab": 150
       }
     ],
     "direction": "horizontal",
@@ -1559,11 +1640,28 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "2216deeb3d0a4b87",
+  "active": "5772e414935a6c5e",
   "lastOpenFiles": [
+    "shuffle-images/bell-hidden-archer.jpg",
+    "test blank note.png",
+    "test blank note.md",
+    "figs.jpg",
     "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
-    "🚩 Pixel-Banner.md",
+    "Random Shuffle/Disney Lorcana.md",
+    "pixel-banner-images/shuffle.png",
+    "pixel-banner-images/pin-clouds.png",
+    "pixel-banner-images/paint-drips.png",
+    "pixel-banner-images/good-art-is-never-forgotten.png",
+    "pixel-banner-images/justin.png",
+    "pixel-banner-images/father-and-child.png",
+    "pixel-banner-images/dog.png",
+    "pixel-banner-images/double-stack2.jpg",
+    "notes/📜 Embedded Note with Banner.md",
+    "notes/subfolder/Embedded Note in Subfolder.md",
+    "notes/📃 Embedded Note.md",
     "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
+    "🚩 Pixel-Banner.md",
+    "releases/v2.10.0 - 🖌️ Title Color.md",
     "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
     "releases/v2.11.0 - 📌 Pin my URL Please.md",
     "tests/🧪 test - 4 - all fields.md",
@@ -1573,32 +1671,15 @@
     "tests/🧪 test - 7- shuffle time!.md",
     "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 5 - absolute position.md",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
     "Untitled 1.md",
     "test.md",
     "api.md",
-    "Untitled.md",
-    "Random Shuffle/Disney Lorcana.md",
     "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
-    "pixel-banner-images/test.png",
-    "pixel-banner-images/father-and-child.png",
-    "notes/📜 Embedded Note with Banner.md",
-    "notes/📃 Embedded Note.md",
     "Lorem.Ipsum.md",
-    "pixel-banner-images/artwork.png",
-    "pixel-banner-images/🖌️ Title Color.png",
-    "pixel-banner-images/dog.png",
-    "pixel-banner-images/pin-clouds.png",
-    "pixel-banner-images/shuffle.png",
-    "pixel-banner-images/blue.png",
-    "images/releases/v2.10.0.jpg",
-    "shuffle-images/bell-hidden-archer.jpg",
     "tests/🧪 test - 7 - embed tests.md",
     "Random Shuffle",
-    "notes/subfolder/Embedded Note in Subfolder.md",
     "shuffle-images",
-    "dog.md",
     "releases",
     "images/releases",
     "images/New folder",

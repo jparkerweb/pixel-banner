@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.15.1
+#### ✨ Added
+- Option to select/upload images from your file system when using the `Select Image` button
+
 ### v2.15.0
 #### ✨ Added
 - New 🏷️ `Select Image` button icon to streamline selecting banner images via an image search modal (enabled by default)

@@ -1,4 +1,4 @@
-import { Modal, Setting } from 'obsidian';
+import { Modal, Setting, Notice, FuzzySuggestModal } from 'obsidian';
 
 export class ReleaseNotesModal extends Modal {
     constructor(app, version, releaseNotes) {
@@ -127,8 +127,9 @@ export class ImageViewModal extends Modal {
 }
 
 export class ImageSelectionModal extends Modal {
-    constructor(app, onChoose, defaultPath = '') {
+    constructor(app, plugin, onChoose, defaultPath = '') {
         super(app);
+        this.plugin = plugin;
         this.onChoose = onChoose;
         this.defaultPath = defaultPath;
         this.searchQuery = defaultPath.toLowerCase();
@@ -146,7 +147,7 @@ export class ImageSelectionModal extends Modal {
         // Add title
         contentEl.createEl('h2', { text: 'Select Banner Image' });
 
-        // Add search input
+        // Add search container
         const searchContainer = contentEl.createDiv({ cls: 'pixel-banner-search-container' });
         searchContainer.style.display = 'flex';
         searchContainer.style.gap = '8px';
@@ -162,6 +163,80 @@ export class ImageSelectionModal extends Modal {
 
         const clearButton = searchContainer.createEl('button', {
             text: 'Clear'
+        });
+
+        const uploadButton = searchContainer.createEl('button', {
+            text: '📤 Upload External Image'
+        });
+
+        // Create hidden file input
+        const fileInput = searchContainer.createEl('input', {
+            type: 'file',
+            attr: {
+                accept: 'image/*',
+                style: 'display: none;'
+            }
+        });
+
+        // Handle upload button click
+        uploadButton.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Handle file selection
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    const arrayBuffer = reader.result;
+                    
+                    // First, show folder selection modal
+                    // Get the default folder from plugin settings
+                    const defaultFolder = this.plugin.settings.pinnedImageFolder || '';
+                    const folderPath = await new Promise((resolve) => {
+                        new FolderSelectionModal(this.app, defaultFolder, (result) => {
+                            resolve(result);
+                        }).open();
+                    });
+
+                    if (!folderPath) {
+                        new Notice('No folder selected');
+                        return;
+                    }
+
+                    // Ensure the folder exists
+                    if (!await this.app.vault.adapter.exists(folderPath)) {
+                        await this.app.vault.createFolder(folderPath);
+                    }
+
+                    // Then show file name modal
+                    const suggestedName = file.name;
+                    const fileName = await new Promise((resolve) => {
+                        new SaveImageModal(this.app, suggestedName, (result) => {
+                            resolve(result);
+                        }).open();
+                    });
+
+                    if (!fileName) {
+                        new Notice('No file name provided');
+                        return;
+                    }
+
+                    try {
+                        // Create the file in the vault
+                        const fullPath = `${folderPath}/${fileName}`.replace(/\/+/g, '/');
+                        const newFile = await this.app.vault.createBinary(fullPath, arrayBuffer);
+                        
+                        // Call onChoose with the new file
+                        this.onChoose(newFile);
+                        this.close();
+                    } catch (error) {
+                        new Notice('Failed to save image: ' + error.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
         });
 
         clearButton.addEventListener('click', () => {
@@ -228,6 +303,95 @@ export class ImageSelectionModal extends Modal {
                 this.onChoose(file);
                 this.close();
             });
+        });
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+    }
+}
+
+export class FolderSelectionModal extends FuzzySuggestModal {
+    constructor(app, defaultFolder, onChoose) {
+        super(app);
+        this.defaultFolder = defaultFolder;
+        this.onChoose = onChoose;
+        
+        // Set custom placeholder text
+        this.setPlaceholder("Select or type folder path to save Banner Image");
+        
+        // Set modal title
+        this.titleEl.setText("Choose Folder to save Banner Image");
+    }
+
+    getItems() {
+        return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles()
+            .filter(file => file.children)
+            .map(folder => folder.path)];
+    }
+
+    getItemText(item) {
+        return item;
+    }
+
+    onChooseItem(item) {
+        this.onChoose(item);
+    }
+
+    onOpen() {
+        super.onOpen();
+        // Pre-populate the search with the default folder
+        const inputEl = this.inputEl;
+        inputEl.value = this.defaultFolder;
+        inputEl.select();
+        // Trigger the search to show matching results
+        this.updateSuggestions();
+    }
+}
+
+export class SaveImageModal extends Modal {
+    constructor(app, suggestedName, onSubmit) {
+        super(app);
+        this.suggestedName = suggestedName;
+        this.onSubmit = onSubmit;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+
+        contentEl.createEl('h2', { text: 'Save Image' });
+        contentEl.createEl('p', { text: 'Enter a name for the image file.' });
+
+        const fileNameSetting = new Setting(contentEl)
+            .setName('File name')
+            .addText(text => text
+                .setValue(this.suggestedName)
+                .onChange(value => {
+                    this.suggestedName = value;
+                }));
+
+        const buttonContainer = contentEl.createDiv();
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = 'flex-end';
+        buttonContainer.style.gap = '8px';
+        buttonContainer.style.marginTop = '1em';
+
+        const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+        const saveButton = buttonContainer.createEl('button', {
+            text: 'Save',
+            cls: 'mod-cta'
+        });
+
+        cancelButton.addEventListener('click', () => this.close());
+        saveButton.addEventListener('click', () => {
+            if (this.suggestedName) {
+                this.onSubmit(this.suggestedName);
+                this.close();
+            } else {
+                new Notice('Please enter a file name');
+            }
         });
     }
 
