@@ -1527,7 +1527,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.15.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to select/upload images from your file system when using the <code>Select Image</code> button</li>\n</ul>\n<h3>v2.15.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New \u{1F3F7}\uFE0F <code>Select Image</code> button icon to streamline selecting banner images via an image search modal (enabled by default)</li>\n<li>Default path setting to pre-filter the image search modal to a specific folder in your vault</li>\n<li>New command palette option to quickly open the image search/selection modal</li>\n<li>These enhancements make applying Pixel Banners to your notes simpler and more intuitive than ever</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.15.2</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed an issue with using the <code>Select Image</code> button to select an image with a <code>[</code> in the filename</li>\n</ul>\n<h3>v2.15.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to select/upload images from your file system when using the <code>Select Image</code> button</li>\n</ul>\n<h3>v2.15.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New \u{1F3F7}\uFE0F <code>Select Image</code> button icon to streamline selecting banner images via an image search modal (enabled by default)</li>\n<li>Default path setting to pre-filter the image search modal to a specific folder in your vault</li>\n<li>New command palette option to quickly open the image search/selection modal</li>\n<li>These enhancements make applying Pixel Banners to your notes simpler and more intuitive than ever</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -1803,7 +1803,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (shufflePath) {
       const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
       if (randomImagePath) {
-        bannerImage = `[[${randomImagePath}]]`;
+        bannerImage = `"${randomImagePath}"`;
       }
     }
     if (!bannerImage) {
@@ -2826,7 +2826,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
               cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
             });
             cleanedFrontmatter = cleanedFrontmatter.trim();
-            const newFrontmatter = `${bannerField}: [[${selectedFile.path}]]${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+            const newFrontmatter = `${bannerField}: "${selectedFile.path}"${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
             return `---
 ${newFrontmatter}
 ---`;
@@ -2834,7 +2834,7 @@ ${newFrontmatter}
         } else {
           const cleanContent = fileContent.replace(/^\s+/, "");
           updatedContent = `---
-${bannerField}: [[${selectedFile.path}]]
+${bannerField}: "${selectedFile.path}"
 ---
 
 ${cleanContent}`;
