@@ -51,6 +51,7 @@ var DEFAULT_SETTINGS = {
   titleColor: "var(--inline-title-color)",
   enableImageShuffle: false,
   hideEmbeddedNoteTitles: false,
+  hideEmbeddedNoteBanners: false,
   showSelectImageIcon: true,
   defaultSelectImagePath: ""
 };
@@ -828,6 +829,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
       }
       this.plugin.updateEmbeddedTitlesVisibility();
+    }));
+    const hideEmbeddedNoteBannersSetting = new import_obsidian.Setting(containerEl).setName("Hide Embedded Note Banners").setDesc("Hide banners of embedded notes").addToggle((toggle) => toggle.setValue(this.plugin.settings.hideEmbeddedNoteBanners).onChange(async (value) => {
+      this.plugin.settings.hideEmbeddedNoteBanners = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateEmbeddedBannersVisibility();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
+      await this.plugin.saveSettings();
+      const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
+      if (toggleComponent) {
+        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
+      }
+      this.plugin.updateEmbeddedBannersVisibility();
     }));
     const SelectImageSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
     const showSelectImageIconSetting = new import_obsidian.Setting(SelectImageSettingsGroup).setName("Show Select Image Icon").setDesc("Show an icon to select banner image in the top-left corner").addToggle((toggle) => toggle.setValue(this.plugin.settings.showSelectImageIcon).onChange(async (value) => {
@@ -2381,8 +2395,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       }
     });
-    const styleEl = document.getElementById("pixel-banner-embedded-titles");
-    if (styleEl) styleEl.remove();
+    const styleElTitle = document.getElementById("pixel-banner-embedded-titles");
+    if (styleElTitle) styleElTitle.remove();
+    const styleElBanner = document.getElementById("pixel-banner-embedded-banners");
+    if (styleElBanner) styleElBanner.remove();
   }
   applyContentStartPosition(el, contentStartPosition) {
     if (!el) {
@@ -2585,6 +2601,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           container.appendChild(refreshIcon);
         }
       }
+    } else {
+      this.updateEmbeddedBannersVisibility();
     }
     if (!container._hasOverriddenSetChildrenInPlace) {
       const originalSetChildrenInPlace = container.setChildrenInPlace;
@@ -2796,6 +2814,20 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         document.head.appendChild(styleEl);
       }
       styleEl.textContent = ".embed-title.markdown-embed-title { display: none !important; }";
+    } else if (styleEl) {
+      styleEl.remove();
+    }
+  }
+  updateEmbeddedBannersVisibility() {
+    const styleId = "pixel-banner-embedded-banners";
+    let styleEl = document.getElementById(styleId);
+    if (this.settings.hideEmbeddedNoteBanners) {
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = ".pixel-banner-image { display: none !important; }";
     } else if (styleEl) {
       styleEl.remove();
     }

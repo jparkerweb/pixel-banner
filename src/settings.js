@@ -39,6 +39,7 @@ const DEFAULT_SETTINGS = {
     titleColor: 'var(--inline-title-color)',
     enableImageShuffle: false,
     hideEmbeddedNoteTitles: false,
+    hideEmbeddedNoteBanners: false,
     showSelectImageIcon: true,
     defaultSelectImagePath: '',
 };
@@ -1279,6 +1280,32 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     }
                     
                     this.plugin.updateEmbeddedTitlesVisibility();
+                }));
+
+        // Add hide embedded note banners setting
+        const hideEmbeddedNoteBannersSetting = new Setting(containerEl)
+            .setName('Hide Embedded Note Banners')
+            .setDesc('Hide banners of embedded notes')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.hideEmbeddedNoteBanners)
+                .onChange(async (value) => {
+                    this.plugin.settings.hideEmbeddedNoteBanners = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateEmbeddedBannersVisibility();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
+                    await this.plugin.saveSettings();
+                    
+                    const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
+                    }
+                    
+                    this.plugin.updateEmbeddedBannersVisibility();
                 }));
 
         // Create a group for the hide settings

@@ -88,7 +88,7 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.15.1",
+  "lastVersion": "2.15.2",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
   "hidePixelBannerFields": false,
@@ -96,6 +96,7 @@
   "titleColor": "var(--inline-title-color)",
   "enableImageShuffle": false,
   "hideEmbeddedNoteTitles": true,
+  "hideEmbeddedNoteBanners": false,
   "showSelectImageIcon": true,
   "defaultSelectImagePath": "pixel-banner-images"
 }
