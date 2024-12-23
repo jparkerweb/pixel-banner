@@ -51,6 +51,7 @@ var DEFAULT_SETTINGS = {
   titleColor: "var(--inline-title-color)",
   enableImageShuffle: false,
   hideEmbeddedNoteTitles: false,
+  hideEmbeddedNoteBanners: false,
   showSelectImageIcon: true,
   defaultSelectImagePath: ""
 };
@@ -829,6 +830,19 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       }
       this.plugin.updateEmbeddedTitlesVisibility();
     }));
+    const hideEmbeddedNoteBannersSetting = new import_obsidian.Setting(containerEl).setName("Hide Embedded Note Banners").setDesc("Hide banners of embedded notes").addToggle((toggle) => toggle.setValue(this.plugin.settings.hideEmbeddedNoteBanners).onChange(async (value) => {
+      this.plugin.settings.hideEmbeddedNoteBanners = value;
+      await this.plugin.saveSettings();
+      this.plugin.updateEmbeddedBannersVisibility();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
+      await this.plugin.saveSettings();
+      const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
+      if (toggleComponent) {
+        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
+      }
+      this.plugin.updateEmbeddedBannersVisibility();
+    }));
     const SelectImageSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
     const showSelectImageIconSetting = new import_obsidian.Setting(SelectImageSettingsGroup).setName("Show Select Image Icon").setDesc("Show an icon to select banner image in the top-left corner").addToggle((toggle) => toggle.setValue(this.plugin.settings.showSelectImageIcon).onChange(async (value) => {
       this.plugin.settings.showSelectImageIcon = value;
@@ -1527,7 +1541,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.15.2</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed an issue with using the <code>Select Image</code> button to select an image with a <code>[</code> in the filename</li>\n</ul>\n<h3>v2.15.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Option to select/upload images from your file system when using the <code>Select Image</code> button</li>\n</ul>\n<h3>v2.15.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New \u{1F3F7}\uFE0F <code>Select Image</code> button icon to streamline selecting banner images via an image search modal (enabled by default)</li>\n<li>Default path setting to pre-filter the image search modal to a specific folder in your vault</li>\n<li>New command palette option to quickly open the image search/selection modal</li>\n<li>These enhancements make applying Pixel Banners to your notes simpler and more intuitive than ever</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.15.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.16.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New setting to hide embedded note banners</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed an issue with embedded note banner&#39;s &quot;content start&quot; position not being obeyed</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.16.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.16.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -2381,8 +2395,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       }
     });
-    const styleEl = document.getElementById("pixel-banner-embedded-titles");
-    if (styleEl) styleEl.remove();
+    const styleElTitle = document.getElementById("pixel-banner-embedded-titles");
+    if (styleElTitle) styleElTitle.remove();
+    const styleElBanner = document.getElementById("pixel-banner-embedded-banners");
+    if (styleElBanner) styleElBanner.remove();
   }
   applyContentStartPosition(el, contentStartPosition) {
     if (!el) {
@@ -2585,6 +2601,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           container.appendChild(refreshIcon);
         }
       }
+    } else {
+      this.updateEmbeddedBannersVisibility();
     }
     if (!container._hasOverriddenSetChildrenInPlace) {
       const originalSetChildrenInPlace = container.setChildrenInPlace;
@@ -2630,6 +2648,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           this.lastKeywords.set(file.path, bannerImage);
         }
       }
+      console.log("imageUrl", imageUrl);
       if (imageUrl) {
         const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
         const folderSpecific = this.getFolderSpecificImage(file.path);
@@ -2796,6 +2815,28 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         document.head.appendChild(styleEl);
       }
       styleEl.textContent = ".embed-title.markdown-embed-title { display: none !important; }";
+    } else if (styleEl) {
+      styleEl.remove();
+    }
+  }
+  updateEmbeddedBannersVisibility() {
+    const styleId = "pixel-banner-embedded-banners";
+    let styleEl = document.getElementById(styleId);
+    if (this.settings.hideEmbeddedNoteBanners) {
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = `
+                .internal-embed .pixel-banner-image {
+                    display: none !important;
+                }
+                .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
+                .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
+                    padding-top: unset !important;
+                }
+            `;
     } else if (styleEl) {
       styleEl.remove();
     }

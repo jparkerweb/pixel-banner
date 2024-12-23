@@ -30,8 +30,14 @@
 
 /* for embedded notes, set width and left position */
 .markdown-embed-content .pixel-banner-image {
+    position: absolute !important;
 	left: 0 !important;
 	width: 100vw !important;
+    z-index: unset !important;
+}
+.markdown-embed-content .pixel-banner-image ~ div {
+    position: relative;
+    z-index: 1;
 }
 
 /* Apply title color to both reading and editing mode */
@@ -83,9 +89,9 @@
     transform: scale(1.2);
 }
 
-/* ------------------------------------------------------------------ */
-/* -- push frontmatter container down to give room to banner image -- */
-/* ------------------------------------------------------------------ */
+/* ----------------------------------------------------- */
+/* -- content start (push frontmatter container down) -- */
+/* ----------------------------------------------------- */
 .pixel-banner .cm-sizer:first-of-type,
 .pixel-banner .markdown-preview-sizer:first-of-type {
     padding-top: var(--pixel-banner-content-start, 150px);
@@ -94,7 +100,8 @@
 /* fix for embedded notes */
 .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
-    padding-top: unset !important;
+    padding-top: var(--pixel-banner-content-start, 150px);
+    /* padding-top: unset !important; */
 }
 
 /* -------------------------- */

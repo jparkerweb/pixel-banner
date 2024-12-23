@@ -1117,8 +1117,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
             }
         });
         
-        const styleEl = document.getElementById('pixel-banner-embedded-titles');
-        if (styleEl) styleEl.remove();
+        const styleElTitle = document.getElementById('pixel-banner-embedded-titles');
+        if (styleElTitle) styleElTitle.remove();
+        const styleElBanner = document.getElementById('pixel-banner-embedded-banners');
+        if (styleElBanner) styleElBanner.remove();
     }
 
     applyContentStartPosition(el, contentStartPosition) {
@@ -1242,7 +1244,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
         const viewContent = el;
         const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
-        
+
         // Now we can use isEmbedded
         if (!isEmbedded) {
             viewContent.classList.add('pixel-banner');
@@ -1392,6 +1394,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     container.appendChild(refreshIcon);
                 }
             }
+        } else {
+            this.updateEmbeddedBannersVisibility();
         }
 
         // Update the setChildrenInPlace override with more robust handling
@@ -1449,6 +1453,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     this.lastKeywords.set(file.path, bannerImage);
                 }
             }
+
+            console.log('imageUrl', imageUrl);
 
             if (imageUrl) {
                 const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
@@ -1680,6 +1686,29 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 document.head.appendChild(styleEl);
             }
             styleEl.textContent = '.embed-title.markdown-embed-title { display: none !important; }';
+        } else if (styleEl) {
+            styleEl.remove();
+        }
+    }
+    updateEmbeddedBannersVisibility() {
+        const styleId = 'pixel-banner-embedded-banners';
+        let styleEl = document.getElementById(styleId);
+        
+        if (this.settings.hideEmbeddedNoteBanners) {
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = styleId;
+                document.head.appendChild(styleEl);
+            }
+            styleEl.textContent = `
+                .internal-embed .pixel-banner-image {
+                    display: none !important;
+                }
+                .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
+                .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
+                    padding-top: unset !important;
+                }
+            `;
         } else if (styleEl) {
             styleEl.remove();
         }
