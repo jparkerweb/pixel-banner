@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## v2.16.1
+### 🐛 Fixed
+- Fixed an issue with "Banner Shuffle" not working when defined via frontmatter
+
 ## v2.16.0
 ### ✨ Added
 - New setting to hide embedded note banners

@@ -367,7 +367,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             // If shuffle path exists in frontmatter, use it
             const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
             if (randomImagePath) {
-                bannerImage = `"${randomImagePath}"`;
+                bannerImage = randomImagePath;
             }
         }
         
