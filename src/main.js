@@ -1454,8 +1454,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 }
             }
 
-            console.log('imageUrl', imageUrl);
-
             if (imageUrl) {
                 const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
                 const folderSpecific = this.getFolderSpecificImage(file.path);

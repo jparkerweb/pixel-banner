@@ -2648,7 +2648,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           this.lastKeywords.set(file.path, bannerImage);
         }
       }
-      console.log("imageUrl", imageUrl);
       if (imageUrl) {
         const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
         const folderSpecific = this.getFolderSpecificImage(file.path);
