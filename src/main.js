@@ -367,7 +367,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             // If shuffle path exists in frontmatter, use it
             const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
             if (randomImagePath) {
-                bannerImage = `"${randomImagePath}"`;
+                bannerImage = randomImagePath;
             }
         }
         
@@ -1453,8 +1453,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     this.lastKeywords.set(file.path, bannerImage);
                 }
             }
-
-            console.log('imageUrl', imageUrl);
 
             if (imageUrl) {
                 const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);

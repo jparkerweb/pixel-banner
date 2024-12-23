@@ -1541,7 +1541,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.16.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New setting to hide embedded note banners</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed an issue with embedded note banner&#39;s &quot;content start&quot; position not being obeyed</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.16.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.16.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.16.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed an issue with &quot;Banner Shuffle&quot; not working when defined via frontmatter</li>\n</ul>\n<h3>v2.16.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New setting to hide embedded note banners</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed an issue with embedded note banner&#39;s &quot;content start&quot; position not being obeyed</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.16.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.16.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -1817,7 +1817,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (shufflePath) {
       const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
       if (randomImagePath) {
-        bannerImage = `"${randomImagePath}"`;
+        bannerImage = randomImagePath;
       }
     }
     if (!bannerImage) {
@@ -2648,7 +2648,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           this.lastKeywords.set(file.path, bannerImage);
         }
       }
-      console.log("imageUrl", imageUrl);
       if (imageUrl) {
         const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
         const folderSpecific = this.getFolderSpecificImage(file.path);

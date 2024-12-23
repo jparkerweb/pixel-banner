@@ -20,23 +20,8 @@
               "icon": "lucide-file",
               "title": "🚩 Pixel-Banner"
             }
-          },
-          {
-            "id": "6871cf718a9bab19",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
-                "mode": "preview",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "v2.16.0 - 😱 Hide the Children, PART II"
-            }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -1930,6 +1915,26 @@
             "id": "fcd1ca21209eca81",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "203f5f941482bd3a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4ed42ec13caf6e10",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -1937,7 +1942,7 @@
             }
           }
         ],
-        "currentTab": 180
+        "currentTab": 182
       }
     ],
     "direction": "horizontal",
@@ -1955,21 +1960,25 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "6871cf718a9bab19",
+  "active": "342e5185840138ef",
   "lastOpenFiles": [
+    "tests/🧪 test - 7- shuffle time!.md",
+    "Random Shuffle/Disney Lorcana.md",
+    "releases/v2.10.0 - 🖌️ Title Color.md",
+    "releases/v2.11.0 - 📌 Pin my URL Please.md",
+    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
+    "releases/v2.13.0 - 🖼️ View my Banner.md",
     "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
     "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
     "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
-    "pixel-banner-images/monster-looking-at-children.png",
     "🚩 Pixel-Banner.md",
+    "pixel-banner-images/monster-looking-at-children.png",
     "emtest.md",
     "em222.md",
     "em10.md",
     "tests/🧪 test - 8 - embed tests.md",
     "tests/🧪 test - 6 - image float right.md",
     "notes/subfolder/Embedded Note in Subfolder.md",
-    "tests/🧪 test - 7- shuffle time!.md",
-    "Random Shuffle/Disney Lorcana.md",
     "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
     "tests/🧪 test - 3 - direct url link.md",
@@ -1982,17 +1991,14 @@
     "notes/📜 Embedded Note with Banner.md",
     "notes/📃 Embedded Note.md",
     "pixel-banner-images/garden[1].jpg",
-    "Untitled 1.md",
     "shuffle-images/bell-hidden-archer.jpg",
     "test blank note.png",
-    "test blank note.md",
     "figs.jpg",
     "pixel-banner-images/shuffle.png",
     "pixel-banner-images/pin-clouds.png",
     "pixel-banner-images/paint-drips.png",
     "pixel-banner-images/good-art-is-never-forgotten.png",
     "pixel-banner-images/justin.png",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
     "Random Shuffle",
     "shuffle-images",
     "releases",
