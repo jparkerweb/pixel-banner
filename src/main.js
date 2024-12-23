@@ -1244,7 +1244,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
         const viewContent = el;
         const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
-        
+
         // Now we can use isEmbedded
         if (!isEmbedded) {
             viewContent.classList.add('pixel-banner');
@@ -1453,6 +1453,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     this.lastKeywords.set(file.path, bannerImage);
                 }
             }
+
+            console.log('imageUrl', imageUrl);
 
             if (imageUrl) {
                 const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);

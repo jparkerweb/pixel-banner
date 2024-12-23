@@ -2,6 +2,13 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## v2.16.0
+### ✨ Added
+- New setting to hide embedded note banners
+
+### 🐛 Fixed
+- Fixed an issue with embedded note banner's "content start" position not being obeyed
+
 ## v2.15.2
 ### 🐛 Fixed
 - Fixed an issue with using the `Select Image` button to select an image with a `[` in the filename

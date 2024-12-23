@@ -2648,6 +2648,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           this.lastKeywords.set(file.path, bannerImage);
         }
       }
+      console.log("imageUrl", imageUrl);
       if (imageUrl) {
         const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
         const folderSpecific = this.getFolderSpecificImage(file.path);
@@ -2827,7 +2828,15 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         styleEl.id = styleId;
         document.head.appendChild(styleEl);
       }
-      styleEl.textContent = ".pixel-banner-image { display: none !important; }";
+      styleEl.textContent = `
+                .internal-embed .pixel-banner-image {
+                    display: none !important;
+                }
+                .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
+                .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
+                    padding-top: unset !important;
+                }
+            `;
     } else if (styleEl) {
       styleEl.remove();
     }
