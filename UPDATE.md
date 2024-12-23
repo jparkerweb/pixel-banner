@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.16.2
+#### 🐛 Fixed
+- Fixed an issue with "content start" padding being applied to embedded notes without a banner
+
 ### v2.16.1
 #### 🐛 Fixed
 - Fixed an issue with "Banner Shuffle" not working when defined via frontmatter

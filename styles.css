@@ -100,8 +100,11 @@
 /* fix for embedded notes */
 .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
-    padding-top: var(--pixel-banner-content-start, 150px);
-    /* padding-top: unset !important; */
+    padding-top: unset !important;
+}
+.internal-embed > .markdown-embed-content .cm-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher,
+.internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher {
+    height: var(--pixel-banner-content-start, 0.1px) !important;
 }
 
 /* -------------------------- */

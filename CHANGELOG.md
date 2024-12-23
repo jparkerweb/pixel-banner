@@ -2,22 +2,26 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## v2.16.1
+## [v2.16.2] - 2024-12-23
+### 🐛 Fixed
+- Fixed an issue with "content start" padding being applied to embedded notes without a banner
+
+## [v2.16.1] - 2024-12-22
 ### 🐛 Fixed
 - Fixed an issue with "Banner Shuffle" not working when defined via frontmatter
 
-## v2.16.0
+## [v2.16.0] - 2024-12-22
 ### ✨ Added
 - New setting to hide embedded note banners
 
 ### 🐛 Fixed
 - Fixed an issue with embedded note banner's "content start" position not being obeyed
 
-## v2.15.2
+## [v2.15.2] - 2024-12-21
 ### 🐛 Fixed
 - Fixed an issue with using the `Select Image` button to select an image with a `[` in the filename
 
-## v2.15.1
+## [v2.15.1] - 2024-12-20
 ### ✨ Added
 - Option to select/upload images from your file system when using the `Select Image` button
 
