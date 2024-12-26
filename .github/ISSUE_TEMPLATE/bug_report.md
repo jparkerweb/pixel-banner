@@ -6,6 +6,9 @@ labels: bug
 assignees: ''
 
 ---
+_Consider joining our Discord for additional support and conversation: https://discord.gg/sp8AQQhMJ7_
+
+---
 
 **Describe the bug**
 A clear and concise description of what the bug is.
