@@ -4,11 +4,12 @@ about: Create a report to help us improve
 title: "\U0001F41B ..."
 labels: bug
 assignees: ''
-
 ---
-_Consider joining our Discord for additional support and conversation: https://discord.gg/sp8AQQhMJ7_
 
----
+<!--
+Consider joining our Discord for additional support and conversation:
+https://discord.gg/sp8AQQhMJ7
+//-->
 
 **Describe the bug**
 A clear and concise description of what the bug is.
