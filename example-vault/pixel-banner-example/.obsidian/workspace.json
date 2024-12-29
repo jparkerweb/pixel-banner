@@ -4,18 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "cbb9f73f33547d8f",
+        "id": "62d3b17bf96c7ca0",
         "type": "tabs",
         "children": [
           {
-            "id": "5772e414935a6c5e",
+            "id": "9ca5645a320e8ae2",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "🚩 Pixel-Banner.md",
                 "mode": "preview",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
               "title": "🚩 Pixel-Banner"
@@ -1955,6 +1955,86 @@
             "id": "d8decfd9e5b40ae4",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "023c2fb63072671a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9ca656f62192789f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "77963a397d99b921",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5c0d36ee573b5914",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7dfac352454267bf",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a0e640f45ba2c8cb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c4384bc792fa7765",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d6a4fdd3ef67baf4",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -1962,7 +2042,7 @@
             }
           }
         ],
-        "currentTab": 184
+        "currentTab": 192
       }
     ],
     "direction": "horizontal",
@@ -1980,14 +2060,21 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "5772e414935a6c5e",
+  "active": "9ca5645a320e8ae2",
   "lastOpenFiles": [
-    "tests/🧪 test - 8 - embed tests.md",
+    "tests/🧪 test - 9 - embed tests.md",
+    "🧪 test - 8 - embed tests.md",
+    "tests/🧪 test - 8 - render link.md",
+    "tests/🧪 test - 7- shuffle time!.md",
     "tests/🧪 test - 1 - internal link.md",
+    "tests/🧪 test - 2 - internal link - quoted.md",
+    "tests/🧪 test - 3 - direct url link.md",
+    "tests/🧪 test - 4 - all fields.md",
+    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 6 - image float right.md",
     "🚩 Pixel-Banner.md",
     "emtest.md",
     "em1.md",
-    "tests/🧪 test - 7- shuffle time!.md",
     "Random Shuffle/Disney Lorcana.md",
     "releases/v2.10.0 - 🖌️ Title Color.md",
     "releases/v2.11.0 - 📌 Pin my URL Please.md",
@@ -1999,15 +2086,9 @@
     "pixel-banner-images/monster-looking-at-children.png",
     "em222.md",
     "em10.md",
-    "tests/🧪 test - 6 - image float right.md",
     "notes/subfolder/Embedded Note in Subfolder.md",
-    "tests/🧪 test - 2 - internal link - quoted.md",
-    "tests/🧪 test - 3 - direct url link.md",
-    "tests/🧪 test - 4 - all fields.md",
-    "tests/🧪 test - 5 - absolute position.md",
     "50/em50.md",
     "em20.md",
-    "em111.md",
     "50",
     "pixel-banner-images/garden[1].jpg",
     "shuffle-images/bell-hidden-archer.jpg",

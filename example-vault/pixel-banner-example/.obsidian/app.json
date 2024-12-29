@@ -1,5 +1,11 @@
 {
   "alwaysUpdateLinks": true,
   "showInlineTitle": false,
-  "livePreview": false
+  "livePreview": false,
+  "pdfExportSettings": {
+    "pageSize": "Letter",
+    "landscape": false,
+    "margin": "0",
+    "downscalePercent": 100
+  }
 }

@@ -18,9 +18,9 @@
   "showBacklinks": true,
   "showOutlinks": true,
   "showDates": true,
-  "combineLinks": false,
+  "combineLinks": true,
   "updateDelay": 3000,
   "excludedParentSelectors": [],
   "frontmatterExclusionField": "",
-  "lastVersion": "1.10.3"
+  "lastVersion": "1.10.5"
 }

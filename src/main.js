@@ -1022,13 +1022,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     getPathFromObsidianLink(link) {
+        // Remove the ! from the beginning if it exists (for render links)
+        let cleanLink = link.startsWith('!') ? link.slice(1) : link;
         // Remove the [[ from the beginning of the link
-        let innerLink = link.startsWith('[[') ? link.slice(2) : link;
+        let innerLink = cleanLink.startsWith('[[') ? cleanLink.slice(2) : cleanLink;
         // Remove the ]] from the end if it exists
         innerLink = innerLink.endsWith(']]') ? innerLink.slice(0, -2) : innerLink;
         // Split by '|' in case there's an alias, and take the first part
         const path = innerLink.split('|')[0];
-        // Resolve the path within the vault
+        // Resolve the path within
         return this.app.metadataCache.getFirstLinkpathDest(path, '');
     }
 

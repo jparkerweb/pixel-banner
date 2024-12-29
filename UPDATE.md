@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.16.3
+#### ✨ Added
+- Add support for render links for banners (e.g. `![[banner.jpg]]`)
+
 ### v2.16.2
 #### 🐛 Fixed
 - Fixed an issue with "content start" padding being applied to embedded notes without a banner
