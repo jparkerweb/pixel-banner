@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## [v2.16.3] - 2024-12-28
+### ✨ Added
+- Add support for render links for banners (e.g. `![[banner.jpg]]`)
+
 ## [v2.16.2] - 2024-12-23
 ### 🐛 Fixed
 - Fixed an issue with "content start" padding being applied to embedded notes without a banner
