@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v2.17.0 - 2024-12-30
+#### ✨ Added
+- Sorting and Pagination controls for the Banner Image selection modal  
+  (great for finding images in a large vault with many images)
+
 ## [v2.16.3] - 2024-12-28
 ### ✨ Added
 - Add support for render links for banners (e.g. `![[banner.jpg]]`)
