@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🚩 Pixel-Banner.md",
+                "file": "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "🚩 Pixel-Banner"
+              "title": "v2.17.0 - 🧦 Sort your Sock Drawer"
             }
           }
         ]
@@ -2035,6 +2035,96 @@
             "id": "d6a4fdd3ef67baf4",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "570d1b0f273c0826",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4ea04b4d6d8ba799",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1d9ce28515c8f3c5",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "cd563b023d016044",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0bb92fca16a4b74b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f31c39bdad77a6fb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4276153ea1198e10",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b0bbd9847317a7ad",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "89c4c43dd9f747c3",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -2042,7 +2132,7 @@
             }
           }
         ],
-        "currentTab": 192
+        "currentTab": 201
       }
     ],
     "direction": "horizontal",
@@ -2060,11 +2150,25 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "9ca5645a320e8ae2",
+  "active": "89c4c43dd9f747c3",
   "lastOpenFiles": [
-    "tests/🧪 test - 9 - embed tests.md",
-    "🧪 test - 8 - embed tests.md",
+    "pixel-banner-images/wall-of-images.png",
+    "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
+    "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
+    "🚩 Pixel-Banner.md",
     "tests/🧪 test - 8 - render link.md",
+    "tests/🧪 test - 9 - embed tests.md",
+    "pixel-banner-images/Screenshot 2024-12-30 161726.png",
+    "pixel-banner-images/Screenshot 2024-12-30 160514.png",
+    "pixel-banner-images/Screenshot 2024-12-30 154430.png",
+    "pixel-banner-images/Screenshot 2024-12-30 154402.png",
+    "pixel-banner-images/Screenshot 2024-12-30 153809.png",
+    "pixel-banner-images/Screenshot 2024-12-30 153507.png",
+    "pixel-banner-images/Screenshot 2024-12-30 153434.png",
+    "pixel-banner-images/Screenshot 2024-12-30 153415.png",
+    "pixel-banner-images/Screenshot 2024-12-30 144447.png",
+    "pixel-banner-images/Screenshot 2024-12-30 135813.png",
+    "🧪 test - 8 - embed tests.md",
     "tests/🧪 test - 7- shuffle time!.md",
     "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
@@ -2072,7 +2176,6 @@
     "tests/🧪 test - 4 - all fields.md",
     "tests/🧪 test - 5 - absolute position.md",
     "tests/🧪 test - 6 - image float right.md",
-    "🚩 Pixel-Banner.md",
     "emtest.md",
     "em1.md",
     "Random Shuffle/Disney Lorcana.md",
@@ -2082,23 +2185,10 @@
     "releases/v2.13.0 - 🖼️ View my Banner.md",
     "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
     "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
-    "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
-    "pixel-banner-images/monster-looking-at-children.png",
     "em222.md",
     "em10.md",
     "notes/subfolder/Embedded Note in Subfolder.md",
-    "50/em50.md",
-    "em20.md",
     "50",
-    "pixel-banner-images/garden[1].jpg",
-    "shuffle-images/bell-hidden-archer.jpg",
-    "test blank note.png",
-    "figs.jpg",
-    "pixel-banner-images/shuffle.png",
-    "pixel-banner-images/pin-clouds.png",
-    "pixel-banner-images/paint-drips.png",
-    "pixel-banner-images/good-art-is-never-forgotten.png",
-    "pixel-banner-images/justin.png",
     "Random Shuffle",
     "shuffle-images",
     "releases",
