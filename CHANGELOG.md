@@ -2,6 +2,15 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v2.18.0 - 2025-01-01
+#### ✨ Added
+- Switch to internal image reference format when Selecting a Banner Image
+- Option to use `short paths` for image references (e.g. `[[forest.jpg]]` instead of `[[path/forest.jpg]]`)
+- New setting to set the gap between the banner and the window edges (0-50 pixels)
+
+#### 📦 Updated
+- Improved the Banner Image selection modal UI
+
 ### v2.17.0 - 2024-12-30
 #### ✨ Added
 - Sorting and Pagination controls for the Banner Image selection modal  

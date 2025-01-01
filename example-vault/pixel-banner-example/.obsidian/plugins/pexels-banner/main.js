@@ -53,7 +53,9 @@ var DEFAULT_SETTINGS = {
   hideEmbeddedNoteTitles: false,
   hideEmbeddedNoteBanners: false,
   showSelectImageIcon: true,
-  defaultSelectImagePath: ""
+  defaultSelectImagePath: "",
+  useShortPath: true,
+  bannerGap: 12
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -778,6 +780,20 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       inputEl.value = DEFAULT_SETTINGS.borderRadius;
       inputEl.dispatchEvent(new Event("input"));
     }));
+    new import_obsidian.Setting(containerEl).setName("Banner Gap").setDesc("Set the gap between the banner and the window edges (0-50 pixels)").addSlider(
+      (slider) => slider.setLimits(0, 50, 1).setValue(this.plugin.settings.bannerGap).setDynamicTooltip().onChange(async (value) => {
+        this.plugin.settings.bannerGap = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      })
+    ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+      const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+      sliderEl.value = DEFAULT_SETTINGS.bannerGap;
+      sliderEl.dispatchEvent(new Event("input"));
+    }));
     new import_obsidian.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
       const currentColor = this.plugin.settings.titleColor;
       if (currentColor.startsWith("var(--")) {
@@ -1364,6 +1380,10 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h2", { text: "Select Banner Image" });
+    contentEl.createEl("div", {
+      text: "Select an image from your vault or upload a new one.",
+      cls: "pixel-banner-image-select-description"
+    });
     const searchContainer = contentEl.createDiv({ cls: "pixel-banner-search-container" });
     searchContainer.style.display = "flex";
     searchContainer.style.gap = "8px";
@@ -1381,6 +1401,28 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
     const uploadButton = searchContainer.createEl("button", {
       text: "\u{1F4E4} Upload External Image"
     });
+    const toggleContainer = searchContainer.createDiv({
+      cls: "pixel-banner-path-toggle",
+      attr: {
+        style: "display: flex; align-items: center; gap: 8px;"
+      }
+    });
+    const toggleLabel = toggleContainer.createSpan({
+      text: "Use short path",
+      attr: {
+        style: "font-size: 12px; color: var(--text-muted);"
+      }
+    });
+    const toggle = new import_obsidian2.Setting(toggleContainer).addToggle((cb) => {
+      cb.setValue(this.plugin.settings.useShortPath).onChange(async (value) => {
+        this.plugin.settings.useShortPath = value;
+        await this.plugin.saveSettings();
+      });
+    });
+    toggle.settingEl.style.border = "none";
+    toggle.settingEl.style.padding = "0";
+    toggle.settingEl.style.margin = "0";
+    toggle.infoEl.remove();
     const fileInput = searchContainer.createEl("input", {
       type: "file",
       attr: {
@@ -1710,7 +1752,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.17.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Sorting and Pagination controls for the Banner Image selection modal<br>(great for finding images in a large vault with many images)</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.17.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.17.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.18.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Switch to internal image reference format when Selecting a Banner Image</li>\n<li>Option to use <code>short paths</code> for image references (e.g. <code>[[forest.jpg]]</code> instead of <code>[[path/forest.jpg]]</code>)</li>\n<li>New setting to set the gap between the banner and the window edges (0-50 pixels)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved the Banner Image selection modal UI</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -1877,6 +1919,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       name: "\u{1F3F7}\uFE0F Select Image",
       callback: () => this.handleSelectImage()
     });
+    if (this.settings.bannerGap === void 0) {
+      this.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
+    }
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -2075,7 +2120,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           const selectImageIcon = createDiv({ cls: "select-image-icon" });
           selectImageIcon.style.position = "absolute";
           selectImageIcon.style.top = "10px";
-          selectImageIcon.style.left = "17px";
+          selectImageIcon.style.left = `${this.settings.bannerGap + 5}px`;
           selectImageIcon.style.fontSize = "1.5em";
           selectImageIcon.style.cursor = "pointer";
           selectImageIcon.innerHTML = "\u{1F3F7}\uFE0F";
@@ -2577,13 +2622,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     el.style.setProperty("--pixel-banner-content-start", `${contentStartPosition}px`);
   }
   applyBannerWidth(el) {
-    if (!el) {
-      return;
-    }
-    const elWidth = el.clientWidth;
-    const scrollbarWidth = 12;
-    el.style.setProperty("--pixel-banner-width", `${elWidth - scrollbarWidth * 2}px`);
-    el.style.setProperty("--pixel-banner-scrollbar-width", `${scrollbarWidth}px`);
+    if (!el) return;
+    setTimeout(() => {
+      const theWidth = el.clientWidth;
+      const bannerGap = this.settings.bannerGap;
+      el.style.setProperty("--pixel-banner-width", `${theWidth - bannerGap * 2}px`);
+      el.style.setProperty("--pixel-banner-banner-gap", `${bannerGap}px`);
+    }, 50);
   }
   getFolderSpecificSetting(filePath, settingName) {
     var _a;
@@ -2699,7 +2744,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       if (existingPinIcon) existingPinIcon.remove();
       if (existingRefreshIcon) existingRefreshIcon.remove();
       if (existingSelectIcon) existingSelectIcon.remove();
-      let leftOffset = 17;
+      let leftOffset = this.settings.bannerGap + 5;
       if (this.settings.showSelectImageIcon) {
         const selectImageIcon = createDiv({ cls: "select-image-icon" });
         selectImageIcon.style.position = "absolute";
@@ -3019,8 +3064,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     new ImageSelectionModal(
       this.app,
       this,
-      // Pass the plugin instance
       async (selectedFile) => {
+        let imageReference = selectedFile.path;
+        if (this.settings.useShortPath) {
+          const allFiles = this.app.vault.getFiles();
+          const matchingFiles = allFiles.filter((f) => f.name === selectedFile.name);
+          imageReference = matchingFiles.length === 1 ? selectedFile.name : selectedFile.path;
+        }
         let fileContent = await this.app.vault.read(activeFile);
         const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
         const hasFrontmatter = frontmatterRegex.test(fileContent);
@@ -3036,7 +3086,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
               cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
             });
             cleanedFrontmatter = cleanedFrontmatter.trim();
-            const newFrontmatter = `${bannerField}: "${selectedFile.path}"${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+            const newFrontmatter = `${bannerField}: [[${imageReference}]]${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
             return `---
 ${newFrontmatter}
 ---`;
@@ -3044,7 +3094,7 @@ ${newFrontmatter}
         } else {
           const cleanContent = fileContent.replace(/^\s+/, "");
           updatedContent = `---
-${bannerField}: "${selectedFile.path}"
+${bannerField}: [[${imageReference}]]
 ---
 
 ${cleanContent}`;
@@ -3052,11 +3102,14 @@ ${cleanContent}`;
         updatedContent = updatedContent.replace(/^\s+/, "");
         if (updatedContent !== fileContent) {
           await this.app.vault.modify(activeFile, updatedContent);
-          new import_obsidian3.Notice("Banner image updated");
+          if (this.settings.useShortPath && imageReference === selectedFile.path) {
+            new import_obsidian3.Notice("Banner image updated (full path used due to duplicate filenames)");
+          } else {
+            new import_obsidian3.Notice("Banner image updated");
+          }
         }
       },
       this.settings.defaultSelectImagePath
-      // Pass the default path here
     ).open();
   }
 };

@@ -86,6 +86,15 @@
       "imageRepeat": false,
       "directChildrenOnly": false,
       "titleColor": "#ff0088"
+    },
+    {
+      "folder": "zzzzz",
+      "image": "",
+      "yPosition": 50,
+      "contentStartPosition": 550,
+      "imageDisplay": "cover",
+      "imageRepeat": false,
+      "directChildrenOnly": false
     }
   ],
   "contentStartPosition": 150,
@@ -97,7 +106,7 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.16.3",
+  "lastVersion": "2.18.0",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
   "hidePixelBannerFields": true,
@@ -107,5 +116,7 @@
   "hideEmbeddedNoteTitles": true,
   "hideEmbeddedNoteBanners": false,
   "showSelectImageIcon": true,
-  "defaultSelectImagePath": "pixel-banner-images"
+  "defaultSelectImagePath": "pixel-banner-images",
+  "useShortPath": true,
+  "bannerGap": 12
 }

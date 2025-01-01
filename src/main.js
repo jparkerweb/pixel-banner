@@ -226,6 +226,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
             name: '🏷️ Select Image',
             callback: () => this.handleSelectImage()
         });
+
+        // Ensure bannerGap has a default value if it doesn't exist
+        if (this.settings.bannerGap === undefined) {
+            this.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
+        }
     }
 
     async loadSettings() {
@@ -501,7 +506,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     const selectImageIcon = createDiv({ cls: 'select-image-icon' });
                     selectImageIcon.style.position = 'absolute';
                     selectImageIcon.style.top = '10px';
-                    selectImageIcon.style.left = '17px';
+                    selectImageIcon.style.left = `${this.settings.bannerGap + 5}px`;
                     selectImageIcon.style.fontSize = '1.5em';
                     selectImageIcon.style.cursor = 'pointer';
                     selectImageIcon.innerHTML = '🏷️';
@@ -1133,13 +1138,56 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     applyBannerWidth(el) {
-        if (!el) {
-            return;
-        }
-        const elWidth = el.clientWidth;
-        const scrollbarWidth = 12;
-        el.style.setProperty('--pixel-banner-width', `${elWidth - (scrollbarWidth * 2)}px`);
-        el.style.setProperty('--pixel-banner-scrollbar-width', `${scrollbarWidth}px`);
+        if (!el) return;
+
+        setTimeout(() => {
+            // determine if the view is in reading mode
+            // const isReadingMode = () => {
+            //     const viewContent = el.querySelector(':scope > .markdown-reading-view');
+            //     if (viewContent) {
+            //         const displayStyle = window.getComputedStyle(viewContent).display;
+            //         return displayStyle !== 'none';
+            //     }
+            //     return false;
+            // };
+
+            // // get the inner element
+            // function getInnerElement(selector) {
+            //     return el.querySelector(selector);
+            // }
+            // // get the client width of the inner element
+            // function getClientWidth(innerEl) {
+            //     if (innerEl.scrollHeight > innerEl.clientHeight) {
+            //         return innerEl.clientWidth;
+            //     } else {
+            //         return el.clientWidth;
+            //     }
+            // }
+            // // get the selector for the inner element
+            // const selector = isReadingMode()
+            // ? ':scope > .markdown-reading-view > .markdown-preview-view'
+            // : ':scope > .markdown-source-view > cm-editor > .cm-scroller';
+            
+            // let elClientWidth;
+            // const innerEl = getInnerElement(selector);
+            // if (innerEl) {
+            //     elClientWidth = getClientWidth(innerEl);
+            // }
+
+            // let re = el.querySelector(':scope > .markdown-reading-view > .markdown-preview-view');
+            // let ed = el.querySelector(':scope > .markdown-source-view > cm-editor > .cm-scroller');
+            // let theWidth;
+            // if (re && ed) {
+            //     theWidth = re.clientWidth > ed.clientWidth ? re.clientWidth : ed.clientWidth;
+            // } else {
+            //     theWidth = el.clientWidth ? el.clientWidth : elClientWidth;
+            // }
+
+            const theWidth = el.clientWidth;
+            const bannerGap = this.settings.bannerGap;
+            el.style.setProperty('--pixel-banner-width', `${theWidth - (bannerGap * 2)}px`);
+            el.style.setProperty('--pixel-banner-banner-gap', `${bannerGap}px`);
+        }, 50);
     }
 
     getFolderSpecificSetting(filePath, settingName) {
@@ -1305,7 +1353,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             if (existingRefreshIcon) existingRefreshIcon.remove();
             if (existingSelectIcon) existingSelectIcon.remove();
 
-            let leftOffset = 17;  // Starting position
+            let leftOffset = this.settings.bannerGap + 5;  // Starting position
 
             // Add select image icon if enabled
             if (this.settings.showSelectImageIcon) {
@@ -1723,8 +1771,21 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         new ImageSelectionModal(
             this.app,
-            this,  // Pass the plugin instance
+            this,
             async (selectedFile) => {
+                let imageReference = selectedFile.path;  // Default to full path
+
+                if (this.settings.useShortPath) {
+                    // Check if filename is unique in vault
+                    const allFiles = this.app.vault.getFiles();
+                    const matchingFiles = allFiles.filter(f => f.name === selectedFile.name);
+                    
+                    // Use short path only if filename is unique
+                    imageReference = matchingFiles.length === 1 ? 
+                        selectedFile.name : 
+                        selectedFile.path;
+                }
+
                 let fileContent = await this.app.vault.read(activeFile);
                 const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
                 const hasFrontmatter = frontmatterRegex.test(fileContent);
@@ -1741,30 +1802,32 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
                         let cleanedFrontmatter = frontmatter.trim();
                         
-                        // Remove any banner fields to prevent duplicates
                         this.settings.customBannerField.forEach(field => {
                             const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
                             cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
                         });
 
-                        // Add the new banner field at the start, ensuring no extra newlines
                         cleanedFrontmatter = cleanedFrontmatter.trim();
-                        const newFrontmatter = `${bannerField}: "${selectedFile.path}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+                        const newFrontmatter = `${bannerField}: [[${imageReference}]]${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
                         return `---\n${newFrontmatter}\n---`;
                     });
                 } else {
                     const cleanContent = fileContent.replace(/^\s+/, '');
-                    updatedContent = `---\n${bannerField}: "${selectedFile.path}"\n---\n\n${cleanContent}`;
+                    updatedContent = `---\n${bannerField}: [[${imageReference}]]\n---\n\n${cleanContent}`;
                 }
 
                 updatedContent = updatedContent.replace(/^\s+/, '');
                 
                 if (updatedContent !== fileContent) {
                     await this.app.vault.modify(activeFile, updatedContent);
-                    new Notice('Banner image updated');
+                    if (this.settings.useShortPath && imageReference === selectedFile.path) {
+                        new Notice('Banner image updated (full path used due to duplicate filenames)');
+                    } else {
+                        new Notice('Banner image updated');
+                    }
                 }
             },
-            this.settings.defaultSelectImagePath // Pass the default path here
+            this.settings.defaultSelectImagePath
         ).open();
     }
 }

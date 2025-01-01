@@ -8,11 +8,12 @@
 .pixel-banner-image {
 	position: absolute;
 	top: 0;
-	/* left: 0; */
-	left: var(--pixel-banner-scrollbar-width, 0);
-	right: 0;
-    width: var(--pixel-banner-width, 100vw) !important; /* fix banner width with some themes */
-    max-width: var(--pixel-banner-width, 100vw) !important; /* fix banner width with some themes */
+    /* left: 0; */
+    /* right: 0; */
+    /* width: var(--pixel-banner-width, 100vw) !important; */
+    /* max-width: var(--pixel-banner-width, 100vw) !important; */
+	left: var(--pixel-banner-banner-gap, 0);
+	right: var(--pixel-banner-banner-gap, 0);
 	background-size: cover; 
 	background-position: 50% 50%;
 	overflow: hidden;  
@@ -38,6 +39,12 @@
 .markdown-embed-content .pixel-banner-image ~ div {
     position: relative;
     z-index: 1;
+}
+
+/* collapse scrollbar gutter when no scrollbar is present */
+.pixel-banner .markdown-preview-view,
+.pixel-banner .markdown-source-view .cm-scroller {
+    scrollbar-gutter: auto !important;
 }
 
 /* Apply title color to both reading and editing mode */
@@ -496,6 +503,14 @@
 
 .pixel-banner-image-select-modal {
     width: var(--dialog-max-width);
+}
+
+.pixel-banner-image-select-description {
+    margin-top: -15px;
+    font-size: 0.8em;
+    word-break: break-all;
+    color: var(--text-muted);
+    margin-bottom: 15px;
 }
 
 .pixel-banner-search-container {

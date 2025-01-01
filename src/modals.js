@@ -135,7 +135,7 @@ export class ImageSelectionModal extends Modal {
         this.searchQuery = defaultPath.toLowerCase();
         this.currentPage = 1;
         this.imagesPerPage = 20;
-        this.sortOrder = 'name-asc'; // Default sort
+        this.sortOrder = 'name-asc';
         this.imageFiles = this.app.vault.getFiles()
             .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp)$/));
     }
@@ -155,8 +155,13 @@ export class ImageSelectionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
-        // Add title
+        // Title
         contentEl.createEl('h2', { text: 'Select Banner Image' });
+        // Description
+        contentEl.createEl('div', {
+            text: 'Select an image from your vault or upload a new one.',
+            cls: 'pixel-banner-image-select-description'
+        });
 
         // Add search container
         const searchContainer = contentEl.createDiv({ cls: 'pixel-banner-search-container' });
@@ -179,6 +184,36 @@ export class ImageSelectionModal extends Modal {
         const uploadButton = searchContainer.createEl('button', {
             text: '📤 Upload External Image'
         });
+
+        // Add the toggle container and switch
+        const toggleContainer = searchContainer.createDiv({ 
+            cls: 'pixel-banner-path-toggle',
+            attr: {
+                style: 'display: flex; align-items: center; gap: 8px;'
+            }
+        });
+
+        const toggleLabel = toggleContainer.createSpan({
+            text: 'Use short path',
+            attr: {
+                style: 'font-size: 12px; color: var(--text-muted);'
+            }
+        });
+
+        const toggle = new Setting(toggleContainer)
+            .addToggle(cb => {
+                cb.setValue(this.plugin.settings.useShortPath)
+                    .onChange(async (value) => {
+                        this.plugin.settings.useShortPath = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+
+        // Style the toggle container to be compact
+        toggle.settingEl.style.border = 'none';
+        toggle.settingEl.style.padding = '0';
+        toggle.settingEl.style.margin = '0';
+        toggle.infoEl.remove(); // Remove the empty info element
 
         // Create hidden file input
         const fileInput = searchContainer.createEl('input', {
