@@ -42,6 +42,8 @@ const DEFAULT_SETTINGS = {
     hideEmbeddedNoteBanners: false,
     showSelectImageIcon: true,
     defaultSelectImagePath: '',
+    useShortPath: true,
+    bannerGap: 12,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -571,7 +573,6 @@ class PixelBannerPlugin extends Plugin {
             });
         }
     }
-    // ... rest of the plugin class
 }
 
 class PixelBannerSettingTab extends PluginSettingTab {
@@ -667,6 +668,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
             .setName('Pexels API Key');
         containerEl.createEl('span', { text: 'Enter your Pexels API key. Get your API key from ', cls: 'setting-item-description' })
             .createEl('a', { href: 'https://www.pexels.com/api/', text: 'Pexels API' });
+        
+        // Pexels API key setting
         const pexelsApiKeySetting = new Setting(containerEl)
             .setClass('full-width-control')
             .addText(text => {
@@ -698,13 +701,18 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     
                     new Notice(isValid ? '✅ Pexels API key is valid!' : '❌ Invalid Pexels API key');
                 }));
+        
         pexelsApiKeySetting.settingEl.style.width = '100%';
 
         // Pixabay API key
         new Setting(containerEl)
             .setName('Pixabay API Key');
+        
+        // Pixabay API key description
         containerEl.createEl('span', { text: 'Enter your Pixabay API key. Get your API key from ', cls: 'setting-item-description' })
             .createEl('a', { href: 'https://pixabay.com/api/docs/', text: 'Pixabay API' });
+        
+        // Pixabay API key setting
         const pixabayApiKeySetting = new Setting(containerEl)
             .setClass('full-width-control')
             .addText(text => {
@@ -736,13 +744,18 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     
                     new Notice(isValid ? '✅ Pixabay API key is valid!' : '❌ Invalid Pixabay API key');
                 }));
+        
         pixabayApiKeySetting.settingEl.style.width = '100%';
 
-        // Add Flickr API key setting
+        // Flickr API key
         new Setting(containerEl)
             .setName('Flickr API Key');
+        
+        // Flickr API key description
         containerEl.createEl('span', { text: 'Enter your Flickr API key. Get your API key from ', cls: 'setting-item-description' })
             .createEl('a', { href: 'https://www.flickr.com/services/api/', text: 'Flickr API' });
+        
+        // Flickr API key setting
         const flickrApiKeySetting = new Setting(containerEl)
             .setClass('full-width-control')
             .addText(text => {
@@ -775,10 +788,15 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     new Notice(isValid ? '✅ Flickr API key is valid!' : '❌ Invalid Flickr API key');
                 }));
 
+        // Unsplash API key
         new Setting(containerEl)
             .setName('Unsplash API Key');
+        
+        // Unsplash API key description
         containerEl.createEl('span', { text: 'Enter your Unsplash API key (Access Key). Get your API key from ', cls: 'setting-item-description' })
             .createEl('a', { href: 'https://unsplash.com/oauth/applications', text: 'Unsplash API' });
+        
+        // Unsplash API key setting
         const unsplashApiKeySetting = new Setting(containerEl)
             .setClass('full-width-control')
             .addText(text => {
@@ -811,11 +829,13 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     new Notice(isValid ? '✅ Unsplash API key is valid!' : '❌ Invalid Unsplash API key');
                 }));
 
+        // Images section
         new Setting(containerEl)
             .setName('Images')
             .setDesc('Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.')
             .setHeading();
 
+        // Show Pin Icon setting
         new Setting(containerEl)
             .setName('Show Pin Icon')
             .setDesc('Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.')
@@ -829,7 +849,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        // Add the folder input setting
+        // Folder input setting
         const folderInputSetting = new Setting(containerEl)
             .setName('Pinned Images Folder')
             .setDesc('Default folder where pinned banner images will be saved')
@@ -875,7 +895,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     }
                 }));
 
-        // Add the refresh icon setting
+        // Refresh icon setting
         const refreshIconSetting = new Setting(containerEl)
             .setName('Show Refresh Icon')
             .setDesc('Show a refresh icon next to the pin icon to get a new random image')
@@ -890,6 +910,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
         folderInputSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? 'flex' : 'none';
         refreshIconSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? 'flex' : 'none';
 
+        // Size setting
         new Setting(containerEl)
             .setName('Size')
             .setDesc('Select the size of the image - (API only)')
@@ -903,6 +924,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
+        // Orientation setting
         new Setting(containerEl)
             .setName('Orientation')
             .setDesc('Select the orientation of the image - (API only)')
@@ -916,6 +938,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
+        // Number of images setting
         new Setting(containerEl)
             .setName('Number of images')
             .setDesc('Enter the number of random images to fetch (3-50) - (API only)')
@@ -938,6 +961,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 inputEl.style.width = '50px';
             });
 
+        // Default keywords setting
         const defaultKeywordsSetting = new Setting(containerEl)
             .setName('Default keywords')
             .setDesc('Enter a comma-separated list of default keywords to be used when no keyword is provided in the frontmatter, or when the provided keyword does not return any results. - (API only)')
@@ -973,6 +997,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
         const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
         calloutEl.createEl('div', { text: 'Configure default settings for all notes. These can be overridden per folder or per note.' });
 
+        // Image Vertical Position setting
         new Setting(containerEl)
             .setName('Image Vertical Position')
             .setDesc('Set the vertical position of the image (0-100)')
@@ -999,6 +1024,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     sliderEl.dispatchEvent(new Event('input'));
                 }));
 
+        // Content Start Position setting
         new Setting(containerEl)
             .setName('Content Start Position')
             .setDesc('Set the default vertical position where the content starts (in pixels)')
@@ -1032,6 +1058,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     inputEl.dispatchEvent(new Event('input'));
                 }));
 
+        // Image Display setting
         new Setting(containerEl)
             .setName('Image Display')
             .setDesc('Set how the banner image should be displayed')
@@ -1060,6 +1087,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     dropdownEl.dispatchEvent(new Event('change'));
                 }));
 
+        // Image Repeat setting
         new Setting(containerEl)
             .setName('Image Repeat')
             .setDesc('Enable image repetition when "Contain" is selected')
@@ -1091,6 +1119,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     }
                 }));
 
+        // Banner Height setting
         new Setting(containerEl)
             .setName('Banner Height')
             .setDesc('Set the default height of the banner image (100-2500 pixels)')
@@ -1138,6 +1167,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     inputEl.dispatchEvent(new Event('input'));
                 }));
 
+        // Banner Fade setting
         new Setting(containerEl)
             .setName('Banner Fade')
             .setDesc('Set the default fade effect for the banner image (-1500 to 100)')
@@ -1164,97 +1194,126 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     sliderEl.dispatchEvent(new Event('input'));
                 }));
 
-                new Setting(containerEl)
-                .setName('Border Radius')
-                .setDesc('Set the default border radius of the banner image (0-50 pixels)')
-                .addText(text => {
-                    text.setPlaceholder('17')
-                        .setValue(String(this.plugin.settings.borderRadius))
-                        .onChange(async (value) => {
-                            const numValue = Number(value);
-                            if (!isNaN(numValue)) {
-                                this.plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
-                                await this.plugin.saveSettings();
-                                this.plugin.updateAllBanners();
-                            }
-                        });
-                    text.inputEl.type = 'number';
-                    text.inputEl.min = '0';
-                    text.inputEl.max = '50';
-                    text.inputEl.style.width = '50px';
-                })
-                .addExtraButton(button => button
-                    .setIcon('reset')
-                    .setTooltip('Reset to default')
-                    .onClick(async () => {
-                        this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
-                        await this.plugin.saveSettings();
-                        this.plugin.updateAllBanners();
-                        // Update the input value
-                        const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
-                        inputEl.value = DEFAULT_SETTINGS.borderRadius;
-                        inputEl.dispatchEvent(new Event('input'));
-                    }));
-
-            new Setting(containerEl)
-                .setName('Inline Title Color')
-                .setDesc('Set the default inline title color for all banners')
-                .addColorPicker(color => color
-                    .setValue((() => {
-                        const currentColor = this.plugin.settings.titleColor;
-                        if (currentColor.startsWith('var(--')) {
-                            const temp = document.createElement('div');
-                            temp.style.color = currentColor;
-                            document.body.appendChild(temp);
-                            const computedColor = getComputedStyle(temp).color;
-                            document.body.removeChild(temp);
-                            
-                            // Parse RGB values
-                            const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-                            if (rgbMatch) {
-                                const [_, r, g, b] = rgbMatch;
-                                const hexColor = '#' + 
-                                    parseInt(r).toString(16).padStart(2, '0') +
-                                    parseInt(g).toString(16).padStart(2, '0') +
-                                    parseInt(b).toString(16).padStart(2, '0');
-                                return hexColor;
-                            }
-                            return '#000000';
-                        }
-                        return currentColor;
-                    })())
+        // Border Radius setting
+        new Setting(containerEl)
+            .setName('Border Radius')
+            .setDesc('Set the default border radius of the banner image (0-50 pixels)')
+            .addText(text => {
+                text.setPlaceholder('17')
+                    .setValue(String(this.plugin.settings.borderRadius))
                     .onChange(async (value) => {
-                        this.plugin.settings.titleColor = value;
-                        await this.plugin.saveSettings();
-                        this.plugin.updateAllBanners();
-                    }))
-                .addExtraButton(button => button
-                    .setIcon('reset')
-                    .setTooltip('Reset to default')
-                    .onClick(async () => {
-                        this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
-                        await this.plugin.saveSettings();
-                        
-                        // Update color picker to show computed value
-                        const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
-                        if (colorPickerEl) {
-                            const temp = document.createElement('div');
-                            temp.style.color = DEFAULT_SETTINGS.titleColor;
-                            document.body.appendChild(temp);
-                            const computedColor = getComputedStyle(temp).color;
-                            document.body.removeChild(temp);
-                            
-                            const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-                            if (rgbMatch) {
-                                const [_, r, g, b] = rgbMatch;
-                                const hexColor = '#' + 
-                                    parseInt(r).toString(16).padStart(2, '0') +
-                                    parseInt(g).toString(16).padStart(2, '0') +
-                                    parseInt(b).toString(16).padStart(2, '0');
-                                colorPickerEl.value = hexColor;
-                            }
+                        const numValue = Number(value);
+                        if (!isNaN(numValue)) {
+                            this.plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
+                            await this.plugin.saveSettings();
+                            this.plugin.updateAllBanners();
                         }
-                    }));
+                    });
+                text.inputEl.type = 'number';
+                text.inputEl.min = '0';
+                text.inputEl.max = '50';
+                text.inputEl.style.width = '50px';
+            })
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                    // Update the input value
+                    const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
+                    inputEl.value = DEFAULT_SETTINGS.borderRadius;
+                    inputEl.dispatchEvent(new Event('input'));
+                }));
+
+        // Banner Gap setting
+        new Setting(containerEl)
+            .setName('Banner Gap')
+            .setDesc('Set the gap between the banner and the window edges (0-50 pixels)')
+            .addSlider(slider => slider
+                .setLimits(0, 50, 1)
+                .setValue(this.plugin.settings.bannerGap)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerGap = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                })
+            )
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.bannerGap;
+                    sliderEl.dispatchEvent(new Event('input'));
+                }));
+
+        // Inline Title Color setting
+        new Setting(containerEl)
+            .setName('Inline Title Color')
+            .setDesc('Set the default inline title color for all banners')
+            .addColorPicker(color => color
+                .setValue((() => {
+                    const currentColor = this.plugin.settings.titleColor;
+                    if (currentColor.startsWith('var(--')) {
+                        const temp = document.createElement('div');
+                        temp.style.color = currentColor;
+                        document.body.appendChild(temp);
+                        const computedColor = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        
+                        // Parse RGB values
+                        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                        if (rgbMatch) {
+                            const [_, r, g, b] = rgbMatch;
+                            const hexColor = '#' + 
+                                parseInt(r).toString(16).padStart(2, '0') +
+                                parseInt(g).toString(16).padStart(2, '0') +
+                                parseInt(b).toString(16).padStart(2, '0');
+                            return hexColor;
+                        }
+                        return '#000000';
+                    }
+                    return currentColor;
+                })())
+                .onChange(async (value) => {
+                    this.plugin.settings.titleColor = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
+                    await this.plugin.saveSettings();
+                    
+                    // Update color picker to show computed value
+                    const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+                    if (colorPickerEl) {
+                        const temp = document.createElement('div');
+                        temp.style.color = DEFAULT_SETTINGS.titleColor;
+                        document.body.appendChild(temp);
+                        const computedColor = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                        
+                        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                        if (rgbMatch) {
+                            const [_, r, g, b] = rgbMatch;
+                            const hexColor = '#' + 
+                                parseInt(r).toString(16).padStart(2, '0') +
+                                parseInt(g).toString(16).padStart(2, '0') +
+                                parseInt(b).toString(16).padStart(2, '0');
+                            colorPickerEl.value = hexColor;
+                        }
+                    }
+                }));
         
         // Add hide embedded note titles setting
         const hideEmbeddedNoteTitlesSetting = new Setting(containerEl)

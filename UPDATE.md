@@ -1,8 +1,12 @@
 ## 🎉 What's New
 
-### v2.17.0
+### v2.18.0
 #### ✨ Added
-- Sorting and Pagination controls for the Banner Image selection modal  
-  (great for finding images in a large vault with many images)
+- Switch to internal image reference format when Selecting a Banner Image
+- Option to use `short paths` for image references (e.g. `[[forest.jpg]]` instead of `[[path/forest.jpg]]`)
+- New setting to set the gap between the banner and the window edges (0-50 pixels)
 
-[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.17.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.17.0.jpg)
+#### 📦 Updated
+- Improved the Banner Image selection modal UI
+
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg)

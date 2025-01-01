@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "62d3b17bf96c7ca0",
+        "id": "382b63f51e1bf61a",
         "type": "tabs",
         "children": [
           {
-            "id": "9ca5645a320e8ae2",
+            "id": "206a32b85623645d",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
+                "file": "🚩 Pixel-Banner.md",
                 "mode": "preview",
-                "source": true
+                "source": false
               },
               "icon": "lucide-file",
-              "title": "v2.17.0 - 🧦 Sort your Sock Drawer"
+              "title": "🚩 Pixel-Banner"
             }
           }
         ]
@@ -92,11 +92,9 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "🚩 Pixel-Banner.md"
-              },
+              "state": {},
               "icon": "lucide-list",
-              "title": "Outline of 🚩 Pixel-Banner"
+              "title": "Outline"
             }
           },
           {
@@ -125,7 +123,7 @@
             }
           },
           {
-            "id": "a1005715d1ca5f81",
+            "id": "0b8392d768b02898",
             "type": "leaf",
             "state": {
               "type": "backlink",
@@ -144,7 +142,7 @@
             }
           },
           {
-            "id": "fb39ba0ed2711dbe",
+            "id": "75ffb3a5a8e29cf6",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
@@ -158,7 +156,7 @@
             }
           },
           {
-            "id": "5ecd879d9b582301",
+            "id": "dcaeda94c60936ca",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -172,7 +170,7 @@
             }
           },
           {
-            "id": "5816569af33731fa",
+            "id": "8263d45bfce8a429",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -182,7 +180,7 @@
             }
           },
           {
-            "id": "2bfb5d0890bb08af",
+            "id": "2b5d0cbb4fc8b9a6",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -192,7 +190,7 @@
             }
           },
           {
-            "id": "8d6e80b7c87ea6a3",
+            "id": "2f4b3add86a1a19a",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -202,7 +200,7 @@
             }
           },
           {
-            "id": "c5670d45d9ba157c",
+            "id": "a6416e68a17076c5",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -212,7 +210,7 @@
             }
           },
           {
-            "id": "d6ee91d95a814b0b",
+            "id": "bba594f65b1653e4",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -222,7 +220,7 @@
             }
           },
           {
-            "id": "1578683dce0bf89c",
+            "id": "817df172e8f71ca5",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -232,7 +230,7 @@
             }
           },
           {
-            "id": "4f7b93db72a523b2",
+            "id": "290c7325060485e9",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -242,7 +240,7 @@
             }
           },
           {
-            "id": "38002d9ec840477a",
+            "id": "4fb35951e5311aee",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -252,7 +250,7 @@
             }
           },
           {
-            "id": "31d5ae616c034774",
+            "id": "cb61e1a768d1c561",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -262,7 +260,7 @@
             }
           },
           {
-            "id": "7dba386f90e5cb38",
+            "id": "b84ee511417c47e3",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -272,7 +270,7 @@
             }
           },
           {
-            "id": "9c65c6256bcd3a3c",
+            "id": "1e69c5b87cf2ed44",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -282,1847 +280,7 @@
             }
           },
           {
-            "id": "db477141630b5e39",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "47bbfad7ac544d2a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e794d1438b34ec01",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "30546156480020a0",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d8436592f78c47b4",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c78888a7fca5b80d",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "45fccb5b9720b3e9",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f84d164da5238509",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d50a0f1223adf7ff",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c35b0b1d5831d0a3",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "7cba5a03db63599f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "20ab7557c4e61530",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "ecff0ac23e0671f0",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "19310eaa0dca490b",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "fe54a3631c2b9073",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "147bd67087105c54",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "42abf5a1aa15dce9",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5e217cb76705fdf2",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "30b58f69b9b41378",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5e4008619dc29c7f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "0fcb949108381098",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "751959f1890bd3bf",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "cac90a82b5cf0075",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d0ff4dc68879f306",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f45e535ea3e771f8",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "7db0a4c5e66380da",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c5b9c1fc161622e8",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "ccb92bc07a7367c2",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "ed45272d2bf65d8c",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "15934543164e262b",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "74f216eabeb247e7",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "96d7be3e0c4f9081",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "6ff92dbcd64c58a8",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "775021fb39fa1958",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "15535413b42a7609",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "1eb1ecda71fb3d72",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f36c49086fdbc864",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "ad1e7c476801ed4d",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "756d899d23fcd201",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e2c0c9c2dd48213f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "dd0f65155a847b98",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "eb5cdd2e08945d0e",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "493289a6194e46bb",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "208d482f87a67825",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f4ccbbb9928960bb",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4facf54b2b518171",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "699e2d844edf0c24",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c586060a56e9b218",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "714f8cf6d3c61822",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d23ba6ae0c8b4e8e",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f9328f511e48cb65",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "231f77241f6388f2",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e9efece7fe5475f1",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c11b35f1198ee0cf",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "419b8a7bf120cab7",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "16c26f485ec116d8",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "a2cb3ed221bf4f65",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "ebf8ce48f9ecfdda",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f58056063641b988",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "7743f22daa025111",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f78361b9ee42961a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "cd9ed2ca5be4fab3",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "a0c08d1ce7282f3b",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c0a1af54694b0ea6",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "2cfab35df9b8bb04",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e99a6018a6d8ea89",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "7ee4ff16464b0d75",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f410dce623a6e612",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e0b364b46c2510a7",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "940a908dfff2bb4f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4c54ba78f713ed8a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "042244f907afd347",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "95d4954fbe5b0708",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4cb3e02de9e40df0",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "fa5ebe66ef5a5cb7",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "05639bc7328ee9cb",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e2d3ec69192b010c",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5d33aee02684b255",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "337db9288f7dbea7",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "1ea2265cf7c67e94",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "04e03786e4905651",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4e6433c00cddcf42",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "09dc50b0fe2a6bf4",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4b5b4a7dceb32f11",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "84013ca2778478b3",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5680ac4d538f4546",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d4bf08a7b2371a1f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "376af179deb502b7",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "da94455aa4f00557",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5eb2977dd340b124",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "2941e7d68ff6b781",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e89acfc8b865c948",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f1336bcc99346fef",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "b0861f1e7872b75c",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "87b47c43e1519174",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f543ccf58a756bd0",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d681df46ea62dad8",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "eb11de42811dc783",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d3d8d4a82400d90a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f154e528b07bf2f9",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "9aba0c2c9ded483f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "a723aae5bd361663",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "0129b042f7fa5a5f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "1973388555f93401",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "44e354856f3220c2",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "db59ce048fe7168d",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e0a291336896f578",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "bc524372c090a7db",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "16655a227dbac691",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "62a383826a00885c",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "698303d594f08c37",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "fd0b62debb7fca87",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "3a367687e55676b0",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "034dcdeebacee859",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e145754a5719ec31",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "2ad9c1dbaeb4d527",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5907e384c1324620",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d3f9d269eafbb281",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "47aba4db78312e7f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c19d0e61586ac7fb",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d6209ff8324d711a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "3c327b988c787f03",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "513d3f7c691db93a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "9fd722445fc09be3",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "68e3fdefccbf2756",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c4d4ce9b51af5b51",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "dbaa9acf144ec362",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "01a870ee7e802f5a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e39ddb21dd678718",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "128fc6df49ec5617",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "b18c08997bedea30",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "3f574424c723283e",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "7cd04fabdb4f9e8c",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "885a094721cb9cec",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f3d5566ab6e20998",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "b34c7709d94f729f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "774b8a2459b7357d",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "eb2a221216030816",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "eeea305cc978fdfe",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "2c8a0b63e936d71c",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "030dc190a2d0825b",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "ac13f09b68e37237",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f90ddca348fe36ad",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "df6eb49a7064b280",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e2790b2bf68ae652",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5d63a6975216710e",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "768e5fd880c13158",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "2759fa03c37899d6",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "569d95f233c0f72d",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "8a0923ee1f774e6f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "a15f17a7530f9a4c",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "7ecc87bf566d29a4",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "0c06d8df784e512f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "01aa9335dd4fd347",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "97ef13cad7a7aef6",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "ede31db16e374138",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c8fceb7b70e4b808",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "3864457dca501aef",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "12a16c6ab5c09199",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "2aef62df5e4f713a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "e279f09dfbf2d064",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "cdb65a7ae3e52c01",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "99d6cd4cab2fe6e4",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "fcd1ca21209eca81",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "203f5f941482bd3a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4ed42ec13caf6e10",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f569555e4e772ec4",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d8decfd9e5b40ae4",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "023c2fb63072671a",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "9ca656f62192789f",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "77963a397d99b921",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "5c0d36ee573b5914",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "7dfac352454267bf",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "a0e640f45ba2c8cb",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "c4384bc792fa7765",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "d6a4fdd3ef67baf4",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "570d1b0f273c0826",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4ea04b4d6d8ba799",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "1d9ce28515c8f3c5",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "cd563b023d016044",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "0bb92fca16a4b74b",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "f31c39bdad77a6fb",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "4276153ea1198e10",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "b0bbd9847317a7ad",
-            "type": "leaf",
-            "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
-            }
-          },
-          {
-            "id": "89c4c43dd9f747c3",
+            "id": "2826ca87b8cfd557",
             "type": "leaf",
             "state": {
               "type": "Saved Queries View",
@@ -2132,7 +290,7 @@
             }
           }
         ],
-        "currentTab": 201
+        "currentTab": 17
       }
     ],
     "direction": "horizontal",
@@ -2150,53 +308,53 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "89c4c43dd9f747c3",
+  "active": "206a32b85623645d",
   "lastOpenFiles": [
-    "pixel-banner-images/wall-of-images.png",
-    "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
-    "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
+    "releases/v2.18.0 - 📏 Gaps & 🗃️ Links.md",
     "🚩 Pixel-Banner.md",
-    "tests/🧪 test - 8 - render link.md",
-    "tests/🧪 test - 9 - embed tests.md",
-    "pixel-banner-images/Screenshot 2024-12-30 161726.png",
-    "pixel-banner-images/Screenshot 2024-12-30 160514.png",
-    "pixel-banner-images/Screenshot 2024-12-30 154430.png",
-    "pixel-banner-images/Screenshot 2024-12-30 154402.png",
-    "pixel-banner-images/Screenshot 2024-12-30 153809.png",
-    "pixel-banner-images/Screenshot 2024-12-30 153507.png",
-    "pixel-banner-images/Screenshot 2024-12-30 153434.png",
-    "pixel-banner-images/Screenshot 2024-12-30 153415.png",
-    "pixel-banner-images/Screenshot 2024-12-30 144447.png",
-    "pixel-banner-images/Screenshot 2024-12-30 135813.png",
-    "🧪 test - 8 - embed tests.md",
-    "tests/🧪 test - 7- shuffle time!.md",
-    "tests/🧪 test - 1 - internal link.md",
-    "tests/🧪 test - 2 - internal link - quoted.md",
-    "tests/🧪 test - 3 - direct url link.md",
+    "Untitled.md",
+    "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
+    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
+    "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
+    "releases/v2.10.0 - 🖌️ Title Color.md",
+    "releases/v2.13.0 - 🖼️ View my Banner.md",
+    "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
+    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
+    "releases/v2.11.0 - 📌 Pin my URL Please.md",
     "tests/🧪 test - 4 - all fields.md",
-    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 1 - internal link.md",
+    "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 6 - image float right.md",
+    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 8 - render link.md",
+    "tests/🧪 test - 2 - internal link - quoted.md",
+    "tests/🧪 test - 7- shuffle time!.md",
+    "tests/🧪 test - 9 - embed tests.md",
+    "pixel-banner-images/file-folders.png",
+    "Banner Gap.md",
+    "Pixel Banner Auto Link Format.md",
+    "zzzzz/Content Start.md",
+    "images/artwork.png",
+    "images/forest.jpg",
+    "pixel-banner-images/monster-looking-at-children.png",
+    "pixel-banner-images/paint-drips.png",
+    "zzzzz",
+    "pixel-banner-images/father-and-child.jpg",
+    "pixel-banner-images/pin-clouds.jpg",
+    "pixel-banner-images/pin-clouds.jpg.crdownload",
+    "pixel-banner-images/father-and-child (1).jpg",
+    "pixel-banner-images/father-and-child (1).jpg.crdownload",
+    "pixel-banner-images/wall-of-images.png",
+    "pixel-banner-images/Screenshot 2024-12-30 161726.png",
+    "🧪 test - 8 - embed tests.md",
     "emtest.md",
     "em1.md",
-    "Random Shuffle/Disney Lorcana.md",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
-    "releases/v2.11.0 - 📌 Pin my URL Please.md",
-    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
-    "releases/v2.13.0 - 🖼️ View my Banner.md",
-    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
-    "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
-    "em222.md",
-    "em10.md",
-    "notes/subfolder/Embedded Note in Subfolder.md",
     "50",
     "Random Shuffle",
     "shuffle-images",
     "releases",
     "images/releases",
     "images/New folder",
-    "= attachments",
-    "misc tests",
-    "pixel-banner-images",
-    "pixel-banners"
+    "= attachments"
   ]
 }
