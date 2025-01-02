@@ -170,23 +170,29 @@ export class ImageSelectionModal extends Modal {
         searchContainer.style.alignItems = 'center';
         searchContainer.style.marginBottom = '1em';
 
-        const searchInput = searchContainer.createEl('input', {
+        // Create first row for search input and clear button
+        const searchRow = searchContainer.createDiv({ cls: 'search-row' });
+
+        const searchInput = searchRow.createEl('input', {
             type: 'text',
             placeholder: 'Search images...',
             value: this.defaultPath
         });
         searchInput.style.flex = '1';
 
-        const clearButton = searchContainer.createEl('button', {
+        const clearButton = searchRow.createEl('button', {
             text: 'Clear'
         });
 
-        const uploadButton = searchContainer.createEl('button', {
+        // Create second row for upload button and path toggle
+        const controlsRow = searchContainer.createDiv({ cls: 'controls-row' });
+
+        const uploadButton = controlsRow.createEl('button', {
             text: '📤 Upload External Image'
         });
 
         // Add the toggle container and switch
-        const toggleContainer = searchContainer.createDiv({ 
+        const toggleContainer = controlsRow.createDiv({ 
             cls: 'pixel-banner-path-toggle',
             attr: {
                 style: 'display: flex; align-items: center; gap: 8px;'

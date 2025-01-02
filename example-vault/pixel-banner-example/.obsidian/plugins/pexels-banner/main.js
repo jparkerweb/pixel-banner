@@ -1389,19 +1389,21 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
     searchContainer.style.gap = "8px";
     searchContainer.style.alignItems = "center";
     searchContainer.style.marginBottom = "1em";
-    const searchInput = searchContainer.createEl("input", {
+    const searchRow = searchContainer.createDiv({ cls: "search-row" });
+    const searchInput = searchRow.createEl("input", {
       type: "text",
       placeholder: "Search images...",
       value: this.defaultPath
     });
     searchInput.style.flex = "1";
-    const clearButton = searchContainer.createEl("button", {
+    const clearButton = searchRow.createEl("button", {
       text: "Clear"
     });
-    const uploadButton = searchContainer.createEl("button", {
+    const controlsRow = searchContainer.createDiv({ cls: "controls-row" });
+    const uploadButton = controlsRow.createEl("button", {
       text: "\u{1F4E4} Upload External Image"
     });
-    const toggleContainer = searchContainer.createDiv({
+    const toggleContainer = controlsRow.createDiv({
       cls: "pixel-banner-path-toggle",
       attr: {
         style: "display: flex; align-items: center; gap: 8px;"
@@ -1752,7 +1754,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.18.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Switch to internal image reference format when Selecting a Banner Image</li>\n<li>Option to use <code>short paths</code> for image references (e.g. <code>[[forest.jpg]]</code> instead of <code>[[path/forest.jpg]]</code>)</li>\n<li>New setting to set the gap between the banner and the window edges (0-50 pixels)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved the Banner Image selection modal UI</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.18.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Mobile layout improvements for Banner Image selection modal</li>\n<li>Quote paths when inserting a Banner Image from the Banner Image selection modal</li>\n</ul>\n<h3>v2.18.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Switch to internal image reference format when Selecting a Banner Image</li>\n<li>Option to use <code>short paths</code> for image references (e.g. <code>[[forest.jpg]]</code> instead of <code>[[path/forest.jpg]]</code>)</li>\n<li>New setting to set the gap between the banner and the window edges (0-50 pixels)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved the Banner Image selection modal UI</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -3086,7 +3088,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
               cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
             });
             cleanedFrontmatter = cleanedFrontmatter.trim();
-            const newFrontmatter = `${bannerField}: [[${imageReference}]]${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+            const newFrontmatter = `${bannerField}: "[[${imageReference}]]"${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
             return `---
 ${newFrontmatter}
 ---`;
@@ -3094,7 +3096,7 @@ ${newFrontmatter}
         } else {
           const cleanContent = fileContent.replace(/^\s+/, "");
           updatedContent = `---
-${bannerField}: [[${imageReference}]]
+${bannerField}: "[[${imageReference}]]"
 ---
 
 ${cleanContent}`;

@@ -4,18 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "382b63f51e1bf61a",
+        "id": "c78f46a9d7ef4fa3",
         "type": "tabs",
         "children": [
           {
-            "id": "206a32b85623645d",
+            "id": "7e329a32587f3433",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "🚩 Pixel-Banner.md",
                 "mode": "preview",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
               "title": "🚩 Pixel-Banner"
@@ -283,6 +283,136 @@
             "id": "2826ca87b8cfd557",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8985fe7d7d519a72",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7103afc86d99a044",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "67a70bfcc81f30a4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b857c1f003bb30d6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9d3661ae7552bcc1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6c6038f23876bcfa",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e394ada369d90ec9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6a33440533ab88bf",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7270fba1f81c3e42",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f353c929163616ef",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d09d5f12f0e6e14a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "cd386c3882bfe243",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "95ce12aeba608edf",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -290,7 +420,7 @@
             }
           }
         ],
-        "currentTab": 17
+        "currentTab": 30
       }
     ],
     "direction": "horizontal",
@@ -308,11 +438,14 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "206a32b85623645d",
+  "active": "7e329a32587f3433",
   "lastOpenFiles": [
-    "releases/v2.18.0 - 📏 Gaps & 🗃️ Links.md",
+    "test.md",
     "🚩 Pixel-Banner.md",
-    "Untitled.md",
+    "images/forest.jpg",
+    "Untitled 2.md",
+    "Untitled 1.md",
+    "releases/v2.18.0 - 📏 Gaps & 🗃️ Links.md",
     "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
     "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
     "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
@@ -335,7 +468,6 @@
     "Pixel Banner Auto Link Format.md",
     "zzzzz/Content Start.md",
     "images/artwork.png",
-    "images/forest.jpg",
     "pixel-banner-images/monster-looking-at-children.png",
     "pixel-banner-images/paint-drips.png",
     "zzzzz",
@@ -346,9 +478,6 @@
     "pixel-banner-images/father-and-child (1).jpg.crdownload",
     "pixel-banner-images/wall-of-images.png",
     "pixel-banner-images/Screenshot 2024-12-30 161726.png",
-    "🧪 test - 8 - embed tests.md",
-    "emtest.md",
-    "em1.md",
     "50",
     "Random Shuffle",
     "shuffle-images",

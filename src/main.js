@@ -1141,48 +1141,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (!el) return;
 
         setTimeout(() => {
-            // determine if the view is in reading mode
-            // const isReadingMode = () => {
-            //     const viewContent = el.querySelector(':scope > .markdown-reading-view');
-            //     if (viewContent) {
-            //         const displayStyle = window.getComputedStyle(viewContent).display;
-            //         return displayStyle !== 'none';
-            //     }
-            //     return false;
-            // };
-
-            // // get the inner element
-            // function getInnerElement(selector) {
-            //     return el.querySelector(selector);
-            // }
-            // // get the client width of the inner element
-            // function getClientWidth(innerEl) {
-            //     if (innerEl.scrollHeight > innerEl.clientHeight) {
-            //         return innerEl.clientWidth;
-            //     } else {
-            //         return el.clientWidth;
-            //     }
-            // }
-            // // get the selector for the inner element
-            // const selector = isReadingMode()
-            // ? ':scope > .markdown-reading-view > .markdown-preview-view'
-            // : ':scope > .markdown-source-view > cm-editor > .cm-scroller';
-            
-            // let elClientWidth;
-            // const innerEl = getInnerElement(selector);
-            // if (innerEl) {
-            //     elClientWidth = getClientWidth(innerEl);
-            // }
-
-            // let re = el.querySelector(':scope > .markdown-reading-view > .markdown-preview-view');
-            // let ed = el.querySelector(':scope > .markdown-source-view > cm-editor > .cm-scroller');
-            // let theWidth;
-            // if (re && ed) {
-            //     theWidth = re.clientWidth > ed.clientWidth ? re.clientWidth : ed.clientWidth;
-            // } else {
-            //     theWidth = el.clientWidth ? el.clientWidth : elClientWidth;
-            // }
-
             const theWidth = el.clientWidth;
             const bannerGap = this.settings.bannerGap;
             el.style.setProperty('--pixel-banner-width', `${theWidth - (bannerGap * 2)}px`);
@@ -1808,12 +1766,12 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         });
 
                         cleanedFrontmatter = cleanedFrontmatter.trim();
-                        const newFrontmatter = `${bannerField}: [[${imageReference}]]${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+                        const newFrontmatter = `${bannerField}: "[[${imageReference}]]"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
                         return `---\n${newFrontmatter}\n---`;
                     });
                 } else {
                     const cleanContent = fileContent.replace(/^\s+/, '');
-                    updatedContent = `---\n${bannerField}: [[${imageReference}]]\n---\n\n${cleanContent}`;
+                    updatedContent = `---\n${bannerField}: "[[${imageReference}]]"\n---\n\n${cleanContent}`;
                 }
 
                 updatedContent = updatedContent.replace(/^\s+/, '');
