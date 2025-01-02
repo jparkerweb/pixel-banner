@@ -1,5 +1,10 @@
 ## 🎉 What's New
 
+### v2.18.1
+#### 📦 Updated
+- Mobile layout improvements for Banner Image selection modal
+- Quote paths when inserting a Banner Image from the Banner Image selection modal
+
 ### v2.18.0
 #### ✨ Added
 - Switch to internal image reference format when Selecting a Banner Image

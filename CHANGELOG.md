@@ -2,7 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-### v2.18.0 - 2025-01-01
+### [v2.18.1] - 2025-01-01
+#### 📦 Updated
+- Mobile layout improvements for Banner Image selection modal
+- Quote paths when inserting a Banner Image from the Banner Image selection modal
+
+### [v2.18.0] - 2025-01-01
 #### ✨ Added
 - Switch to internal image reference format when Selecting a Banner Image
 - Option to use `short paths` for image references (e.g. `[[forest.jpg]]` instead of `[[path/forest.jpg]]`)
@@ -11,7 +16,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 #### 📦 Updated
 - Improved the Banner Image selection modal UI
 
-### v2.17.0 - 2024-12-30
+### [v2.17.0] - 2024-12-30
 #### ✨ Added
 - Sorting and Pagination controls for the Banner Image selection modal  
   (great for finding images in a large vault with many images)
