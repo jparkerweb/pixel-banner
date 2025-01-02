@@ -413,6 +413,86 @@
             "id": "95ce12aeba608edf",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "855a12022b01e11a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "431e9f712f1f96eb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3b34806b1b656faf",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "099ef4b35bee1c9c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "22b44fbc38784bfd",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "08e71239a02e6aa1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "147544731aa1335f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0b7ed52f4b5ede3c",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -420,7 +500,7 @@
             }
           }
         ],
-        "currentTab": 30
+        "currentTab": 38
       }
     ],
     "direction": "horizontal",
@@ -440,8 +520,19 @@
   },
   "active": "7e329a32587f3433",
   "lastOpenFiles": [
-    "test.md",
+    "Untitled.md",
     "🚩 Pixel-Banner.md",
+    "same of Untitled.md",
+    "tests/🧪 test - 10 - embed tests.md",
+    "tests/🧪 test - 9 - svg banner.md",
+    "pixel-banner-images/jars.svg",
+    "pixel-banner-images/pixel-banner-image.png",
+    "pixel-banner-images/good-art-is-never-forgotten.png",
+    "pixel-banner-images/father-and-child.jpg",
+    "pixel-banner-images/shuffle.png",
+    "pixel-banner-images/pixel-banner-image-2.png",
+    "pixel-banner-images/pixel-banner-image-1.png",
+    "test.md",
     "images/forest.jpg",
     "Untitled 2.md",
     "Untitled 1.md",
@@ -462,22 +553,12 @@
     "tests/🧪 test - 8 - render link.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
     "tests/🧪 test - 7- shuffle time!.md",
-    "tests/🧪 test - 9 - embed tests.md",
     "pixel-banner-images/file-folders.png",
     "Banner Gap.md",
-    "Pixel Banner Auto Link Format.md",
-    "zzzzz/Content Start.md",
     "images/artwork.png",
-    "pixel-banner-images/monster-looking-at-children.png",
-    "pixel-banner-images/paint-drips.png",
     "zzzzz",
-    "pixel-banner-images/father-and-child.jpg",
-    "pixel-banner-images/pin-clouds.jpg",
     "pixel-banner-images/pin-clouds.jpg.crdownload",
-    "pixel-banner-images/father-and-child (1).jpg",
     "pixel-banner-images/father-and-child (1).jpg.crdownload",
-    "pixel-banner-images/wall-of-images.png",
-    "pixel-banner-images/Screenshot 2024-12-30 161726.png",
     "50",
     "Random Shuffle",
     "shuffle-images",

@@ -1511,22 +1511,40 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
     currentFiles.forEach((file) => {
       const imageContainer = this.gridContainer.createDiv({ cls: "pixel-banner-image-container" });
       const thumbnailContainer = imageContainer.createDiv();
-      this.app.vault.readBinary(file).then((arrayBuffer) => {
-        const blob = new Blob([arrayBuffer]);
-        const url = URL.createObjectURL(blob);
-        const img = thumbnailContainer.createEl("img", {
-          cls: "pixel-banner-image-thumbnail",
-          attr: { src: url }
+      if (file.extension.toLowerCase() === "svg") {
+        this.app.vault.read(file).then((content) => {
+          const parser = new DOMParser();
+          const svgDoc = parser.parseFromString(content, "image/svg+xml");
+          const svgElement = svgDoc.documentElement;
+          svgElement.classList.add("pixel-banner-image-thumbnail");
+          svgElement.style.width = "100%";
+          svgElement.style.height = "100%";
+          thumbnailContainer.empty();
+          thumbnailContainer.appendChild(svgElement);
+        }).catch(() => {
+          thumbnailContainer.createEl("div", {
+            cls: "pixel-banner-image-error",
+            text: "Error loading SVG"
+          });
         });
-        const cleanup = () => URL.revokeObjectURL(url);
-        img.addEventListener("load", cleanup);
-        img.addEventListener("error", cleanup);
-      }).catch(() => {
-        thumbnailContainer.createEl("div", {
-          cls: "pixel-banner-image-error",
-          text: "Error loading image"
+      } else {
+        this.app.vault.readBinary(file).then((arrayBuffer) => {
+          const blob = new Blob([arrayBuffer]);
+          const url = URL.createObjectURL(blob);
+          const img = thumbnailContainer.createEl("img", {
+            cls: "pixel-banner-image-thumbnail",
+            attr: { src: url }
+          });
+          const cleanup = () => URL.revokeObjectURL(url);
+          img.addEventListener("load", cleanup);
+          img.addEventListener("error", cleanup);
+        }).catch(() => {
+          thumbnailContainer.createEl("div", {
+            cls: "pixel-banner-image-error",
+            text: "Error loading image"
+          });
         });
-      });
+      }
       const infoContainer = imageContainer.createDiv("pixel-banner-image-info");
       infoContainer.createEl("div", {
         cls: "pixel-banner-image-path",
@@ -1754,7 +1772,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.18.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Mobile layout improvements for Banner Image selection modal</li>\n<li>Quote paths when inserting a Banner Image from the Banner Image selection modal</li>\n</ul>\n<h3>v2.18.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Switch to internal image reference format when Selecting a Banner Image</li>\n<li>Option to use <code>short paths</code> for image references (e.g. <code>[[forest.jpg]]</code> instead of <code>[[path/forest.jpg]]</code>)</li>\n<li>New setting to set the gap between the banner and the window edges (0-50 pixels)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved the Banner Image selection modal UI</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.18.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for SVG images</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Pinning a Banner Image now uses internal link format (similar to the Select Banner Image modal)</li>\n<li>Set a max width for the Banner Image selection modal (1100px)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>The &quot;Cleaned Orphaned Pins&quot; button now correctly evaluates internal links in addition to plain paths</li>\n</ul>\n<h3>v2.18.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Mobile layout improvements for Banner Image selection modal</li>\n<li>Quote paths when inserting a Banner Image from the Banner Image selection modal</li>\n</ul>\n<h3>v2.18.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Switch to internal image reference format when Selecting a Banner Image</li>\n<li>Option to use <code>short paths</code> for image references (e.g. <code>[[forest.jpg]]</code> instead of <code>[[path/forest.jpg]]</code>)</li>\n<li>New setting to set the gap between the banner and the window edges (0-50 pixels)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved the Banner Image selection modal UI</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -2542,7 +2560,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (file && "extension" in file) {
       try {
         const arrayBuffer = await this.app.vault.readBinary(file);
-        const blob = new Blob([arrayBuffer], { type: `image/${file.extension}` });
+        const mimeType = file.extension.toLowerCase() === "svg" ? "image/svg+xml" : `image/${file.extension}`;
+        const blob = new Blob([arrayBuffer], { type: mimeType });
         const url = URL.createObjectURL(blob);
         return url;
       } catch (error) {
@@ -2669,7 +2688,18 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           for (const field of bannerFields) {
             const bannerValue = frontmatter[field];
             if (bannerValue && typeof bannerValue === "string") {
-              const cleanPath = bannerValue.replace(/[\[\]]/g, "").trim();
+              let cleanPath;
+              if (bannerValue.startsWith("[[") && bannerValue.endsWith("]]")) {
+                cleanPath = bannerValue.slice(2, -2).replace(/["']/g, "");
+              } else {
+                cleanPath = bannerValue.replace(/["']/g, "");
+              }
+              if (!cleanPath.startsWith(folderPath)) {
+                const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanPath, file.path);
+                if (resolvedFile) {
+                  cleanPath = resolvedFile.path;
+                }
+              }
               referencedImages.add(cleanPath);
             }
           }
@@ -2869,8 +2899,15 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
         const folderSpecific = this.getFolderSpecificImage(file.path);
         const effectiveYPosition = (_a = frontmatterYPosition != null ? frontmatterYPosition : folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _a : this.settings.yPosition;
+        const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
+        const isSvg = imageUrl.includes("image/svg+xml") || file.path && file.path.toLowerCase().endsWith(".svg");
         bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
         bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
+        if (isSvg) {
+          bannerDiv.style.backgroundSize = imageDisplay === "contain" ? "contain" : "100% 100%";
+        } else {
+          bannerDiv.style.backgroundSize = imageDisplay || "cover";
+        }
         bannerDiv.style.display = "block";
         const viewImageIcon = container.querySelector(":scope > .view-image-icon");
         if (viewImageIcon && viewImageIcon._updateVisibility) {
@@ -3202,6 +3239,15 @@ async function saveImageLocally(arrayBuffer, plugin) {
 async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
   const activeFile = app.workspace.getActiveFile();
   if (!activeFile) return;
+  let imageReference = imagePath;
+  if (plugin.settings.useShortPath) {
+    const imageFile = plugin.app.vault.getAbstractFileByPath(imagePath);
+    if (imageFile) {
+      const allFiles = plugin.app.vault.getFiles();
+      const matchingFiles = allFiles.filter((f) => f.name === imageFile.name);
+      imageReference = matchingFiles.length === 1 ? imageFile.name : imageFile.path;
+    }
+  }
   let fileContent = await app.vault.read(activeFile);
   const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
   const hasFrontmatter = frontmatterRegex.test(fileContent);
@@ -3217,7 +3263,7 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
         cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
       });
       cleanedFrontmatter = cleanedFrontmatter.trim();
-      const newFrontmatter = `${bannerField}: ${imagePath}${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+      const newFrontmatter = `${bannerField}: "[[${imageReference}]]"${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
       return `---
 ${newFrontmatter}
 ---`;
@@ -3225,7 +3271,7 @@ ${newFrontmatter}
   } else {
     const cleanContent = fileContent.replace(/^\s+/, "");
     updatedContent = `---
-${bannerField}: ${imagePath}
+${bannerField}: "[[${imageReference}]]"
 ---
 
 ${cleanContent}`;
@@ -3233,6 +3279,11 @@ ${cleanContent}`;
   updatedContent = updatedContent.replace(/^\s+/, "");
   if (updatedContent !== fileContent) {
     await app.vault.modify(activeFile, updatedContent);
+    if (plugin.settings.useShortPath && imageReference === imagePath) {
+      new import_obsidian3.Notice("Banner image pinned (full path used due to duplicate filenames)");
+    } else {
+      new import_obsidian3.Notice("Banner image pinned");
+    }
   }
 }
 function hidePinIcon() {

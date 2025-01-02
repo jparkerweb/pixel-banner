@@ -1044,7 +1044,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (file && 'extension' in file) {
             try {
                 const arrayBuffer = await this.app.vault.readBinary(file);
-                const blob = new Blob([arrayBuffer], { type: `image/${file.extension}` });
+                // Add special handling for SVG files
+                const mimeType = file.extension.toLowerCase() === 'svg' ? 
+                    'image/svg+xml' : 
+                    `image/${file.extension}`;
+                const blob = new Blob([arrayBuffer], { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 return url;
             } catch (error) {
@@ -1203,7 +1207,23 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         const bannerValue = frontmatter[field];
                         if (bannerValue && typeof bannerValue === 'string') {
                             // Handle both formats: with and without brackets
-                            const cleanPath = bannerValue.replace(/[\[\]]/g, '').trim();
+                            let cleanPath;
+                            if (bannerValue.startsWith('[[') && bannerValue.endsWith(']]')) {
+                                // Remove [[ and ]] and any quotes
+                                cleanPath = bannerValue.slice(2, -2).replace(/["']/g, '');
+                            } else {
+                                // Just remove any quotes
+                                cleanPath = bannerValue.replace(/["']/g, '');
+                            }
+                            
+                            // If the path doesn't start with the folder path, try to resolve it
+                            if (!cleanPath.startsWith(folderPath)) {
+                                const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanPath, file.path);
+                                if (resolvedFile) {
+                                    cleanPath = resolvedFile.path;
+                                }
+                            }
+                            
                             referencedImages.add(cleanPath);
                         }
                     }
@@ -1469,8 +1489,23 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     folderSpecific?.yPosition ?? 
                     this.settings.yPosition;
 
+                // Get imageDisplay from context or settings
+                const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || 
+                    folderSpecific?.imageDisplay || 
+                    this.settings.imageDisplay;
+
+                // Add SVG handling here
+                const isSvg = imageUrl.includes('image/svg+xml') || 
+                              (file.path && file.path.toLowerCase().endsWith('.svg'));
+                
                 bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
                 bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
+                // Add special handling for SVG backgrounds
+                if (isSvg) {
+                    bannerDiv.style.backgroundSize = imageDisplay === 'contain' ? 'contain' : '100% 100%';
+                } else {
+                    bannerDiv.style.backgroundSize = imageDisplay || 'cover';
+                }
                 bannerDiv.style.display = 'block';
 
                 // Update the view image icon if it exists
@@ -1957,6 +1992,21 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
     const activeFile = app.workspace.getActiveFile();
     if (!activeFile) return;
 
+    // Check if filename is unique in vault for short path
+    let imageReference = imagePath;
+    if (plugin.settings.useShortPath) {
+        const imageFile = plugin.app.vault.getAbstractFileByPath(imagePath);
+        if (imageFile) {
+            const allFiles = plugin.app.vault.getFiles();
+            const matchingFiles = allFiles.filter(f => f.name === imageFile.name);
+            
+            // Use short path only if filename is unique
+            imageReference = matchingFiles.length === 1 ? 
+                imageFile.name : 
+                imageFile.path;
+        }
+    }
+
     let fileContent = await app.vault.read(activeFile);
     const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
     const hasFrontmatter = frontmatterRegex.test(fileContent);
@@ -1979,20 +2029,25 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
                 cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
             });
 
-            // Add the new banner field at the start, ensuring no extra newlines
+            // Add the new banner field at the start with internal link format
             cleanedFrontmatter = cleanedFrontmatter.trim();
-            const newFrontmatter = `${bannerField}: ${imagePath}${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+            const newFrontmatter = `${bannerField}: "[[${imageReference}]]"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
             return `---\n${newFrontmatter}\n---`;
         });
     } else {
         const cleanContent = fileContent.replace(/^\s+/, '');
-        updatedContent = `---\n${bannerField}: ${imagePath}\n---\n\n${cleanContent}`;
+        updatedContent = `---\n${bannerField}: "[[${imageReference}]]"\n---\n\n${cleanContent}`;
     }
 
     updatedContent = updatedContent.replace(/^\s+/, '');
     
     if (updatedContent !== fileContent) {
         await app.vault.modify(activeFile, updatedContent);
+        if (plugin.settings.useShortPath && imageReference === imagePath) {
+            new Notice('Banner image pinned (full path used due to duplicate filenames)');
+        } else {
+            new Notice('Banner image pinned');
+        }
     }
 }
 

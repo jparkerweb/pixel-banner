@@ -347,24 +347,48 @@ export class ImageSelectionModal extends Modal {
             const thumbnailContainer = imageContainer.createDiv();
             
             // Try to create thumbnail
-            this.app.vault.readBinary(file).then(arrayBuffer => {
-                const blob = new Blob([arrayBuffer]);
-                const url = URL.createObjectURL(blob);
-                const img = thumbnailContainer.createEl('img', {
-                    cls: 'pixel-banner-image-thumbnail',
-                    attr: { src: url }
+            if (file.extension.toLowerCase() === 'svg') {
+                // For SVG files, read as text and create inline SVG
+                this.app.vault.read(file).then(content => {
+                    const parser = new DOMParser();
+                    const svgDoc = parser.parseFromString(content, 'image/svg+xml');
+                    const svgElement = svgDoc.documentElement;
+                    
+                    // Add necessary classes and styles
+                    svgElement.classList.add('pixel-banner-image-thumbnail');
+                    svgElement.style.width = '100%';
+                    svgElement.style.height = '100%';
+                    
+                    // Replace any existing content
+                    thumbnailContainer.empty();
+                    thumbnailContainer.appendChild(svgElement);
+                }).catch(() => {
+                    thumbnailContainer.createEl('div', {
+                        cls: 'pixel-banner-image-error',
+                        text: 'Error loading SVG'
+                    });
                 });
-                
-                // Clean up blob URL when image loads or errors
-                const cleanup = () => URL.revokeObjectURL(url);
-                img.addEventListener('load', cleanup);
-                img.addEventListener('error', cleanup);
-            }).catch(() => {
-                thumbnailContainer.createEl('div', {
-                    cls: 'pixel-banner-image-error',
-                    text: 'Error loading image'
+            } else {
+                // For non-SVG files, use the existing binary approach
+                this.app.vault.readBinary(file).then(arrayBuffer => {
+                    const blob = new Blob([arrayBuffer]);
+                    const url = URL.createObjectURL(blob);
+                    const img = thumbnailContainer.createEl('img', {
+                        cls: 'pixel-banner-image-thumbnail',
+                        attr: { src: url }
+                    });
+                    
+                    // Clean up blob URL when image loads or errors
+                    const cleanup = () => URL.revokeObjectURL(url);
+                    img.addEventListener('load', cleanup);
+                    img.addEventListener('error', cleanup);
+                }).catch(() => {
+                    thumbnailContainer.createEl('div', {
+                        cls: 'pixel-banner-image-error',
+                        text: 'Error loading image'
+                    });
                 });
-            });
+            }
 
             // Add file info
             const infoContainer = imageContainer.createDiv('pixel-banner-image-info');

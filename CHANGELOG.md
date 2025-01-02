@@ -2,6 +2,17 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.18.2] - 2025-01-02
+#### ✨ Added
+- Support for SVG images
+
+#### 📦 Updated
+- Pinning a Banner Image now uses internal link format (similar to the Select Banner Image modal)
+- Set a max width for the Banner Image selection modal (1100px)
+
+#### 🐛 Fixed
+- The "Cleaned Orphaned Pins" button now correctly evaluates internal links in addition to plain paths
+
 ### [v2.18.1] - 2025-01-01
 #### 📦 Updated
 - Mobile layout improvements for Banner Image selection modal
