@@ -503,6 +503,7 @@
 
 .pixel-banner-image-select-modal {
     width: var(--dialog-max-width);
+    max-width: 1100px;
 }
 
 .pixel-banner-image-select-description {
