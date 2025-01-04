@@ -1,6 +1,6 @@
 # 🚩 Pixel Banner for Obsidian
 
-Pixel Banner is a plugin for Obsidian that allows you to automatically add beautiful banner images to your notes using various images provider APIs, direct URLs, or local images with folder-specific settings supported. Enhance your note-taking experience with visually appealing headers that provide context and improve the overall aesthetics of your notes.
+Pixel Banner is a plugin for Obsidian that allows you to automatically add beautiful banner images to your notes using various images providers APIs, direct URLs, or local images with folder-specific settings supported. Enhance your note-taking experience with visually appealing headers that provide context and improve the overall aesthetics of your notes.
 
 ### Maintained by
 <a href="https://www.equilllabs.com">
@@ -15,8 +15,8 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 ## Highlights
 
 - Seamless integration with Obsidian's interface
-- Use popular **images providers** ([Pexels](https://www.pexels.com/), [Pixabay](https://pixabay.com/), [Flickr](https://www.flickr.com/), and [Unsplash](https://unsplash.com/)), automatically fetch and display banner images based on keywords
-- Use **direct URLs** for custom images
+- Popular **images providers** supported such as [Pexels](https://www.pexels.com/), [Pixabay](https://pixabay.com/), [Flickr](https://www.flickr.com/), and [Unsplash](https://unsplash.com/), automatically fetch and display banner images based on keywords
+- Use **direct URLs** for custom banner images
 - Use **local images** from your vault
 - Use **Obsidian internal links** to images
 - **Customize banner appearance** globally, per folder, or per note by plugin settings and [properties](https://help.obsidian.md/Editing+and+formatting/Properties) of note
@@ -24,12 +24,12 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 ### Main Features
 
 - **Banner Image selection** modal, local image picker with sort options
-- **select, pin, and refresh commands** for command palette and **hotkeys**
+- Control **select, pin, and refresh banner via commands** from command palette and hotkeys
 - Adjust **vertical position** of the banner image
 - Set **banner height** (100-2500 pixels) as well as **content start position** of note
 - Set the banner **image display** to cover or contain and adjust wrapping
 - Control **banner fade** transparency (-1500 to 100)
-- Banner Image **Border radius** customization
+- Banner image **border radius** customization
 - Set **banner gap** between banner and the window edges
 - Customize **inline title color** (requires Obsidian's "Show inline title" setting enabled)
 - Control **Titles and Banners embedded note**
@@ -38,14 +38,14 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 
 ### Other Features
 
-- Option to display fast **select banner icon** with Banner Image selection modal
-- Option to display **icon for view banner in fullscreen** display
+- Option to display fast **select banner icon**, open Banner Image selection modal to select local image
+- Option to display **view banner icon**, immersive view full image
 - Set **default folder path** when opening the Banner Image selection modal
 - Automatically **show release notes** after plugin updates
-- Option to display **pin icon** for save banner image from API to local folder
-- Option to display **refresh icon** to get new random image
+- Option to display **pin icon**, save banner image from API to local folder
+- Option to display **refresh icon**, get new random image
 - Set **pinned images folder** path to save pinned image for permanent banner
-- **Clean orphaned images** in pinned images folder
+- **Clean orphaned images**, clean unlinked images in pinned images folder
 - Select **size and orientation** of images when fetch from images providers
 - Choose **number of images** when fetch from images providers
 - Set **default keywords** for fetch when no specific keyword is provided
@@ -63,7 +63,7 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 ## Usage
 
 1. Obtain a free API key from [Pexels](https://www.pexels.com/api/), [Pixabay](https://pixabay.com/api/docs/), [Flickr](https://www.flickr.com/services/api/), or [Unsplash](https://unsplash.com/oauth/applications) (requires account to generate API)
-2. In Obsidian, go to Settings > Pixel Banner and enter your API key(s)
+2. In Obsidian, go to Settings > Pixel Banner > API Settings and enter your API key(s)
 3. In any note, add a `banner` field to the frontmatter with keywords for the desired image, a direct URL, a path to a local image, or an Obsidian internal link:
 
 ```yaml
