@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "c78f46a9d7ef4fa3",
+        "id": "7aca43be2b9830f8",
         "type": "tabs",
         "children": [
           {
-            "id": "7e329a32587f3433",
+            "id": "44ad11366bb2bab7",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🚩 Pixel-Banner.md",
+                "file": "releases/v2.10.0 - 🖌️ Title Color.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "🚩 Pixel-Banner"
+              "title": "v2.10.0 - 🖌️ Title Color"
             }
           }
         ]
@@ -493,6 +493,46 @@
             "id": "0b7ed52f4b5ede3c",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c654356e55463330",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9af71df4120dc5f9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c2cedc3b3133b349",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "93640f2af9630bac",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -500,7 +540,7 @@
             }
           }
         ],
-        "currentTab": 38
+        "currentTab": 42
       }
     ],
     "direction": "horizontal",
@@ -518,33 +558,36 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "7e329a32587f3433",
+  "active": "44ad11366bb2bab7",
   "lastOpenFiles": [
-    "Untitled.md",
+    "releases/v2.11.0 - 📌 Pin my URL Please.md",
+    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
+    "releases/v2.13.0 - 🖼️ View my Banner.md",
+    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
+    "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
+    "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
+    "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
+    "releases/v2.18.0 - 📏 Gaps & 🗃️ Links.md",
+    "releases/v2.10.0 - 🖌️ Title Color.md",
+    "pixel-banner-images/artwork.webp",
+    "pixel-banner-images/wall-of-images.png",
+    "pixel-banner-images/paint-drips.png",
+    "pixel-banner-images/shuffle.png",
+    "pixel-banner-images/pin-clouds.jpg",
+    "pixel-banner-images/monster-looking-at-children.png",
+    "pixel-banner-images/jars.svg",
+    "pixel-banner-images/good-art-is-never-forgotten.png",
+    "pixel-banner-images/file-folders.png",
+    "pixel-banner-images/father-and-child.jpg",
     "🚩 Pixel-Banner.md",
+    "x/Untitled.md",
+    "x",
     "same of Untitled.md",
     "tests/🧪 test - 10 - embed tests.md",
     "tests/🧪 test - 9 - svg banner.md",
-    "pixel-banner-images/jars.svg",
-    "pixel-banner-images/pixel-banner-image.png",
-    "pixel-banner-images/good-art-is-never-forgotten.png",
-    "pixel-banner-images/father-and-child.jpg",
-    "pixel-banner-images/shuffle.png",
-    "pixel-banner-images/pixel-banner-image-2.png",
-    "pixel-banner-images/pixel-banner-image-1.png",
     "test.md",
-    "images/forest.jpg",
     "Untitled 2.md",
     "Untitled 1.md",
-    "releases/v2.18.0 - 📏 Gaps & 🗃️ Links.md",
-    "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
-    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
-    "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
-    "releases/v2.13.0 - 🖼️ View my Banner.md",
-    "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
-    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
-    "releases/v2.11.0 - 📌 Pin my URL Please.md",
     "tests/🧪 test - 4 - all fields.md",
     "tests/🧪 test - 1 - internal link.md",
     "tests/🧪 test - 3 - direct url link.md",
@@ -553,9 +596,6 @@
     "tests/🧪 test - 8 - render link.md",
     "tests/🧪 test - 2 - internal link - quoted.md",
     "tests/🧪 test - 7- shuffle time!.md",
-    "pixel-banner-images/file-folders.png",
-    "Banner Gap.md",
-    "images/artwork.png",
     "zzzzz",
     "pixel-banner-images/pin-clouds.jpg.crdownload",
     "pixel-banner-images/father-and-child (1).jpg.crdownload",
@@ -564,7 +604,6 @@
     "shuffle-images",
     "releases",
     "images/releases",
-    "images/New folder",
-    "= attachments"
+    "images/New folder"
   ]
 }

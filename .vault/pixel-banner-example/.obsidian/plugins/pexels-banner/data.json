@@ -9,6 +9,7 @@
   "numberOfImages": 10,
   "defaultKeywords": "nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns",
   "yPosition": 50,
+  "xPosition": 50,
   "customBannerField": [
     "banner",
     "header-image"
@@ -16,6 +17,9 @@
   "customYPositionField": [
     "banner-y",
     "y"
+  ],
+  "customXPositionField": [
+    "banner-x"
   ],
   "customContentStartField": [
     "content-start",
@@ -109,8 +113,8 @@
   "lastVersion": "2.18.2",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
-  "hidePixelBannerFields": false,
-  "hidePropertiesSectionIfOnlyBanner": false,
+  "hidePixelBannerFields": true,
+  "hidePropertiesSectionIfOnlyBanner": true,
   "titleColor": "var(--inline-title-color)",
   "enableImageShuffle": false,
   "hideEmbeddedNoteTitles": true,

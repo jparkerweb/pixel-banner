@@ -23,8 +23,10 @@ var DEFAULT_SETTINGS = {
   numberOfImages: 10,
   defaultKeywords: "nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns",
   yPosition: 50,
+  xPosition: 50,
   customBannerField: ["banner"],
   customYPositionField: ["banner-y"],
+  customXPositionField: ["banner-x"],
   customContentStartField: ["content-start"],
   customImageDisplayField: ["banner-display"],
   customImageRepeatField: ["banner-repeat"],
@@ -196,6 +198,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   addYPostionAndContentStart() {
     const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
     this.addYPositionInput(controlEl);
+    this.addXPositionInput(controlEl);
     this.addContentStartInput(controlEl);
   }
   addFadeAndBannerHeight() {
@@ -229,6 +232,38 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     });
     slider.addEventListener("change", async () => {
       this.folderImage.yPosition = parseInt(slider.value);
+      await this.plugin.saveSettings();
+    });
+    label.appendChild(sliderContainer);
+    containerEl.appendChild(label);
+  }
+  addXPositionInput(containerEl) {
+    const label = containerEl.createEl("label", { text: "X-Position", cls: "setting-item-name__label" });
+    label.style.marginLeft = "20px";
+    const sliderContainer = containerEl.createEl("div", { cls: "slider-container" });
+    const slider = sliderContainer.createEl("input", {
+      type: "range",
+      cls: "slider",
+      attr: {
+        min: "0",
+        max: "100",
+        step: "1"
+      }
+    });
+    slider.value = this.folderImage.xPosition || "50";
+    slider.style.width = "100px";
+    slider.style.marginLeft = "10px";
+    const valueDisplay = sliderContainer.createEl("div", { cls: "slider-value" });
+    valueDisplay.style.marginLeft = "10px";
+    const updateValueDisplay = (value) => {
+      valueDisplay.textContent = value;
+    };
+    updateValueDisplay(slider.value);
+    slider.addEventListener("input", (event) => {
+      updateValueDisplay(event.target.value);
+    });
+    slider.addEventListener("change", async () => {
+      this.folderImage.xPosition = parseInt(slider.value);
       await this.plugin.saveSettings();
     });
     label.appendChild(sliderContainer);
@@ -660,6 +695,20 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       sliderEl.value = DEFAULT_SETTINGS.yPosition;
       sliderEl.dispatchEvent(new Event("input"));
     }));
+    new import_obsidian.Setting(containerEl).setName("Image Horizontal Position").setDesc("Set the horizontal position of the image (0-100)").addSlider(
+      (slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.xPosition).setDynamicTooltip().onChange(async (value) => {
+        this.plugin.settings.xPosition = value;
+        await this.plugin.saveSettings();
+        this.plugin.updateAllBanners();
+      })
+    ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
+      await this.plugin.saveSettings();
+      this.plugin.updateAllBanners();
+      const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+      sliderEl.value = DEFAULT_SETTINGS.xPosition;
+      sliderEl.dispatchEvent(new Event("input"));
+    }));
     new import_obsidian.Setting(containerEl).setName("Content Start Position").setDesc("Set the default vertical position where the content starts (in pixels)").addText((text) => text.setPlaceholder("150").setValue(String(this.plugin.settings.contentStartPosition)).onChange(async (value) => {
       const numValue = Number(value);
       if (!isNaN(numValue) && numValue >= 0) {
@@ -1004,6 +1053,12 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         placeholder: "banner-y, y-position, banner-offset"
       },
       {
+        setting: "customXPositionField",
+        name: "X-Position Field Names",
+        desc: "Set custom field names for the X-position in frontmatter (comma-separated)",
+        placeholder: "banner-x, x-position, banner-offset-x"
+      },
+      {
         setting: "customContentStartField",
         name: "Content Start Position Field Names",
         desc: "Set custom field names for the content start position in frontmatter (comma-separated)",
@@ -1084,32 +1139,37 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
   }
   createFolderSettings(containerEl) {
     const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-    calloutEl.createEl("div", { text: 'Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings. To get started, add a folder image setting and click the "+ Add Folder Image Setting" button below.' });
-    const folderImagesContainer = containerEl.createDiv("folder-images-container");
-    const updateFolderSettings = () => {
-      var _a, _b;
-      folderImagesContainer.empty();
-      const sortedFolderImages = [...this.plugin.settings.folderImages].sort((a, b) => {
-        const folderA = (a.folder || "").toLowerCase();
-        const folderB = (b.folder || "").toLowerCase();
-        return folderA.localeCompare(folderB);
-      });
-      this.plugin.settings.folderImages = sortedFolderImages;
-      const folderSettings = sortedFolderImages.map(
-        (folderImage, index) => new FolderImageSetting(folderImagesContainer, this.plugin, folderImage, index, updateFolderSettings)
+    calloutEl.createEl("div", { text: "Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder." });
+    const folderImagesContainer = containerEl.createEl("div", { cls: "folder-images-container" });
+    this.plugin.settings.folderImages.forEach((folderImage, index) => {
+      new FolderImageSetting(
+        folderImagesContainer,
+        this.plugin,
+        folderImage,
+        index,
+        () => this.updateFolderSettings()
       );
-      if (this.shouldFocusNewFolder) {
-        (_b = (_a = folderSettings[0]) == null ? void 0 : _a.folderInputEl) == null ? void 0 : _b.focus();
-        this.shouldFocusNewFolder = false;
-      }
-    };
-    updateFolderSettings();
-    const addFolderContainer = containerEl.createDiv("add-folder-image-setting");
-    new import_obsidian.Setting(addFolderContainer).addButton((button) => button.setButtonText("+ Add Folder Image Setting").onClick(async () => {
-      this.plugin.settings.folderImages.push({ folder: "", image: "", yPosition: 50, contentStartPosition: 150 });
+    });
+    const addFolderImageSetting = new import_obsidian.Setting(containerEl).setClass("add-folder-image-setting").addButton((button) => button.setButtonText("Add Folder Image").onClick(async () => {
+      const newFolderImage = {
+        folder: "",
+        image: "",
+        imageDisplay: "cover",
+        imageRepeat: false,
+        yPosition: 50,
+        xPosition: 50,
+        contentStartPosition: 150,
+        bannerHeight: 350,
+        fade: -75,
+        borderRadius: 17,
+        titleColor: "var(--inline-title-color)",
+        directChildrenOnly: false,
+        enableImageShuffle: false,
+        shuffleFolder: ""
+      };
+      this.plugin.settings.folderImages.push(newFolderImage);
       await this.plugin.saveSettings();
-      this.shouldFocusNewFolder = true;
-      updateFolderSettings();
+      this.updateFolderSettings();
     }));
   }
   createExampleSettings(containerEl) {
@@ -1125,6 +1185,7 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
       text: `---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: blue turtle
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 30
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 30
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 200
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
@@ -1138,6 +1199,7 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff0000
 ---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: https://example.com/image.jpg
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 70
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 70
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 180
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
@@ -1150,6 +1212,7 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #00ff00
 ---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: Assets/my-image.png
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 0
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 0
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 100
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
@@ -1162,6 +1225,7 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #0000ff
 ---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: [[example-image.png]]
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 100
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 100
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 50
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false
@@ -2037,7 +2101,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
   }
   async updateBanner(view, isContentChange) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
     if (!view || !view.file) {
       return;
     }
@@ -2069,7 +2133,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       this.lastKeywords.delete(view.file.path);
     }
     let yPosition = (_b = folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _b : this.settings.yPosition;
-    let contentStartPosition = (_c = folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _c : this.settings.contentStartPosition;
+    let xPosition = (_c = folderSpecific == null ? void 0 : folderSpecific.xPosition) != null ? _c : this.settings.xPosition;
+    let contentStartPosition = (_d = folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _d : this.settings.contentStartPosition;
     if (bannerImage) {
       if (Array.isArray(bannerImage)) {
         bannerImage = bannerImage.flat()[0];
@@ -2093,16 +2158,17 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     }
     let imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
-    let imageRepeat = (_e = (_d = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField)) != null ? _d : folderSpecific == null ? void 0 : folderSpecific.imageRepeat) != null ? _e : this.settings.imageRepeat;
-    let bannerHeight = (_g = (_f = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField)) != null ? _f : folderSpecific == null ? void 0 : folderSpecific.bannerHeight) != null ? _g : this.settings.bannerHeight;
-    let fade = (_i = (_h = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _h : folderSpecific == null ? void 0 : folderSpecific.fade) != null ? _i : this.settings.fade;
-    let borderRadius = (_k = (_j = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _j : folderSpecific == null ? void 0 : folderSpecific.borderRadius) != null ? _k : this.settings.borderRadius;
+    let imageRepeat = (_f = (_e = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField)) != null ? _e : folderSpecific == null ? void 0 : folderSpecific.imageRepeat) != null ? _f : this.settings.imageRepeat;
+    let bannerHeight = (_h = (_g = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField)) != null ? _g : folderSpecific == null ? void 0 : folderSpecific.bannerHeight) != null ? _h : this.settings.bannerHeight;
+    let fade = (_j = (_i = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _i : folderSpecific == null ? void 0 : folderSpecific.fade) != null ? _j : this.settings.fade;
+    let borderRadius = (_l = (_k = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _k : folderSpecific == null ? void 0 : folderSpecific.borderRadius) != null ? _l : this.settings.borderRadius;
     if (bannerImage) {
       await this.addPixelBanner(contentEl, {
         frontmatter,
         file: view.file,
         isContentChange,
         yPosition,
+        xPosition,
         contentStartPosition,
         bannerImage,
         imageDisplay,
@@ -2731,8 +2797,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     return releaseNotes;
   }
   async addPixelBanner(el, ctx) {
-    var _a, _b;
-    const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
+    var _a, _b, _c;
+    const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains("internal-embed") && viewContent.classList.contains("markdown-embed");
     if (!isEmbedded) {
@@ -2861,8 +2927,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const selectImageElement = this.querySelector(":scope > .select-image-icon");
         children = Array.from(children).filter(
           (child) => {
-            var _a2, _b2, _c, _d, _e;
-            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c = child.classList) == null ? void 0 : _c.contains("pin-icon")) && !((_d = child.classList) == null ? void 0 : _d.contains("refresh-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("select-image-icon"));
+            var _a2, _b2, _c2, _d, _e;
+            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c2 = child.classList) == null ? void 0 : _c2.contains("pin-icon")) && !((_d = child.classList) == null ? void 0 : _d.contains("refresh-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("select-image-icon"));
           }
         );
         if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
@@ -2899,10 +2965,12 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
         const folderSpecific = this.getFolderSpecificImage(file.path);
         const effectiveYPosition = (_a = frontmatterYPosition != null ? frontmatterYPosition : folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _a : this.settings.yPosition;
+        const frontmatterXPosition = getFrontmatterValue(frontmatter, this.settings.customXPositionField);
+        const effectiveXPosition = (_b = frontmatterXPosition != null ? frontmatterXPosition : folderSpecific == null ? void 0 : folderSpecific.xPosition) != null ? _b : this.settings.xPosition;
         const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
         const isSvg = imageUrl.includes("image/svg+xml") || file.path && file.path.toLowerCase().endsWith(".svg");
         bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-        bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
+        bannerDiv.style.backgroundPosition = `${effectiveXPosition}% ${effectiveYPosition}%`;
         if (isSvg) {
           bannerDiv.style.backgroundSize = imageDisplay === "contain" ? "contain" : "100% 100%";
         } else {
@@ -2915,7 +2983,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
         this.applyBannerSettings(bannerDiv, ctx);
         const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
-        const effectiveContentStart = (_b = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
+        const effectiveContentStart = (_c = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _c : this.settings.contentStartPosition;
         this.applyContentStartPosition(viewContent, effectiveContentStart);
         this.applyBannerWidth(viewContent);
         if (!isEmbedded && (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon) {

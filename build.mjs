@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 async function copyFiles() {
-    const targetDir = 'example-vault/pixel-banner-example/.obsidian/plugins/pexels-banner';
+    const targetDir = '.vault/pixel-banner-example/.obsidian/plugins/pexels-banner';
     const files = ['styles.css', 'main.js', 'manifest.json'];
 
     // Ensure target directory exists

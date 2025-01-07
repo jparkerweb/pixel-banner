@@ -15,7 +15,7 @@
 	left: var(--pixel-banner-banner-gap, 0);
 	right: var(--pixel-banner-banner-gap, 0);
 	background-size: cover; 
-	background-position: 50% 50%;
+	background-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%);
 	overflow: hidden;  
 	mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
 	-webkit-mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
