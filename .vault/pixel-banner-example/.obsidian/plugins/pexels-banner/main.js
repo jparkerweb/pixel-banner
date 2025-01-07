@@ -94,8 +94,10 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addYPostionAndContentStart();
     this.addFadeAndBannerHeight();
     const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
+    this.addContentStartInput(controlEl);
     this.addBorderRadiusInput(controlEl);
-    this.addColorSettings(controlEl);
+    const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
+    this.addColorSettings(controlEl2);
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
@@ -199,7 +201,6 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
     this.addYPositionInput(controlEl);
     this.addXPositionInput(controlEl);
-    this.addContentStartInput(controlEl);
   }
   addFadeAndBannerHeight() {
     const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
@@ -267,25 +268,6 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       await this.plugin.saveSettings();
     });
     label.appendChild(sliderContainer);
-    containerEl.appendChild(label);
-  }
-  addContentStartInput(containerEl) {
-    const label = containerEl.createEl("label", { text: "Content Start", cls: "setting-item-name__label" });
-    label.style.marginLeft = "20px";
-    const contentStartInput = containerEl.createEl("input", {
-      type: "number",
-      attr: {
-        min: "0"
-      }
-    });
-    contentStartInput.style.width = "50px";
-    contentStartInput.style.marginLeft = "10px";
-    contentStartInput.value = this.folderImage.contentStartPosition || "150";
-    contentStartInput.addEventListener("change", async () => {
-      this.folderImage.contentStartPosition = parseInt(contentStartInput.value);
-      await this.plugin.saveSettings();
-    });
-    label.appendChild(contentStartInput);
     containerEl.appendChild(label);
   }
   addBannerHeightInput(containerEl) {
@@ -401,6 +383,25 @@ var FolderImageSetting = class extends import_obsidian.Setting {
         await this.plugin.saveSettings();
       });
     });
+  }
+  addContentStartInput(containerEl) {
+    const label = containerEl.createEl("label", { text: "Content Start", cls: "setting-item-name__label" });
+    label.style.marginRight = "20px";
+    const contentStartInput = containerEl.createEl("input", {
+      type: "number",
+      attr: {
+        min: "0"
+      }
+    });
+    contentStartInput.style.width = "50px";
+    contentStartInput.style.marginLeft = "10px";
+    contentStartInput.value = this.folderImage.contentStartPosition || "150";
+    contentStartInput.addEventListener("change", async () => {
+      this.folderImage.contentStartPosition = parseInt(contentStartInput.value);
+      await this.plugin.saveSettings();
+    });
+    label.appendChild(contentStartInput);
+    containerEl.appendChild(label);
   }
   addBorderRadiusInput(containerEl) {
     var _a;
@@ -1836,7 +1837,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.18.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Support for SVG images</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Pinning a Banner Image now uses internal link format (similar to the Select Banner Image modal)</li>\n<li>Set a max width for the Banner Image selection modal (1100px)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>The &quot;Cleaned Orphaned Pins&quot; button now correctly evaluates internal links in addition to plain paths</li>\n</ul>\n<h3>v2.18.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Mobile layout improvements for Banner Image selection modal</li>\n<li>Quote paths when inserting a Banner Image from the Banner Image selection modal</li>\n</ul>\n<h3>v2.18.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Switch to internal image reference format when Selecting a Banner Image</li>\n<li>Option to use <code>short paths</code> for image references (e.g. <code>[[forest.jpg]]</code> instead of <code>[[path/forest.jpg]]</code>)</li>\n<li>New setting to set the gap between the banner and the window edges (0-50 pixels)</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Improved the Banner Image selection modal UI</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.18.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.19.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Horizontal image positioning with new X-Position slider</li>\n<li>X-Position support in General, Folder Image, and Frontmatter settings</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -1894,6 +1895,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const relevantFields = [
           ...this.settings.customBannerField,
           ...this.settings.customYPositionField,
+          ...this.settings.customXPositionField,
           ...this.settings.customContentStartField,
           ...this.settings.customImageDisplayField,
           ...this.settings.customImageRepeatField,
@@ -2025,6 +2027,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     const fieldsToMigrate = [
       "customBannerField",
       "customYPositionField",
+      "customXPositionField",
       "customContentStartField",
       "customImageDisplayField",
       "customImageRepeatField",
@@ -2666,6 +2669,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           const fieldsToHide = [
             ...this.settings.customBannerField,
             ...this.settings.customYPositionField,
+            ...this.settings.customXPositionField,
             ...this.settings.customContentStartField,
             ...this.settings.customImageDisplayField,
             ...this.settings.customImageRepeatField,
@@ -3081,6 +3085,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     const fieldsToHide = [
       ...this.settings.customBannerField,
       ...this.settings.customYPositionField,
+      ...this.settings.customXPositionField,
       ...this.settings.customContentStartField,
       ...this.settings.customImageDisplayField,
       ...this.settings.customImageRepeatField,

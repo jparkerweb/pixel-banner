@@ -69,6 +69,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 const relevantFields = [
                     ...this.settings.customBannerField,
                     ...this.settings.customYPositionField,
+                    ...this.settings.customXPositionField,
                     ...this.settings.customContentStartField,
                     ...this.settings.customImageDisplayField,
                     ...this.settings.customImageRepeatField,
@@ -257,6 +258,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const fieldsToMigrate = [
             'customBannerField',
             'customYPositionField',
+            'customXPositionField',
             'customContentStartField',
             'customImageDisplayField',
             'customImageRepeatField',
@@ -397,6 +399,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // Initialize settings with either folder-specific or default values
         let yPosition = folderSpecific?.yPosition ?? this.settings.yPosition;
+        let xPosition = folderSpecific?.xPosition ?? this.settings.xPosition;
         let contentStartPosition = folderSpecific?.contentStartPosition ?? this.settings.contentStartPosition;
 
         // Handle array flattening and internal link formatting
@@ -459,6 +462,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 file: view.file, 
                 isContentChange,
                 yPosition,
+                xPosition,
                 contentStartPosition,
                 bannerImage,
                 imageDisplay,
@@ -1091,6 +1095,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     const fieldsToHide = [
                         ...this.settings.customBannerField,
                         ...this.settings.customYPositionField,
+                        ...this.settings.customXPositionField,
                         ...this.settings.customContentStartField,
                         ...this.settings.customImageDisplayField,
                         ...this.settings.customImageRepeatField,
@@ -1269,7 +1274,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     async addPixelBanner(el, ctx) {
-        const { frontmatter, file, isContentChange, yPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
+        const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
         const viewContent = el;
         const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
 
@@ -1489,6 +1494,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     folderSpecific?.yPosition ?? 
                     this.settings.yPosition;
 
+                const frontmatterXPosition = getFrontmatterValue(frontmatter, this.settings.customXPositionField);
+                const effectiveXPosition = frontmatterXPosition ?? 
+                    folderSpecific?.xPosition ?? 
+                    this.settings.xPosition;
+
                 // Get imageDisplay from context or settings
                 const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || 
                     folderSpecific?.imageDisplay || 
@@ -1499,7 +1509,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                               (file.path && file.path.toLowerCase().endsWith('.svg'));
                 
                 bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-                bannerDiv.style.backgroundPosition = `center ${effectiveYPosition}%`;
+                bannerDiv.style.backgroundPosition = `${effectiveXPosition}% ${effectiveYPosition}%`;
                 // Add special handling for SVG backgrounds
                 if (isSvg) {
                     bannerDiv.style.backgroundSize = imageDisplay === 'contain' ? 'contain' : '100% 100%';
@@ -1654,6 +1664,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const fieldsToHide = [
             ...this.settings.customBannerField,
             ...this.settings.customYPositionField,
+            ...this.settings.customXPositionField,
             ...this.settings.customContentStartField,
             ...this.settings.customImageDisplayField,
             ...this.settings.customImageRepeatField,
@@ -2016,7 +2027,7 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
         plugin.settings.customBannerField[0] : 'banner');
 
     fileContent = fileContent.replace(/^\s+/, '');
-
+    
     let updatedContent;
     if (hasFrontmatter) {
         updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {

@@ -29,11 +29,9 @@
     z-index: -1;
 }
 
-/* for embedded notes, set width and left position */
 .markdown-embed-content .pixel-banner-image {
     position: absolute !important;
 	left: 0 !important;
-	width: 100vw !important;
     z-index: unset !important;
 }
 .markdown-embed-content .pixel-banner-image ~ div {

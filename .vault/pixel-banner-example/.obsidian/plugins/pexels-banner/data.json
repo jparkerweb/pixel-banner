@@ -67,7 +67,8 @@
       "borderRadius": 0,
       "titleColor": "#ff0000",
       "enableImageShuffle": false,
-      "shuffleFolder": ""
+      "shuffleFolder": "",
+      "xPosition": 0
     },
     {
       "folder": "Random Shuffle",
@@ -110,7 +111,7 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.18.2",
+  "lastVersion": "2.19.0",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
   "hidePixelBannerFields": true,

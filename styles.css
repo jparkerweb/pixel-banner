@@ -15,7 +15,7 @@
 	left: var(--pixel-banner-banner-gap, 0);
 	right: var(--pixel-banner-banner-gap, 0);
 	background-size: cover; 
-	background-position: 50% 50%;
+	background-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%);
 	overflow: hidden;  
 	mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
 	-webkit-mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
@@ -29,11 +29,9 @@
     z-index: -1;
 }
 
-/* for embedded notes, set width and left position */
 .markdown-embed-content .pixel-banner-image {
     position: absolute !important;
 	left: 0 !important;
-	width: 100vw !important;
     z-index: unset !important;
 }
 .markdown-embed-content .pixel-banner-image ~ div {
