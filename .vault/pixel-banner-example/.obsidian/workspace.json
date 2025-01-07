@@ -13,30 +13,15 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "releases/v2.19.0 - 🦜 X Marks the Spot.md",
+                "file": "🚩 Pixel-Banner.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "v2.19.0 - 🦜 X Marks the Spot"
-            }
-          },
-          {
-            "id": "4e373134da85e41a",
-            "type": "leaf",
-            "state": {
-              "type": "webviewer",
-              "state": {
-                "url": "https://jparkerweb.github.io/release-notes/",
-                "title": "Release Notes Generator",
-                "mode": "webview"
-              },
-              "icon": "globe-2",
-              "title": "Release Notes Generator"
+              "title": "🚩 Pixel-Banner"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -265,7 +250,7 @@
       "obsidian-custom-frames:Open 📄 release notes": false
     }
   },
-  "active": "4e373134da85e41a",
+  "active": "2fcc429544243a0a",
   "lastOpenFiles": [
     "releases/v2.19.0 - 🦜 X Marks the Spot.md",
     "🚩 Pixel-Banner.md",
