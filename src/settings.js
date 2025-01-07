@@ -11,8 +11,10 @@ const DEFAULT_SETTINGS = {
     numberOfImages: 10,
     defaultKeywords: 'nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns',
     yPosition: 50,
+    xPosition: 50,
     customBannerField: ['banner'],
     customYPositionField: ['banner-y'],
+    customXPositionField: ['banner-x'],
     customContentStartField: ['content-start'],
     customImageDisplayField: ['banner-display'],
     customImageRepeatField: ['banner-repeat'],
@@ -93,9 +95,12 @@ class FolderImageSetting extends Setting {
         this.addFadeAndBannerHeight();
 
         const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
+        this.addContentStartInput(controlEl);
         this.addBorderRadiusInput(controlEl);
-        this.addColorSettings(controlEl);
-        
+
+        const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
+        this.addColorSettings(controlEl2);
+
         this.addDirectChildrenOnlyToggle();
     }
 
@@ -249,7 +254,7 @@ class FolderImageSetting extends Setting {
     addYPostionAndContentStart() {
         const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
         this.addYPositionInput(controlEl);
-        this.addContentStartInput(controlEl);
+        this.addXPositionInput(controlEl);
     }
     addFadeAndBannerHeight() {
         const controlEl = this.settingEl.createDiv("setting-item-control full-width-control");
@@ -295,25 +300,42 @@ class FolderImageSetting extends Setting {
         containerEl.appendChild(label);
     }
 
-    addContentStartInput(containerEl) {
-        const label = containerEl.createEl('label', { text: 'Content Start', cls: 'setting-item-name__label' });
+    addXPositionInput(containerEl) {
+        const label = containerEl.createEl('label', { text: 'X-Position', cls: 'setting-item-name__label' });
         label.style.marginLeft = '20px';
-
-        const contentStartInput = containerEl.createEl('input', {
-            type: 'number',
+        const sliderContainer = containerEl.createEl('div', { cls: 'slider-container' });
+        const slider = sliderContainer.createEl('input', {
+            type: 'range',
+            cls: 'slider',
             attr: {
-                min: '0'
+                min: '0',
+                max: '100',
+                step: '1'
             }
         });
-        contentStartInput.style.width = '50px';
-        contentStartInput.style.marginLeft = '10px';
-        contentStartInput.value = this.folderImage.contentStartPosition || "150";
-        contentStartInput.addEventListener('change', async () => {
-            this.folderImage.contentStartPosition = parseInt(contentStartInput.value);
-            await this.plugin.saveSettings();
+        slider.value = this.folderImage.xPosition || "50";
+        slider.style.width = '100px';
+        slider.style.marginLeft = '10px';
+        
+        const valueDisplay = sliderContainer.createEl('div', { cls: 'slider-value' });
+        valueDisplay.style.marginLeft = '10px';
+        
+        const updateValueDisplay = (value) => {
+            valueDisplay.textContent = value;
+        };
+        
+        updateValueDisplay(slider.value);
+        
+        slider.addEventListener('input', (event) => {
+            updateValueDisplay(event.target.value);
         });
 
-        label.appendChild(contentStartInput);
+        slider.addEventListener('change', async () => {
+            this.folderImage.xPosition = parseInt(slider.value);
+            await this.plugin.saveSettings();
+        });
+        
+        label.appendChild(sliderContainer);
         containerEl.appendChild(label);
     }
 
@@ -468,6 +490,28 @@ class FolderImageSetting extends Setting {
                         await this.plugin.saveSettings();
                     });
             });
+    }
+
+    addContentStartInput(containerEl) {
+        const label = containerEl.createEl('label', { text: 'Content Start', cls: 'setting-item-name__label' });
+        label.style.marginRight = '20px';
+
+        const contentStartInput = containerEl.createEl('input', {
+            type: 'number',
+            attr: {
+                min: '0'
+            }
+        });
+        contentStartInput.style.width = '50px';
+        contentStartInput.style.marginLeft = '10px';
+        contentStartInput.value = this.folderImage.contentStartPosition || "150";
+        contentStartInput.addEventListener('change', async () => {
+            this.folderImage.contentStartPosition = parseInt(contentStartInput.value);
+            await this.plugin.saveSettings();
+        });
+
+        label.appendChild(contentStartInput);
+        containerEl.appendChild(label);
     }
 
     addBorderRadiusInput(containerEl) {
@@ -1021,6 +1065,33 @@ class PixelBannerSettingTab extends PluginSettingTab {
                     // Update the slider value
                     const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
                     sliderEl.value = DEFAULT_SETTINGS.yPosition;
+                    sliderEl.dispatchEvent(new Event('input'));
+                }));
+
+        // Image Horizontal Position setting
+        new Setting(containerEl)
+            .setName('Image Horizontal Position')
+            .setDesc('Set the horizontal position of the image (0-100)')
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.plugin.settings.xPosition)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.xPosition = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                })
+            )
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.xPosition;
                     sliderEl.dispatchEvent(new Event('input'));
                 }));
 
@@ -1608,6 +1679,12 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 placeholder: 'banner-y, y-position, banner-offset'
             },
             {
+                setting: 'customXPositionField',
+                name: 'X-Position Field Names',
+                desc: 'Set custom field names for the X-position in frontmatter (comma-separated)',
+                placeholder: 'banner-x, x-position, banner-offset-x'
+            },
+            {
                 setting: 'customContentStartField',
                 name: 'Content Start Position Field Names',
                 desc: 'Set custom field names for the content start position in frontmatter (comma-separated)',
@@ -1706,47 +1783,47 @@ class PixelBannerSettingTab extends PluginSettingTab {
     createFolderSettings(containerEl) {
         // section callout
         const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
-        calloutEl.createEl('div', { text: 'Set default banner images for specific folders. These will apply to all notes in the folder unless overridden by note-specific settings. To get started, add a folder image setting and click the "+ Add Folder Image Setting" button below.' });
+        calloutEl.createEl('div', { text: 'Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder.' });
 
-        const folderImagesContainer = containerEl.createDiv('folder-images-container');
+        // Add folder images container
+        const folderImagesContainer = containerEl.createEl('div', { cls: 'folder-images-container' });
 
-        const updateFolderSettings = () => {
-            folderImagesContainer.empty();
-            
-            // Sort the folder images by folder path
-            const sortedFolderImages = [...this.plugin.settings.folderImages].sort((a, b) => {
-                const folderA = (a.folder || '').toLowerCase();
-                const folderB = (b.folder || '').toLowerCase();
-                return folderA.localeCompare(folderB);
-            });
-
-            // Update the original array to maintain the sorted order
-            this.plugin.settings.folderImages = sortedFolderImages;
-            
-            // Create all folder image settings
-            const folderSettings = sortedFolderImages.map((folderImage, index) => 
-                new FolderImageSetting(folderImagesContainer, this.plugin, folderImage, index, updateFolderSettings)
+        // Add existing folder images
+        this.plugin.settings.folderImages.forEach((folderImage, index) => {
+            new FolderImageSetting(
+                folderImagesContainer,
+                this.plugin,
+                folderImage,
+                index,
+                () => this.updateFolderSettings()
             );
+        });
 
-            // If this update was triggered by adding a new setting, focus its input
-            if (this.shouldFocusNewFolder) {
-                // Focus the first folder setting's input since it's the newly added one
-                folderSettings[0]?.folderInputEl?.focus();
-                this.shouldFocusNewFolder = false;
-            }
-        };
-
-        updateFolderSettings();
-
-        const addFolderContainer = containerEl.createDiv('add-folder-image-setting');
-        new Setting(addFolderContainer)
+        // Add button to add new folder image
+        const addFolderImageSetting = new Setting(containerEl)
+            .setClass('add-folder-image-setting')
             .addButton(button => button
-                .setButtonText("+ Add Folder Image Setting")
+                .setButtonText('Add Folder Image')
                 .onClick(async () => {
-                    this.plugin.settings.folderImages.push({ folder: "", image: "", yPosition: 50, contentStartPosition: 150 });
+                    const newFolderImage = {
+                        folder: '',
+                        image: '',
+                        imageDisplay: 'cover',
+                        imageRepeat: false,
+                        yPosition: 50,
+                        xPosition: 50,
+                        contentStartPosition: 150,
+                        bannerHeight: 350,
+                        fade: -75,
+                        borderRadius: 17,
+                        titleColor: 'var(--inline-title-color)',
+                        directChildrenOnly: false,
+                        enableImageShuffle: false,
+                        shuffleFolder: ''
+                    };
+                    this.plugin.settings.folderImages.push(newFolderImage);
                     await this.plugin.saveSettings();
-                    this.shouldFocusNewFolder = true;
-                    updateFolderSettings();
+                    this.updateFolderSettings();
                 }));
     }
 
@@ -1769,6 +1846,7 @@ class PixelBannerSettingTab extends PluginSettingTab {
 `---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: blue turtle
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 30
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 30
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 200
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
@@ -1782,6 +1860,7 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff0000
 ---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: https://example.com/image.jpg
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 70
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 70
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 180
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
@@ -1794,6 +1873,7 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #00ff00
 ---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: Assets/my-image.png
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 0
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 0
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 100
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
@@ -1806,6 +1886,7 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #0000ff
 ---
 ${getRandomFieldName(this.plugin.settings.customBannerField)}: [[example-image.png]]
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 100
+${getRandomFieldName(this.plugin.settings.customXPositionField)}: 100
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 50
 ${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
 ${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false

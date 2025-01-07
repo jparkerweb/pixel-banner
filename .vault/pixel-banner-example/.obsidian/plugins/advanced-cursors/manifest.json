@@ -1,0 +1,10 @@
+{
+	"id": "advanced-cursors",
+	"name": "Advanced Cursors",
+	"version": "0.5.1",
+	"minAppVersion": "0.12.18",
+	"description": "Use multiple cursors even more powerfully.",
+	"author": "SkepticMystic",
+	"authorUrl": "https://github.com/SkepticMystic/advanced-cursors",
+	"isDesktopOnly": true
+}

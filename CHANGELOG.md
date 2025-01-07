@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.19.0] - 2025-01-06
+#### ✨ Added
+- Horizontal image positioning with new X-Position slider
+- X-Position support in General, Folder Image, and Frontmatter settings
+
 ### [v2.18.2] - 2025-01-02
 #### ✨ Added
 - Support for SVG images

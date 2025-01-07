@@ -1,0 +1,60 @@
+/* Sets all the text color to red! */
+.savedQ {
+  padding: 5px 5px;
+}
+
+.savedQ-name {
+  background-color: var(--background-secondary-alt);
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+
+.savedQ-view-q {
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+
+.editQButton,
+.deleteQButton {
+  float: right;
+}
+
+.savedQ-name:hover,
+.editQButton:hover,
+.deleteQButton:hover,
+.savedQ-query:hover,
+.AC-submit-button:hover,
+.savedQ-view-q:hover {
+  background-color: var(--interactive-accent) !important;
+  cursor: pointer;
+}
+
+.AC-submit-button:focus {
+  background-color: var(--interactive-accent) !important;
+}
+
+.savedQ-query {
+  background-color: var(--background-primary-alt);
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+
+.AC-flashNewSel {
+  animation: flashNewSel 1.5s 1;
+  border-radius: 3px;
+}
+
+@keyframes flashNewSel {
+  0% {
+    background-color: transparent;
+  }
+  10% {
+    background-color: var(--text-highlight-bg);
+  }
+  80% {
+    background-color: var(--text-highlight-bg);
+  }
+  100% {
+    background-color: transparent;
+  }
+}

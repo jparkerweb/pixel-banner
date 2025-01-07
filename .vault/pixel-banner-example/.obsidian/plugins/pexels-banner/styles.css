@@ -1,0 +1,622 @@
+/* ------------------------------------------------------------------ */
+/* -- configure default: move banner image to top, fade/size, etc. -- */
+/* ------------------------------------------------------------------ */
+@keyframes pixel-banner-image--fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.pixel-banner-image {
+	position: absolute;
+	top: 0;
+    /* left: 0; */
+    /* right: 0; */
+    /* width: var(--pixel-banner-width, 100vw) !important; */
+    /* max-width: var(--pixel-banner-width, 100vw) !important; */
+	left: var(--pixel-banner-banner-gap, 0);
+	right: var(--pixel-banner-banner-gap, 0);
+	background-size: cover; 
+	background-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%);
+	overflow: hidden;  
+	mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
+	-webkit-mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
+	height: var(--pixel-banner-height, 350px);
+    border-radius: var(--pixel-banner-radius, 17px) !important;
+	pointer-events: none;
+	animation: pixel-banner-image--fade-in 0.3s ease-in-out;
+	will-change: opacity;
+	transform: translateZ(0);
+	background-repeat: no-repeat;
+    z-index: -1;
+}
+
+.markdown-embed-content .pixel-banner-image {
+    position: absolute !important;
+	left: 0 !important;
+    z-index: unset !important;
+}
+.markdown-embed-content .pixel-banner-image ~ div {
+    position: relative;
+    z-index: 1;
+}
+
+/* collapse scrollbar gutter when no scrollbar is present */
+.pixel-banner .markdown-preview-view,
+.pixel-banner .markdown-source-view .cm-scroller {
+    scrollbar-gutter: auto !important;
+}
+
+/* Apply title color to both reading and editing mode */
+.pixel-banner div.inline-title,
+.markdown-source-view div.inline-title {
+    color: var(--pixel-banner-title-color, var(--inline-title-color));
+}
+
+/* fix for banner image overlapping with note content */
+/* isolate the banner image from the note content */
+.view-content.pixel-banner {
+    position: relative;
+    isolation: isolate;
+}
+
+.cm-sizer .metadata-container,
+.markdown-preview-sizer .metadata-container {
+    z-index: 1;
+}
+
+/* fix overflow issue with embedded notes */
+.internal-embed:not(.image-embed),
+.internal-embed:not(.image-embed) > .markdown-embed-content > .markdown-preview-view {
+    overflow: hidden;
+}
+
+/* hide frontmatter fields in reading mode */
+.markdown-preview-view .pixel-banner-hidden-field {
+    display: none !important;
+}
+/* Add specific targeting for properties view */
+.metadata-property.pixel-banner-hidden-field {
+    display: none !important;
+}
+
+/* pin / refresh / view image icons */
+.pin-icon,
+.refresh-icon,
+.view-image-icon {
+    z-index: var(--layer-modal);
+    opacity: 0.2;
+    transition: all 0.3s ease-in-out;
+}
+.pin-icon:hover,
+.refresh-icon:hover,
+.view-image-icon:hover {
+    opacity: 1;
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+/* ----------------------------------------------------- */
+/* -- content start (push frontmatter container down) -- */
+/* ----------------------------------------------------- */
+.pixel-banner .cm-sizer:first-of-type,
+.pixel-banner .markdown-preview-sizer:first-of-type {
+    padding-top: var(--pixel-banner-content-start, 150px);
+    padding-bottom: 0 !important;
+}
+/* fix for embedded notes */
+.internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
+.internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
+    padding-top: unset !important;
+}
+.internal-embed > .markdown-embed-content .cm-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher,
+.internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher {
+    height: var(--pixel-banner-content-start, 0.1px) !important;
+}
+
+/* -------------------------- */
+/* -- Settings Page Styles -- */
+/* -------------------------- */
+.vertical-tab-content-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.pixel-banner-settings {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 20px;
+    max-width: 800px;
+}
+
+.pixel-banner-header {
+    text-align: center;
+    margin-bottom: 30px;
+    background-color: var(--background-secondary);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.pixel-banner-header h2 {
+    margin-bottom: 10px;
+    color: var(--text-accent);
+}
+
+.pixel-banner-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.pixel-banner-settings-tabs {
+	flex-direction: row;
+	flex: 0 auto;
+}
+
+.pixel-banner-settings-tab-content-container {
+	display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.pixel-banner-settings-tab-content-container > .tab-content {
+    overflow: auto;
+    padding-right: 10px;
+}
+
+.tab-content[data-tab="Folder Images"] {
+    padding-bottom: 10px;
+}
+.tab-content[data-tab="Folder Images"] .add-folder-image-setting {
+    position: absolute;
+	bottom: 0;
+	right: 64px;
+    padding-right: 16px;
+    background: var(--color-secondary);
+}
+.tab-content[data-tab="Folder Images"] .add-folder-image-setting button {
+    color: var(--text-on-accent);
+    border-bottom: 2px solid var(--text-accent-hover);
+    background: var(--color-accent);
+}
+
+.pixel-banner-section {
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.pixel-banner-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--text-accent-hover);
+    font-size: 1.2em;
+}
+
+.pixel-banner-section ol {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.pixel-banner-section pre {
+    background-color: var(--background-primary);
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    overflow-x: auto;
+}
+
+.pixel-banner-footer {
+    margin-top: 30px;
+    text-align: center;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.pixel-banner-settings .setting-item {
+    border-top: none;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.pixel-banner-settings .setting-item.full-width-control,
+.pixel-banner-settings .setting-item.full-width-control > .setting-item-control {
+    width: 100%;
+}
+.pixel-banner-settings .setting-item-control {
+    justify-content: flex-end;
+}
+
+.setting-item.folder-image-setting {
+    position: relative;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+    border: 1px solid var(--slider-track-background);
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px 0;
+}
+.setting-item.folder-image-setting .folder-image-delete-container {
+    position: absolute;
+    top: 10px;
+    right: 0;
+}
+.pixel-banner-setting--delete-button {
+    border: 1px solid var(--color-accent) !important;
+}
+.pixel-banner-setting--delete-button:hover {
+    background: var(--color-accent) !important;
+    color: var(--text-on-accent) !important;
+}
+
+.setting-item.folder-image-setting > .folder-input-container,
+.setting-item.folder-image-setting > .display-and-repeat-container {
+	display: flex;
+	width: 100%;
+}
+.setting-item.folder-image-setting > .setting-item-control {
+	justify-content: flex-start;
+}
+/* setting item for api key */
+.pixel-banner-settings .setting-item[data-id="apiKey"] .setting-item-control {
+    width: 100%;
+}
+/* setting item for default keywords */
+.pixel-banner-settings .setting-item[data-id="defaultKeywords"] .setting-item-control {
+    width: 100%;
+}
+
+
+.pixel-banner-settings input[type="text"],
+.pixel-banner-settings select {
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+    padding: 5px 30px 5px 10px;
+}
+
+.pixel-banner-settings .dropdown {
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+}
+
+.pixel-banner-settings .slider-container {
+    display: flex;
+    align-items: center;
+}
+
+.pixel-banner-settings.slider-value {
+    min-width: 30px;
+    text-align: right;
+}
+
+.pixel-banner-settings .setting-item-description {
+    color: var(--text-muted);
+}
+
+.pixel-banner-settings-tabs {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.pixel-banner-settings-tab {
+    margin: 0 10px 10px 0;
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+.pixel-banner-settings-tab:hover {
+    color: var(--text-normal);
+}
+
+.pixel-banner-settings-tab.active {
+    color: var(--text-on-accent);
+    border-bottom: 2px solid var(--text-accent-hover);
+    background: var(--color-accent);
+}
+
+.pixel-banner-settings-tab-content-container > .tab-content {
+    display: none;
+}
+
+.pixel-banner-settings-tab-content-container > .tab-content.active {
+    display: block;
+}
+.pixel-banner-settings-tabs .folder-image-setting .slider-container {
+    display: flex;
+    align-items: center;
+}
+
+.pixel-banner-settings-tabs .folder-image-setting .slider-value {
+    min-width: 30px;
+    text-align: right;
+}
+
+.folder-images-container .setting-item-name__label {
+    display: flex;
+    align-items: center;
+}
+
+.folder-images-container .full-width-control {
+    width: 100%;
+}
+
+.setting-item.folder-image-setting > div { min-height: 50px; }
+
+.pixel-banner-settings .tab-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.pixel-banner-settings .tab-callout {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  margin: 0 0 1em;
+  padding: .5em 1em;
+  background-color: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 5px;
+  color: var(--text-accent-hover);
+}
+
+.pixel-banner-settings .setting-item {
+  position: relative;
+  z-index: 2;
+}
+
+.pixel-banner-settings input,
+.pixel-banner-settings textarea,
+.pixel-banner-settings select {
+  z-index: 3;
+  position: relative;
+}
+
+/* Release Notes Modal */
+.release-notes-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    background-color: var(--background-secondary);
+}
+
+.release-notes-container img {
+    max-width: 100%;
+}
+
+.release-notes-instructions {
+    font-size: 0.75em;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
+.release-notes-section {
+    margin: 10px 0;
+}
+
+.release-notes-section h4 {
+    margin: 15px 0 5px 0;
+    color: var(--text-accent-hover);
+}
+
+.release-notes-container > ul {
+    padding-left: 25px;
+}
+.release-notes-container ul:not(:last-of-type) {
+    padding-bottom: 20px;
+}
+
+.release-notes-section ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.release-notes-container li,
+.release-notes-section li {
+    margin: 5px 0;
+}
+
+.release-notes-spacer {
+    margin: 10px 0;
+}
+
+/* Add to your existing CSS */
+.metadata-container.pixel-banner-hidden-section {
+    display: none !important;
+}
+
+.pixel-banner-image-view-modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.pixel-banner-image-view-modal .image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.pixel-banner-image-view-modal img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pixel-banner-image-view-modal button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.pixel-banner-settings .setting-group {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 12px 0;
+}
+
+.pixel-banner-settings .setting-dependent {
+    margin-left: 24px;
+    position: relative;
+}
+
+.pixel-banner-settings .setting-dependent::before {
+    content: "";
+    position: absolute;
+    left: -24px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--background-modifier-border);
+}
+
+.pixel-banner-settings .setting-dependent.is-disabled {
+    opacity: 0.75;
+}
+
+.pixel-banner-image-modal {
+    width: var(--dialog-max-width);
+}
+
+.pixel-banner-image-select-modal {
+    width: var(--dialog-max-width);
+    max-width: 1100px;
+}
+
+.pixel-banner-image-select-description {
+    margin-top: -15px;
+    font-size: 0.8em;
+    word-break: break-all;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+}
+
+.pixel-banner-search-container {
+    margin-bottom: 1rem;
+}
+
+.pixel-banner-search-container input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.pixel-banner-search-container .search-row {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+}
+.pixel-banner-search-container .controls-row {
+    flex: 0 auto;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+}
+
+.pixel-banner-image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.pixel-banner-image-container {
+    position: relative;
+    cursor: pointer;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 8px;
+    transition: all 0.2s ease;
+}
+
+.pixel-banner-image-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--background-modifier-hover);
+}
+
+.pixel-banner-image-thumbnail {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.pixel-banner-image-path {
+    margin-top: 8px;
+    font-size: 0.8em;
+    word-break: break-all;
+    color: var(--text-muted);
+}
+
+.pixel-banner-image-error {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-modifier-error);
+    color: var(--text-error);
+    border-radius: 2px;
+}
+
+.select-image-icon {
+    z-index: var(--layer-modal);
+    opacity: 0.2;
+    transition: all 0.3s ease-in-out;
+}
+.select-image-icon:hover {
+    opacity: 1;
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+/* mobile layout */
+@media screen and (max-width: 775px) {
+  .pixel-banner-search-container {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .pixel-banner-search-container .search-row {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .pixel-banner-search-container .controls-row {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .pixel-banner-search-container input[type="text"] {
+    flex: 1;
+  }
+}

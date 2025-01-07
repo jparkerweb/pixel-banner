@@ -3,4 +3,4 @@
 node_modules
 .aider*
 ./main.js
-example-vault
+.vault

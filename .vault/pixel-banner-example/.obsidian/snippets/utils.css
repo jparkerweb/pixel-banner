@@ -1,0 +1,67 @@
+/* General Utilities */
+.margin-0 { margin: 0 !important; }
+.margin-left-right-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.padding-20 { padding: 20px; }
+
+.border-radius { border-radius: 17px; }
+
+.width-small {
+  width: 200px;
+  max-width: 200px;
+}
+
+.float-right { float: right; }
+
+.color-yellow { color: yellow !important; }
+.color-white {  color: white; }
+
+.bg-black {  background: black !important; }
+.bg-shaded { background: #00000070; }
+
+.display-block { display: block; }
+.display-inline-block { display: inline-block; }
+
+.top-right {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* Flex Utilities */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Specific Components */
+.release-title {
+  border-radius: 17px; /* Matches consolidated value */
+  background: #00000070; /* Matches bg-shaded */
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Markdown Styles */
+.markdown-rendered code {
+  color: var(--interactive-accent);
+  filter: brightness(150%);
+}

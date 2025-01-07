@@ -1,0 +1,21 @@
+.suggestion-item .css-editor-suggestion-description {
+	color: var(--text-muted);
+}
+
+.css-editor-status {
+	border-radius: 5px;
+	border: 1px solid var(--color-base-50);
+	padding: 2px 6px;
+
+	&.enabled {
+		background-color: var(--color-accent);
+	}
+
+	&.disabled {
+		background-color: var(--background-secondary-alt);
+	}
+}
+
+.css-editor-create-modal input {
+	width: 100%;
+}
