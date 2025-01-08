@@ -11,8 +11,7 @@
   "yPosition": 50,
   "xPosition": 50,
   "customBannerField": [
-    "banner",
-    "header-image"
+    "banner"
   ],
   "customYPositionField": [
     "banner-y",
@@ -47,15 +46,6 @@
     "banner-shuffle"
   ],
   "folderImages": [
-    {
-      "folder": "50",
-      "image": "",
-      "yPosition": 50,
-      "contentStartPosition": 50,
-      "imageDisplay": "cover",
-      "imageRepeat": false,
-      "directChildrenOnly": false
-    },
     {
       "folder": "notes",
       "image": "[[jp-cover2.jpg]]",
@@ -111,7 +101,7 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.19.0",
+  "lastVersion": "2.19.1",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
   "hidePixelBannerFields": true,

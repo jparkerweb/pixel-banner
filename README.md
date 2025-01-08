@@ -27,7 +27,7 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 - Control **select, pin, and refresh banner via commands** from command palette and hotkeys
 - Adjust **vertical position** of the banner image
 - Set **banner height** (100-2500 pixels) as well as **content start position** of note
-- Set the banner **image display** to cover or contain and adjust wrapping
+- Set the banner **image display** to cover, auto, or contain
 - Control **banner fade** transparency (-1500 to 100)
 - Banner image **border radius** customization
 - Set **banner gap** between banner and the window edges

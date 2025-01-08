@@ -8,10 +8,6 @@
 .pixel-banner-image {
 	position: absolute;
 	top: 0;
-    /* left: 0; */
-    /* right: 0; */
-    /* width: var(--pixel-banner-width, 100vw) !important; */
-    /* max-width: var(--pixel-banner-width, 100vw) !important; */
 	left: var(--pixel-banner-banner-gap, 0);
 	right: var(--pixel-banner-banner-gap, 0);
 	background-size: cover; 
@@ -97,9 +93,9 @@
 /* ----------------------------------------------------- */
 /* -- content start (push frontmatter container down) -- */
 /* ----------------------------------------------------- */
-.pixel-banner .cm-sizer:first-of-type,
-.pixel-banner .markdown-preview-sizer:first-of-type {
-    padding-top: var(--pixel-banner-content-start, 150px);
+.view-content.pixel-banner > .markdown-source-view .cm-sizer,
+.view-content.pixel-banner > .markdown-reading-view .markdown-preview-sizer {
+    padding-top: var(--pixel-banner-content-start, 150px) !important;
     padding-bottom: 0 !important;
 }
 /* fix for embedded notes */
@@ -296,6 +292,9 @@
 
 .pixel-banner-settings .setting-item-description {
     color: var(--text-muted);
+}
+.pixel-banner-settings .pixel-banner-example-values {
+    color: var(--code-comment, var(--text-muted, inherit));
 }
 
 .pixel-banner-settings-tabs {

@@ -1045,71 +1045,89 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         setting: "customBannerField",
         name: "Banner Field Names",
         desc: "Set custom field names for the banner in frontmatter (comma-separated)",
+        values: '[[image.png]], "images/image.jpg"',
         placeholder: "banner, pixel-banner, header-image"
       },
       {
         setting: "customYPositionField",
         name: "Y-Position Field Names",
         desc: "Set custom field names for the Y-position in frontmatter (comma-separated)",
+        values: "5, 70, 100",
         placeholder: "banner-y, y-position, banner-offset"
       },
       {
         setting: "customXPositionField",
         name: "X-Position Field Names",
         desc: "Set custom field names for the X-position in frontmatter (comma-separated)",
+        values: "0, 30, 90",
         placeholder: "banner-x, x-position, banner-offset-x"
       },
       {
         setting: "customContentStartField",
         name: "Content Start Position Field Names",
         desc: "Set custom field names for the content start position in frontmatter (comma-separated)",
+        values: "75, 150, 450",
         placeholder: "content-start, start-position, content-offset"
       },
       {
         setting: "customImageDisplayField",
         name: "Image Display Field Names",
         desc: "Set custom field names for the image display in frontmatter (comma-separated)",
+        values: "cover, contain, auto, 200%, 70%",
         placeholder: "banner-display, image-display, display-mode"
       },
       {
         setting: "customImageRepeatField",
         name: "Image Repeat Field Names",
         desc: "Set custom field names for the image repeat in frontmatter (comma-separated)",
+        values: "true, false",
         placeholder: "banner-repeat, image-repeat, repeat-image"
       },
       {
         setting: "customBannerHeightField",
         name: "Banner Height Field Names",
         desc: "Set custom field names for the banner height in frontmatter (comma-separated)",
+        values: "100, 300, 700",
         placeholder: "banner-height, image-height, header-height"
       },
       {
         setting: "customFadeField",
         name: "Fade Field Names",
         desc: "Set custom field names for the fade effect in frontmatter (comma-separated)",
+        values: "-1000, -100, 100",
         placeholder: "banner-fade, fade-effect, image-fade"
       },
       {
         setting: "customBorderRadiusField",
         name: "Border Radius Field Names",
         desc: "Set custom field names for the border radius in frontmatter (comma-separated)",
+        values: "0, 17, 30, 50",
         placeholder: "banner-radius, border-radius, banner-corner-radius"
       },
       {
         setting: "customTitleColorField",
         name: "Inline Title Color Field Names",
         desc: "Set custom field names for the inline title color in frontmatter (comma-separated)",
+        values: 'red, papayawhip, "#7f6df2", "#ffa500"',
         placeholder: "banner-title-color, title-color, header-color"
       },
       {
         setting: "customBannerShuffleField",
         name: "Banner Shuffle Field Names",
         desc: "Set custom field names for the banner shuffle in frontmatter (comma-separated)",
+        values: '"pixel-banner-images", "images/llamas"',
         placeholder: "banner-shuffle, shuffle-folder, random-image-folder"
       }
     ];
     customFields.forEach((field) => {
-      new import_obsidian.Setting(containerEl).setName(field.name).setDesc(field.desc).addText((text) => {
+      const settingContainer = new import_obsidian.Setting(containerEl).setName(field.name).setDesc(field.desc);
+      if (field.values) {
+        settingContainer.descEl.createEl("div", {
+          text: `example frontmatter values: ${field.values}`,
+          cls: "setting-item-description pixel-banner-example-values"
+        });
+      }
+      settingContainer.addText((text) => {
         text.setPlaceholder(field.placeholder).setValue(arrayToString(this.plugin.settings[field.setting])).onChange(async (value) => {
           const newNames = stringToArray(value);
           const validation = validateFieldNames(
@@ -1202,7 +1220,7 @@ ${getRandomFieldName(this.plugin.settings.customBannerField)}: https://example.c
 ${getRandomFieldName(this.plugin.settings.customYPositionField)}: 70
 ${getRandomFieldName(this.plugin.settings.customXPositionField)}: 70
 ${getRandomFieldName(this.plugin.settings.customContentStartField)}: 180
-${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: cover
+${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: 200%
 ${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
 ${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
 ${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 0
@@ -1837,7 +1855,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.19.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Horizontal image positioning with new X-Position slider</li>\n<li>X-Position support in General, Folder Image, and Frontmatter settings</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.19.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Show example frontmatter values for each field in &quot;Custom Field Names&quot; settings tab</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Updated CSS to address padding issue with <code>Bread Crumbs</code> and <code>Typwriter Mode</code> plugins</li>\n</ul>\n<h3>v2.19.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Horizontal image positioning with new X-Position slider</li>\n<li>X-Position support in General, Folder Image, and Frontmatter settings</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
