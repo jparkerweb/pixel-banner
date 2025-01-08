@@ -1,5 +1,12 @@
 ## 🎉 What's New
 
+### v2.19.1
+#### ✨ Added
+- Show example frontmatter values for each field in "Custom Field Names" settings tab
+
+#### 📦 Updated
+- Updated CSS to address padding issue with `Bread Crumbs` and `Typwriter Mode` plugins
+
 ### v2.19.0
 #### ✨ Added
 - Horizontal image positioning with new X-Position slider

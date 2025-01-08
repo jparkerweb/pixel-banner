@@ -8,5 +8,4 @@ banner-height: 250
 banner-fade: -40
 banner_y: 0.876
 ---
-
 # 🧪 test - 4 - all fields
