@@ -1855,7 +1855,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.19.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Show example frontmatter values for each field in &quot;Custom Field Names&quot; settings tab</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Updated CSS to address padding issue with <code>Bread Crumbs</code> and <code>Typwriter Mode</code> plugins</li>\n</ul>\n<h3>v2.19.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Horizontal image positioning with new X-Position slider</li>\n<li>X-Position support in General, Folder Image, and Frontmatter settings</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.19.2</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue where content start position was not being applied from General settings</li>\n</ul>\n<h3>v2.19.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Show example frontmatter values for each field in &quot;Custom Field Names&quot; settings tab</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Updated CSS to address padding issue with <code>Bread Crumbs</code> and <code>Typwriter Mode</code> plugins</li>\n</ul>\n<h3>v2.19.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Horizontal image positioning with new X-Position slider</li>\n<li>X-Position support in General, Folder Image, and Frontmatter settings</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -2819,7 +2819,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     return releaseNotes;
   }
   async addPixelBanner(el, ctx) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains("internal-embed") && viewContent.classList.contains("markdown-embed");
@@ -2949,8 +2949,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const selectImageElement = this.querySelector(":scope > .select-image-icon");
         children = Array.from(children).filter(
           (child) => {
-            var _a2, _b2, _c2, _d, _e;
-            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c2 = child.classList) == null ? void 0 : _c2.contains("pin-icon")) && !((_d = child.classList) == null ? void 0 : _d.contains("refresh-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("select-image-icon"));
+            var _a2, _b2, _c2, _d2, _e;
+            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c2 = child.classList) == null ? void 0 : _c2.contains("pin-icon")) && !((_d2 = child.classList) == null ? void 0 : _d2.contains("refresh-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("select-image-icon"));
           }
         );
         if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
@@ -3005,7 +3005,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
         this.applyBannerSettings(bannerDiv, ctx);
         const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
-        const effectiveContentStart = (_c = frontmatterContentStart != null ? frontmatterContentStart : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _c : this.settings.contentStartPosition;
+        const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
+        const effectiveContentStart = (_d = (_c = parsedFrontmatterStart != null ? parsedFrontmatterStart : contentStartPosition) != null ? _c : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _d : this.settings.contentStartPosition;
         this.applyContentStartPosition(viewContent, effectiveContentStart);
         this.applyBannerWidth(viewContent);
         if (!isEmbedded && (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon) {

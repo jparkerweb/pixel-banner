@@ -50,7 +50,7 @@
       "folder": "notes",
       "image": "[[jp-cover2.jpg]]",
       "yPosition": 50,
-      "contentStartPosition": 300,
+      "contentStartPosition": null,
       "imageDisplay": "cover",
       "imageRepeat": false,
       "directChildrenOnly": true,
@@ -80,16 +80,7 @@
       "imageDisplay": "cover",
       "imageRepeat": false,
       "directChildrenOnly": false,
-      "titleColor": "#ff0088"
-    },
-    {
-      "folder": "zzzzz",
-      "image": "",
-      "yPosition": 50,
-      "contentStartPosition": 550,
-      "imageDisplay": "cover",
-      "imageRepeat": false,
-      "directChildrenOnly": false
+      "titleColor": "var(--inline-title-color)"
     }
   ],
   "contentStartPosition": 150,

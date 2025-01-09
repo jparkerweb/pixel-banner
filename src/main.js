@@ -1530,7 +1530,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 // Get the content start position respecting inheritance
                 const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
                 
-                const effectiveContentStart = frontmatterContentStart ?? 
+                // Convert frontmatterContentStart to number if it exists
+                const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
+                
+                const effectiveContentStart = parsedFrontmatterStart ?? 
+                    contentStartPosition ?? 
                     folderSpecific?.contentStartPosition ?? 
                     this.settings.contentStartPosition;
 

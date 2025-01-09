@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.19.2] - 2025-01-09
+#### 🐛 Fixed
+- Fixed issue where content start position was not being applied from General settings
+
 ### [v2.19.1] - 2025-01-08
 #### ✨ Added
 - Show example frontmatter values for each field in "Custom Field Names" settings tab
