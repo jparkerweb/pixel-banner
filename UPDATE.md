@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.19.2
+#### 🐛 Fixed
+- Fixed issue where content start position was not being applied from General settings
+
 ### v2.19.1
 #### ✨ Added
 - Show example frontmatter values for each field in "Custom Field Names" settings tab
