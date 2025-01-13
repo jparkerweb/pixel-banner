@@ -1,7 +1,8 @@
 {
   "accentColor": "#ea2027",
   "enabledCssSnippets": [
-    "utils"
+    "utils",
+    "test"
   ],
   "cssTheme": "",
   "theme": "obsidian"

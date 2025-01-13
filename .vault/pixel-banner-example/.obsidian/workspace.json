@@ -8,17 +8,17 @@
         "type": "tabs",
         "children": [
           {
-            "id": "2fcc429544243a0a",
+            "id": "db8edc7fef70256f",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🚩 Pixel-Banner.md",
+                "file": "tests/various embedded heights/_embedding-test.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "🚩 Pixel-Banner"
+              "title": "_embedding-test"
             }
           }
         ]
@@ -605,6 +605,66 @@
             "id": "2084155dd02ca441",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b1b9b65f374bcdf7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d150fe4b5d951ac9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9c4cf188f88b5770",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "92156e8cbeddb41f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1eb0d08a81ee15e8",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "78994725141f37db",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -612,7 +672,7 @@
             }
           }
         ],
-        "currentTab": 49
+        "currentTab": 55
       }
     ],
     "direction": "horizontal",
@@ -629,24 +689,29 @@
       "cmdr:Open Plugin Settings: Pixel Banner": false
     }
   },
-  "active": "2fcc429544243a0a",
+  "active": "db8edc7fef70256f",
   "lastOpenFiles": [
-    "Untitled.md",
     "🚩 Pixel-Banner.md",
-    "tests/🧪 test - 1 - internal link.md",
-    "tests/🧪 test - 2 - internal link - quoted.md",
-    "tests/🧪 test - 3 - direct url link.md",
-    "tests/🧪 test - 4 - all fields.md",
-    "tests/🧪 test - 5 - absolute position.md",
-    "tests/🧪 test - 7- shuffle time!.md",
-    "tests/🧪 test - 8 - render link.md",
-    "tests/🧪 test - 9 - svg banner.md",
-    "tests/🧪 test - 10 - embed tests.md",
-    "tests/🧪 test - 6 - image float right.md",
+    "tests/various embedded heights/_embedding-test.md",
+    "tests/various embedded heights",
+    "tests/various embedded heights/banner-height-300.md",
+    "tests/various embedded heights/banner-height-150.md",
+    "tests/various embedded heights/banner-height-50.md",
     "notes/📃 Embedded Note.md",
     "notes/📜 Embedded Note with Banner.md",
-    "notes/subfolder/Embedded Note in Subfolder.md",
     "Random Shuffle/Disney Lorcana.md",
+    "tests/🧪 test - 10 - embed tests.md",
+    "test.md",
+    "tests/🧪 test - 7- shuffle time!.md",
+    "tests/🧪 test - 8 - render link.md",
+    "tests/🧪 test - 6 - image float right.md",
+    "tests/🧪 test - 1 - internal link.md",
+    "tests/🧪 test - 3 - direct url link.md",
+    "tests/🧪 test - 2 - internal link - quoted.md",
+    "tests/🧪 test - 9 - svg banner.md",
+    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 4 - all fields.md",
+    "notes/subfolder/Embedded Note in Subfolder.md",
     "pixel-banner-images/test/grass.png",
     "pixel-banner-images/test/wave.png",
     "pixel-banner-images/test",
@@ -657,11 +722,6 @@
     "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
     "shuffle-images/bell-hidden-archer.jpg",
     "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
-    "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
-    "releases/v2.14.0 - 👩‍👧‍👦 Hide the Children.md",
-    "releases/v2.13.0 - 🖼️ View my Banner.md",
-    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
-    "releases/v2.10.0 - 🖌️ Title Color.md",
     "pixel-banner-images/dog.jpg",
     "pixel-banner-images/artwork.webp",
     "pixel-banner-images/wall-of-images.png",
@@ -675,7 +735,6 @@
     "50",
     "Random Shuffle",
     "shuffle-images",
-    "releases",
-    "images/releases"
+    "releases"
   ]
 }
