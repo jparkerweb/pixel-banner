@@ -160,7 +160,8 @@ body.theme-light .rich-foot--backlinks ul li a {
 
 .cm-scroller .cm-contentContainer > .cm-content,
 .markdown-source-view .cm-contentContainer > .cm-content {
-    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: unset !important;
 }
 
 .cm-scroller .rich-foot--backlinks,
