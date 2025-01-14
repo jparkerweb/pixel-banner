@@ -25,8 +25,8 @@ var DEFAULT_SETTINGS = {
   yPosition: 50,
   xPosition: 50,
   customBannerField: ["banner"],
-  customYPositionField: ["banner-y"],
-  customXPositionField: ["banner-x"],
+  customYPositionField: ["banner-y, y"],
+  customXPositionField: ["banner-x, x"],
   customContentStartField: ["content-start"],
   customImageDisplayField: ["banner-display"],
   customImageRepeatField: ["banner-repeat"],
@@ -35,6 +35,15 @@ var DEFAULT_SETTINGS = {
   customBorderRadiusField: ["banner-radius"],
   customTitleColorField: ["banner-inline-title-color"],
   customBannerShuffleField: ["banner-shuffle"],
+  customBannerIconField: ["icon"],
+  customBannerIconSizeField: ["icon-size"],
+  customBannerIconXPositionField: ["icon-x"],
+  customBannerIconOpacityField: ["icon-opacity"],
+  customBannerIconColorField: ["icon-color"],
+  customBannerIconBackgroundColorField: ["icon-bg-color"],
+  customBannerIconPaddingField: ["icon-padding"],
+  customBannerIconBorderRadiusField: ["icon-border-radius"],
+  customBannerIconVeritalOffsetField: ["icon-y"],
   folderImages: [],
   contentStartPosition: 150,
   imageDisplay: "cover",
@@ -57,7 +66,15 @@ var DEFAULT_SETTINGS = {
   showSelectImageIcon: true,
   defaultSelectImagePath: "",
   useShortPath: true,
-  bannerGap: 12
+  bannerGap: 12,
+  bannerIconSize: 70,
+  bannerIconXPosition: 25,
+  bannerIconOpacity: 100,
+  bannerIconColor: "",
+  bannerIconBackgroundColor: "",
+  bannerIconPadding: "0",
+  bannerIconBorderRadius: "17",
+  bannerIconVeritalOffset: "0"
 };
 var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
   constructor(app2, onChoose) {
@@ -98,6 +115,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addBorderRadiusInput(controlEl);
     const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
     this.addColorSettings(controlEl2);
+    this.addBannerIconSettings();
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
@@ -432,6 +450,50 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     label.appendChild(radiusInput);
     containerEl.appendChild(label);
   }
+  addBannerIconSettings() {
+    const controlEl1 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian.Setting(controlEl1).setName("Icon Size").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(this.folderImage.bannerIconSize || this.plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconSize = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(controlEl1).setName("Icon X Position").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconXPosition || this.plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconXPosition = value;
+      await this.plugin.saveSettings();
+    }));
+    const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian.Setting(controlEl2).setName("Icon Opacity").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconOpacity || this.plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconOpacity = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(controlEl2).setName("Icon Color").addText((text) => {
+      text.setPlaceholder("(e.g., #ffffff or white)").setValue(this.folderImage.bannerIconColor || this.plugin.settings.bannerIconColor).onChange(async (value) => {
+        this.folderImage.bannerIconColor = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "160px";
+    });
+    const controlEl3 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian.Setting(controlEl3).setName("Icon BG Color").addText((text) => {
+      text.setPlaceholder("(e.g., #ffffff or transparent)").setValue(this.folderImage.bannerIconBackgroundColor || this.plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
+        this.folderImage.bannerIconBackgroundColor = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "160px";
+    });
+    new import_obsidian.Setting(controlEl3).setName("Icon Padding").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconPadding || this.plugin.settings.bannerIconPadding).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconPadding = value;
+      await this.plugin.saveSettings();
+    }));
+    const controlEl4 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian.Setting(controlEl4).setName("Icon Border Radius").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(this.folderImage.bannerIconBorderRadius || this.plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconBorderRadius = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(controlEl4).setName("Icon Vertical Offset").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(this.folderImage.bannerIconVeritalOffset || this.plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconVeritalOffset = value;
+      await this.plugin.saveSettings();
+    }));
+  }
 };
 function arrayToString(arr) {
   return Array.isArray(arr) ? arr.join(", ") : arr;
@@ -472,8 +534,8 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
       "General",
       "Custom Field Names",
-      "API Settings",
       "Folder Images",
+      "API Settings",
       "Examples"
     ]);
     const generalTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "General" } });
@@ -1025,6 +1087,94 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     if (!this.plugin.settings.hidePixelBannerFields) {
       hidePropertiesSection.settingEl.addClass("is-disabled");
     }
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon Size").setDesc("Set the default size for the banner icon").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(this.plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.bannerIconSize = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
+      await this.plugin.saveSettings();
+      const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+      sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      sliderInput.dispatchEvent(event);
+    }));
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon X Position").setDesc("Set the default X position for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.bannerIconXPosition = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
+      await this.plugin.saveSettings();
+      const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+      sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      sliderInput.dispatchEvent(event);
+    }));
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon Opacity").setDesc("Set the default opacity for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.bannerIconOpacity = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
+      await this.plugin.saveSettings();
+      const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+      sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      sliderInput.dispatchEvent(event);
+    }));
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon Text Color").setDesc("Set the default text color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or white)").setValue(this.plugin.settings.bannerIconColor).onChange(async (value) => {
+      this.plugin.settings.bannerIconColor = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
+      await this.plugin.saveSettings();
+      const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+      textInput.value = DEFAULT_SETTINGS.bannerIconColor;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      textInput.dispatchEvent(event);
+    }));
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon Background Color").setDesc("Set the default background color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or transparent)").setValue(this.plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
+      this.plugin.settings.bannerIconBackgroundColor = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+      await this.plugin.saveSettings();
+      const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+      textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      textInput.dispatchEvent(event);
+    }));
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon Padding").setDesc("Set the default padding for the banner icon").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.bannerIconPadding).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.bannerIconPadding = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconPadding = DEFAULT_SETTINGS.bannerIconPadding;
+      await this.plugin.saveSettings();
+      const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+      sliderInput.value = DEFAULT_SETTINGS.bannerIconPadding;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      sliderInput.dispatchEvent(event);
+    }));
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon Border Radius").setDesc("Set the default border radius for the banner icon").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(this.plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.bannerIconBorderRadius = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
+      await this.plugin.saveSettings();
+      const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+      sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      sliderInput.dispatchEvent(event);
+    }));
+    new import_obsidian.Setting(containerEl).setName("Default Banner Icon Vertical Offset").setDesc("Set the default vertical offset for the banner icon").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(this.plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
+      this.plugin.settings.bannerIconVeritalOffset = value;
+      await this.plugin.saveSettings();
+    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      this.plugin.settings.bannerIconVeritalOffset = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+      await this.plugin.saveSettings();
+      const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+      sliderInput.value = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      sliderInput.dispatchEvent(event);
+    }));
     const showReleaseNotesSetting = new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
       this.plugin.settings.showReleaseNotes = value;
       await this.plugin.saveSettings();
@@ -1117,6 +1267,69 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
         desc: "Set custom field names for the banner shuffle in frontmatter (comma-separated)",
         values: '"pixel-banner-images", "images/llamas"',
         placeholder: "banner-shuffle, shuffle-folder, random-image-folder"
+      },
+      {
+        setting: "customBannerIconField",
+        name: "Banner Icon Field Names",
+        desc: "Set custom field names for the banner icon in frontmatter (comma-separated)",
+        values: "\u{1F923}, \u{1F4A5}, \u2728",
+        placeholder: "banner-icon, pixel-icon, header-icon"
+      },
+      {
+        setting: "customBannerIconSizeField",
+        name: "Banner Icon Size Field Names",
+        desc: "Set custom field names for the banner icon size in frontmatter (comma-separated)",
+        values: "70, 100, 150",
+        placeholder: "banner-icon-size, icon-size, header-icon-size"
+      },
+      {
+        setting: "customBannerIconXPositionField",
+        name: "Banner Icon X Position Field Names",
+        desc: "Set custom field names for the banner icon x position in frontmatter (comma-separated)",
+        values: "25, 50, 75 (value between 0 and 100)",
+        placeholder: "banner-icon-x, icon-x, header-icon-x"
+      },
+      {
+        setting: "customBannerIconOpacityField",
+        name: "Banner Icon Opacity Field Names",
+        desc: "Set custom field names for the banner icon opacity in frontmatter (comma-separated)",
+        values: "100, 75, 50 (value between 0 and 100)",
+        placeholder: "banner-icon-opacity, icon-opacity, header-icon-opacity"
+      },
+      {
+        setting: "customBannerIconColorField",
+        name: "Banner Icon Text Color Field Names",
+        desc: "Set custom field names for the banner icon text color in frontmatter (comma-separated)",
+        values: 'white, papayawhip, "#7f6df2", "#ffa500"',
+        placeholder: "banner-icon-color, icon-color, header-icon-color"
+      },
+      {
+        setting: "customBannerIconBackgroundColorField",
+        name: "Banner Icon Background Color Field Names",
+        desc: "Set custom field names for the banner icon background color in frontmatter (comma-separated)",
+        values: 'transparent, papayawhip, "#7f6df2", "#ffa500"',
+        placeholder: "banner-icon-background-color, icon-background-color, header-icon-background-color"
+      },
+      {
+        setting: "customBannerIconPaddingField",
+        name: "Banner Icon Padding Field Names",
+        desc: "Set custom field names for the banner icon padding in frontmatter (comma-separated)",
+        values: "0, 10, 20",
+        placeholder: "banner-icon-padding, icon-padding, header-icon-padding"
+      },
+      {
+        setting: "customBannerIconBorderRadiusField",
+        name: "Banner Icon Border Radius Field Names",
+        desc: "Set custom field names for the banner icon border radius in frontmatter (comma-separated)",
+        values: "0, 17, 30, 50",
+        placeholder: "banner-icon-border-radius, icon-border-radius, header-icon-border-radius"
+      },
+      {
+        setting: "customBannerIconVeritalOffsetField",
+        name: "Banner Icon Vertical Offset Field Names",
+        desc: "Set custom field names for the banner icon vertical offset in frontmatter (comma-separated)",
+        values: "0, 10, 20",
+        placeholder: "banner-icon-vertical-offset, icon-vertical-offset, header-icon-vertical-offset"
       }
     ];
     customFields.forEach((field) => {
@@ -1269,6 +1482,24 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff00ff
       return false;
     }
     return true;
+  }
+  createFolderImageSettings(folderImage) {
+    const settings = { ...folderImage };
+    if (folderImage.enableImageShuffle && folderImage.shuffleFolder) {
+      const randomImagePath = this.getRandomImageFromFolder(folderImage.shuffleFolder);
+      if (randomImagePath) {
+        settings.image = randomImagePath;
+      }
+    }
+    if (!settings.bannerIconSize) settings.bannerIconSize = this.settings.bannerIconSize;
+    if (!settings.bannerIconXPosition) settings.bannerIconXPosition = this.settings.bannerIconXPosition;
+    if (!settings.bannerIconOpacity) settings.bannerIconOpacity = this.settings.bannerIconOpacity;
+    if (!settings.bannerIconColor) settings.bannerIconColor = this.settings.bannerIconColor;
+    if (!settings.bannerIconBackgroundColor) settings.bannerIconBackgroundColor = this.settings.bannerIconBackgroundColor;
+    if (!settings.bannerIconPadding) settings.bannerIconPadding = this.settings.bannerIconPadding;
+    if (!settings.bannerIconBorderRadius) settings.bannerIconBorderRadius = this.settings.bannerIconBorderRadius;
+    if (!settings.bannerIconVeritalOffset) settings.bannerIconVeritalOffset = this.settings.bannerIconVeritalOffset;
+    return settings;
   }
 };
 function debounce(func, wait) {
@@ -1902,45 +2133,21 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       this.app.workspace.on("active-leaf-change", this.handleActiveLeafChange.bind(this))
     );
     this.registerEvent(
-      this.app.metadataCache.on("changed", async (file) => {
-        var _a;
-        const frontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
-        if (!frontmatter) return;
-        const previousFrontmatter = this.lastFrontmatter.get(file.path);
-        if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
-          return;
-        }
-        const relevantFields = [
-          ...this.settings.customBannerField,
-          ...this.settings.customYPositionField,
-          ...this.settings.customXPositionField,
-          ...this.settings.customContentStartField,
-          ...this.settings.customImageDisplayField,
-          ...this.settings.customImageRepeatField,
-          ...this.settings.customBannerHeightField,
-          ...this.settings.customFadeField,
-          ...this.settings.customBorderRadiusField
-        ];
-        const hasRelevantFieldChange = relevantFields.some(
-          (field) => frontmatter[field] !== (previousFrontmatter == null ? void 0 : previousFrontmatter[field])
-        );
-        if (!hasRelevantFieldChange) return;
-        this.lastFrontmatter.set(file.path, frontmatter);
-        const leaves = this.app.workspace.getLeavesOfType("markdown");
-        for (const leaf of leaves) {
-          if (leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file === file && !leaf.containerEl.style.display && leaf.containerEl.matches(".workspace-leaf")) {
-            this.loadedImages.delete(file.path);
-            this.lastKeywords.delete(file.path);
-            await this.updateBanner(leaf.view, true);
-          }
-        }
-      })
-    );
-    this.registerEvent(
       this.app.workspace.on("layout-change", this.handleLayoutChange.bind(this))
     );
     this.registerEvent(
-      this.app.workspace.on("mode-change", this.handleModeChange.bind(this))
+      this.app.workspace.on("editor-change", this.debouncedEnsureBanner.bind(this))
+    );
+    this.registerEvent(
+      this.app.workspace.on("resize", this.debouncedEnsureBanner.bind(this))
+    );
+    this.registerEvent(
+      this.app.metadataCache.on("changed", (file) => {
+        const activeLeaf = this.app.workspace.activeLeaf;
+        if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView && activeLeaf.view.file === file) {
+          this.updateBanner(activeLeaf.view, true);
+        }
+      })
     );
     this.registerMarkdownPostProcessor(this.postProcessor.bind(this));
     this.setupMutationObserver();
@@ -2001,23 +2208,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         return true;
       }
     });
-    this.registerEvent(
-      this.app.workspace.on("editor-change", async (editor) => {
-        var _a;
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
-        if (!activeView || !activeView.file) return;
-        const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
-        if (!currentFrontmatter || !currentFrontmatter.hasOwnProperty("pixel-banner") && !currentFrontmatter.hasOwnProperty("pixel-banner-query")) {
-          return;
-        }
-        const cursor = editor.getCursor();
-        const line = editor.getLine(cursor.line);
-        if (!line.includes("pixel-banner") && !line.includes("pixel-banner-query")) {
-          return;
-        }
-        await this.updateBanner(activeView, true);
-      })
-    );
     this.addCommand({
       id: "set-banner-image",
       name: "\u{1F3F7}\uFE0F Select Image",
@@ -2124,6 +2314,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async updateBanner(view, isContentChange) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
     if (!view || !view.file) {
+      console.log("No view or file found");
       return;
     }
     const frontmatter = (_a = this.app.metadataCache.getFileCache(view.file)) == null ? void 0 : _a.frontmatter;
@@ -2134,10 +2325,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     let bannerImage = null;
     const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
     if (shufflePath) {
+      console.log("Shuffle path found:", shufflePath);
       const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
-      if (randomImagePath) {
-        bannerImage = randomImagePath;
-      }
+      console.log("Random image path:", randomImagePath);
     }
     if (!bannerImage) {
       bannerImage = getFrontmatterValue(frontmatter, this.settings.customBannerField) || (folderSpecific == null ? void 0 : folderSpecific.image);
@@ -2250,6 +2440,23 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     if (this.settings.hidePixelBannerFields && view.getMode() === "preview") {
       this.updateFieldVisibility(view);
+    }
+    const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
+    const existingIconOverlays = contentEl.querySelectorAll(".banner-icon-overlay");
+    existingIconOverlays.forEach((icon) => icon.remove());
+    const previewBanner = contentEl.querySelector(".markdown-preview-view .pixel-banner-image");
+    if (previewBanner && bannerIcon) {
+      const bannerIconOverlay = document.createElement("div");
+      bannerIconOverlay.className = "banner-icon-overlay";
+      bannerIconOverlay.textContent = bannerIcon;
+      previewBanner.insertAdjacentElement("afterend", bannerIconOverlay);
+    }
+    const sourceBanner = contentEl.querySelector(".markdown-source-view .pixel-banner-image");
+    if (sourceBanner && bannerIcon) {
+      const bannerIconOverlay = document.createElement("div");
+      bannerIconOverlay.className = "banner-icon-overlay";
+      bannerIconOverlay.textContent = bannerIcon;
+      sourceBanner.insertAdjacentElement("afterend", bannerIconOverlay);
     }
   }
   setupMutationObserver() {
@@ -2693,7 +2900,18 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
             ...this.settings.customImageRepeatField,
             ...this.settings.customBannerHeightField,
             ...this.settings.customFadeField,
-            ...this.settings.customBorderRadiusField
+            ...this.settings.customBorderRadiusField,
+            ...this.settings.customTitleColorField,
+            ...this.settings.customBannerShuffleField,
+            ...this.settings.customBannerIconField,
+            ...this.settings.customBannerIconSizeField,
+            ...this.settings.customBannerIconXPositionField,
+            ...this.settings.customBannerIconOpacityField,
+            ...this.settings.customBannerIconColorField,
+            ...this.settings.customBannerIconBackgroundColorField,
+            ...this.settings.customBannerIconPaddingField,
+            ...this.settings.customBannerIconBorderRadiusField,
+            ...this.settings.customBannerIconVeritalOffsetField
           ];
           const rows = frontmatterEl.querySelectorAll(".frontmatter-container .frontmatter-section-label");
           rows.forEach((row) => {
@@ -3073,14 +3291,32 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
     const folderSpecific = this.getFolderSpecificImage(ctx.file.path);
     const titleColor = getFrontmatterValue(frontmatter, this.settings.customTitleColorField) || (folderSpecific == null ? void 0 : folderSpecific.titleColor) || this.settings.titleColor;
+    const bannerIconSize = getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconSize) || this.settings.bannerIconSize || 70;
+    const bannerIconXPosition = getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconXPosition) || this.settings.bannerIconXPosition || 25;
+    const bannerIconOpacity = getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconOpacity) || this.settings.bannerIconOpacity || 100;
+    const bannerIconColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconColor) || this.settings.bannerIconColor || "var(--text-normal)";
+    const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconBackgroundColor) || this.settings.bannerIconBackgroundColor || "transparent";
+    const bannerIconPadding = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconPadding) || this.settings.bannerIconPadding || 0;
+    const bannerIconBorderRadius = getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconBorderRadius) || this.settings.bannerIconBorderRadius || 17;
+    const bannerIconVeritalOffset = getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconVeritalOffset) || this.settings.bannerIconVeritalOffset || 0;
     bannerDiv.style.backgroundSize = imageDisplay || "cover";
     bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
     bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
     bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
     bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
+    const bannerIconStart = `${bannerHeight - bannerIconSize / 2}px`;
     const container = bannerDiv.closest(".markdown-preview-view, .markdown-source-view");
     if (container) {
       container.style.setProperty("--pixel-banner-title-color", titleColor);
+      container.style.setProperty("--pixel-banner-icon-size", `${bannerIconSize}px`);
+      container.style.setProperty("--pixel-banner-icon-start", bannerIconStart);
+      container.style.setProperty("--pixel-banner-icon-x", `${bannerIconXPosition}%`);
+      container.style.setProperty("--pixel-banner-icon-opacity", `${bannerIconOpacity}%`);
+      container.style.setProperty("--pixel-banner-icon-color", bannerIconColor);
+      container.style.setProperty("--pixel-banner-icon-background-color", bannerIconBackgroundColor);
+      container.style.setProperty("--pixel-banner-icon-padding", `${bannerIconPadding}px`);
+      container.style.setProperty("--pixel-banner-icon-border-radius", `${bannerIconBorderRadius}px`);
+      container.style.setProperty("--pixel-banner-icon-vertical-offset", `${bannerIconVeritalOffset}px`);
     }
   }
   // Add this helper method to randomly select an API provider
@@ -3112,10 +3348,21 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       ...this.settings.customFadeField,
       ...this.settings.customBorderRadiusField,
       ...this.settings.customTitleColorField,
-      ...this.settings.customBannerShuffleField
+      ...this.settings.customBannerShuffleField,
+      ...this.settings.customBannerIconField,
+      ...this.settings.customBannerIconSizeField,
+      ...this.settings.customBannerIconXPositionField,
+      ...this.settings.customBannerIconOpacityField,
+      ...this.settings.customBannerIconColorField,
+      ...this.settings.customBannerIconBackgroundColorField,
+      ...this.settings.customBannerIconPaddingField,
+      ...this.settings.customBannerIconBorderRadiusField,
+      ...this.settings.customBannerIconVeritalOffsetField
     ];
     const propertiesContainer = view.contentEl.querySelector(".metadata-container");
-    if (!propertiesContainer) return;
+    if (!propertiesContainer) {
+      return;
+    }
     const propertyElements = propertiesContainer.querySelectorAll(".metadata-property");
     let visiblePropertiesCount = 0;
     let bannerPropertiesCount = 0;

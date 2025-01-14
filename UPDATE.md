@@ -1,19 +1,20 @@
 ## 🎉 What's New
 
-### v2.19.2
-#### 🐛 Fixed
-- Fixed issue where content start position was not being applied from General settings
-
-### v2.19.1
+### v2.20.0
 #### ✨ Added
-- Show example frontmatter values for each field in "Custom Field Names" settings tab
+- Added a new much asked for feature: `Banner Icons`!
+  > - banner-icon (string to be display: emojies, etc.)  
+  > - icon-size (font-size used for icon)  
+  > - icon-x (horizontal position)  
+  > - icon-opacity (opacity of icon)  
+  > - icon-color (color of text displayed in icon)  
+  > - icon-bg-color (background color of icon element)  
+  > - icon-padding (padding of icon element)  
+  > - icon-border-radius (border radius of icon element)  
+  > - icon-y (vertical offset of icon element)  
 
 #### 📦 Updated
-- Updated CSS to address padding issue with `Bread Crumbs` and `Typwriter Mode` plugins
+- Removed the "fade-in" animation from banner images
 
-### v2.19.0
-#### ✨ Added
-- Horizontal image positioning with new X-Position slider
-- X-Position support in General, Folder Image, and Frontmatter settings
 
 [![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg)

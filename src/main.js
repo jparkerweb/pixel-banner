@@ -47,70 +47,28 @@ module.exports = class PixelBannerPlugin extends Plugin {
         
         this.addSettingTab(new PixelBannerSettingTab(this.app, this));
         
+        // Register event handlers
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', this.handleActiveLeafChange.bind(this))
         );
-
-        this.registerEvent(
-            this.app.metadataCache.on('changed', async (file) => {
-                // Get the frontmatter
-                const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-                if (!frontmatter) return;
-
-                // Get the previous frontmatter
-                const previousFrontmatter = this.lastFrontmatter.get(file.path);
-                
-                // Check if frontmatter actually changed
-                if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
-                    return;
-                }
-
-                // Check if any relevant fields exist and changed in the frontmatter
-                const relevantFields = [
-                    ...this.settings.customBannerField,
-                    ...this.settings.customYPositionField,
-                    ...this.settings.customXPositionField,
-                    ...this.settings.customContentStartField,
-                    ...this.settings.customImageDisplayField,
-                    ...this.settings.customImageRepeatField,
-                    ...this.settings.customBannerHeightField,
-                    ...this.settings.customFadeField,
-                    ...this.settings.customBorderRadiusField
-                ];
-
-                const hasRelevantFieldChange = relevantFields.some(field => 
-                    frontmatter[field] !== previousFrontmatter?.[field]
-                );
-                
-                if (!hasRelevantFieldChange) return;
-
-                // Update the stored frontmatter
-                this.lastFrontmatter.set(file.path, frontmatter);
-
-                // Find all visible markdown leaves for this file
-                const leaves = this.app.workspace.getLeavesOfType("markdown");
-                for (const leaf of leaves) {
-                    // Check if the leaf is visible and matches the file
-                    if (leaf.view instanceof MarkdownView && 
-                        leaf.view.file === file && 
-                        !leaf.containerEl.style.display && 
-                        leaf.containerEl.matches('.workspace-leaf')) {
-                        // Force a refresh of the banner
-                        this.loadedImages.delete(file.path);
-                        this.lastKeywords.delete(file.path);
-                        await this.updateBanner(leaf.view, true);
-                    }
-                }
-            })
-        );
-
         this.registerEvent(
             this.app.workspace.on('layout-change', this.handleLayoutChange.bind(this))
         );
-
-        // Add event listener for mode change
         this.registerEvent(
-            this.app.workspace.on('mode-change', this.handleModeChange.bind(this))
+            this.app.workspace.on('editor-change', this.debouncedEnsureBanner.bind(this))
+        );
+        this.registerEvent(
+            this.app.workspace.on('resize', this.debouncedEnsureBanner.bind(this))
+        );
+
+        // Add metadata cache event listener for frontmatter changes
+        this.registerEvent(
+            this.app.metadataCache.on('changed', (file) => {
+                const activeLeaf = this.app.workspace.activeLeaf;
+                if (activeLeaf && activeLeaf.view instanceof MarkdownView && activeLeaf.view.file === file) {
+                    this.updateBanner(activeLeaf.view, true);
+                }
+            })
         );
 
         this.registerMarkdownPostProcessor(this.postProcessor.bind(this));
@@ -189,36 +147,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 return true;
             }
         });
-
-        this.registerEvent(
-            this.app.workspace.on('editor-change', async (editor) => {
-                // Get the active view and file
-                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (!activeView || !activeView.file) return;
-
-                // Get the current frontmatter
-                const currentFrontmatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
-                
-                // Only proceed if we have frontmatter with pixel banner fields
-                if (!currentFrontmatter || 
-                    (!currentFrontmatter.hasOwnProperty('pixel-banner') && 
-                     !currentFrontmatter.hasOwnProperty('pixel-banner-query'))) {
-                    return;
-                }
-
-                // Get the changed content
-                const cursor = editor.getCursor();
-                const line = editor.getLine(cursor.line);
-                
-                // Check if the edited line contains pixel banner fields
-                if (!line.includes('pixel-banner') && !line.includes('pixel-banner-query')) {
-                    return;
-                }
-
-                // Existing code to handle the banner update
-                await this.updateBanner(activeView, true);
-            })
-        );
 
         // Add this command in the onload() method
         // Add it after the other command registrations
@@ -354,6 +282,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     async updateBanner(view, isContentChange) {
         if (!view || !view.file) {
+            console.log('No view or file found');
             return;
         }
 
@@ -363,7 +292,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // Get existing banner before trying to use it
         const existingBanner = contentEl.querySelector('.pixel-banner-image');
-        
+
         // Get folder-specific settings first
         const folderSpecific = this.getFolderSpecificImage(view.file.path);
         let bannerImage = null;
@@ -371,11 +300,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
         // Check for banner shuffle path in frontmatter first
         const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
         if (shufflePath) {
+            console.log('Shuffle path found:', shufflePath);
             // If shuffle path exists in frontmatter, use it
             const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
-            if (randomImagePath) {
-                bannerImage = randomImagePath;
-            }
+            console.log('Random image path:', randomImagePath);
         }
         
         // If no shuffle path or no image found, fall back to regular banner or folder-specific image
@@ -536,6 +464,31 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         if (this.settings.hidePixelBannerFields && view.getMode() === 'preview') {
             this.updateFieldVisibility(view);
+        }
+
+        // Process banner icon
+        const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
+
+        // Remove any existing banner-icon overlays
+        const existingIconOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
+        existingIconOverlays.forEach(icon => icon.remove());
+
+        // Apply bannerIcon to reading view
+        const previewBanner = contentEl.querySelector('.markdown-preview-view .pixel-banner-image');
+        if (previewBanner && bannerIcon) {
+            const bannerIconOverlay = document.createElement('div');
+            bannerIconOverlay.className = 'banner-icon-overlay';
+            bannerIconOverlay.textContent = bannerIcon;
+            previewBanner.insertAdjacentElement('afterend', bannerIconOverlay);
+        }
+
+        // Apply bannerIcon to source view
+        const sourceBanner = contentEl.querySelector('.markdown-source-view .pixel-banner-image');
+        if (sourceBanner && bannerIcon) {
+            const bannerIconOverlay = document.createElement('div');
+            bannerIconOverlay.className = 'banner-icon-overlay';
+            bannerIconOverlay.textContent = bannerIcon;
+            sourceBanner.insertAdjacentElement('afterend', bannerIconOverlay);
         }
     }
 
@@ -1101,7 +1054,18 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         ...this.settings.customImageRepeatField,
                         ...this.settings.customBannerHeightField,
                         ...this.settings.customFadeField,
-                        ...this.settings.customBorderRadiusField
+                        ...this.settings.customBorderRadiusField,
+                        ...this.settings.customTitleColorField,
+                        ...this.settings.customBannerShuffleField,
+                        ...this.settings.customBannerIconField,
+                        ...this.settings.customBannerIconSizeField,
+                        ...this.settings.customBannerIconXPositionField,
+                        ...this.settings.customBannerIconOpacityField,
+                        ...this.settings.customBannerIconColorField,
+                        ...this.settings.customBannerIconBackgroundColorField,
+                        ...this.settings.customBannerIconPaddingField,
+                        ...this.settings.customBannerIconBorderRadiusField,
+                        ...this.settings.customBannerIconVeritalOffsetField
                     ];
 
                     // Add hide class to matching fields
@@ -1628,16 +1592,68 @@ module.exports = class PixelBannerPlugin extends Plugin {
             folderSpecific?.titleColor || 
             this.settings.titleColor;
 
+        // Get banner-icon size from frontmatter, folder settings, or default
+        const bannerIconSize = getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || 
+            folderSpecific?.bannerIconSize || 
+            this.settings.bannerIconSize || 70;
+
+        // Get banner-icon x position from frontmatter, folder settings, or default
+        const bannerIconXPosition = getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || 
+            folderSpecific?.bannerIconXPosition || 
+            this.settings.bannerIconXPosition || 25;
+
+        // Get banner-icon opacity from frontmatter, folder settings, or default
+        const bannerIconOpacity = getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || 
+            folderSpecific?.bannerIconOpacity || 
+            this.settings.bannerIconOpacity || 100;
+
+        // Get banner-icon color from frontmatter, folder settings, or default
+        const bannerIconColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || 
+            folderSpecific?.bannerIconColor || 
+            this.settings.bannerIconColor || 'var(--text-normal)';
+
+        // Get banner-icon background color from frontmatter, folder settings, or default
+        const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || 
+            folderSpecific?.bannerIconBackgroundColor || 
+            this.settings.bannerIconBackgroundColor || 'transparent';
+
+        // Get banner-icon padding from frontmatter, folder settings, or default
+        const bannerIconPadding = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingField) || 
+            folderSpecific?.bannerIconPadding || 
+            this.settings.bannerIconPadding || 0;
+
+        // Get banner-icon border radius from frontmatter, folder settings, or default
+        const bannerIconBorderRadius = getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || 
+            folderSpecific?.bannerIconBorderRadius || 
+            this.settings.bannerIconBorderRadius || 17;
+
+        // Get banner-icon vertical offset from frontmatter, folder settings, or default
+        const bannerIconVeritalOffset = getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || 
+            folderSpecific?.bannerIconVeritalOffset || 
+            this.settings.bannerIconVeritalOffset || 0;
+
         bannerDiv.style.backgroundSize = imageDisplay || 'cover';
         bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
         bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
         bannerDiv.style.setProperty('--pixel-banner-fade', `${fade}%`);
         bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
 
+        // Calculate the start position for the banner icon
+        const bannerIconStart = `${(bannerHeight - (bannerIconSize/ 2))}px`;
+
         // Find the parent container for both reading and editing modes
         const container = bannerDiv.closest('.markdown-preview-view, .markdown-source-view');
         if (container) {
             container.style.setProperty('--pixel-banner-title-color', titleColor);
+            container.style.setProperty('--pixel-banner-icon-size', `${bannerIconSize}px`);
+            container.style.setProperty('--pixel-banner-icon-start', bannerIconStart);
+            container.style.setProperty('--pixel-banner-icon-x', `${bannerIconXPosition}%`);
+            container.style.setProperty('--pixel-banner-icon-opacity', `${bannerIconOpacity}%`);
+            container.style.setProperty('--pixel-banner-icon-color', bannerIconColor);
+            container.style.setProperty('--pixel-banner-icon-background-color', bannerIconBackgroundColor);
+            container.style.setProperty('--pixel-banner-icon-padding', `${bannerIconPadding}px`);
+            container.style.setProperty('--pixel-banner-icon-border-radius', `${bannerIconBorderRadius}px`);
+            container.style.setProperty('--pixel-banner-icon-vertical-offset', `${bannerIconVeritalOffset}px`);
         }
     }
 
@@ -1676,12 +1692,22 @@ module.exports = class PixelBannerPlugin extends Plugin {
             ...this.settings.customFadeField,
             ...this.settings.customBorderRadiusField,
             ...this.settings.customTitleColorField,
-            ...this.settings.customBannerShuffleField
+            ...this.settings.customBannerShuffleField,
+            ...this.settings.customBannerIconField,
+            ...this.settings.customBannerIconSizeField,
+            ...this.settings.customBannerIconXPositionField,
+            ...this.settings.customBannerIconOpacityField,
+            ...this.settings.customBannerIconColorField,
+            ...this.settings.customBannerIconBackgroundColorField,
+            ...this.settings.customBannerIconPaddingField,
+            ...this.settings.customBannerIconBorderRadiusField,
+            ...this.settings.customBannerIconVeritalOffsetField
         ];
 
-        // Get the properties container
         const propertiesContainer = view.contentEl.querySelector('.metadata-container');
-        if (!propertiesContainer) return;
+        if (!propertiesContainer) {
+            return;
+        }
 
         // Get all property elements
         const propertyElements = propertiesContainer.querySelectorAll('.metadata-property');

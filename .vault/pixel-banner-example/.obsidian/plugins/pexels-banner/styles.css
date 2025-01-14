@@ -1,6 +1,6 @@
-/* ------------------------------------------------------------------ */
-/* -- configure default: move banner image to top, fade/size, etc. -- */
-/* ------------------------------------------------------------------ */
+/* ============================ */
+/* == 🚩 Pixel Banner Styles == */
+/* ============================ */
 @keyframes pixel-banner-image--fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -18,7 +18,7 @@
 	height: var(--pixel-banner-height, 350px);
     border-radius: var(--pixel-banner-radius, 17px) !important;
 	pointer-events: none;
-	animation: pixel-banner-image--fade-in 0.3s ease-in-out;
+	/* animation: pixel-banner-image--fade-in 0.3s ease-in-out; */
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
@@ -618,4 +618,26 @@
   .pixel-banner-search-container input[type="text"] {
     flex: 1;
   }
+}
+
+
+/* ------------------------- */
+/* -- banner icon overlay -- */
+/* ------------------------- */
+.banner-icon-overlay {
+    position: absolute;
+    left: var(--pixel-banner-icon-x, 25%);
+    transform: translate(-50%, -15%);
+    pointer-events: none;
+    font-size: var(--pixel-banner-icon-size, 70px);
+    top: var(--pixel-banner-icon-start);
+    line-height: normal;
+    opacity: var(--pixel-banner-icon-opacity, 100%);
+    white-space: nowrap;
+    color: var(--pixel-banner-icon-color, var(--text-normal));
+    background: var(--pixel-banner-icon-background-color, unset);
+    padding: var(--pixel-banner-icon-padding, 0);
+    padding-top: var(--pixel-banner-icon-padding, 0) !important;
+    border-radius: var(--pixel-banner-icon-border-radius, 17px);
+    margin-top: var(--pixel-banner-icon-vertical-offset, 0);
 }

@@ -13,8 +13,8 @@ const DEFAULT_SETTINGS = {
     yPosition: 50,
     xPosition: 50,
     customBannerField: ['banner'],
-    customYPositionField: ['banner-y'],
-    customXPositionField: ['banner-x'],
+    customYPositionField: ['banner-y, y'],
+    customXPositionField: ['banner-x, x'],
     customContentStartField: ['content-start'],
     customImageDisplayField: ['banner-display'],
     customImageRepeatField: ['banner-repeat'],
@@ -23,6 +23,15 @@ const DEFAULT_SETTINGS = {
     customBorderRadiusField: ['banner-radius'],
     customTitleColorField: ['banner-inline-title-color'],
     customBannerShuffleField: ['banner-shuffle'],
+    customBannerIconField: ['icon'],
+    customBannerIconSizeField: ['icon-size'],
+    customBannerIconXPositionField: ['icon-x'],
+    customBannerIconOpacityField: ['icon-opacity'],
+    customBannerIconColorField: ['icon-color'],
+    customBannerIconBackgroundColorField: ['icon-bg-color'],
+    customBannerIconPaddingField: ['icon-padding'],
+    customBannerIconBorderRadiusField: ['icon-border-radius'],
+    customBannerIconVeritalOffsetField: ['icon-y'],
     folderImages: [],
     contentStartPosition: 150,
     imageDisplay: 'cover',
@@ -46,6 +55,14 @@ const DEFAULT_SETTINGS = {
     defaultSelectImagePath: '',
     useShortPath: true,
     bannerGap: 12,
+    bannerIconSize: 70,
+    bannerIconXPosition: 25,
+    bannerIconOpacity: 100,
+    bannerIconColor: '',
+    bannerIconBackgroundColor: '',
+    bannerIconPadding: '0',
+    bannerIconBorderRadius: '17',
+    bannerIconVeritalOffset: '0',
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {
@@ -100,6 +117,9 @@ class FolderImageSetting extends Setting {
 
         const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
         this.addColorSettings(controlEl2);
+
+        // Add banner icon settings
+        this.addBannerIconSettings();
 
         this.addDirectChildrenOnlyToggle();
     }
@@ -544,6 +564,116 @@ class FolderImageSetting extends Setting {
         label.appendChild(radiusInput);
         containerEl.appendChild(label);
     }
+
+    addBannerIconSettings() {
+        const controlEl1 = this.settingEl.createDiv("setting-item-control full-width-control");
+
+        // Banner Icon Size
+        new Setting(controlEl1)
+            .setName("Icon Size")
+            .addSlider(slider => slider
+                .setLimits(10, 200, 1)
+                .setValue(this.folderImage.bannerIconSize || this.plugin.settings.bannerIconSize)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.folderImage.bannerIconSize = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // Banner Icon X Position
+        new Setting(controlEl1)
+            .setName("Icon X Position")
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.folderImage.bannerIconXPosition || this.plugin.settings.bannerIconXPosition)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.folderImage.bannerIconXPosition = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
+
+        // Banner Icon Opacity
+        new Setting(controlEl2)
+            .setName("Icon Opacity")
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.folderImage.bannerIconOpacity || this.plugin.settings.bannerIconOpacity)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.folderImage.bannerIconOpacity = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // Banner Icon Color
+        new Setting(controlEl2)
+            .setName("Icon Color")
+            .addText(text => {
+                text
+                    .setPlaceholder('(e.g., #ffffff or white)')
+                    .setValue(this.folderImage.bannerIconColor || this.plugin.settings.bannerIconColor)
+                    .onChange(async (value) => {
+                        this.folderImage.bannerIconColor = value;
+                        await this.plugin.saveSettings();
+                    });
+                text.inputEl.style.width = '160px';
+            });
+
+        const controlEl3 = this.settingEl.createDiv("setting-item-control full-width-control");
+
+        // Banner Icon Background Color
+        new Setting(controlEl3)
+            .setName("Icon BG Color")
+            .addText(text => {
+                text
+                    .setPlaceholder('(e.g., #ffffff or transparent)')
+                    .setValue(this.folderImage.bannerIconBackgroundColor || this.plugin.settings.bannerIconBackgroundColor)
+                    .onChange(async (value) => {
+                        this.folderImage.bannerIconBackgroundColor = value;
+                        await this.plugin.saveSettings();
+                    });
+                text.inputEl.style.width = '160px';
+            });
+
+        // Banner Icon Padding
+        new Setting(controlEl3)
+            .setName("Icon Padding")
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.folderImage.bannerIconPadding || this.plugin.settings.bannerIconPadding)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.folderImage.bannerIconPadding = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        const controlEl4 = this.settingEl.createDiv("setting-item-control full-width-control");
+
+        // Banner Icon Border Radius
+        new Setting(controlEl4)
+            .setName("Icon Border Radius")
+            .addSlider(slider => slider
+                .setLimits(0, 50, 1)
+                .setValue(this.folderImage.bannerIconBorderRadius || this.plugin.settings.bannerIconBorderRadius)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.folderImage.bannerIconBorderRadius = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // Banner Icon Vertical Offset
+        new Setting(controlEl4)
+            .setName("Icon Vertical Offset")
+            .addSlider(slider => slider
+                .setLimits(-100, 100, 1)
+                .setValue(this.folderImage.bannerIconVeritalOffset || this.plugin.settings.bannerIconVeritalOffset)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.folderImage.bannerIconVeritalOffset = value;
+                    await this.plugin.saveSettings();
+                }));
+    }
 }
 
 // Helper functions
@@ -587,6 +717,7 @@ function migrateSettings(settings) {
     const fieldsToMigrate = [
         'customBannerField',
         'customYPositionField',
+        'customXPositionField',
         'customContentStartField',
         'customImageDisplayField',
         'customImageRepeatField'
@@ -636,8 +767,8 @@ class PixelBannerSettingTab extends PluginSettingTab {
         const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
             'General',
             'Custom Field Names',
-            'API Settings',
             'Folder Images',
+            'API Settings',
             'Examples'
         ]);
 
@@ -1636,6 +1767,196 @@ class PixelBannerSettingTab extends PluginSettingTab {
             hidePropertiesSection.settingEl.addClass('is-disabled');
         }
 
+        // Banner Icon General Settings
+        new Setting(containerEl)
+            .setName('Default Banner Icon Size')
+            .setDesc('Set the default size for the banner icon')
+            .addSlider(slider => slider
+                .setLimits(10, 200, 1)
+                .setValue(this.plugin.settings.bannerIconSize)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconSize = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
+                    await this.plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                }));
+
+        // Banner Icon X Position
+        new Setting(containerEl)
+            .setName('Default Banner Icon X Position')
+            .setDesc('Set the default X position for the banner icon (0-100)')
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.plugin.settings.bannerIconXPosition)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconXPosition = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
+                    await this.plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                }));
+
+        // Banner Icon Opacity
+        new Setting(containerEl)
+            .setName('Default Banner Icon Opacity')
+            .setDesc('Set the default opacity for the banner icon (0-100)')
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.plugin.settings.bannerIconOpacity)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconOpacity = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
+                    await this.plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                }));
+
+        // Banner Icon Text Color
+        new Setting(containerEl)
+            .setName('Default Banner Icon Text Color')
+            .setDesc('Set the default text color for the banner icon')
+            .addText(text => text
+                .setPlaceholder('Enter color (e.g., #ffffff or white)')
+                .setValue(this.plugin.settings.bannerIconColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconColor = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
+                    await this.plugin.saveSettings();
+                    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+                    textInput.value = DEFAULT_SETTINGS.bannerIconColor;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    textInput.dispatchEvent(event);
+                }));
+
+        // Banner Icon Background Color
+        new Setting(containerEl)
+            .setName('Default Banner Icon Background Color')
+            .setDesc('Set the default background color for the banner icon')
+            .addText(text => text
+                .setPlaceholder('Enter color (e.g., #ffffff or transparent)')
+                .setValue(this.plugin.settings.bannerIconBackgroundColor)
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconBackgroundColor = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+                    await this.plugin.saveSettings();
+                    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+                    textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    textInput.dispatchEvent(event);
+                }));
+
+        // Banner Icon Padding
+        new Setting(containerEl)
+            .setName('Default Banner Icon Padding')
+            .setDesc('Set the default padding for the banner icon')
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.plugin.settings.bannerIconPadding)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconPadding = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconPadding = DEFAULT_SETTINGS.bannerIconPadding;
+                    await this.plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconPadding;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                }));
+
+        // Banner Icon Border Radius
+        new Setting(containerEl)
+            .setName('Default Banner Icon Border Radius')
+            .setDesc('Set the default border radius for the banner icon')
+            .addSlider(slider => slider
+                .setLimits(0, 50, 1)
+                .setValue(this.plugin.settings.bannerIconBorderRadius)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconBorderRadius = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
+                    await this.plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                }));
+
+        // Banner Icon Vertical Offset
+        new Setting(containerEl)
+            .setName('Default Banner Icon Vertical Offset')
+            .setDesc('Set the default vertical offset for the banner icon')
+            .addSlider(slider => slider
+                .setLimits(-100, 100, 1)
+                .setValue(this.plugin.settings.bannerIconVeritalOffset)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.bannerIconVeritalOffset = value;
+                    await this.plugin.saveSettings();
+                }))
+            .addExtraButton(button => button
+                .setIcon('reset')
+                .setTooltip('Reset to default')
+                .onClick(async () => {
+                    this.plugin.settings.bannerIconVeritalOffset = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+                    await this.plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                }));
+
         // Add back the Show Release Notes setting
         const showReleaseNotesSetting = new Setting(containerEl)
             .setName('Show Release Notes')
@@ -1742,6 +2063,69 @@ class PixelBannerSettingTab extends PluginSettingTab {
                 desc: 'Set custom field names for the banner shuffle in frontmatter (comma-separated)',
                 values: '"pixel-banner-images", "images/llamas"',
                 placeholder: 'banner-shuffle, shuffle-folder, random-image-folder'
+            },
+            {
+                setting: 'customBannerIconField',
+                name: 'Banner Icon Field Names',
+                desc: 'Set custom field names for the banner icon in frontmatter (comma-separated)',
+                values: '🤣, 💥, ✨',
+                placeholder: 'banner-icon, pixel-icon, header-icon'
+            },
+            {
+                setting: 'customBannerIconSizeField',
+                name: 'Banner Icon Size Field Names',
+                desc: 'Set custom field names for the banner icon size in frontmatter (comma-separated)',
+                values: '70, 100, 150',
+                placeholder: 'banner-icon-size, icon-size, header-icon-size'
+            },
+            {
+                setting: 'customBannerIconXPositionField',
+                name: 'Banner Icon X Position Field Names',
+                desc: 'Set custom field names for the banner icon x position in frontmatter (comma-separated)',
+                values: '25, 50, 75 (value between 0 and 100)',
+                placeholder: 'banner-icon-x, icon-x, header-icon-x'
+            },
+            {
+                setting: 'customBannerIconOpacityField',
+                name: 'Banner Icon Opacity Field Names',
+                desc: 'Set custom field names for the banner icon opacity in frontmatter (comma-separated)',
+                values: '100, 75, 50 (value between 0 and 100)',
+                placeholder: 'banner-icon-opacity, icon-opacity, header-icon-opacity'
+            },
+            {
+                setting: 'customBannerIconColorField',
+                name: 'Banner Icon Text Color Field Names',
+                desc: 'Set custom field names for the banner icon text color in frontmatter (comma-separated)',
+                values: 'white, papayawhip, "#7f6df2", "#ffa500"',
+                placeholder: 'banner-icon-color, icon-color, header-icon-color'
+            },
+            {
+                setting: 'customBannerIconBackgroundColorField',
+                name: 'Banner Icon Background Color Field Names',
+                desc: 'Set custom field names for the banner icon background color in frontmatter (comma-separated)',
+                values: 'transparent, papayawhip, "#7f6df2", "#ffa500"',
+                placeholder: 'banner-icon-background-color, icon-background-color, header-icon-background-color'
+            },
+            {
+                setting: 'customBannerIconPaddingField',
+                name: 'Banner Icon Padding Field Names',
+                desc: 'Set custom field names for the banner icon padding in frontmatter (comma-separated)',
+                values: '0, 10, 20',
+                placeholder: 'banner-icon-padding, icon-padding, header-icon-padding'
+            },
+            {
+                setting: 'customBannerIconBorderRadiusField',
+                name: 'Banner Icon Border Radius Field Names',
+                desc: 'Set custom field names for the banner icon border radius in frontmatter (comma-separated)',
+                values: '0, 17, 30, 50',
+                placeholder: 'banner-icon-border-radius, icon-border-radius, header-icon-border-radius'
+            },
+            {
+                setting: 'customBannerIconVeritalOffsetField',
+                name: 'Banner Icon Vertical Offset Field Names',
+                desc: 'Set custom field names for the banner icon vertical offset in frontmatter (comma-separated)',
+                values: '0, 10, 20',
+                placeholder: 'banner-icon-vertical-offset, icon-vertical-offset, header-icon-vertical-offset'
             },
         ];
 
@@ -1936,6 +2320,31 @@ ${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff00ff
             return false;
         }
         return true;
+    }
+
+    createFolderImageSettings(folderImage) {
+        const settings = { ...folderImage };
+
+        // If image shuffle is enabled and shuffle folder is specified, get a random image
+        if (folderImage.enableImageShuffle && folderImage.shuffleFolder) {
+            const randomImagePath = this.getRandomImageFromFolder(folderImage.shuffleFolder);
+            if (randomImagePath) {
+                // Format as internal link for Obsidian
+                settings.image = randomImagePath;
+            }
+        }
+
+        // Add default banner icon settings if not present
+        if (!settings.bannerIconSize) settings.bannerIconSize = this.settings.bannerIconSize;
+        if (!settings.bannerIconXPosition) settings.bannerIconXPosition = this.settings.bannerIconXPosition;
+        if (!settings.bannerIconOpacity) settings.bannerIconOpacity = this.settings.bannerIconOpacity;
+        if (!settings.bannerIconColor) settings.bannerIconColor = this.settings.bannerIconColor;
+        if (!settings.bannerIconBackgroundColor) settings.bannerIconBackgroundColor = this.settings.bannerIconBackgroundColor;
+        if (!settings.bannerIconPadding) settings.bannerIconPadding = this.settings.bannerIconPadding;
+        if (!settings.bannerIconBorderRadius) settings.bannerIconBorderRadius = this.settings.bannerIconBorderRadius;
+        if (!settings.bannerIconVeritalOffset) settings.bannerIconVeritalOffset = this.settings.bannerIconVeritalOffset;
+
+        return settings;
     }
 }
 
