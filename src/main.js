@@ -300,10 +300,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
         // Check for banner shuffle path in frontmatter first
         const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
         if (shufflePath) {
-            console.log('Shuffle path found:', shufflePath);
             // If shuffle path exists in frontmatter, use it
             const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
-            console.log('Random image path:', randomImagePath);
         }
         
         // If no shuffle path or no image found, fall back to regular banner or folder-specific image
