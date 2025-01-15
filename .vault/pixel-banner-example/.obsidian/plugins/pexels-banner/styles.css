@@ -593,6 +593,16 @@
     cursor: pointer;
     transform: scale(1.2);
 }
+.set-banner-icon-button {
+    z-index: var(--layer-modal);
+    opacity: 0.2;
+    transition: all 0.3s ease-in-out;
+}
+.set-banner-icon-button:hover {
+    opacity: 1;
+    cursor: pointer;
+    transform: scale(1.2);
+}
 
 /* mobile layout */
 @media screen and (max-width: 775px) {
