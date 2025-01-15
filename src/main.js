@@ -282,7 +282,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
     async updateBanner(view, isContentChange) {
         if (!view || !view.file) {
-            console.log('No view or file found');
             return;
         }
 
@@ -292,7 +291,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // Get existing banner before trying to use it
         const existingBanner = contentEl.querySelector('.pixel-banner-image');
-
+        
         // Get folder-specific settings first
         const folderSpecific = this.getFolderSpecificImage(view.file.path);
         let bannerImage = null;
@@ -302,6 +301,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (shufflePath) {
             // If shuffle path exists in frontmatter, use it
             const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
+            if (randomImagePath) {
+                bannerImage = randomImagePath;
+            }
         }
         
         // If no shuffle path or no image found, fall back to regular banner or folder-specific image
