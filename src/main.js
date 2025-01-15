@@ -250,6 +250,10 @@ module.exports = class PixelBannerPlugin extends Plugin {
                             this.loadedImages.delete(previousLeaf.view.file.path);
                         }
                     }
+
+                    // Clean up banner icon overlays
+                    const iconOverlays = container.querySelectorAll('.banner-icon-overlay');
+                    iconOverlays.forEach(overlay => overlay.remove());
                 }
             });
         }
@@ -469,26 +473,36 @@ module.exports = class PixelBannerPlugin extends Plugin {
         // Process banner icon
         const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
 
-        // Remove any existing banner-icon overlays
-        const existingIconOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
-        existingIconOverlays.forEach(icon => icon.remove());
+        // More thorough cleanup of existing banner-icon overlays
+        ['markdown-preview-view', 'markdown-source-view'].forEach(viewType => {
+            const viewContainer = contentEl.querySelector(`.${viewType}`);
+            if (viewContainer) {
+                const existingOverlays = viewContainer.querySelectorAll('.banner-icon-overlay');
+                existingOverlays.forEach(overlay => overlay.remove());
+            }
+        });
 
-        // Apply bannerIcon to reading view
-        const previewBanner = contentEl.querySelector('.markdown-preview-view .pixel-banner-image');
-        if (previewBanner && bannerIcon) {
-            const bannerIconOverlay = document.createElement('div');
-            bannerIconOverlay.className = 'banner-icon-overlay';
-            bannerIconOverlay.textContent = bannerIcon;
-            previewBanner.insertAdjacentElement('afterend', bannerIconOverlay);
-        }
+        // Only proceed if we have a valid banner icon
+        if (bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) {
+            const cleanIcon = bannerIcon.trim();
+            
+            // Function to create icon overlay
+            const createIconOverlay = (banner, viewType) => {
+                if (!banner) return;
+                
+                const bannerIconOverlay = document.createElement('div');
+                bannerIconOverlay.className = 'banner-icon-overlay';
+                bannerIconOverlay.dataset.viewType = viewType;
+                bannerIconOverlay.textContent = cleanIcon;
+                banner.insertAdjacentElement('afterend', bannerIconOverlay);
+            };
 
-        // Apply bannerIcon to source view
-        const sourceBanner = contentEl.querySelector('.markdown-source-view .pixel-banner-image');
-        if (sourceBanner && bannerIcon) {
-            const bannerIconOverlay = document.createElement('div');
-            bannerIconOverlay.className = 'banner-icon-overlay';
-            bannerIconOverlay.textContent = bannerIcon;
-            sourceBanner.insertAdjacentElement('afterend', bannerIconOverlay);
+            // Apply to both views immediately (no setTimeout needed)
+            const previewBanner = contentEl.querySelector('.markdown-preview-view .pixel-banner-image');
+            const sourceBanner = contentEl.querySelector('.markdown-source-view .pixel-banner-image');
+
+            createIconOverlay(previewBanner, 'preview');
+            createIconOverlay(sourceBanner, 'source');
         }
     }
 
