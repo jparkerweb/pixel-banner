@@ -1,17 +1,26 @@
 ## 🎉 What's New
 
 ### v2.20.0
-#### ✨ Added
-- Added a new much asked for feature: `Banner Icons`!
-  > - banner-icon (string to be display: emojies, etc.)  
-  > - icon-size (font-size used for icon)  
-  > - icon-x (horizontal position)  
-  > - icon-opacity (opacity of icon)  
-  > - icon-color (color of text displayed in icon)  
-  > - icon-bg-color (background color of icon element)  
-  > - icon-padding (padding of icon element)  
-  > - icon-border-radius (border radius of icon element)  
-  > - icon-y (vertical offset of icon element)  
+#### ✨ Added the highly requested feature: `Banner Icons`!
+- Add emoji overlays (⭐, 🎨, 📝, etc.) to your banners
+- Customize icon appearance:
+  > - Size (10-200px)
+  > - Position (left/right alignment)
+  > - Opacity (0-100%)
+  > - Color (any CSS color)
+  > - Background color (any CSS color or transparent)
+  > - Padding (spacing around the icon)
+  > - Border radius (rounded corners)
+  > - Vertical offset (adjust up/down position)
+- Set icons in multiple ways:
+  > - Click the ⭐ button on any banner to choose an icon
+  > - Set via frontmatter using banner-icon field (or your custom field name)
+  > - Configure default icon settings globally  
+  > - Set per-folder icon settings
+  > - Icons persist across banner image changes and refreshes
+  > - Icons work with all banner types (API images, local images, URLs)
+  > - Icons appear in both edit and preview modes
+  > - Icons maintain their position relative to banner height
 
 #### 📦 Updated
 - Removed the "fade-in" animation from banner images

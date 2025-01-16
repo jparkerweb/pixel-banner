@@ -18,7 +18,8 @@
     "y"
   ],
   "customXPositionField": [
-    "banner-x"
+    "banner-x",
+    "x"
   ],
   "customContentStartField": [
     "content-start",
@@ -130,8 +131,8 @@
   "lastVersion": "2.19.2",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
-  "hidePixelBannerFields": false,
-  "hidePropertiesSectionIfOnlyBanner": false,
+  "hidePixelBannerFields": true,
+  "hidePropertiesSectionIfOnlyBanner": true,
   "titleColor": "var(--inline-title-color)",
   "enableImageShuffle": false,
   "hideEmbeddedNoteTitles": true,
