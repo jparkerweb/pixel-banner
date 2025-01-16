@@ -8,73 +8,350 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/main.js
-var import_obsidian3 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/settings.js
+var import_obsidian6 = require("obsidian");
+
+// src/settingsTabExample.js
 var import_obsidian = require("obsidian");
-var DEFAULT_SETTINGS = {
-  apiProvider: "all",
-  pexelsApiKey: "",
-  pixabayApiKey: "",
-  flickrApiKey: "",
-  unsplashApiKey: "",
-  imageSize: "medium",
-  imageOrientation: "landscape",
-  numberOfImages: 10,
-  defaultKeywords: "nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns",
-  yPosition: 50,
-  xPosition: 50,
-  customBannerField: ["banner"],
-  customYPositionField: ["banner-y"],
-  customXPositionField: ["banner-x"],
-  customContentStartField: ["content-start"],
-  customImageDisplayField: ["banner-display"],
-  customImageRepeatField: ["banner-repeat"],
-  customBannerHeightField: ["banner-height"],
-  customFadeField: ["banner-fade"],
-  customBorderRadiusField: ["banner-radius"],
-  customTitleColorField: ["banner-inline-title-color"],
-  customBannerShuffleField: ["banner-shuffle"],
-  folderImages: [],
-  contentStartPosition: 150,
-  imageDisplay: "cover",
-  imageRepeat: false,
-  bannerHeight: 350,
-  fade: -75,
-  borderRadius: 17,
-  showPinIcon: true,
-  pinnedImageFolder: "pixel-banner-images",
-  showReleaseNotes: true,
-  lastVersion: null,
-  showRefreshIcon: true,
-  showViewImageIcon: false,
-  hidePixelBannerFields: false,
-  hidePropertiesSectionIfOnlyBanner: false,
-  titleColor: "var(--inline-title-color)",
-  enableImageShuffle: false,
-  hideEmbeddedNoteTitles: false,
-  hideEmbeddedNoteBanners: false,
-  showSelectImageIcon: true,
-  defaultSelectImagePath: "",
-  useShortPath: true,
-  bannerGap: 12
+var getRandomFieldName = (fieldNames) => {
+  const names = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
+  return names[Math.floor(Math.random() * names.length)];
 };
-var FolderSuggestModal = class extends import_obsidian.FuzzySuggestModal {
-  constructor(app2, onChoose) {
-    super(app2);
-    this.onChoose = onChoose;
+function createExampleSettings(containerEl, plugin) {
+  new import_obsidian.Setting(containerEl).setName("How to use").setHeading().settingEl.querySelector(".setting-item-name").style.cssText = "color: var(--text-accent-hover); font-size: var(--font-ui-large);";
+  const instructionsEl = containerEl.createEl("div", { cls: "pixel-banner-section" });
+  instructionsEl.createEl("p", { text: "Add the following fields to your note's frontmatter to customize the banner:" });
+  const codeEl = instructionsEl.createEl("pre");
+  codeEl.createEl("code", {
+    text: `---
+${getRandomFieldName(plugin.settings.customBannerField)}: blue turtle
+${getRandomFieldName(plugin.settings.customYPositionField)}: 30
+${getRandomFieldName(plugin.settings.customXPositionField)}: 30
+${getRandomFieldName(plugin.settings.customContentStartField)}: 200
+${getRandomFieldName(plugin.settings.customImageDisplayField)}: contain
+${getRandomFieldName(plugin.settings.customImageRepeatField)}: true
+${getRandomFieldName(plugin.settings.customBannerHeightField)}: 400
+${getRandomFieldName(plugin.settings.customFadeField)}: -75
+${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 25
+${getRandomFieldName(plugin.settings.customTitleColorField)}: #ff0000
+---
+
+# Or use a direct URL:
+---
+${getRandomFieldName(plugin.settings.customBannerField)}: https://example.com/image.jpg
+${getRandomFieldName(plugin.settings.customYPositionField)}: 70
+${getRandomFieldName(plugin.settings.customXPositionField)}: 70
+${getRandomFieldName(plugin.settings.customContentStartField)}: 180
+${getRandomFieldName(plugin.settings.customImageDisplayField)}: 200%
+${getRandomFieldName(plugin.settings.customBannerHeightField)}: 300
+${getRandomFieldName(plugin.settings.customFadeField)}: -75
+${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 0
+${getRandomFieldName(plugin.settings.customTitleColorField)}: #00ff00
+---
+
+# Or use a path to an image in the vault:
+---
+${getRandomFieldName(plugin.settings.customBannerField)}: Assets/my-image.png
+${getRandomFieldName(plugin.settings.customYPositionField)}: 0
+${getRandomFieldName(plugin.settings.customXPositionField)}: 0
+${getRandomFieldName(plugin.settings.customContentStartField)}: 100
+${getRandomFieldName(plugin.settings.customImageDisplayField)}: auto
+${getRandomFieldName(plugin.settings.customBannerHeightField)}: 250
+${getRandomFieldName(plugin.settings.customFadeField)}: -75
+${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 50
+${getRandomFieldName(plugin.settings.customTitleColorField)}: #0000ff
+---
+
+# Or use an Obsidian internal link:
+---
+${getRandomFieldName(plugin.settings.customBannerField)}: [[example-image.png]]
+${getRandomFieldName(plugin.settings.customYPositionField)}: 100
+${getRandomFieldName(plugin.settings.customXPositionField)}: 100
+${getRandomFieldName(plugin.settings.customContentStartField)}: 50
+${getRandomFieldName(plugin.settings.customImageDisplayField)}: contain
+${getRandomFieldName(plugin.settings.customImageRepeatField)}: false
+${getRandomFieldName(plugin.settings.customBannerHeightField)}: 500
+${getRandomFieldName(plugin.settings.customFadeField)}: -75
+${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 17
+${getRandomFieldName(plugin.settings.customTitleColorField)}: #ff00ff
+---`
+  });
+  instructionsEl.createEl("p", { text: 'Note: The image display options are "auto", "cover", or "contain". The image repeat option is only applicable when the display is set to "contain".' });
+  containerEl.createEl("img", {
+    attr: {
+      src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/main/example.jpg",
+      alt: "Example of a Pixel banner",
+      style: "max-width: 100%; height: auto; margin-top: 10px; border-radius: 5px;"
+    }
+  });
+}
+
+// src/settingsTabAPISettings.js
+var import_obsidian2 = require("obsidian");
+async function testPexelsApi(apiKey) {
+  try {
+    const response = await fetch(`https://api.pexels.com/v1/search?query=${random20characters()}&per_page=3`, {
+      headers: {
+        "Authorization": apiKey
+      }
+    });
+    if (!response.ok) {
+      throw new Error("\u274C Invalid Pexels API key");
+    }
+    const data = await response.json();
+    return data.photos;
+  } catch (error) {
+    return false;
   }
-  getItems() {
-    return this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path);
+}
+async function testPixabayApi(apiKey) {
+  try {
+    const response = await fetch(`https://pixabay.com/api/?key=${apiKey}&q=test&per_page=3`);
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    return true;
+  } catch (error) {
+    return false;
   }
-  getItemText(item) {
-    return item;
+}
+async function testFlickrApi(apiKey) {
+  try {
+    const response = await fetch(`https://www.flickr.com/services/rest/?method=flickr.test.echo&api_key=${apiKey}&format=json&nojsoncallback=1`);
+    const data = await response.json();
+    return data.stat === "ok";
+  } catch (error) {
+    return false;
   }
-  onChooseItem(item) {
-    this.onChoose(item);
+}
+async function testUnsplashApi(apiKey) {
+  try {
+    const response = await fetch("https://api.unsplash.com/photos/random", {
+      headers: {
+        "Authorization": `Client-ID ${apiKey}`
+      }
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
   }
-};
-var FolderImageSetting = class extends import_obsidian.Setting {
+}
+function random20characters() {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < 20; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+function createAPISettings(containerEl, plugin) {
+  const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+  calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
+  new import_obsidian2.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").addOption("unsplash", "Unsplash").setValue(plugin.settings.apiProvider).onChange(async (value) => {
+    plugin.settings.apiProvider = value;
+    await plugin.saveSettings();
+    plugin.settingTab.display();
+  }));
+  new import_obsidian2.Setting(containerEl).setName("Pexels API Key");
+  containerEl.createEl("span", { text: "Enter your Pexels API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.pexels.com/api/", text: "Pexels API" });
+  const pexelsApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+    text.setPlaceholder("Pexels API key").setValue(plugin.settings.pexelsApiKey).onChange(async (value) => {
+      plugin.settings.pexelsApiKey = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.style.width = "calc(100% - 100px)";
+  }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+    const apiKey = plugin.settings.pexelsApiKey;
+    if (!apiKey) {
+      new import_obsidian2.Notice("Please enter an API key first");
+      return;
+    }
+    button.setButtonText("Testing...");
+    button.setDisabled(true);
+    const isValid = await testPexelsApi(apiKey);
+    button.setButtonText("Test API");
+    button.setDisabled(false);
+    new import_obsidian2.Notice(isValid ? "\u2705 Pexels API key is valid!" : "\u274C Invalid Pexels API key");
+  }));
+  pexelsApiKeySetting.settingEl.style.width = "100%";
+  new import_obsidian2.Setting(containerEl).setName("Pixabay API Key");
+  containerEl.createEl("span", { text: "Enter your Pixabay API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://pixabay.com/api/docs/", text: "Pixabay API" });
+  const pixabayApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+    text.setPlaceholder("Pixabay API key").setValue(plugin.settings.pixabayApiKey).onChange(async (value) => {
+      plugin.settings.pixabayApiKey = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.style.width = "calc(100% - 100px)";
+  }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+    const apiKey = plugin.settings.pixabayApiKey;
+    if (!apiKey) {
+      new import_obsidian2.Notice("Please enter an API key first");
+      return;
+    }
+    button.setButtonText("Testing...");
+    button.setDisabled(true);
+    const isValid = await testPixabayApi(apiKey);
+    button.setButtonText("Test API");
+    button.setDisabled(false);
+    new import_obsidian2.Notice(isValid ? "\u2705 Pixabay API key is valid!" : "\u274C Invalid Pixabay API key");
+  }));
+  pixabayApiKeySetting.settingEl.style.width = "100%";
+  new import_obsidian2.Setting(containerEl).setName("Flickr API Key");
+  containerEl.createEl("span", { text: "Enter your Flickr API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.flickr.com/services/api/", text: "Flickr API" });
+  const flickrApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+    text.setPlaceholder("Flickr API key").setValue(plugin.settings.flickrApiKey).onChange(async (value) => {
+      plugin.settings.flickrApiKey = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.style.width = "calc(100% - 100px)";
+  }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+    const apiKey = plugin.settings.flickrApiKey;
+    if (!apiKey) {
+      new import_obsidian2.Notice("Please enter an API key first");
+      return;
+    }
+    button.setButtonText("Testing...");
+    button.setDisabled(true);
+    const isValid = await testFlickrApi(apiKey);
+    button.setButtonText("Test API");
+    button.setDisabled(false);
+    new import_obsidian2.Notice(isValid ? "\u2705 Flickr API key is valid!" : "\u274C Invalid Flickr API key");
+  }));
+  new import_obsidian2.Setting(containerEl).setName("Unsplash API Key");
+  containerEl.createEl("span", { text: "Enter your Unsplash API key (Access Key). Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://unsplash.com/oauth/applications", text: "Unsplash API" });
+  const unsplashApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+    text.setPlaceholder("Unsplash API key").setValue(plugin.settings.unsplashApiKey).onChange(async (value) => {
+      plugin.settings.unsplashApiKey = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.style.width = "calc(100% - 100px)";
+  }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
+    const apiKey = plugin.settings.unsplashApiKey;
+    if (!apiKey) {
+      new import_obsidian2.Notice("Please enter an API key first");
+      return;
+    }
+    button.setButtonText("Testing...");
+    button.setDisabled(true);
+    const isValid = await testUnsplashApi(apiKey);
+    button.setButtonText("Test API");
+    button.setDisabled(false);
+    new import_obsidian2.Notice(isValid ? "\u2705 Unsplash API key is valid!" : "\u274C Invalid Unsplash API key");
+  }));
+  new import_obsidian2.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
+  new import_obsidian2.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(plugin.settings.showPinIcon).onChange(async (value) => {
+    plugin.settings.showPinIcon = value;
+    folderInputSetting.settingEl.style.display = value ? "flex" : "none";
+    refreshIconSetting.settingEl.style.display = value ? "flex" : "none";
+    await plugin.saveSettings();
+  }));
+  const folderInputSetting = new import_obsidian2.Setting(containerEl).setName("Pinned Images Folder").setDesc("Default folder where pinned banner images will be saved").addText((text) => {
+    text.setPlaceholder("pixel-banner-images").setValue(plugin.settings.pinnedImageFolder).onChange(async (value) => {
+      plugin.settings.pinnedImageFolder = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.addEventListener("blur", async (event) => {
+      let value = text.inputEl.value.trim();
+      if (!value) {
+        value = "pixel-banner-images";
+      }
+      text.setValue(value);
+      plugin.settings.pinnedImageFolder = value;
+      await plugin.saveSettings();
+    });
+    return text;
+  });
+  const refreshIconSetting = new import_obsidian2.Setting(containerEl).setName("Show Refresh Icon").setDesc("Show a refresh icon on random banner images that allows fetching a new random image.").addToggle((toggle) => toggle.setValue(plugin.settings.showRefreshIcon).onChange(async (value) => {
+    plugin.settings.showRefreshIcon = value;
+    await plugin.saveSettings();
+  }));
+  folderInputSetting.settingEl.style.display = plugin.settings.showPinIcon ? "flex" : "none";
+  refreshIconSetting.settingEl.style.display = plugin.settings.showPinIcon ? "flex" : "none";
+  new import_obsidian2.Setting(containerEl).setName("Size").setDesc("Select the size of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("small", "Small").addOption("medium", "Medium").addOption("large", "Large").setValue(plugin.settings.imageSize).onChange(async (value) => {
+    plugin.settings.imageSize = value;
+    await plugin.saveSettings();
+  }));
+  new import_obsidian2.Setting(containerEl).setName("Orientation").setDesc("Select the orientation of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("landscape", "Landscape").addOption("portrait", "Portrait").addOption("square", "Square").setValue(plugin.settings.imageOrientation).onChange(async (value) => {
+    plugin.settings.imageOrientation = value;
+    await plugin.saveSettings();
+  }));
+  new import_obsidian2.Setting(containerEl).setName("Number of images").setDesc("Enter the number of random images to fetch (3-50) - (API only)").addText((text) => text.setPlaceholder("10").setValue(String(plugin.settings.numberOfImages || 10)).onChange(async (value) => {
+    let numValue = Number(value);
+    if (!isNaN(numValue)) {
+      numValue = Math.max(3, Math.min(numValue, 50));
+      plugin.settings.numberOfImages = numValue;
+      await plugin.saveSettings();
+    }
+  })).then((setting) => {
+    const inputEl = setting.controlEl.querySelector("input");
+    inputEl.type = "number";
+    inputEl.min = "3";
+    inputEl.max = "50";
+    inputEl.style.width = "50px";
+  });
+  const defaultKeywordsSetting = new import_obsidian2.Setting(containerEl).setName("Default keywords").setDesc("Enter a comma-separated list of default keywords to be used when no keyword is provided in the frontmatter, or when the provided keyword does not return any results. - (API only)").addTextArea((text) => {
+    text.setPlaceholder("Enter keywords, separated by commas").setValue(plugin.settings.defaultKeywords).onChange(async (value) => {
+      plugin.settings.defaultKeywords = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.style.width = "100%";
+    text.inputEl.style.marginTop = "15px";
+    text.inputEl.style.height = "90px";
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.defaultKeywords = DEFAULT_SETTINGS.defaultKeywords;
+    await plugin.saveSettings();
+    plugin.settingTab.display();
+  }));
+  defaultKeywordsSetting.settingEl.dataset.id = "defaultKeywords";
+  defaultKeywordsSetting.settingEl.style.display = "flex";
+  defaultKeywordsSetting.settingEl.style.flexDirection = "column";
+}
+
+// src/settingsTabFolderImages.js
+var import_obsidian3 = require("obsidian");
+function createFolderSettings(containerEl, plugin) {
+  const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+  calloutEl.createEl("div", { text: "Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder." });
+  const folderImagesContainer = containerEl.createEl("div", { cls: "folder-images-container" });
+  plugin.settings.folderImages.forEach((folderImage, index) => {
+    new FolderImageSetting(
+      folderImagesContainer,
+      plugin,
+      folderImage,
+      index,
+      () => updateFolderSettings(containerEl, plugin)
+    );
+  });
+  const addFolderImageSetting = new import_obsidian3.Setting(containerEl).setClass("add-folder-image-setting").addButton((button) => button.setButtonText("Add Folder Image").onClick(async () => {
+    const newFolderImage = {
+      folder: "",
+      image: "",
+      imageDisplay: "cover",
+      imageRepeat: false,
+      yPosition: 50,
+      xPosition: 50,
+      contentStartPosition: 150,
+      bannerHeight: 350,
+      fade: -75,
+      borderRadius: 17,
+      titleColor: "var(--inline-title-color)",
+      directChildrenOnly: false,
+      enableImageShuffle: false,
+      shuffleFolder: ""
+    };
+    plugin.settings.folderImages.push(newFolderImage);
+    await plugin.saveSettings();
+    updateFolderSettings(containerEl, plugin);
+  }));
+}
+function updateFolderSettings(containerEl, plugin) {
+  containerEl.empty();
+  createFolderSettings(containerEl, plugin);
+}
+var FolderImageSetting = class extends import_obsidian3.Setting {
   constructor(containerEl, plugin, folderImage, index, onDelete) {
     super(containerEl);
     this.plugin = plugin;
@@ -98,6 +375,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     this.addBorderRadiusInput(controlEl);
     const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
     this.addColorSettings(controlEl2);
+    this.addBannerIconSettings();
     this.addDirectChildrenOnlyToggle();
   }
   addDeleteButton(containerEl) {
@@ -118,7 +396,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   }
   addFolderInput() {
     const folderInputContainer = this.settingEl.createDiv("folder-input-container");
-    const folderInput = new import_obsidian.Setting(folderInputContainer).setName("Folder Path").addText((text) => {
+    const folderInput = new import_obsidian3.Setting(folderInputContainer).setName("Folder Path").addText((text) => {
       text.setValue(this.folderImage.folder || "").onChange(async (value) => {
         this.folderImage.folder = value;
         await this.plugin.saveSettings();
@@ -127,14 +405,14 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       this.folderInputEl.style.width = "300px";
     });
     folderInput.addButton((button) => button.setButtonText("Browse").onClick(() => {
-      new FolderSuggestModal(this.plugin.app, (chosenPath) => {
+      new FolderSuggestModal2(this.plugin.app, (chosenPath) => {
         this.folderImage.folder = chosenPath;
         this.folderInputEl.value = chosenPath;
         this.plugin.saveSettings();
       }).open();
     }));
     const shuffleContainer = this.settingEl.createDiv("shuffle-container");
-    const shuffleToggle = new import_obsidian.Setting(shuffleContainer).setName("Enable Image Shuffle").setDesc("Randomly select an image from a specified folder each time the note loads").addToggle((toggle) => {
+    const shuffleToggle = new import_obsidian3.Setting(shuffleContainer).setName("Enable Image Shuffle").setDesc("Randomly select an image from a specified folder each time the note loads").addToggle((toggle) => {
       toggle.setValue(this.folderImage.enableImageShuffle || false).onChange(async (value) => {
         this.folderImage.enableImageShuffle = value;
         if (value) {
@@ -147,7 +425,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
         await this.plugin.saveSettings();
       });
     });
-    const shuffleFolderInput = new import_obsidian.Setting(shuffleContainer).setName("Image Shuffle Folder").setDesc("Folder containing images to randomly select from").addText((text) => {
+    const shuffleFolderInput = new import_obsidian3.Setting(shuffleContainer).setName("Image Shuffle Folder").setDesc("Folder containing images to randomly select from").addText((text) => {
       text.setValue(this.folderImage.shuffleFolder || "").onChange(async (value) => {
         this.folderImage.shuffleFolder = value;
         await this.plugin.saveSettings();
@@ -155,7 +433,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
       text.inputEl.style.width = "300px";
     });
     shuffleFolderInput.addButton((button) => button.setButtonText("Browse").onClick(() => {
-      new FolderSuggestModal(this.plugin.app, (chosenPath) => {
+      new FolderSuggestModal2(this.plugin.app, (chosenPath) => {
         this.folderImage.shuffleFolder = chosenPath;
         shuffleFolderInput.controlEl.querySelector("input").value = chosenPath;
         this.plugin.saveSettings();
@@ -170,7 +448,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     if (this.folderImage.enableImageShuffle) {
       this.imageInputContainer.style.display = "none";
     }
-    const imageInput = new import_obsidian.Setting(this.imageInputContainer).setName("Image URL or Keyword").addText((text) => {
+    const imageInput = new import_obsidian3.Setting(this.imageInputContainer).setName("Image URL or Keyword").addText((text) => {
       text.setValue(this.folderImage.image || "").onChange(async (value) => {
         this.folderImage.image = value;
         await this.plugin.saveSettings();
@@ -181,14 +459,14 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   }
   addImageDisplaySettings(containerEl) {
     const displayContainer = this.settingEl.createDiv("display-and-repeat-container");
-    const displaySetting = new import_obsidian.Setting(displayContainer).setName("Image Display").addDropdown((dropdown) => {
+    const displaySetting = new import_obsidian3.Setting(displayContainer).setName("Image Display").addDropdown((dropdown) => {
       dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.folderImage.imageDisplay || "cover").onChange(async (value) => {
         this.folderImage.imageDisplay = value;
         await this.plugin.saveSettings();
       });
       dropdown.selectEl.style.marginRight = "20px";
     });
-    const repeatSetting = new import_obsidian.Setting(displayContainer).setName("repeat").addToggle((toggle) => {
+    const repeatSetting = new import_obsidian3.Setting(displayContainer).setName("repeat").addToggle((toggle) => {
       toggle.setValue(this.folderImage.imageRepeat || false).onChange(async (value) => {
         this.folderImage.imageRepeat = value;
         await this.plugin.saveSettings();
@@ -332,7 +610,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
   }
   addColorSettings(containerEl) {
     const colorContainer = containerEl.createDiv("color-settings-container");
-    new import_obsidian.Setting(colorContainer).setName("Inline Title Color").addColorPicker((color) => color.setValue((() => {
+    new import_obsidian3.Setting(colorContainer).setName("Inline Title Color").addColorPicker((color) => color.setValue((() => {
       const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
       if (currentColor.startsWith("var(--")) {
         const temp = document.createElement("div");
@@ -377,7 +655,7 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     }));
   }
   addDirectChildrenOnlyToggle() {
-    new import_obsidian.Setting(this.settingEl).setName("Direct Children Only").setDesc("Apply banner only to direct children of the folder").addToggle((toggle) => {
+    new import_obsidian3.Setting(this.settingEl).setName("Direct Children Only").setDesc("Apply banner only to direct children of the folder").addToggle((toggle) => {
       toggle.setValue(this.folderImage.directChildrenOnly || false).onChange(async (value) => {
         this.folderImage.directChildrenOnly = value;
         await this.plugin.saveSettings();
@@ -432,7 +710,54 @@ var FolderImageSetting = class extends import_obsidian.Setting {
     label.appendChild(radiusInput);
     containerEl.appendChild(label);
   }
+  addBannerIconSettings() {
+    const controlEl1 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian3.Setting(controlEl1).setName("Icon Size").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(this.folderImage.bannerIconSize || this.plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconSize = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian3.Setting(controlEl1).setName("Icon X Position").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconXPosition || this.plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconXPosition = value;
+      await this.plugin.saveSettings();
+    }));
+    const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian3.Setting(controlEl2).setName("Icon Opacity").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconOpacity || this.plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconOpacity = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian3.Setting(controlEl2).setName("Icon Color").addText((text) => {
+      text.setPlaceholder("(e.g., #ffffff or white)").setValue(this.folderImage.bannerIconColor || this.plugin.settings.bannerIconColor).onChange(async (value) => {
+        this.folderImage.bannerIconColor = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "160px";
+    });
+    const controlEl3 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian3.Setting(controlEl3).setName("Icon BG Color").addText((text) => {
+      text.setPlaceholder("(e.g., #ffffff or transparent)").setValue(this.folderImage.bannerIconBackgroundColor || this.plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
+        this.folderImage.bannerIconBackgroundColor = value;
+        await this.plugin.saveSettings();
+      });
+      text.inputEl.style.width = "160px";
+    });
+    new import_obsidian3.Setting(controlEl3).setName("Icon Padding").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconPadding || this.plugin.settings.bannerIconPadding).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconPadding = value;
+      await this.plugin.saveSettings();
+    }));
+    const controlEl4 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian3.Setting(controlEl4).setName("Icon Border Radius").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(this.folderImage.bannerIconBorderRadius || this.plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconBorderRadius = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian3.Setting(controlEl4).setName("Icon Vertical Offset").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(this.folderImage.bannerIconVeritalOffset || this.plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
+      this.folderImage.bannerIconVeritalOffset = value;
+      await this.plugin.saveSettings();
+    }));
+  }
 };
+
+// src/settingsTabCustomFieldNames.js
+var import_obsidian4 = require("obsidian");
 function arrayToString(arr) {
   return Array.isArray(arr) ? arr.join(", ") : arr;
 }
@@ -459,7 +784,709 @@ function validateFieldNames(settings, allFields, currentField, newNames) {
   }
   return { isValid: true };
 }
-var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
+function createCustomFieldsSettings(containerEl, plugin) {
+  const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+  calloutEl.createEl("div", { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
+  const customFields = [
+    {
+      setting: "customBannerField",
+      name: "Banner Field Names",
+      desc: "Set custom field names for the banner in frontmatter (comma-separated)",
+      values: '[[image.png]], "images/image.jpg"',
+      placeholder: "banner, pixel-banner, header-image"
+    },
+    {
+      setting: "customYPositionField",
+      name: "Y-Position Field Names",
+      desc: "Set custom field names for the Y-position in frontmatter (comma-separated)",
+      values: "5, 70, 100",
+      placeholder: "banner-y, y-position, banner-offset"
+    },
+    {
+      setting: "customXPositionField",
+      name: "X-Position Field Names",
+      desc: "Set custom field names for the X-position in frontmatter (comma-separated)",
+      values: "0, 30, 90",
+      placeholder: "banner-x, x-position, banner-offset-x"
+    },
+    {
+      setting: "customContentStartField",
+      name: "Content Start Position Field Names",
+      desc: "Set custom field names for the content start position in frontmatter (comma-separated)",
+      values: "75, 150, 450",
+      placeholder: "content-start, start-position, content-offset"
+    },
+    {
+      setting: "customImageDisplayField",
+      name: "Image Display Field Names",
+      desc: "Set custom field names for the image display in frontmatter (comma-separated)",
+      values: "cover, contain, auto, 200%, 70%",
+      placeholder: "banner-display, image-display, display-mode"
+    },
+    {
+      setting: "customImageRepeatField",
+      name: "Image Repeat Field Names",
+      desc: "Set custom field names for the image repeat in frontmatter (comma-separated)",
+      values: "true, false",
+      placeholder: "banner-repeat, image-repeat, repeat"
+    },
+    {
+      setting: "customBannerHeightField",
+      name: "Banner Height Field Names",
+      desc: "Set custom field names for the banner height in frontmatter (comma-separated)",
+      values: "150, 350, 500",
+      placeholder: "banner-height, height, banner-size"
+    },
+    {
+      setting: "customFadeField",
+      name: "Fade Field Names",
+      desc: "Set custom field names for the fade in frontmatter (comma-separated)",
+      values: "-75, -150, 0",
+      placeholder: "banner-fade, fade, fade-amount"
+    },
+    {
+      setting: "customBorderRadiusField",
+      name: "Border Radius Field Names",
+      desc: "Set custom field names for the border radius in frontmatter (comma-separated)",
+      values: "0, 17, 25",
+      placeholder: "banner-radius, radius, border-radius"
+    },
+    {
+      setting: "customTitleColorField",
+      name: "Title Color Field Names",
+      desc: "Set custom field names for the title color in frontmatter (comma-separated)",
+      values: "#ffffff, white, var(--text-normal)",
+      placeholder: "banner-title-color, title-color, inline-title-color"
+    },
+    {
+      setting: "customBannerShuffleField",
+      name: "Banner Shuffle Field Names",
+      desc: "Set custom field names for the banner shuffle in frontmatter (comma-separated)",
+      values: "true, false",
+      placeholder: "banner-shuffle, shuffle, random-banner"
+    },
+    {
+      setting: "customBannerIconField",
+      name: "Banner Icon Field Names",
+      desc: "Set custom field names for the banner icon in frontmatter (comma-separated)",
+      values: "\u{1F31F}, \u{1F3A8}, \u{1F4DD}",
+      placeholder: "banner-icon, icon, header-icon"
+    },
+    {
+      setting: "customBannerIconSizeField",
+      name: "Banner Icon Size Field Names",
+      desc: "Set custom field names for the banner icon size in frontmatter (comma-separated)",
+      values: "50, 70, 100",
+      placeholder: "banner-icon-size, icon-size"
+    },
+    {
+      setting: "customBannerIconXPositionField",
+      name: "Banner Icon X Position Field Names",
+      desc: "Set custom field names for the banner icon X position in frontmatter (comma-separated)",
+      values: "25, 50, 75",
+      placeholder: "banner-icon-x, icon-x"
+    },
+    {
+      setting: "customBannerIconOpacityField",
+      name: "Banner Icon Opacity Field Names",
+      desc: "Set custom field names for the banner icon opacity in frontmatter (comma-separated)",
+      values: "50, 75, 100",
+      placeholder: "banner-icon-opacity, icon-opacity"
+    },
+    {
+      setting: "customBannerIconColorField",
+      name: "Banner Icon Color Field Names",
+      desc: "Set custom field names for the banner icon color in frontmatter (comma-separated)",
+      values: "#ffffff, white, var(--text-normal)",
+      placeholder: "banner-icon-color, icon-color"
+    },
+    {
+      setting: "customBannerIconBackgroundColorField",
+      name: "Banner Icon Background Color Field Names",
+      desc: "Set custom field names for the banner icon background color in frontmatter (comma-separated)",
+      values: "#000000, black, transparent",
+      placeholder: "banner-icon-bg-color, icon-bg-color"
+    },
+    {
+      setting: "customBannerIconPaddingField",
+      name: "Banner Icon Padding Field Names",
+      desc: "Set custom field names for the banner icon padding in frontmatter (comma-separated)",
+      values: "0, 10, 20",
+      placeholder: "banner-icon-padding, icon-padding"
+    },
+    {
+      setting: "customBannerIconBorderRadiusField",
+      name: "Banner Icon Border Radius Field Names",
+      desc: "Set custom field names for the banner icon border radius in frontmatter (comma-separated)",
+      values: "0, 17, 25",
+      placeholder: "banner-icon-border-radius, icon-border-radius"
+    },
+    {
+      setting: "customBannerIconVeritalOffsetField",
+      name: "Banner Icon Vertical Offset Field Names",
+      desc: "Set custom field names for the banner icon vertical offset in frontmatter (comma-separated)",
+      values: "-50, 0, 50",
+      placeholder: "banner-icon-y, icon-y"
+    }
+  ];
+  customFields.forEach((field) => {
+    new import_obsidian4.Setting(containerEl).setName(field.name).setDesc(field.desc).addText((text) => {
+      text.setPlaceholder(field.placeholder).setValue(arrayToString(plugin.settings[field.setting])).onChange(async (value) => {
+        const newNames = stringToArray(value);
+        const allFields = customFields.map((f) => f.setting);
+        const validation = validateFieldNames(plugin.settings, allFields, field.setting, newNames);
+        if (!validation.isValid) {
+          text.inputEl.addClass("is-invalid");
+          text.inputEl.title = validation.message;
+          return;
+        }
+        text.inputEl.removeClass("is-invalid");
+        text.inputEl.title = "";
+        plugin.settings[field.setting] = newNames;
+        await plugin.saveSettings();
+      });
+      text.inputEl.style.width = "300px";
+    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+      plugin.settings[field.setting] = DEFAULT_SETTINGS[field.setting];
+      await plugin.saveSettings();
+      const settingEl = button.extraSettingsEl.parentElement;
+      const textInput = settingEl.querySelector('input[type="text"]');
+      textInput.value = arrayToString(DEFAULT_SETTINGS[field.setting]);
+      const event = new Event("input", { bubbles: true, cancelable: true });
+      textInput.dispatchEvent(event);
+    }));
+  });
+}
+
+// src/settingsTabGeneral.js
+var import_obsidian5 = require("obsidian");
+function createGeneralSettings(containerEl, plugin) {
+  const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+  calloutEl.createEl("div", { text: "Configure default settings for all notes. These can be overridden per folder or per note." });
+  new import_obsidian5.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
+    (slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.yPosition = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.yPosition;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Image Horizontal Position").setDesc("Set the horizontal position of the image (0-100)").addSlider(
+    (slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.xPosition).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.xPosition = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.xPosition;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Content Start Position").setDesc("Set the default vertical position where the content starts (in pixels)").addText((text) => text.setPlaceholder("150").setValue(String(plugin.settings.contentStartPosition)).onChange(async (value) => {
+    const numValue = Number(value);
+    if (!isNaN(numValue) && numValue >= 0) {
+      plugin.settings.contentStartPosition = numValue;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    }
+  })).then((setting) => {
+    const inputEl = setting.controlEl.querySelector("input");
+    inputEl.type = "number";
+    inputEl.min = "0";
+    inputEl.style.width = "60px";
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.contentStartPosition = DEFAULT_SETTINGS.contentStartPosition;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
+    inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
+    inputEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => {
+    dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(plugin.settings.imageDisplay || "cover").onChange(async (value) => {
+      plugin.settings.imageDisplay = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    });
+    return dropdown;
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
+    await plugin.saveSettings();
+    const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
+    dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
+    dropdownEl.dispatchEvent(new Event("change"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => {
+    toggle.setValue(plugin.settings.imageRepeat).onChange(async (value) => {
+      plugin.settings.imageRepeat = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    });
+    return toggle;
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
+    const toggleEl = checkboxContainer.querySelector("input");
+    if (toggleEl) {
+      toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
+      checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
+      const event = new Event("change", { bubbles: true });
+      toggleEl.dispatchEvent(event);
+    }
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (100-2500 pixels)").addText((text) => {
+    text.setPlaceholder("350").setValue(String(plugin.settings.bannerHeight)).onChange(async (value) => {
+      if (value === "" || !isNaN(Number(value))) {
+        await plugin.saveSettings();
+      }
+    });
+    text.inputEl.addEventListener("blur", async (event) => {
+      let numValue = Number(event.target.value);
+      if (isNaN(numValue) || event.target.value === "") {
+        numValue = 350;
+      } else {
+        numValue = Math.max(100, Math.min(2500, numValue));
+      }
+      plugin.settings.bannerHeight = numValue;
+      text.setValue(String(numValue));
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    });
+    text.inputEl.type = "number";
+    text.inputEl.min = "100";
+    text.inputEl.max = "2500";
+    text.inputEl.style.width = "50px";
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
+    inputEl.value = DEFAULT_SETTINGS.bannerHeight;
+    inputEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Banner Fade").setDesc("Set the default fade effect for the banner image (-1500 to 100)").addSlider(
+    (slider) => slider.setLimits(-1500, 100, 5).setValue(plugin.settings.fade).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.fade = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.fade = DEFAULT_SETTINGS.fade;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.fade;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addText((text) => {
+    text.setPlaceholder("17").setValue(String(plugin.settings.borderRadius)).onChange(async (value) => {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
+        await plugin.saveSettings();
+        plugin.updateAllBanners();
+      }
+    });
+    text.inputEl.type = "number";
+    text.inputEl.min = "0";
+    text.inputEl.max = "50";
+    text.inputEl.style.width = "50px";
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
+    inputEl.value = DEFAULT_SETTINGS.borderRadius;
+    inputEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Banner Gap").setDesc("Set the gap between the banner and the window edges (0-50 pixels)").addSlider(
+    (slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.bannerGap).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.bannerGap = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.bannerGap;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
+    const currentColor = plugin.settings.titleColor;
+    if (currentColor.startsWith("var(--")) {
+      const temp = document.createElement("div");
+      temp.style.color = currentColor;
+      document.body.appendChild(temp);
+      const computedColor = getComputedStyle(temp).color;
+      document.body.removeChild(temp);
+      const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        const [_, r, g, b] = rgbMatch;
+        const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+        return hexColor;
+      }
+      return "#000000";
+    }
+    return currentColor;
+  })()).onChange(async (value) => {
+    plugin.settings.titleColor = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
+    await plugin.saveSettings();
+    const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+    if (colorPickerEl) {
+      const temp = document.createElement("div");
+      temp.style.color = DEFAULT_SETTINGS.titleColor;
+      document.body.appendChild(temp);
+      const computedColor = getComputedStyle(temp).color;
+      document.body.removeChild(temp);
+      const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        const [_, r, g, b] = rgbMatch;
+        const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+        colorPickerEl.value = hexColor;
+      }
+    }
+  }));
+  const hideEmbeddedNoteTitlesSetting = new import_obsidian5.Setting(containerEl).setName("Hide Embedded Note Titles").setDesc("Hide titles of embedded notes").addToggle((toggle) => toggle.setValue(plugin.settings.hideEmbeddedNoteTitles).onChange(async (value) => {
+    plugin.settings.hideEmbeddedNoteTitles = value;
+    await plugin.saveSettings();
+    plugin.updateEmbeddedTitlesVisibility();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
+    await plugin.saveSettings();
+    const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
+    }
+    plugin.updateEmbeddedTitlesVisibility();
+  }));
+  const hideEmbeddedNoteBannersSetting = new import_obsidian5.Setting(containerEl).setName("Hide Embedded Note Banners").setDesc("Hide banners of embedded notes").addToggle((toggle) => toggle.setValue(plugin.settings.hideEmbeddedNoteBanners).onChange(async (value) => {
+    plugin.settings.hideEmbeddedNoteBanners = value;
+    await plugin.saveSettings();
+    plugin.updateEmbeddedBannersVisibility();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
+    await plugin.saveSettings();
+    const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
+    }
+    plugin.updateEmbeddedBannersVisibility();
+  }));
+  const SelectImageSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
+  const showSelectImageIconSetting = new import_obsidian5.Setting(SelectImageSettingsGroup).setName("Show Select Image Icon").setDesc("Show an icon to select banner image in the top-left corner").addToggle((toggle) => toggle.setValue(plugin.settings.showSelectImageIcon).onChange(async (value) => {
+    plugin.settings.showSelectImageIcon = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+    await plugin.saveSettings();
+    const toggleComponent = showSelectImageIconSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
+    }
+    plugin.updateAllBanners();
+  }));
+  const defaultSelectImagePathSetting = new import_obsidian5.Setting(SelectImageSettingsGroup).setName("Default Select Image Path").setDesc("Set a default folder path to filter images when opening the Select Image modal").addText((text) => {
+    text.setPlaceholder("Example: Images/Banners").setValue(plugin.settings.defaultSelectImagePath).onChange(async (value) => {
+      plugin.settings.defaultSelectImagePath = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.style.width = "200px";
+    return text;
+  }).addButton((button) => button.setButtonText("Browse").onClick(() => {
+    new FolderSuggestModal(plugin.app, (chosenPath) => {
+      plugin.settings.defaultSelectImagePath = chosenPath;
+      const textInput = defaultSelectImagePathSetting.components[0];
+      if (textInput) {
+        textInput.setValue(chosenPath);
+      }
+      plugin.saveSettings();
+    }).open();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
+    await plugin.saveSettings();
+    const textComponent = defaultSelectImagePathSetting.components[0];
+    if (textComponent) {
+      textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
+    }
+  }));
+  const showViewImageIconSetting = new import_obsidian5.Setting(containerEl).setName("Show View Image Icon").setDesc("Show an icon to view the banner image in full screen").addToggle((toggle) => toggle.setValue(plugin.settings.showViewImageIcon).onChange(async (value) => {
+    plugin.settings.showViewImageIcon = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
+    await plugin.saveSettings();
+    const toggleComponent = showViewImageIconSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+    }
+    plugin.updateAllBanners();
+  }));
+  const hideSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
+  const hidePixelBannerFieldsSetting = new import_obsidian5.Setting(hideSettingsGroup).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => toggle.setValue(plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+    plugin.settings.hidePixelBannerFields = value;
+    if (!value) {
+      plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+      const dependentToggle = hidePropertiesSection.components[0];
+      if (dependentToggle) {
+        dependentToggle.setValue(false);
+        dependentToggle.setDisabled(true);
+      }
+      hidePropertiesSection.settingEl.addClass("is-disabled");
+      plugin.app.workspace.iterateAllLeaves((leaf) => {
+        if (leaf.view instanceof import_obsidian5.MarkdownView && leaf.view.contentEl) {
+          const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
+          if (propertiesContainer) {
+            propertiesContainer.classList.remove("pixel-banner-hidden-section");
+            const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
+            hiddenFields.forEach((field) => {
+              field.classList.remove("pixel-banner-hidden-field");
+            });
+          }
+        }
+      });
+    } else {
+      const dependentToggle = hidePropertiesSection.components[0];
+      if (dependentToggle) {
+        dependentToggle.setDisabled(false);
+      }
+      hidePropertiesSection.settingEl.removeClass("is-disabled");
+    }
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
+    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+    await plugin.saveSettings();
+    const mainToggle = hidePixelBannerFieldsSetting.components[0];
+    if (mainToggle) {
+      mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
+    }
+    const dependentToggle = hidePropertiesSection.components[0];
+    if (dependentToggle) {
+      dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+      dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
+    }
+    hidePropertiesSection.settingEl.toggleClass("is-disabled", !DEFAULT_SETTINGS.hidePixelBannerFields);
+    plugin.updateAllBanners();
+  }));
+  const hidePropertiesSection = new import_obsidian5.Setting(hideSettingsGroup).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => toggle.setValue(plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+    plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+    await plugin.saveSettings();
+    const toggle = hidePropertiesSection.components[0];
+    if (toggle) {
+      toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+    }
+    plugin.updateAllBanners();
+  }));
+  hidePropertiesSection.settingEl.addClass("setting-dependent");
+  if (!plugin.settings.hidePixelBannerFields) {
+    hidePropertiesSection.settingEl.addClass("is-disabled");
+  }
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Size").setDesc("Set the default size for the banner icon").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconSize = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon X Position").setDesc("Set the default X position for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconXPosition = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Opacity").setDesc("Set the default opacity for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconOpacity = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Text Color").setDesc("Set the default text color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or white)").setValue(plugin.settings.bannerIconColor).onChange(async (value) => {
+    plugin.settings.bannerIconColor = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
+    await plugin.saveSettings();
+    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+    textInput.value = DEFAULT_SETTINGS.bannerIconColor;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    textInput.dispatchEvent(event);
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Background Color").setDesc("Set the default background color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or transparent)").setValue(plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
+    plugin.settings.bannerIconBackgroundColor = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+    await plugin.saveSettings();
+    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+    textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    textInput.dispatchEvent(event);
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Padding").setDesc("Set the default padding for the banner icon").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconPadding).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconPadding = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconPadding = DEFAULT_SETTINGS.bannerIconPadding;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconPadding;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Border Radius").setDesc("Set the default border radius for the banner icon").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconBorderRadius = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Vertical Offset").setDesc("Set the default vertical offset for the banner icon").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconVeritalOffset = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconVeritalOffset = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  const showReleaseNotesSetting = new import_obsidian5.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(plugin.settings.showReleaseNotes).onChange(async (value) => {
+    plugin.settings.showReleaseNotes = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
+    await plugin.saveSettings();
+    const toggleComponent = showReleaseNotesSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
+    }
+  }));
+}
+
+// src/settings.js
+var DEFAULT_SETTINGS = {
+  apiProvider: "all",
+  pexelsApiKey: "",
+  pixabayApiKey: "",
+  flickrApiKey: "",
+  unsplashApiKey: "",
+  imageSize: "medium",
+  imageOrientation: "landscape",
+  numberOfImages: 10,
+  defaultKeywords: "nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns",
+  yPosition: 50,
+  xPosition: 50,
+  customBannerField: ["banner"],
+  customYPositionField: ["banner-y, y"],
+  customXPositionField: ["banner-x, x"],
+  customContentStartField: ["content-start"],
+  customImageDisplayField: ["banner-display"],
+  customImageRepeatField: ["banner-repeat"],
+  customBannerHeightField: ["banner-height"],
+  customFadeField: ["banner-fade"],
+  customBorderRadiusField: ["banner-radius"],
+  customTitleColorField: ["banner-inline-title-color"],
+  customBannerShuffleField: ["banner-shuffle"],
+  customBannerIconField: ["icon"],
+  customBannerIconSizeField: ["icon-size"],
+  customBannerIconXPositionField: ["icon-x"],
+  customBannerIconOpacityField: ["icon-opacity"],
+  customBannerIconColorField: ["icon-color"],
+  customBannerIconBackgroundColorField: ["icon-bg-color"],
+  customBannerIconPaddingField: ["icon-padding"],
+  customBannerIconBorderRadiusField: ["icon-border-radius"],
+  customBannerIconVeritalOffsetField: ["icon-y"],
+  folderImages: [],
+  contentStartPosition: 150,
+  imageDisplay: "cover",
+  imageRepeat: false,
+  bannerHeight: 350,
+  fade: -75,
+  borderRadius: 17,
+  showPinIcon: true,
+  pinnedImageFolder: "pixel-banner-images",
+  showReleaseNotes: true,
+  lastVersion: null,
+  showRefreshIcon: true,
+  showViewImageIcon: false,
+  hidePixelBannerFields: false,
+  hidePropertiesSectionIfOnlyBanner: false,
+  titleColor: "var(--inline-title-color)",
+  enableImageShuffle: false,
+  hideEmbeddedNoteTitles: false,
+  hideEmbeddedNoteBanners: false,
+  showSelectImageIcon: true,
+  defaultSelectImagePath: "",
+  useShortPath: true,
+  bannerGap: 12,
+  bannerIconSize: 70,
+  bannerIconXPosition: 25,
+  bannerIconOpacity: 100,
+  bannerIconColor: "",
+  bannerIconBackgroundColor: "",
+  bannerIconPadding: "0",
+  bannerIconBorderRadius: "17",
+  bannerIconVeritalOffset: "0"
+};
+var FolderSuggestModal2 = class extends import_obsidian6.FuzzySuggestModal {
+  constructor(app2, onChoose) {
+    super(app2);
+    this.onChoose = onChoose;
+  }
+  getItems() {
+    return this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path);
+  }
+  getItemText(item) {
+    return item;
+  }
+  onChooseItem(item) {
+    this.onChoose(item);
+  }
+};
+var PixelBannerSettingTab = class extends import_obsidian6.PluginSettingTab {
   constructor(app2, plugin) {
     super(app2, plugin);
     this.plugin = plugin;
@@ -472,20 +1499,20 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
       "General",
       "Custom Field Names",
-      "API Settings",
       "Folder Images",
+      "API Settings",
       "Examples"
     ]);
     const generalTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "General" } });
-    this.createGeneralSettings(generalTab);
+    createGeneralSettings(generalTab, this.plugin);
     const customFieldsTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Custom Field Names" } });
-    this.createCustomFieldsSettings(customFieldsTab);
+    createCustomFieldsSettings(customFieldsTab, this.plugin);
     const apiTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "API Settings" } });
-    this.createAPISettings(apiTab);
+    createAPISettings(apiTab, this.plugin);
     const foldersTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Folder Images" } });
-    this.createFolderSettings(foldersTab);
+    createFolderSettings(foldersTab, this.plugin);
     const examplesTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Examples" } });
-    this.createExampleSettings(examplesTab);
+    createExampleSettings(examplesTab, this.plugin);
     tabsEl.firstChild.click();
   }
   createTabs(containerEl, tabNames) {
@@ -502,774 +1529,6 @@ var PixelBannerSettingTab = class extends import_obsidian.PluginSettingTab {
     });
     return { tabsEl, tabContentContainer };
   }
-  createAPISettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-    calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
-    new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").addOption("unsplash", "Unsplash").setValue(this.plugin.settings.apiProvider).onChange(async (value) => {
-      this.plugin.settings.apiProvider = value;
-      await this.plugin.saveSettings();
-      this.display();
-    }));
-    new import_obsidian.Setting(containerEl).setName("Pexels API Key");
-    containerEl.createEl("span", { text: "Enter your Pexels API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.pexels.com/api/", text: "Pexels API" });
-    const pexelsApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
-      text.setPlaceholder("Pexels API key").setValue(this.plugin.settings.pexelsApiKey).onChange(async (value) => {
-        this.plugin.settings.pexelsApiKey = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.style.width = "calc(100% - 100px)";
-    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
-      const apiKey = this.plugin.settings.pexelsApiKey;
-      if (!apiKey) {
-        new Notice("Please enter an API key first");
-        return;
-      }
-      button.setButtonText("Testing...");
-      button.setDisabled(true);
-      const isValid = await testPexelsApi(apiKey);
-      button.setButtonText("Test API");
-      button.setDisabled(false);
-      new Notice(isValid ? "\u2705 Pexels API key is valid!" : "\u274C Invalid Pexels API key");
-    }));
-    pexelsApiKeySetting.settingEl.style.width = "100%";
-    new import_obsidian.Setting(containerEl).setName("Pixabay API Key");
-    containerEl.createEl("span", { text: "Enter your Pixabay API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://pixabay.com/api/docs/", text: "Pixabay API" });
-    const pixabayApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
-      text.setPlaceholder("Pixabay API key").setValue(this.plugin.settings.pixabayApiKey).onChange(async (value) => {
-        this.plugin.settings.pixabayApiKey = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.style.width = "calc(100% - 100px)";
-    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
-      const apiKey = this.plugin.settings.pixabayApiKey;
-      if (!apiKey) {
-        new Notice("Please enter an API key first");
-        return;
-      }
-      button.setButtonText("Testing...");
-      button.setDisabled(true);
-      const isValid = await testPixabayApi(apiKey);
-      button.setButtonText("Test API");
-      button.setDisabled(false);
-      new Notice(isValid ? "\u2705 Pixabay API key is valid!" : "\u274C Invalid Pixabay API key");
-    }));
-    pixabayApiKeySetting.settingEl.style.width = "100%";
-    new import_obsidian.Setting(containerEl).setName("Flickr API Key");
-    containerEl.createEl("span", { text: "Enter your Flickr API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.flickr.com/services/api/", text: "Flickr API" });
-    const flickrApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
-      text.setPlaceholder("Flickr API key").setValue(this.plugin.settings.flickrApiKey).onChange(async (value) => {
-        this.plugin.settings.flickrApiKey = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.style.width = "calc(100% - 100px)";
-    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
-      const apiKey = this.plugin.settings.flickrApiKey;
-      if (!apiKey) {
-        new Notice("Please enter an API key first");
-        return;
-      }
-      button.setButtonText("Testing...");
-      button.setDisabled(true);
-      const isValid = await testFlickrApi(apiKey);
-      button.setButtonText("Test API");
-      button.setDisabled(false);
-      new Notice(isValid ? "\u2705 Flickr API key is valid!" : "\u274C Invalid Flickr API key");
-    }));
-    new import_obsidian.Setting(containerEl).setName("Unsplash API Key");
-    containerEl.createEl("span", { text: "Enter your Unsplash API key (Access Key). Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://unsplash.com/oauth/applications", text: "Unsplash API" });
-    const unsplashApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
-      text.setPlaceholder("Unsplash API key").setValue(this.plugin.settings.unsplashApiKey).onChange(async (value) => {
-        this.plugin.settings.unsplashApiKey = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.style.width = "calc(100% - 100px)";
-    }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
-      const apiKey = this.plugin.settings.unsplashApiKey;
-      if (!apiKey) {
-        new Notice("Please enter an API key first");
-        return;
-      }
-      button.setButtonText("Testing...");
-      button.setDisabled(true);
-      const isValid = await testUnsplashApi(apiKey);
-      button.setButtonText("Test API");
-      button.setDisabled(false);
-      new Notice(isValid ? "\u2705 Unsplash API key is valid!" : "\u274C Invalid Unsplash API key");
-    }));
-    new import_obsidian.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
-    new import_obsidian.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(this.plugin.settings.showPinIcon).onChange(async (value) => {
-      this.plugin.settings.showPinIcon = value;
-      folderInputSetting.settingEl.style.display = value ? "flex" : "none";
-      refreshIconSetting.settingEl.style.display = value ? "flex" : "none";
-      await this.plugin.saveSettings();
-    }));
-    const folderInputSetting = new import_obsidian.Setting(containerEl).setName("Pinned Images Folder").setDesc("Default folder where pinned banner images will be saved").addText((text) => {
-      text.setPlaceholder("pixel-banner-images").setValue(this.plugin.settings.pinnedImageFolder).onChange(async (value) => {
-        this.plugin.settings.pinnedImageFolder = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.addEventListener("blur", async (event) => {
-        let value = text.inputEl.value.trim();
-        if (!value) {
-          value = "pixel-banner-images";
-        }
-        text.setValue(value);
-        this.plugin.settings.pinnedImageFolder = value;
-        await this.plugin.saveSettings();
-      });
-      return text;
-    }).addButton((button) => button.setButtonText("Clean Orphaned Pins").setTooltip("Remove pinned images from the default folder that are no longer referenced in Notes").onClick(async () => {
-      button.setButtonText("\u{1FAE7} Cleaning...");
-      button.setDisabled(true);
-      try {
-        const result = await this.plugin.cleanOrphanedPins();
-        new Notice(`\u{1F9FC} Cleaned ${result.cleaned} orphaned pinned images`);
-      } catch (error) {
-        console.error("Error cleaning orphaned pins:", error);
-        new Notice("Failed to clean orphaned pins");
-      } finally {
-        button.setButtonText("Clean Orphaned Pins");
-        button.setDisabled(false);
-      }
-    }));
-    const refreshIconSetting = new import_obsidian.Setting(containerEl).setName("Show Refresh Icon").setDesc("Show a refresh icon next to the pin icon to get a new random image").addToggle((toggle) => toggle.setValue(this.plugin.settings.showRefreshIcon).onChange(async (value) => {
-      this.plugin.settings.showRefreshIcon = value;
-      await this.plugin.saveSettings();
-    }));
-    folderInputSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? "flex" : "none";
-    refreshIconSetting.settingEl.style.display = this.plugin.settings.showPinIcon ? "flex" : "none";
-    new import_obsidian.Setting(containerEl).setName("Size").setDesc("Select the size of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("small", "Small").addOption("medium", "Medium").addOption("large", "Large").setValue(this.plugin.settings.imageSize).onChange(async (value) => {
-      this.plugin.settings.imageSize = value;
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian.Setting(containerEl).setName("Orientation").setDesc("Select the orientation of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("landscape", "Landscape").addOption("portrait", "Portrait").addOption("square", "Square").setValue(this.plugin.settings.imageOrientation).onChange(async (value) => {
-      this.plugin.settings.imageOrientation = value;
-      await this.plugin.saveSettings();
-    }));
-    new import_obsidian.Setting(containerEl).setName("Number of images").setDesc("Enter the number of random images to fetch (3-50) - (API only)").addText((text) => text.setPlaceholder("10").setValue(String(this.plugin.settings.numberOfImages || 10)).onChange(async (value) => {
-      let numValue = Number(value);
-      if (!isNaN(numValue)) {
-        numValue = Math.max(3, Math.min(numValue, 50));
-        this.plugin.settings.numberOfImages = numValue;
-        await this.plugin.saveSettings();
-      }
-    })).then((setting) => {
-      const inputEl = setting.controlEl.querySelector("input");
-      inputEl.type = "number";
-      inputEl.min = "3";
-      inputEl.max = "50";
-      inputEl.style.width = "50px";
-    });
-    const defaultKeywordsSetting = new import_obsidian.Setting(containerEl).setName("Default keywords").setDesc("Enter a comma-separated list of default keywords to be used when no keyword is provided in the frontmatter, or when the provided keyword does not return any results. - (API only)").addTextArea((text) => {
-      text.setPlaceholder("Enter keywords, separated by commas").setValue(this.plugin.settings.defaultKeywords).onChange(async (value) => {
-        this.plugin.settings.defaultKeywords = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.style.width = "100%";
-      text.inputEl.style.marginTop = "15px";
-      text.inputEl.style.height = "90px";
-    }).addExtraButton(
-      (button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-        this.plugin.settings.defaultKeywords = DEFAULT_SETTINGS.defaultKeywords;
-        await this.plugin.saveSettings();
-        this.display();
-      })
-    );
-    defaultKeywordsSetting.settingEl.dataset.id = "defaultKeywords";
-    defaultKeywordsSetting.settingEl.style.display = "flex";
-    defaultKeywordsSetting.settingEl.style.flexDirection = "column";
-  }
-  createGeneralSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-    calloutEl.createEl("div", { text: "Configure default settings for all notes. These can be overridden per folder or per note." });
-    new import_obsidian.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
-      (slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
-        this.plugin.settings.yPosition = value;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      })
-    ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-      sliderEl.value = DEFAULT_SETTINGS.yPosition;
-      sliderEl.dispatchEvent(new Event("input"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Image Horizontal Position").setDesc("Set the horizontal position of the image (0-100)").addSlider(
-      (slider) => slider.setLimits(0, 100, 1).setValue(this.plugin.settings.xPosition).setDynamicTooltip().onChange(async (value) => {
-        this.plugin.settings.xPosition = value;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      })
-    ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-      sliderEl.value = DEFAULT_SETTINGS.xPosition;
-      sliderEl.dispatchEvent(new Event("input"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Content Start Position").setDesc("Set the default vertical position where the content starts (in pixels)").addText((text) => text.setPlaceholder("150").setValue(String(this.plugin.settings.contentStartPosition)).onChange(async (value) => {
-      const numValue = Number(value);
-      if (!isNaN(numValue) && numValue >= 0) {
-        this.plugin.settings.contentStartPosition = numValue;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      }
-    })).then((setting) => {
-      const inputEl = setting.controlEl.querySelector("input");
-      inputEl.type = "number";
-      inputEl.min = "0";
-      inputEl.style.width = "60px";
-    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.contentStartPosition = DEFAULT_SETTINGS.contentStartPosition;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
-      inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
-      inputEl.dispatchEvent(new Event("input"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => {
-      dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.plugin.settings.imageDisplay || "cover").onChange(async (value) => {
-        this.plugin.settings.imageDisplay = value;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      });
-      return dropdown;
-    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
-      dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-      dropdownEl.dispatchEvent(new Event("change"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => {
-      toggle.setValue(this.plugin.settings.imageRepeat).onChange(async (value) => {
-        this.plugin.settings.imageRepeat = value;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      });
-      return toggle;
-    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
-      const toggleEl = checkboxContainer.querySelector("input");
-      if (toggleEl) {
-        toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-        checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
-        const event = new Event("change", { bubbles: true });
-        toggleEl.dispatchEvent(event);
-      }
-    }));
-    new import_obsidian.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (100-2500 pixels)").addText((text) => {
-      text.setPlaceholder("350").setValue(String(this.plugin.settings.bannerHeight)).onChange(async (value) => {
-        if (value === "" || !isNaN(Number(value))) {
-          await this.plugin.saveSettings();
-        }
-      });
-      text.inputEl.addEventListener("blur", async (event) => {
-        let numValue = Number(event.target.value);
-        if (isNaN(numValue) || event.target.value === "") {
-          numValue = 350;
-        } else {
-          numValue = Math.max(100, Math.min(2500, numValue));
-        }
-        this.plugin.settings.bannerHeight = numValue;
-        text.setValue(String(numValue));
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      });
-      text.inputEl.type = "number";
-      text.inputEl.min = "100";
-      text.inputEl.max = "2500";
-      text.inputEl.style.width = "50px";
-    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
-      inputEl.value = DEFAULT_SETTINGS.bannerHeight;
-      inputEl.dispatchEvent(new Event("input"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Banner Fade").setDesc("Set the default fade effect for the banner image (-1500 to 100)").addSlider(
-      (slider) => slider.setLimits(-1500, 100, 5).setValue(this.plugin.settings.fade).setDynamicTooltip().onChange(async (value) => {
-        this.plugin.settings.fade = value;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      })
-    ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.fade = DEFAULT_SETTINGS.fade;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-      sliderEl.value = DEFAULT_SETTINGS.fade;
-      sliderEl.dispatchEvent(new Event("input"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addText((text) => {
-      text.setPlaceholder("17").setValue(String(this.plugin.settings.borderRadius)).onChange(async (value) => {
-        const numValue = Number(value);
-        if (!isNaN(numValue)) {
-          this.plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
-          await this.plugin.saveSettings();
-          this.plugin.updateAllBanners();
-        }
-      });
-      text.inputEl.type = "number";
-      text.inputEl.min = "0";
-      text.inputEl.max = "50";
-      text.inputEl.style.width = "50px";
-    }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
-      inputEl.value = DEFAULT_SETTINGS.borderRadius;
-      inputEl.dispatchEvent(new Event("input"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Banner Gap").setDesc("Set the gap between the banner and the window edges (0-50 pixels)").addSlider(
-      (slider) => slider.setLimits(0, 50, 1).setValue(this.plugin.settings.bannerGap).setDynamicTooltip().onChange(async (value) => {
-        this.plugin.settings.bannerGap = value;
-        await this.plugin.saveSettings();
-        this.plugin.updateAllBanners();
-      })
-    ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-      const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-      sliderEl.value = DEFAULT_SETTINGS.bannerGap;
-      sliderEl.dispatchEvent(new Event("input"));
-    }));
-    new import_obsidian.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
-      const currentColor = this.plugin.settings.titleColor;
-      if (currentColor.startsWith("var(--")) {
-        const temp = document.createElement("div");
-        temp.style.color = currentColor;
-        document.body.appendChild(temp);
-        const computedColor = getComputedStyle(temp).color;
-        document.body.removeChild(temp);
-        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-        if (rgbMatch) {
-          const [_, r, g, b] = rgbMatch;
-          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
-          return hexColor;
-        }
-        return "#000000";
-      }
-      return currentColor;
-    })()).onChange(async (value) => {
-      this.plugin.settings.titleColor = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
-      await this.plugin.saveSettings();
-      const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
-      if (colorPickerEl) {
-        const temp = document.createElement("div");
-        temp.style.color = DEFAULT_SETTINGS.titleColor;
-        document.body.appendChild(temp);
-        const computedColor = getComputedStyle(temp).color;
-        document.body.removeChild(temp);
-        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-        if (rgbMatch) {
-          const [_, r, g, b] = rgbMatch;
-          const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
-          colorPickerEl.value = hexColor;
-        }
-      }
-    }));
-    const hideEmbeddedNoteTitlesSetting = new import_obsidian.Setting(containerEl).setName("Hide Embedded Note Titles").setDesc("Hide titles of embedded notes").addToggle((toggle) => toggle.setValue(this.plugin.settings.hideEmbeddedNoteTitles).onChange(async (value) => {
-      this.plugin.settings.hideEmbeddedNoteTitles = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateEmbeddedTitlesVisibility();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
-      await this.plugin.saveSettings();
-      const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
-      if (toggleComponent) {
-        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
-      }
-      this.plugin.updateEmbeddedTitlesVisibility();
-    }));
-    const hideEmbeddedNoteBannersSetting = new import_obsidian.Setting(containerEl).setName("Hide Embedded Note Banners").setDesc("Hide banners of embedded notes").addToggle((toggle) => toggle.setValue(this.plugin.settings.hideEmbeddedNoteBanners).onChange(async (value) => {
-      this.plugin.settings.hideEmbeddedNoteBanners = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateEmbeddedBannersVisibility();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
-      await this.plugin.saveSettings();
-      const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
-      if (toggleComponent) {
-        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
-      }
-      this.plugin.updateEmbeddedBannersVisibility();
-    }));
-    const SelectImageSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
-    const showSelectImageIconSetting = new import_obsidian.Setting(SelectImageSettingsGroup).setName("Show Select Image Icon").setDesc("Show an icon to select banner image in the top-left corner").addToggle((toggle) => toggle.setValue(this.plugin.settings.showSelectImageIcon).onChange(async (value) => {
-      this.plugin.settings.showSelectImageIcon = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
-      await this.plugin.saveSettings();
-      const toggleComponent = showSelectImageIconSetting.components[0];
-      if (toggleComponent) {
-        toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
-      }
-      this.plugin.updateAllBanners();
-    }));
-    const defaultSelectImagePathSetting = new import_obsidian.Setting(SelectImageSettingsGroup).setName("Default Select Image Path").setDesc("Set a default folder path to filter images when opening the Select Image modal").addText((text) => {
-      text.setPlaceholder("Example: Images/Banners").setValue(this.plugin.settings.defaultSelectImagePath).onChange(async (value) => {
-        this.plugin.settings.defaultSelectImagePath = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.style.width = "200px";
-      return text;
-    }).addButton((button) => button.setButtonText("Browse").onClick(() => {
-      new FolderSuggestModal(this.plugin.app, (chosenPath) => {
-        this.plugin.settings.defaultSelectImagePath = chosenPath;
-        const textInput = defaultSelectImagePathSetting.components[0];
-        if (textInput) {
-          textInput.setValue(chosenPath);
-        }
-        this.plugin.saveSettings();
-      }).open();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
-      await this.plugin.saveSettings();
-      const textComponent = defaultSelectImagePathSetting.components[0];
-      if (textComponent) {
-        textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
-      }
-    }));
-    const showViewImageIconSetting = new import_obsidian.Setting(containerEl).setName("Show View Image Icon").setDesc("Show an icon to view the banner image in full screen").addToggle((toggle) => toggle.setValue(this.plugin.settings.showViewImageIcon).onChange(async (value) => {
-      this.plugin.settings.showViewImageIcon = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
-      await this.plugin.saveSettings();
-      const toggleComponent = showViewImageIconSetting.components[0];
-      if (toggleComponent) {
-        toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
-      }
-      this.plugin.updateAllBanners();
-    }));
-    const hideSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
-    const hidePixelBannerFieldsSetting = new import_obsidian.Setting(hideSettingsGroup).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => toggle.setValue(this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
-      this.plugin.settings.hidePixelBannerFields = value;
-      if (!value) {
-        this.plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
-        const dependentToggle = hidePropertiesSection.components[0];
-        if (dependentToggle) {
-          dependentToggle.setValue(false);
-          dependentToggle.setDisabled(true);
-        }
-        hidePropertiesSection.settingEl.addClass("is-disabled");
-        this.app.workspace.iterateAllLeaves((leaf) => {
-          if (leaf.view instanceof import_obsidian.MarkdownView && leaf.view.contentEl) {
-            const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
-            if (propertiesContainer) {
-              propertiesContainer.classList.remove("pixel-banner-hidden-section");
-              const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
-              hiddenFields.forEach((field) => {
-                field.classList.remove("pixel-banner-hidden-field");
-              });
-            }
-          }
-        });
-      } else {
-        const dependentToggle = hidePropertiesSection.components[0];
-        if (dependentToggle) {
-          dependentToggle.setDisabled(false);
-        }
-        hidePropertiesSection.settingEl.removeClass("is-disabled");
-      }
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
-      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
-      await this.plugin.saveSettings();
-      const mainToggle = hidePixelBannerFieldsSetting.components[0];
-      if (mainToggle) {
-        mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
-      }
-      const dependentToggle = hidePropertiesSection.components[0];
-      if (dependentToggle) {
-        dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
-        dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
-      }
-      hidePropertiesSection.settingEl.toggleClass("is-disabled", !DEFAULT_SETTINGS.hidePixelBannerFields);
-      this.plugin.updateAllBanners();
-    }));
-    const hidePropertiesSection = new import_obsidian.Setting(hideSettingsGroup).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => toggle.setValue(this.plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!this.plugin.settings.hidePixelBannerFields).onChange(async (value) => {
-      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
-      await this.plugin.saveSettings();
-      this.plugin.updateAllBanners();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
-      await this.plugin.saveSettings();
-      const toggle = hidePropertiesSection.components[0];
-      if (toggle) {
-        toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
-      }
-      this.plugin.updateAllBanners();
-    }));
-    hidePropertiesSection.settingEl.addClass("setting-dependent");
-    if (!this.plugin.settings.hidePixelBannerFields) {
-      hidePropertiesSection.settingEl.addClass("is-disabled");
-    }
-    const showReleaseNotesSetting = new import_obsidian.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(this.plugin.settings.showReleaseNotes).onChange(async (value) => {
-      this.plugin.settings.showReleaseNotes = value;
-      await this.plugin.saveSettings();
-    })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-      this.plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
-      await this.plugin.saveSettings();
-      const toggleComponent = showReleaseNotesSetting.components[0];
-      if (toggleComponent) {
-        toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
-      }
-    }));
-  }
-  createCustomFieldsSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-    calloutEl.createEl("div", { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
-    const customFields = [
-      {
-        setting: "customBannerField",
-        name: "Banner Field Names",
-        desc: "Set custom field names for the banner in frontmatter (comma-separated)",
-        values: '[[image.png]], "images/image.jpg"',
-        placeholder: "banner, pixel-banner, header-image"
-      },
-      {
-        setting: "customYPositionField",
-        name: "Y-Position Field Names",
-        desc: "Set custom field names for the Y-position in frontmatter (comma-separated)",
-        values: "5, 70, 100",
-        placeholder: "banner-y, y-position, banner-offset"
-      },
-      {
-        setting: "customXPositionField",
-        name: "X-Position Field Names",
-        desc: "Set custom field names for the X-position in frontmatter (comma-separated)",
-        values: "0, 30, 90",
-        placeholder: "banner-x, x-position, banner-offset-x"
-      },
-      {
-        setting: "customContentStartField",
-        name: "Content Start Position Field Names",
-        desc: "Set custom field names for the content start position in frontmatter (comma-separated)",
-        values: "75, 150, 450",
-        placeholder: "content-start, start-position, content-offset"
-      },
-      {
-        setting: "customImageDisplayField",
-        name: "Image Display Field Names",
-        desc: "Set custom field names for the image display in frontmatter (comma-separated)",
-        values: "cover, contain, auto, 200%, 70%",
-        placeholder: "banner-display, image-display, display-mode"
-      },
-      {
-        setting: "customImageRepeatField",
-        name: "Image Repeat Field Names",
-        desc: "Set custom field names for the image repeat in frontmatter (comma-separated)",
-        values: "true, false",
-        placeholder: "banner-repeat, image-repeat, repeat-image"
-      },
-      {
-        setting: "customBannerHeightField",
-        name: "Banner Height Field Names",
-        desc: "Set custom field names for the banner height in frontmatter (comma-separated)",
-        values: "100, 300, 700",
-        placeholder: "banner-height, image-height, header-height"
-      },
-      {
-        setting: "customFadeField",
-        name: "Fade Field Names",
-        desc: "Set custom field names for the fade effect in frontmatter (comma-separated)",
-        values: "-1000, -100, 100",
-        placeholder: "banner-fade, fade-effect, image-fade"
-      },
-      {
-        setting: "customBorderRadiusField",
-        name: "Border Radius Field Names",
-        desc: "Set custom field names for the border radius in frontmatter (comma-separated)",
-        values: "0, 17, 30, 50",
-        placeholder: "banner-radius, border-radius, banner-corner-radius"
-      },
-      {
-        setting: "customTitleColorField",
-        name: "Inline Title Color Field Names",
-        desc: "Set custom field names for the inline title color in frontmatter (comma-separated)",
-        values: 'red, papayawhip, "#7f6df2", "#ffa500"',
-        placeholder: "banner-title-color, title-color, header-color"
-      },
-      {
-        setting: "customBannerShuffleField",
-        name: "Banner Shuffle Field Names",
-        desc: "Set custom field names for the banner shuffle in frontmatter (comma-separated)",
-        values: '"pixel-banner-images", "images/llamas"',
-        placeholder: "banner-shuffle, shuffle-folder, random-image-folder"
-      }
-    ];
-    customFields.forEach((field) => {
-      const settingContainer = new import_obsidian.Setting(containerEl).setName(field.name).setDesc(field.desc);
-      if (field.values) {
-        settingContainer.descEl.createEl("div", {
-          text: `example frontmatter values: ${field.values}`,
-          cls: "setting-item-description pixel-banner-example-values"
-        });
-      }
-      settingContainer.addText((text) => {
-        text.setPlaceholder(field.placeholder).setValue(arrayToString(this.plugin.settings[field.setting])).onChange(async (value) => {
-          const newNames = stringToArray(value);
-          const validation = validateFieldNames(
-            this.plugin.settings,
-            customFields.map((f) => f.setting),
-            field.setting,
-            newNames
-          );
-          if (validation.isValid) {
-            this.plugin.settings[field.setting] = newNames;
-            await this.plugin.saveSettings();
-          } else {
-            new Notice(validation.message);
-            text.setValue(arrayToString(this.plugin.settings[field.setting]));
-          }
-        });
-        text.inputEl.style.width = "220px";
-      }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-        this.plugin.settings[field.setting] = DEFAULT_SETTINGS[field.setting];
-        await this.plugin.saveSettings();
-        const settingEl = button.extraSettingsEl.parentElement;
-        const textInput = settingEl.querySelector('input[type="text"]');
-        textInput.value = arrayToString(DEFAULT_SETTINGS[field.setting]);
-        const event = new Event("input", { bubbles: true, cancelable: true });
-        textInput.dispatchEvent(event);
-      }));
-    });
-  }
-  createFolderSettings(containerEl) {
-    const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-    calloutEl.createEl("div", { text: "Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder." });
-    const folderImagesContainer = containerEl.createEl("div", { cls: "folder-images-container" });
-    this.plugin.settings.folderImages.forEach((folderImage, index) => {
-      new FolderImageSetting(
-        folderImagesContainer,
-        this.plugin,
-        folderImage,
-        index,
-        () => this.updateFolderSettings()
-      );
-    });
-    const addFolderImageSetting = new import_obsidian.Setting(containerEl).setClass("add-folder-image-setting").addButton((button) => button.setButtonText("Add Folder Image").onClick(async () => {
-      const newFolderImage = {
-        folder: "",
-        image: "",
-        imageDisplay: "cover",
-        imageRepeat: false,
-        yPosition: 50,
-        xPosition: 50,
-        contentStartPosition: 150,
-        bannerHeight: 350,
-        fade: -75,
-        borderRadius: 17,
-        titleColor: "var(--inline-title-color)",
-        directChildrenOnly: false,
-        enableImageShuffle: false,
-        shuffleFolder: ""
-      };
-      this.plugin.settings.folderImages.push(newFolderImage);
-      await this.plugin.saveSettings();
-      this.updateFolderSettings();
-    }));
-  }
-  createExampleSettings(containerEl) {
-    new import_obsidian.Setting(containerEl).setName("How to use").setHeading().settingEl.querySelector(".setting-item-name").style.cssText = "color: var(--text-accent-hover); font-size: var(--font-ui-large);";
-    const getRandomFieldName = (fieldNames) => {
-      const names = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
-      return names[Math.floor(Math.random() * names.length)];
-    };
-    const instructionsEl = containerEl.createEl("div", { cls: "pixel-banner-section" });
-    instructionsEl.createEl("p", { text: "Add the following fields to your note's frontmatter to customize the banner:" });
-    const codeEl = instructionsEl.createEl("pre");
-    codeEl.createEl("code", {
-      text: `---
-${getRandomFieldName(this.plugin.settings.customBannerField)}: blue turtle
-${getRandomFieldName(this.plugin.settings.customYPositionField)}: 30
-${getRandomFieldName(this.plugin.settings.customXPositionField)}: 30
-${getRandomFieldName(this.plugin.settings.customContentStartField)}: 200
-${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
-${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: true
-${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 400
-${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
-${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 25
-${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff0000
----
-
-# Or use a direct URL:
----
-${getRandomFieldName(this.plugin.settings.customBannerField)}: https://example.com/image.jpg
-${getRandomFieldName(this.plugin.settings.customYPositionField)}: 70
-${getRandomFieldName(this.plugin.settings.customXPositionField)}: 70
-${getRandomFieldName(this.plugin.settings.customContentStartField)}: 180
-${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: 200%
-${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 300
-${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
-${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 0
-${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #00ff00
----
-
-# Or use a path to an image in the vault:
----
-${getRandomFieldName(this.plugin.settings.customBannerField)}: Assets/my-image.png
-${getRandomFieldName(this.plugin.settings.customYPositionField)}: 0
-${getRandomFieldName(this.plugin.settings.customXPositionField)}: 0
-${getRandomFieldName(this.plugin.settings.customContentStartField)}: 100
-${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: auto
-${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 250
-${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
-${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 50
-${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #0000ff
----
-
-# Or use an Obsidian internal link:
----
-${getRandomFieldName(this.plugin.settings.customBannerField)}: [[example-image.png]]
-${getRandomFieldName(this.plugin.settings.customYPositionField)}: 100
-${getRandomFieldName(this.plugin.settings.customXPositionField)}: 100
-${getRandomFieldName(this.plugin.settings.customContentStartField)}: 50
-${getRandomFieldName(this.plugin.settings.customImageDisplayField)}: contain
-${getRandomFieldName(this.plugin.settings.customImageRepeatField)}: false
-${getRandomFieldName(this.plugin.settings.customBannerHeightField)}: 500
-${getRandomFieldName(this.plugin.settings.customFadeField)}: -75
-${getRandomFieldName(this.plugin.settings.customBorderRadiusField)}: 17
-${getRandomFieldName(this.plugin.settings.customTitleColorField)}: #ff00ff
----`
-    });
-    instructionsEl.createEl("p", { text: 'Note: The image display options are "auto", "cover", or "contain". The image repeat option is only applicable when the display is set to "contain".' });
-    containerEl.createEl("img", {
-      attr: {
-        src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/main/example.jpg",
-        alt: "Example of a Pixel banner",
-        style: "max-width: 100%; height: auto; margin-top: 10px; border-radius: 5px;"
-      }
-    });
-  }
-  validateFieldName(value, otherFieldName) {
-    if (value === otherFieldName) {
-      new Notice("Field names must be unique!");
-      return false;
-    }
-    return true;
-  }
 };
 function debounce(func, wait) {
   let timeout;
@@ -1282,67 +1541,10 @@ function debounce(func, wait) {
     timeout = setTimeout(later, wait);
   };
 }
-function random20characters() {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < 20; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-async function testPexelsApi(apiKey) {
-  try {
-    const response = await fetch(`https://api.pexels.com/v1/search?query=${random20characters()}&per_page=3`, {
-      headers: {
-        "Authorization": apiKey
-      }
-    });
-    if (!response.ok) {
-      throw new Error("\u274C Invalid Pexels API key");
-    }
-    const data = await response.json();
-    return data.photos;
-  } catch (error) {
-    return false;
-  }
-}
-async function testPixabayApi(apiKey) {
-  try {
-    const response = await fetch(`https://pixabay.com/api/?key=${apiKey}&q=test&per_page=3`);
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-async function testFlickrApi(apiKey) {
-  try {
-    const response = await fetch(`https://www.flickr.com/services/rest/?method=flickr.test.echo&api_key=${apiKey}&format=json&nojsoncallback=1`);
-    const data = await response.json();
-    return data.stat === "ok";
-  } catch (error) {
-    return false;
-  }
-}
-async function testUnsplashApi(apiKey) {
-  try {
-    const response = await fetch("https://api.unsplash.com/photos/random", {
-      headers: {
-        "Authorization": `Client-ID ${apiKey}`
-      }
-    });
-    return response.ok;
-  } catch (error) {
-    return false;
-  }
-}
 
 // src/modals.js
-var import_obsidian2 = require("obsidian");
-var ReleaseNotesModal = class extends import_obsidian2.Modal {
+var import_obsidian7 = require("obsidian");
+var ReleaseNotesModal = class extends import_obsidian7.Modal {
   constructor(app2, version, releaseNotes2) {
     super(app2);
     this.version = version;
@@ -1402,14 +1604,14 @@ var ReleaseNotesModal = class extends import_obsidian2.Modal {
     const notesContainer = contentEl.createDiv("release-notes-container");
     notesContainer.innerHTML = this.releaseNotes;
     contentEl.createEl("div", { cls: "release-notes-spacer" }).style.height = "20px";
-    new import_obsidian2.Setting(contentEl).addButton((btn) => btn.setButtonText("Close").onClick(() => this.close()));
+    new import_obsidian7.Setting(contentEl).addButton((btn) => btn.setButtonText("Close").onClick(() => this.close()));
   }
   onClose() {
     const { contentEl } = this;
     contentEl.empty();
   }
 };
-var ImageViewModal = class extends import_obsidian2.Modal {
+var ImageViewModal = class extends import_obsidian7.Modal {
   constructor(app2, imageUrl) {
     super(app2);
     this.imageUrl = imageUrl;
@@ -1439,7 +1641,7 @@ var ImageViewModal = class extends import_obsidian2.Modal {
     contentEl.empty();
   }
 };
-var ImageSelectionModal = class extends import_obsidian2.Modal {
+var ImageSelectionModal = class extends import_obsidian7.Modal {
   constructor(app2, plugin, onChoose, defaultPath = "") {
     super(app2);
     this.plugin = plugin;
@@ -1498,7 +1700,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
         style: "font-size: 12px; color: var(--text-muted);"
       }
     });
-    const toggle = new import_obsidian2.Setting(toggleContainer).addToggle((cb) => {
+    const toggle = new import_obsidian7.Setting(toggleContainer).addToggle((cb) => {
       cb.setValue(this.plugin.settings.useShortPath).onChange(async (value) => {
         this.plugin.settings.useShortPath = value;
         await this.plugin.saveSettings();
@@ -1531,7 +1733,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
             }).open();
           });
           if (!folderPath) {
-            new import_obsidian2.Notice("No folder selected");
+            new import_obsidian7.Notice("No folder selected");
             return;
           }
           if (!await this.app.vault.adapter.exists(folderPath)) {
@@ -1544,7 +1746,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
             }).open();
           });
           if (!fileName) {
-            new import_obsidian2.Notice("No file name provided");
+            new import_obsidian7.Notice("No file name provided");
             return;
           }
           try {
@@ -1553,7 +1755,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
             this.onChoose(newFile);
             this.close();
           } catch (error) {
-            new import_obsidian2.Notice("Failed to save image: " + error.message);
+            new import_obsidian7.Notice("Failed to save image: " + error.message);
           }
         };
         reader.readAsArrayBuffer(file);
@@ -1685,8 +1887,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
         text: "\xAB",
         cls: "pixel-banner-pagination-button",
         attr: {
-          "aria-label": "First page",
-          title: "First page"
+          "aria-label": "First page"
         }
       });
       firstButton.disabled = this.currentPage === 1;
@@ -1700,8 +1901,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
         text: "\u2039",
         cls: "pixel-banner-pagination-button",
         attr: {
-          "aria-label": "Previous page",
-          title: "Previous page"
+          "aria-label": "Previous page"
         }
       });
       prevButton.disabled = this.currentPage === 1;
@@ -1719,8 +1919,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
         text: "\u203A",
         cls: "pixel-banner-pagination-button",
         attr: {
-          "aria-label": "Next page",
-          title: "Next page"
+          "aria-label": "Next page"
         }
       });
       nextButton.disabled = this.currentPage === totalPages;
@@ -1734,8 +1933,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
         text: "\xBB",
         cls: "pixel-banner-pagination-button",
         attr: {
-          "aria-label": "Last page",
-          title: "Last page"
+          "aria-label": "Last page"
         }
       });
       lastButton.disabled = this.currentPage === totalPages;
@@ -1789,7 +1987,7 @@ var ImageSelectionModal = class extends import_obsidian2.Modal {
     contentEl.empty();
   }
 };
-var FolderSelectionModal = class extends import_obsidian2.FuzzySuggestModal {
+var FolderSelectionModal = class extends import_obsidian7.FuzzySuggestModal {
   constructor(app2, defaultFolder, onChoose) {
     super(app2);
     this.defaultFolder = defaultFolder;
@@ -1814,7 +2012,7 @@ var FolderSelectionModal = class extends import_obsidian2.FuzzySuggestModal {
     this.updateSuggestions();
   }
 };
-var SaveImageModal = class extends import_obsidian2.Modal {
+var SaveImageModal = class extends import_obsidian7.Modal {
   constructor(app2, suggestedName, onSubmit) {
     super(app2);
     this.suggestedName = suggestedName;
@@ -1825,7 +2023,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
     contentEl.empty();
     contentEl.createEl("h2", { text: "Save Image" });
     contentEl.createEl("p", { text: "Enter a name for the image file." });
-    const fileNameSetting = new import_obsidian2.Setting(contentEl).setName("File name").addText((text) => text.setValue(this.suggestedName).onChange((value) => {
+    const fileNameSetting = new import_obsidian7.Setting(contentEl).setName("File name").addText((text) => text.setValue(this.suggestedName).onChange((value) => {
       this.suggestedName = value;
     }));
     const buttonContainer = contentEl.createDiv();
@@ -1844,7 +2042,7 @@ var SaveImageModal = class extends import_obsidian2.Modal {
         this.onSubmit(this.suggestedName);
         this.close();
       } else {
-        new import_obsidian2.Notice("Please enter a file name");
+        new import_obsidian7.Notice("Please enter a file name");
       }
     });
   }
@@ -1853,9 +2051,785 @@ var SaveImageModal = class extends import_obsidian2.Modal {
     contentEl.empty();
   }
 };
+var EmojiSelectionModal = class extends import_obsidian7.Modal {
+  constructor(app2, plugin, onChoose) {
+    super(app2);
+    this.plugin = plugin;
+    this.onChoose = onChoose;
+    this.searchQuery = "";
+    this.currentPage = 1;
+    this.emojisPerPage = 100;
+    this.emojis = this.getEmojis();
+  }
+  getEmojis() {
+    return [
+      { category: "Smileys & Emotion", emojis: ["\u{1F600}", "\u{1F603}", "\u{1F604}", "\u{1F601}", "\u{1F605}", "\u{1F602}", "\u{1F923}", "\u{1F60A}", "\u{1F607}", "\u{1F642}", "\u{1F643}", "\u{1F609}", "\u{1F60C}", "\u{1F60D}", "\u{1F970}", "\u{1F618}", "\u{1F617}", "\u{1F619}", "\u{1F61A}", "\u{1F60B}", "\u{1F61B}", "\u{1F61D}", "\u{1F61C}", "\u{1F92A}", "\u{1F928}", "\u{1F9D0}", "\u{1F913}", "\u{1F60E}", "\u{1F929}", "\u{1F973}", "\u{1F60F}", "\u{1F612}", "\u{1F61E}", "\u{1F614}", "\u{1F61F}", "\u{1F615}", "\u{1F641}", "\u2639\uFE0F", "\u{1F623}", "\u{1F616}", "\u{1F62B}", "\u{1F629}", "\u{1F97A}", "\u{1F622}", "\u{1F62D}", "\u{1F624}", "\u{1F620}", "\u{1F621}", "\u{1F92C}", "\u{1F92F}", "\u{1F633}", "\u{1F975}", "\u{1F976}", "\u{1F631}", "\u{1F628}", "\u{1F630}", "\u{1F625}", "\u{1F613}", "\u{1F917}", "\u{1F914}", "\u{1F92D}", "\u{1F92B}", "\u{1F925}", "\u{1F636}", "\u{1F610}", "\u{1F611}", "\u{1F62C}", "\u{1F644}", "\u{1F62F}", "\u{1F626}", "\u{1F627}", "\u{1F62E}", "\u{1F632}", "\u{1F971}", "\u{1F634}", "\u{1F924}", "\u{1F62A}", "\u{1F635}", "\u{1F910}", "\u{1F974}", "\u{1F922}", "\u{1F92E}", "\u{1F927}", "\u{1F637}", "\u{1F912}", "\u{1F915}"] },
+      { category: "People & Body", emojis: ["\u{1F44B}", "\u{1F91A}", "\u{1F590}\uFE0F", "\u270B", "\u{1F596}", "\u{1F44C}", "\u{1F90C}", "\u{1F90F}", "\u270C\uFE0F", "\u{1F91E}", "\u{1F91F}", "\u{1F918}", "\u{1F919}", "\u{1F448}", "\u{1F449}", "\u{1F446}", "\u{1F595}", "\u{1F447}", "\u261D\uFE0F", "\u{1F44D}", "\u{1F44E}", "\u270A", "\u{1F44A}", "\u{1F91B}", "\u{1F91C}", "\u{1F44F}", "\u{1F64C}", "\u{1F450}", "\u{1F932}", "\u{1F91D}", "\u{1F64F}", "\u270D\uFE0F", "\u{1F485}", "\u{1F933}", "\u{1F4AA}", "\u{1F9BE}", "\u{1F9BF}", "\u{1F9B5}", "\u{1F9B6}", "\u{1F442}", "\u{1F9BB}", "\u{1F443}", "\u{1F9E0}", "\u{1FAC0}", "\u{1FAC1}", "\u{1F9B7}", "\u{1F9B4}", "\u{1F440}", "\u{1F441}\uFE0F", "\u{1F445}", "\u{1F444}", "\u{1F48B}", "\u{1FA78}", "\u{1F476}", "\u{1F467}", "\u{1F9D2}", "\u{1F466}", "\u{1F469}", "\u{1F9D1}", "\u{1F468}", "\u{1F469}\u200D\u{1F9B1}", "\u{1F9D1}\u200D\u{1F9B1}", "\u{1F468}\u200D\u{1F9B1}", "\u{1F469}\u200D\u{1F9B0}", "\u{1F9D1}\u200D\u{1F9B0}", "\u{1F468}\u200D\u{1F9B0}", "\u{1F471}\u200D\u2640\uFE0F", "\u{1F471}", "\u{1F471}\u200D\u2642\uFE0F", "\u{1F469}\u200D\u{1F9B3}", "\u{1F9D1}\u200D\u{1F9B3}", "\u{1F468}\u200D\u{1F9B3}", "\u{1F469}\u200D\u{1F9B2}", "\u{1F9D1}\u200D\u{1F9B2}", "\u{1F468}\u200D\u{1F9B2}", "\u{1F9D4}", "\u{1F475}", "\u{1F9D3}", "\u{1F474}"] },
+      { category: "Animals & Nature", emojis: ["\u{1F436}", "\u{1F431}", "\u{1F42D}", "\u{1F439}", "\u{1F430}", "\u{1F98A}", "\u{1F43B}", "\u{1F43C}", "\u{1F428}", "\u{1F42F}", "\u{1F981}", "\u{1F42E}", "\u{1F437}", "\u{1F438}", "\u{1F435}", "\u{1F414}", "\u{1F427}", "\u{1F426}", "\u{1F424}", "\u{1F986}", "\u{1F985}", "\u{1F989}", "\u{1F987}", "\u{1F43A}", "\u{1F417}", "\u{1F434}", "\u{1F984}", "\u{1F41D}", "\u{1FAB1}", "\u{1F41B}", "\u{1F98B}", "\u{1F40C}", "\u{1F41E}", "\u{1F41C}", "\u{1FAB0}", "\u{1FAB2}", "\u{1FAB3}", "\u{1F99F}", "\u{1F997}", "\u{1F577}\uFE0F", "\u{1F578}\uFE0F", "\u{1F982}", "\u{1F422}", "\u{1F40D}", "\u{1F98E}", "\u{1F996}", "\u{1F995}", "\u{1F419}", "\u{1F991}", "\u{1F990}", "\u{1F99E}", "\u{1F980}", "\u{1F421}", "\u{1F420}", "\u{1F41F}", "\u{1F42C}", "\u{1F433}", "\u{1F40B}", "\u{1F988}", "\u{1F40A}", "\u{1F405}", "\u{1F406}", "\u{1F993}", "\u{1F98D}", "\u{1F9A7}", "\u{1F9A3}", "\u{1F418}", "\u{1F99B}", "\u{1F98F}", "\u{1F42A}", "\u{1F42B}", "\u{1F992}", "\u{1F998}", "\u{1F9AC}", "\u{1F403}", "\u{1F402}", "\u{1F404}", "\u{1F40E}", "\u{1F416}", "\u{1F40F}", "\u{1F411}", "\u{1F999}", "\u{1F410}", "\u{1F98C}", "\u{1F415}", "\u{1F429}", "\u{1F9AE}", "\u{1F415}\u200D\u{1F9BA}", "\u{1F408}", "\u{1F408}\u200D\u2B1B", "\u{1FAB6}", "\u{1F413}", "\u{1F983}", "\u{1F9A4}", "\u{1F99A}", "\u{1F99C}", "\u{1F9A2}", "\u{1F9A9}", "\u{1F54A}\uFE0F", "\u{1F407}", "\u{1F99D}", "\u{1F9A8}", "\u{1F9A1}", "\u{1F9AB}", "\u{1F9A6}", "\u{1F9A5}", "\u{1F401}", "\u{1F400}", "\u{1F43F}\uFE0F", "\u{1F994}"] },
+      { category: "Food & Drink", emojis: ["\u{1F34E}", "\u{1F350}", "\u{1F34A}", "\u{1F34B}", "\u{1F34C}", "\u{1F349}", "\u{1F347}", "\u{1F353}", "\u{1FAD0}", "\u{1F348}", "\u{1F352}", "\u{1F351}", "\u{1F96D}", "\u{1F34D}", "\u{1F965}", "\u{1F95D}", "\u{1F345}", "\u{1F346}", "\u{1F951}", "\u{1F966}", "\u{1F96C}", "\u{1F952}", "\u{1F336}\uFE0F", "\u{1FAD1}", "\u{1F955}", "\u{1F9C4}", "\u{1F9C5}", "\u{1F954}", "\u{1F360}", "\u{1F950}", "\u{1F96F}", "\u{1F35E}", "\u{1F956}", "\u{1F968}", "\u{1F9C0}", "\u{1F95A}", "\u{1F373}", "\u{1F9C8}", "\u{1F95E}", "\u{1F9C7}", "\u{1F953}", "\u{1F969}", "\u{1F357}", "\u{1F356}", "\u{1F9B4}", "\u{1F32D}", "\u{1F354}", "\u{1F35F}", "\u{1F355}", "\u{1FAD3}", "\u{1F96A}", "\u{1F959}", "\u{1F9C6}", "\u{1F32E}", "\u{1F32F}", "\u{1FAD4}", "\u{1F957}", "\u{1F958}", "\u{1FAD5}", "\u{1F96B}", "\u{1F35D}", "\u{1F35C}", "\u{1F372}", "\u{1F35B}", "\u{1F363}", "\u{1F371}", "\u{1F95F}", "\u{1F9AA}", "\u{1F364}", "\u{1F359}", "\u{1F35A}", "\u{1F358}", "\u{1F365}", "\u{1F960}", "\u{1F96E}", "\u{1F362}", "\u{1F361}", "\u{1F367}", "\u{1F368}", "\u{1F366}", "\u{1F967}", "\u{1F9C1}", "\u{1F370}", "\u{1F382}", "\u{1F36E}", "\u{1F36D}", "\u{1F36C}", "\u{1F36B}", "\u{1F37F}", "\u{1F369}", "\u{1F36A}", "\u{1F330}", "\u{1F95C}", "\u{1F36F}", "\u{1F95B}", "\u{1F37C}", "\u{1FAD6}", "\u2615", "\u{1F375}", "\u{1F9C3}", "\u{1F964}", "\u{1F9CB}", "\u{1F376}", "\u{1F37A}", "\u{1F37B}", "\u{1F942}", "\u{1F377}", "\u{1F943}", "\u{1F378}", "\u{1F379}", "\u{1F9C9}", "\u{1F37E}", "\u{1F9CA}", "\u{1F944}", "\u{1F374}", "\u{1F37D}\uFE0F", "\u{1F962}", "\u{1F9C2}"] },
+      { category: "Travel & Places", emojis: ["\u{1F30D}", "\u{1F30E}", "\u{1F30F}", "\u{1F310}", "\u{1F5FA}\uFE0F", "\u{1F5FE}", "\u{1F9ED}", "\u{1F3D4}\uFE0F", "\u26F0\uFE0F", "\u{1F30B}", "\u{1F5FB}", "\u{1F3D5}\uFE0F", "\u{1F3D6}\uFE0F", "\u{1F3DC}\uFE0F", "\u{1F3DD}\uFE0F", "\u{1F3DE}\uFE0F", "\u{1F3DF}\uFE0F", "\u{1F3DB}\uFE0F", "\u{1F3D7}\uFE0F", "\u{1F9F1}", "\u{1FAA8}", "\u{1FAB5}", "\u{1F6D6}", "\u{1F3D8}\uFE0F", "\u{1F3DA}\uFE0F", "\u{1F3E0}", "\u{1F3E1}", "\u{1F3E2}", "\u{1F3E3}", "\u{1F3E4}", "\u{1F3E5}", "\u{1F3E6}", "\u{1F3E8}", "\u{1F3E9}", "\u{1F3EA}", "\u{1F3EB}", "\u{1F3EC}", "\u{1F3ED}", "\u{1F3EF}", "\u{1F3F0}", "\u{1F492}", "\u{1F5FC}", "\u{1F5FD}", "\u26EA", "\u{1F54C}", "\u{1F6D5}", "\u{1F54D}", "\u26E9\uFE0F", "\u{1F54B}", "\u26F2", "\u26FA", "\u{1F301}", "\u{1F303}", "\u{1F3D9}\uFE0F", "\u{1F304}", "\u{1F305}", "\u{1F306}", "\u{1F307}", "\u{1F309}", "\u2668\uFE0F", "\u{1F3A0}", "\u{1F3A1}", "\u{1F3A2}", "\u{1F488}", "\u{1F3AA}"] },
+      { category: "Activities", emojis: ["\u26BD", "\u{1F3C0}", "\u{1F3C8}", "\u26BE", "\u{1F94E}", "\u{1F3BE}", "\u{1F3D0}", "\u{1F3C9}", "\u{1F94F}", "\u{1F3B1}", "\u{1FA80}", "\u{1F3D3}", "\u{1F3F8}", "\u{1F3D2}", "\u{1F3D1}", "\u{1F94D}", "\u{1F3CF}", "\u{1FA83}", "\u{1F945}", "\u26F3", "\u{1FA81}", "\u{1F3A3}", "\u{1F93F}", "\u{1F3BD}", "\u{1F3BF}", "\u{1F6F7}", "\u{1F94C}", "\u{1F3AF}", "\u{1FA80}", "\u{1FA81}", "\u{1F3B1}", "\u{1F3AE}", "\u{1F3B2}", "\u{1F9E9}", "\u{1F3AD}", "\u{1F3A8}", "\u{1F3AA}", "\u{1F3A4}", "\u{1F3A7}", "\u{1F3BC}", "\u{1F3B9}", "\u{1F941}", "\u{1FA98}", "\u{1F3B7}", "\u{1F3BA}", "\u{1FA97}", "\u{1F3B8}", "\u{1FA95}", "\u{1F3BB}", "\u{1F3AC}", "\u{1F3F9}"] },
+      { category: "Objects", emojis: ["\u231A", "\u{1F4F1}", "\u{1F4F2}", "\u{1F4BB}", "\u2328\uFE0F", "\u{1F5A5}\uFE0F", "\u{1F5A8}\uFE0F", "\u{1F5B1}\uFE0F", "\u{1F5B2}\uFE0F", "\u{1F579}\uFE0F", "\u{1F5DC}\uFE0F", "\u{1F4BD}", "\u{1F4BE}", "\u{1F4BF}", "\u{1F4C0}", "\u{1F4FC}", "\u{1F4F7}", "\u{1F4F8}", "\u{1F4F9}", "\u{1F3A5}", "\u{1F4FD}\uFE0F", "\u{1F39E}\uFE0F", "\u{1F4DE}", "\u260E\uFE0F", "\u{1F4DF}", "\u{1F4E0}", "\u{1F4FA}", "\u{1F4FB}", "\u{1F399}\uFE0F", "\u{1F39A}\uFE0F", "\u{1F39B}\uFE0F", "\u{1F9ED}", "\u23F1\uFE0F", "\u23F2\uFE0F", "\u23F0", "\u{1F570}\uFE0F", "\u231B", "\u23F3", "\u{1F4E1}", "\u{1F50B}", "\u{1F50C}", "\u{1F4A1}", "\u{1F526}", "\u{1F56F}\uFE0F", "\u{1FA94}", "\u{1F9EF}", "\u{1F6E2}\uFE0F", "\u{1F4B8}", "\u{1F4B5}", "\u{1F4B4}", "\u{1F4B6}", "\u{1F4B7}", "\u{1FA99}", "\u{1F4B0}", "\u{1F4B3}", "\u{1F48E}", "\u2696\uFE0F", "\u{1F9F0}", "\u{1FA9B}", "\u{1F527}", "\u{1F528}", "\u2692\uFE0F", "\u{1F6E0}\uFE0F", "\u26CF\uFE0F", "\u{1FA9A}", "\u{1F529}", "\u2699\uFE0F", "\u{1FA9C}", "\u{1F9F1}", "\u26D3\uFE0F", "\u{1F9F2}", "\u{1F52B}", "\u{1F4A3}", "\u{1F9E8}", "\u{1FA93}", "\u{1F52A}", "\u{1F5E1}\uFE0F", "\u2694\uFE0F", "\u{1F6E1}\uFE0F", "\u{1F6AC}", "\u26B0\uFE0F", "\u{1FAA6}", "\u26B1\uFE0F", "\u{1F3FA}", "\u{1F52E}", "\u{1F4FF}", "\u{1F9FF}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
+      { category: "Weather", emojis: ["\u2601\uFE0F", "\u26C5", "\u26C8\uFE0F", "\u{1F324}\uFE0F", "\u{1F325}\uFE0F", "\u{1F326}\uFE0F", "\u{1F327}\uFE0F", "\u{1F328}\uFE0F", "\u{1F329}\uFE0F", "\u{1F32A}\uFE0F", "\u{1F32B}\uFE0F", "\u{1F31D}", "\u{1F311}", "\u{1F312}", "\u{1F313}", "\u{1F314}", "\u{1F315}", "\u{1F316}", "\u{1F317}", "\u{1F318}", "\u{1F319}", "\u{1F31A}", "\u{1F31B}", "\u{1F31C}", "\u2600\uFE0F", "\u{1F31E}", "\u2B50", "\u{1F31F}", "\u{1F320}", "\u2604\uFE0F", "\u{1F321}\uFE0F", "\u{1F32C}\uFE0F", "\u{1F300}", "\u{1F308}", "\u{1F302}", "\u2602\uFE0F", "\u2614", "\u26F1\uFE0F", "\u26A1", "\u2744\uFE0F", "\u2603\uFE0F", "\u26C4", "\u{1F525}", "\u{1F4A7}", "\u{1F30A}"] },
+      { category: "Symbols", emojis: ["\u2764\uFE0F", "\u{1F9E1}", "\u{1F49B}", "\u{1F49A}", "\u{1F499}", "\u{1F49C}", "\u{1F5A4}", "\u{1F90D}", "\u{1F90E}", "\u{1F494}", "\u2763\uFE0F", "\u{1F495}", "\u{1F49E}", "\u{1F493}", "\u{1F497}", "\u{1F496}", "\u{1F498}", "\u{1F49D}", "\u{1F49F}", "\u262E\uFE0F", "\u271D\uFE0F", "\u262A\uFE0F", "\u{1F549}\uFE0F", "\u2638\uFE0F", "\u2721\uFE0F", "\u{1F52F}", "\u{1F54E}", "\u262F\uFE0F", "\u2626\uFE0F", "\u{1F6D0}", "\u26CE", "\u2648", "\u2649", "\u264A", "\u264B", "\u264C", "\u264D", "\u264E", "\u264F", "\u2650", "\u2651", "\u2652", "\u2653", "\u{1F194}", "\u269B\uFE0F", "\u{1F251}", "\u2622\uFE0F", "\u2623\uFE0F", "\u{1F4F4}", "\u{1F4F3}", "\u{1F236}", "\u{1F21A}", "\u{1F238}", "\u{1F23A}", "\u{1F237}\uFE0F", "\u2734\uFE0F", "\u{1F19A}", "\u{1F4AE}", "\u{1F250}", "\u3299\uFE0F", "\u3297\uFE0F", "\u{1F234}", "\u{1F235}", "\u{1F239}", "\u{1F232}", "\u{1F170}\uFE0F", "\u{1F171}\uFE0F", "\u{1F18E}", "\u{1F191}", "\u{1F17E}\uFE0F", "\u{1F198}", "\u274C", "\u2B55", "\u{1F6D1}", "\u26D4", "\u{1F4DB}", "\u{1F6AB}", "\u{1F4AF}", "\u{1F4A2}", "\u2668\uFE0F", "\u{1F6B7}", "\u{1F6AF}", "\u{1F6B3}", "\u{1F6B1}", "\u{1F51E}", "\u{1F4F5}", "\u{1F6AD}", "\u2757", "\u2755", "\u2753", "\u2754", "\u203C\uFE0F", "\u2049\uFE0F", "\u{1F505}", "\u{1F506}", "\u303D\uFE0F", "\u26A0\uFE0F", "\u{1F6B8}", "\u{1F531}", "\u269C\uFE0F", "\u{1F530}", "\u267B\uFE0F", "\u2705", "\u{1F22F}", "\u{1F4B9}", "\u2747\uFE0F", "\u2733\uFE0F", "\u274E", "\u{1F310}", "\u{1F4A0}", "\u24C2\uFE0F", "\u{1F300}", "\u{1F4A4}", "\u{1F3E7}", "\u{1F6BE}", "\u267F", "\u{1F17F}\uFE0F", "\u{1F6D7}", "\u{1F233}", "\u{1F202}\uFE0F", "\u{1F6C2}", "\u{1F6C3}", "\u{1F6C4}", "\u{1F6C5}", "\u{1F6B9}", "\u{1F6BA}", "\u{1F6BC}", "\u26A7", "\u{1F6BB}", "\u{1F6AE}", "\u{1F3A6}", "\u{1F4F6}", "\u{1F201}", "\u{1F523}", "\u2139\uFE0F", "\u{1F524}", "\u{1F521}", "\u{1F520}", "\u{1F196}", "\u{1F197}", "\u{1F199}", "\u{1F192}", "\u{1F195}", "\u{1F193}", "0\uFE0F\u20E3", "1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}", "\u{1F522}", "#\uFE0F\u20E3", "*\uFE0F\u20E3", "\u23CF\uFE0F", "\u25B6\uFE0F", "\u23F8\uFE0F", "\u23EF\uFE0F", "\u23F9\uFE0F", "\u23FA\uFE0F", "\u23ED\uFE0F", "\u23EE\uFE0F", "\u23E9", "\u23EA", "\u23EB", "\u23EC", "\u25C0\uFE0F", "\u{1F53C}", "\u{1F53D}", "\u27A1\uFE0F", "\u2B05\uFE0F", "\u2B06\uFE0F", "\u2B07\uFE0F", "\u2197\uFE0F", "\u2198\uFE0F", "\u2199\uFE0F", "\u2196\uFE0F", "\u2195\uFE0F", "\u2194\uFE0F", "\u21AA\uFE0F", "\u21A9\uFE0F", "\u2934\uFE0F", "\u2935\uFE0F", "\u{1F500}", "\u{1F501}", "\u{1F502}", "\u{1F504}", "\u{1F503}", "\u{1F3B5}", "\u{1F3B6}", "\u2795", "\u2796", "\u2797", "\u2716\uFE0F", "\u267E\uFE0F", "\u{1F4B2}", "\u{1F4B1}", "\u2122\uFE0F", "\xA9\uFE0F", "\xAE\uFE0F", "\u3030\uFE0F", "\u27B0", "\u27BF", "\u{1F51A}", "\u{1F519}", "\u{1F51B}", "\u{1F51D}", "\u{1F51C}", "\u2714\uFE0F", "\u2611\uFE0F", "\u{1F518}", "\u{1F534}", "\u{1F7E0}", "\u{1F7E1}", "\u{1F7E2}", "\u{1F535}", "\u{1F7E3}", "\u26AB", "\u26AA", "\u{1F7E4}", "\u{1F53A}", "\u{1F53B}", "\u{1F538}", "\u{1F539}", "\u{1F536}", "\u{1F537}", "\u{1F533}", "\u{1F532}", "\u25AA\uFE0F", "\u25AB\uFE0F", "\u25FE", "\u25FD", "\u25FC\uFE0F", "\u25FB\uFE0F", "\u{1F7E5}", "\u{1F7E7}", "\u{1F7E8}", "\u{1F7E9}", "\u{1F7E6}", "\u{1F7EA}", "\u2B1B", "\u2B1C", "\u{1F7EB}", "\u{1F508}", "\u{1F507}", "\u{1F509}", "\u{1F50A}", "\u{1F514}", "\u{1F515}", "\u{1F4E3}", "\u{1F4E2}", "\u{1F441}\uFE0F\u200D\u{1F5E8}\uFE0F", "\u{1F4AC}", "\u{1F4AD}", "\u{1F5EF}\uFE0F", "\u2660\uFE0F", "\u2663\uFE0F", "\u2665\uFE0F", "\u2666\uFE0F", "\u{1F0CF}", "\u{1F3B4}", "\u{1F004}"] },
+      { category: "Flags", emojis: ["\u{1F3F3}\uFE0F", "\u{1F3F4}", "\u{1F3C1}", "\u{1F6A9}", "\u{1F3F3}\uFE0F\u200D\u{1F308}", "\u{1F3F3}\uFE0F\u200D\u26A7\uFE0F", "\u{1F3F4}\u200D\u2620\uFE0F", "\u{1F1E6}\u{1F1EB}", "\u{1F1E6}\u{1F1FD}", "\u{1F1E6}\u{1F1F1}", "\u{1F1E9}\u{1F1FF}", "\u{1F1E6}\u{1F1F8}", "\u{1F1E6}\u{1F1E9}", "\u{1F1E6}\u{1F1F4}", "\u{1F1E6}\u{1F1EE}", "\u{1F1E6}\u{1F1F6}", "\u{1F1E6}\u{1F1EC}", "\u{1F1E6}\u{1F1F7}", "\u{1F1E6}\u{1F1F2}", "\u{1F1E6}\u{1F1FC}", "\u{1F1E6}\u{1F1FA}", "\u{1F1E6}\u{1F1F9}", "\u{1F1E6}\u{1F1FF}", "\u{1F1E7}\u{1F1F8}", "\u{1F1E7}\u{1F1ED}", "\u{1F1E7}\u{1F1E9}", "\u{1F1E7}\u{1F1E7}", "\u{1F1E7}\u{1F1FE}", "\u{1F1E7}\u{1F1EA}", "\u{1F1E7}\u{1F1FF}", "\u{1F1E7}\u{1F1EF}", "\u{1F1E7}\u{1F1F2}", "\u{1F1E7}\u{1F1F9}", "\u{1F1E7}\u{1F1F4}", "\u{1F1E7}\u{1F1E6}", "\u{1F1E7}\u{1F1FC}", "\u{1F1E7}\u{1F1F7}", "\u{1F1EE}\u{1F1F4}", "\u{1F1FB}\u{1F1EC}", "\u{1F1E7}\u{1F1F3}", "\u{1F1E7}\u{1F1EC}", "\u{1F1E7}\u{1F1EB}", "\u{1F1E7}\u{1F1EE}", "\u{1F1F0}\u{1F1ED}", "\u{1F1E8}\u{1F1F2}", "\u{1F1E8}\u{1F1E6}", "\u{1F1EE}\u{1F1E8}", "\u{1F1E8}\u{1F1FB}", "\u{1F1E7}\u{1F1F6}", "\u{1F1F0}\u{1F1FE}", "\u{1F1E8}\u{1F1EB}", "\u{1F1F9}\u{1F1E9}", "\u{1F1E8}\u{1F1F1}", "\u{1F1E8}\u{1F1F3}", "\u{1F1E8}\u{1F1FD}", "\u{1F1E8}\u{1F1E8}", "\u{1F1E8}\u{1F1F4}", "\u{1F1F0}\u{1F1F2}", "\u{1F1E8}\u{1F1EC}", "\u{1F1E8}\u{1F1E9}", "\u{1F1E8}\u{1F1F0}", "\u{1F1E8}\u{1F1F7}", "\u{1F1E8}\u{1F1EE}", "\u{1F1ED}\u{1F1F7}", "\u{1F1E8}\u{1F1FA}", "\u{1F1E8}\u{1F1FC}", "\u{1F1E8}\u{1F1FE}", "\u{1F1E8}\u{1F1FF}", "\u{1F1E9}\u{1F1F0}", "\u{1F1E9}\u{1F1EF}", "\u{1F1E9}\u{1F1F2}", "\u{1F1E9}\u{1F1F4}", "\u{1F1EA}\u{1F1E8}", "\u{1F1EA}\u{1F1EC}", "\u{1F1F8}\u{1F1FB}", "\u{1F1EC}\u{1F1F6}", "\u{1F1EA}\u{1F1F7}", "\u{1F1EA}\u{1F1EA}", "\u{1F1EA}\u{1F1F9}", "\u{1F1EA}\u{1F1FA}", "\u{1F1EB}\u{1F1F0}", "\u{1F1EB}\u{1F1F4}", "\u{1F1EB}\u{1F1EF}", "\u{1F1EB}\u{1F1EE}", "\u{1F1EB}\u{1F1F7}", "\u{1F1EC}\u{1F1EB}", "\u{1F1F5}\u{1F1EB}", "\u{1F1F9}\u{1F1EB}", "\u{1F1EC}\u{1F1E6}", "\u{1F1EC}\u{1F1F2}", "\u{1F1EC}\u{1F1EA}", "\u{1F1E9}\u{1F1EA}", "\u{1F1EC}\u{1F1ED}", "\u{1F1EC}\u{1F1EE}", "\u{1F1EC}\u{1F1F7}", "\u{1F1EC}\u{1F1F1}", "\u{1F1EC}\u{1F1E9}", "\u{1F1EC}\u{1F1F5}", "\u{1F1EC}\u{1F1FA}", "\u{1F1EC}\u{1F1F9}", "\u{1F1EC}\u{1F1EC}", "\u{1F1EC}\u{1F1F3}", "\u{1F1EC}\u{1F1FC}", "\u{1F1EC}\u{1F1FE}", "\u{1F1ED}\u{1F1F9}", "\u{1F1ED}\u{1F1F3}", "\u{1F1ED}\u{1F1F0}", "\u{1F1ED}\u{1F1FA}", "\u{1F1EE}\u{1F1F8}", "\u{1F1EE}\u{1F1F3}", "\u{1F1EE}\u{1F1E9}", "\u{1F1EE}\u{1F1F7}", "\u{1F1EE}\u{1F1F6}", "\u{1F1EE}\u{1F1EA}", "\u{1F1EE}\u{1F1F2}", "\u{1F1EE}\u{1F1F1}", "\u{1F1EE}\u{1F1F9}", "\u{1F1EF}\u{1F1F2}", "\u{1F1EF}\u{1F1F5}", "\u{1F38C}", "\u{1F1EF}\u{1F1EA}", "\u{1F1EF}\u{1F1F4}", "\u{1F1F0}\u{1F1FF}", "\u{1F1F0}\u{1F1EA}", "\u{1F1F0}\u{1F1EE}", "\u{1F1FD}\u{1F1F0}", "\u{1F1F0}\u{1F1FC}", "\u{1F1F0}\u{1F1EC}", "\u{1F1F1}\u{1F1E6}", "\u{1F1F1}\u{1F1FB}", "\u{1F1F1}\u{1F1E7}", "\u{1F1F1}\u{1F1F8}", "\u{1F1F1}\u{1F1F7}", "\u{1F1F1}\u{1F1FE}", "\u{1F1F1}\u{1F1EE}", "\u{1F1F1}\u{1F1F9}", "\u{1F1F1}\u{1F1FA}", "\u{1F1F2}\u{1F1F4}", "\u{1F1F2}\u{1F1F0}", "\u{1F1F2}\u{1F1EC}", "\u{1F1F2}\u{1F1FC}", "\u{1F1F2}\u{1F1FE}", "\u{1F1F2}\u{1F1FB}", "\u{1F1F2}\u{1F1F1}", "\u{1F1F2}\u{1F1F9}", "\u{1F1F2}\u{1F1ED}", "\u{1F1F2}\u{1F1F6}", "\u{1F1F2}\u{1F1F7}", "\u{1F1FE}\u{1F1F9}", "\u{1F1F2}\u{1F1FD}", "\u{1F1EB}\u{1F1F2}", "\u{1F1F2}\u{1F1E9}", "\u{1F1F2}\u{1F1E8}", "\u{1F1F2}\u{1F1F3}", "\u{1F1F2}\u{1F1EA}", "\u{1F1F2}\u{1F1F8}", "\u{1F1F2}\u{1F1E6}", "\u{1F1F2}\u{1F1FF}", "\u{1F1F2}\u{1F1F2}", "\u{1F1F3}\u{1F1E6}", "\u{1F1F3}\u{1F1F7}", "\u{1F1F3}\u{1F1F5}", "\u{1F1F3}\u{1F1F1}", "\u{1F1F3}\u{1F1E8}", "\u{1F1F3}\u{1F1FF}", "\u{1F1F3}\u{1F1EE}", "\u{1F1F3}\u{1F1EA}", "\u{1F1F3}\u{1F1EC}", "\u{1F1F3}\u{1F1FA}", "\u{1F1F3}\u{1F1EB}", "\u{1F1F0}\u{1F1F5}", "\u{1F1F2}\u{1F1F5}", "\u{1F1F3}\u{1F1F4}", "\u{1F1F4}\u{1F1F2}", "\u{1F1F5}\u{1F1F0}", "\u{1F1F5}\u{1F1FC}", "\u{1F1F5}\u{1F1F8}", "\u{1F1F5}\u{1F1E6}", "\u{1F1F5}\u{1F1EC}", "\u{1F1F5}\u{1F1FE}", "\u{1F1F5}\u{1F1EA}", "\u{1F1F5}\u{1F1ED}", "\u{1F1F5}\u{1F1F3}", "\u{1F1F5}\u{1F1F1}", "\u{1F1F5}\u{1F1F9}", "\u{1F1F5}\u{1F1F7}", "\u{1F1F6}\u{1F1E6}", "\u{1F1F7}\u{1F1EA}", "\u{1F1F7}\u{1F1F4}", "\u{1F1F7}\u{1F1FA}", "\u{1F1F7}\u{1F1FC}", "\u{1F1FC}\u{1F1F8}", "\u{1F1F8}\u{1F1F2}", "\u{1F1F8}\u{1F1E6}", "\u{1F1F8}\u{1F1F3}", "\u{1F1F7}\u{1F1F8}", "\u{1F1F8}\u{1F1E8}", "\u{1F1F8}\u{1F1F1}", "\u{1F1F8}\u{1F1EC}", "\u{1F1F8}\u{1F1FD}", "\u{1F1F8}\u{1F1F0}", "\u{1F1F8}\u{1F1EE}", "\u{1F1EC}\u{1F1F8}", "\u{1F1F8}\u{1F1E7}", "\u{1F1F8}\u{1F1F4}", "\u{1F1FF}\u{1F1E6}", "\u{1F1F0}\u{1F1F7}", "\u{1F1F8}\u{1F1F8}", "\u{1F1EA}\u{1F1F8}", "\u{1F1F1}\u{1F1F0}", "\u{1F1E7}\u{1F1F1}", "\u{1F1F8}\u{1F1ED}", "\u{1F1F0}\u{1F1F3}", "\u{1F1F1}\u{1F1E8}", "\u{1F1F5}\u{1F1F2}", "\u{1F1FB}\u{1F1E8}", "\u{1F1F8}\u{1F1E9}", "\u{1F1F8}\u{1F1F7}", "\u{1F1F8}\u{1F1FF}", "\u{1F1F8}\u{1F1EA}", "\u{1F1E8}\u{1F1ED}", "\u{1F1F8}\u{1F1FE}", "\u{1F1F9}\u{1F1FC}", "\u{1F1F9}\u{1F1EF}", "\u{1F1F9}\u{1F1FF}", "\u{1F1F9}\u{1F1ED}", "\u{1F1F9}\u{1F1F1}", "\u{1F1F9}\u{1F1EC}", "\u{1F1F9}\u{1F1F0}", "\u{1F1F9}\u{1F1F4}", "\u{1F1F9}\u{1F1F9}", "\u{1F1F9}\u{1F1F3}", "\u{1F1F9}\u{1F1F7}", "\u{1F1F9}\u{1F1F2}", "\u{1F1F9}\u{1F1E8}", "\u{1F1F9}\u{1F1FB}", "\u{1F1FB}\u{1F1EE}", "\u{1F1FA}\u{1F1EC}", "\u{1F1FA}\u{1F1E6}", "\u{1F1E6}\u{1F1EA}", "\u{1F1EC}\u{1F1E7}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}", "\u{1F1FA}\u{1F1F3}", "\u{1F1FA}\u{1F1F8}", "\u{1F1FA}\u{1F1FE}", "\u{1F1FA}\u{1F1FF}", "\u{1F1FB}\u{1F1FA}", "\u{1F1FB}\u{1F1E6}", "\u{1F1FB}\u{1F1EA}", "\u{1F1FB}\u{1F1F3}", "\u{1F1FC}\u{1F1EB}", "\u{1F1EA}\u{1F1ED}", "\u{1F1FE}\u{1F1EA}", "\u{1F1FF}\u{1F1F2}", "\u{1F1FF}\u{1F1FC}"] }
+    ];
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("pixel-banner-emoji-select-modal");
+    contentEl.createEl("h2", { text: "Select Banner Icon" });
+    const searchContainer = contentEl.createDiv({ cls: "emoji-search-container" });
+    const searchInput = searchContainer.createEl("input", {
+      type: "text",
+      placeholder: "Search emojis...",
+      cls: "emoji-search-input"
+    });
+    this.gridContainer = contentEl.createDiv({ cls: "emoji-grid-container" });
+    searchInput.addEventListener("input", () => {
+      this.searchQuery = searchInput.value.toLowerCase();
+      this.updateEmojiGrid();
+    });
+    this.updateEmojiGrid();
+  }
+  updateEmojiGrid() {
+    this.gridContainer.empty();
+    this.emojis.forEach((category) => {
+      const filteredEmojis = category.emojis.filter((emoji) => {
+        if (!this.searchQuery) return true;
+        const emojiDescription = this.getEmojiDescription(emoji);
+        return emojiDescription.includes(this.searchQuery.toLowerCase());
+      });
+      if (filteredEmojis.length > 0) {
+        const categorySection = this.gridContainer.createDiv({ cls: "emoji-category-section" });
+        categorySection.createEl("h3", { text: category.category, cls: "emoji-category-title" });
+        const emojiGrid = categorySection.createDiv({ cls: "emoji-grid" });
+        filteredEmojis.forEach((emoji) => {
+          const emojiButton = emojiGrid.createEl("button", {
+            text: emoji,
+            cls: "emoji-button",
+            attr: {
+              "aria-label": this.getEmojiDescription(emoji)
+            }
+          });
+          emojiButton.addEventListener("click", () => {
+            this.onChoose(emoji);
+            this.close();
+          });
+        });
+      }
+    });
+    const style = document.createElement("style");
+    style.textContent = `
+            .pixel-banner-emoji-select-modal {
+                max-width: 600px;
+                max-height: 80vh;
+            }
+            .emoji-search-container {
+                margin-bottom: 1em;
+            }
+            .emoji-search-input {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 1em;
+            }
+            .emoji-grid-container {
+                overflow-y: auto;
+                max-height: 60vh;
+                padding-right: 10px;
+            }
+            .emoji-category-section {
+                margin-bottom: 1.5em;
+            }
+            .emoji-category-title {
+                margin: 0.5em 0;
+                color: var(--text-muted);
+                font-size: 0.9em;
+            }
+            .emoji-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+                gap: 8px;
+            }
+            .emoji-button {
+                font-size: 1.5em;
+                padding: 8px;
+                background: var(--background-secondary);
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+            .emoji-button:hover {
+                background: var(--background-modifier-hover);
+            }
+        `;
+    document.head.appendChild(style);
+  }
+  getEmojiDescription(emoji) {
+    const emojiDescriptions = {
+      // Smileys & Emotion
+      "\u2639\uFE0F": "frowning face sad unhappy upset",
+      "\u{1F910}": "zipper-mouth face quiet silence secret mute",
+      "\u{1F912}": "face with thermometer sick ill fever temperature",
+      "\u{1F913}": "nerd face glasses smart geek studious",
+      "\u{1F914}": "thinking face thoughtful curious pondering",
+      "\u{1F915}": "face with head-bandage injury hurt bandaged",
+      "\u{1F917}": "hugging face hug comfort happy",
+      "\u{1F922}": "nauseated face sick vomit gross disgusted",
+      "\u{1F923}": "rolling on the floor laughing happy cry rofl lol",
+      "\u{1F924}": "drooling face food hungry desire want",
+      "\u{1F925}": "lying face liar nose growing pinocchio",
+      "\u{1F927}": "sneezing face sick cold allergy achoo",
+      "\u{1F928}": "face with raised eyebrow skeptical suspicious doubt",
+      "\u{1F929}": "star-struck excited amazed starry-eyed",
+      "\u{1F92A}": "zany face crazy silly wild goofy",
+      "\u{1F92B}": "shushing face quiet silence secret",
+      "\u{1F92C}": "face with symbols on mouth swearing angry cursing",
+      "\u{1F92D}": "face with hand over mouth giggling surprise",
+      "\u{1F92E}": "face vomiting sick throw up gross ill",
+      "\u{1F92F}": "exploding head mind blown shocked amazed",
+      "\u{1F970}": "smiling face with hearts love heart adore affection",
+      "\u{1F971}": "yawning face sleepy tired bored",
+      "\u{1F973}": "partying face celebration party festive",
+      "\u{1F974}": "woozy face drunk dizzy tipsy disoriented",
+      "\u{1F975}": "hot face heat sweating overheated",
+      "\u{1F976}": "cold face freezing ice frozen",
+      "\u{1F97A}": "pleading face begging puppy eyes",
+      "\u{1F9D0}": "face with monocle smart sophisticated examine",
+      "\u{1F600}": "grinning face smile happy joyful",
+      "\u{1F601}": "beaming face with smiling eyes grin happy proud",
+      "\u{1F602}": "face with tears of joy laughing crying happy lol",
+      "\u{1F603}": "grinning face with big eyes smile happy excited",
+      "\u{1F604}": "grinning face with smiling eyes happy joy laugh",
+      "\u{1F605}": "grinning face with sweat happy relief nervous",
+      "\u{1F607}": "smiling face with halo angel innocent blessed",
+      "\u{1F609}": "winking face flirt playful joke",
+      "\u{1F60A}": "smiling face with smiling eyes happy sweet shy",
+      "\u{1F60B}": "face savoring food yummy delicious tasty",
+      "\u{1F60C}": "relieved face calm relaxed content",
+      "\u{1F60D}": "smiling face with heart-eyes love heart adore",
+      "\u{1F60E}": "smiling face with sunglasses cool confident",
+      "\u{1F60F}": "smirking face flirt smug suggestive",
+      "\u{1F610}": "neutral face expressionless blank meh",
+      "\u{1F611}": "expressionless face blank unimpressed",
+      "\u{1F612}": "unamused face unhappy annoyed unimpressed",
+      "\u{1F613}": "downcast face with sweat tired stressed",
+      "\u{1F614}": "pensive face sad thoughtful reflective",
+      "\u{1F615}": "confused face puzzled unsure",
+      "\u{1F616}": "confounded face confused frustrated",
+      "\u{1F617}": "kissing face love affection",
+      "\u{1F618}": "face blowing a kiss love heart flirt",
+      "\u{1F619}": "kissing face with smiling eyes love happy",
+      "\u{1F61A}": "kissing face with closed eyes love shy",
+      "\u{1F61B}": "face with tongue playful silly taste",
+      "\u{1F61C}": "winking face with tongue playful silly joke",
+      "\u{1F61D}": "squinting face with tongue playful silly ecstatic",
+      "\u{1F61E}": "disappointed face sad unhappy dejected",
+      "\u{1F61F}": "worried face concerned anxious nervous",
+      "\u{1F620}": "angry face mad furious",
+      "\u{1F621}": "pouting face angry rage mad",
+      "\u{1F622}": "crying face sad tear unhappy",
+      "\u{1F623}": "persevering face struggling frustrated",
+      "\u{1F624}": "face with steam from nose angry frustrated proud",
+      "\u{1F625}": "sad but relieved face disappointed relieved",
+      "\u{1F626}": "frowning face with open mouth shock horror",
+      "\u{1F627}": "anguished face shocked scared distressed",
+      "\u{1F628}": "fearful face scared worried shocked",
+      "\u{1F629}": "weary face tired frustrated exhausted",
+      "\u{1F62A}": "sleepy face tired drowsy rest",
+      "\u{1F62B}": "tired face exhausted weary",
+      "\u{1F62C}": "grimacing face awkward nervous uncomfortable",
+      "\u{1F62D}": "loudly crying face sad sobbing upset",
+      "\u{1F62E}": "face with open mouth surprise shock wow gasp",
+      "\u{1F62F}": "hushed face surprised shocked stunned",
+      "\u{1F630}": "anxious face with sweat nervous worried",
+      "\u{1F631}": "face screaming in fear scared shocked",
+      "\u{1F632}": "astonished face shocked surprised amazed wow",
+      "\u{1F633}": "flushed face blushing embarrassed surprised",
+      "\u{1F634}": "sleeping face sleep zzz tired rest",
+      "\u{1F635}": "dizzy face spiral confused disoriented",
+      "\u{1F636}": "face without mouth speechless silent blank",
+      "\u{1F637}": "face with medical mask sick ill covid virus",
+      "\u{1F641}": "slightly frowning face sad disappointed",
+      "\u{1F642}": "slightly smiling face happy content",
+      "\u{1F643}": "upside-down face silly playful ironic",
+      "\u{1F644}": "face with rolling eyes exasperated annoyed",
+      // People & Body
+      "\u261D\uFE0F": "index pointing up direction gesture",
+      "\u270A": "raised fist power solidarity strength",
+      "\u270B": "raised hand stop high five palm",
+      "\u270C\uFE0F": "victory hand peace victory yeah",
+      "\u270D\uFE0F": "writing hand write note signature",
+      "\u{1F440}": "eyes look see watch",
+      "\u{1F441}\uFE0F": "eye look see watch",
+      "\u{1F442}": "ear hear listen sound",
+      "\u{1F443}": "nose smell sniff",
+      "\u{1F444}": "mouth lips kiss speak",
+      "\u{1F445}": "tongue taste lick",
+      "\u{1F446}": "backhand index pointing up direction gesture",
+      "\u{1F447}": "backhand index pointing down direction gesture",
+      "\u{1F448}": "backhand index pointing left direction gesture",
+      "\u{1F449}": "backhand index pointing right direction gesture",
+      "\u{1F44A}": "oncoming fist punch bro fist bump",
+      "\u{1F44B}": "waving hand hello goodbye wave greeting",
+      "\u{1F44C}": "ok hand perfect agree approval",
+      "\u{1F44D}": "thumbs up approve like yes good",
+      "\u{1F44E}": "thumbs down disapprove dislike no bad",
+      "\u{1F44F}": "clapping hands praise applause congratulations bravo",
+      "\u{1F450}": "open hands hug welcome",
+      "\u{1F466}": "boy child young male kid",
+      "\u{1F467}": "girl child young female kid",
+      "\u{1F468}": "man male adult person gender",
+      "\u{1F468}\u200D\u{1F9B0}": "man red hair male person ginger hairstyle",
+      "\u{1F468}\u200D\u{1F9B1}": "man curly hair male person hairstyle",
+      "\u{1F468}\u200D\u{1F9B2}": "man bald male person no hair",
+      "\u{1F468}\u200D\u{1F9B3}": "man white hair male person hairstyle",
+      "\u{1F469}": "woman female adult person gender",
+      "\u{1F469}\u200D\u{1F9B0}": "woman red hair female person ginger hairstyle",
+      "\u{1F469}\u200D\u{1F9B1}": "woman curly hair female person hairstyle",
+      "\u{1F469}\u200D\u{1F9B2}": "woman bald female person no hair",
+      "\u{1F469}\u200D\u{1F9B3}": "woman white hair female person hairstyle",
+      "\u{1F471}": "person blonde hair human hairstyle",
+      "\u{1F471}\u200D\u2640\uFE0F": "woman blonde hair female person hairstyle",
+      "\u{1F471}\u200D\u2642\uFE0F": "man blonde hair male person hairstyle",
+      "\u{1F474}": "old man elderly male person senior",
+      "\u{1F475}": "old woman elderly female person senior",
+      "\u{1F476}": "baby child infant young newborn",
+      "\u{1F485}": "nail polish beauty manicure cosmetics",
+      "\u{1F48B}": "kiss mark lips love romance",
+      "\u{1F4AA}": "flexed biceps strong muscle flex",
+      "\u{1F590}\uFE0F": "hand with fingers splayed stop halt palm",
+      "\u{1F595}": "middle finger rude offensive gesture",
+      "\u{1F596}": "vulcan salute star trek spock prosper",
+      "\u{1F90C}": "pinched fingers italian what gesture",
+      "\u{1F90F}": "pinching hand small tiny little",
+      "\u{1F918}": "sign of the horns rock metal music",
+      "\u{1F919}": "call me hand phone hang loose",
+      "\u{1F91A}": "raised back of hand stop halt",
+      "\u{1F91B}": "left-facing fist bump greeting",
+      "\u{1F91C}": "right-facing fist bump greeting",
+      "\u{1F91D}": "handshake deal agreement partnership",
+      "\u{1F91E}": "crossed fingers luck hopeful wish",
+      "\u{1F91F}": "love-you gesture rock love sign",
+      "\u{1F932}": "palms up together pray beg",
+      "\u{1F933}": "selfie camera phone photo",
+      "\u{1F9B4}": "bone skeleton body structure",
+      "\u{1F9B5}": "leg kick foot limb",
+      "\u{1F9B6}": "foot toe kick limb",
+      "\u{1F9B7}": "tooth teeth dental",
+      "\u{1F9BB}": "ear with hearing aid accessibility deaf",
+      "\u{1F9BE}": "mechanical arm robot prosthetic",
+      "\u{1F9BF}": "mechanical leg robot prosthetic",
+      "\u{1F9D1}": "person adult gender-neutral human",
+      "\u{1F9D1}\u200D\u{1F9B0}": "person red hair human ginger hairstyle",
+      "\u{1F9D1}\u200D\u{1F9B1}": "person curly hair human hairstyle",
+      "\u{1F9D1}\u200D\u{1F9B2}": "person bald human no hair",
+      "\u{1F9D1}\u200D\u{1F9B3}": "person white hair human hairstyle",
+      "\u{1F9D2}": "child young kid gender-neutral youth",
+      "\u{1F9D3}": "older person elderly human senior",
+      "\u{1F9D4}": "person beard facial hair face",
+      "\u{1F9E0}": "brain mind intellect thinking",
+      "\u{1FA78}": "drop of blood injury period medical",
+      "\u{1FAC0}": "anatomical heart organ cardiac",
+      "\u{1FAC1}": "lungs breathing organ respiratory",
+      "\u{1F64C}": "raising hands celebration praise hooray",
+      "\u{1F64F}": "folded hands please thank you pray hope",
+      // Food & Drink
+      "\u2615": "hot beverage coffee tea drink",
+      "\u{1F330}": "chestnut food nut seed",
+      "\u{1F358}": "rice cracker japanese food snack",
+      "\u{1F359}": "rice ball japanese food onigiri",
+      "\u{1F35A}": "cooked rice food asian grain",
+      "\u{1F35B}": "curry rice food indian spicy",
+      "\u{1F35C}": "steaming bowl noodles ramen soup",
+      "\u{1F361}": "dango japanese food dessert sweet",
+      "\u{1F362}": "oden japanese food skewer",
+      "\u{1F363}": "sushi japanese food fish rice",
+      "\u{1F364}": "fried shrimp seafood tempura",
+      "\u{1F365}": "fish cake japanese food naruto",
+      "\u{1F366}": "soft ice cream dessert cold sweet",
+      "\u{1F367}": "shaved ice dessert cold sweet",
+      "\u{1F368}": "ice cream dessert cold sweet",
+      "\u{1F369}": "doughnut sweet dessert breakfast",
+      "\u{1F36A}": "cookie sweet dessert biscuit",
+      "\u{1F36B}": "chocolate bar candy sweet dessert",
+      "\u{1F36C}": "candy sweet dessert sugar",
+      "\u{1F36D}": "lollipop candy sweet dessert",
+      "\u{1F36E}": "custard dessert sweet pudding",
+      "\u{1F36F}": "honey pot sweet bee food",
+      "\u{1F370}": "shortcake dessert sweet slice",
+      "\u{1F371}": "bento box japanese food lunch",
+      "\u{1F372}": "pot of food stew soup cooking",
+      "\u{1F374}": "fork and knife cutlery silverware",
+      "\u{1F375}": "teacup without handle green tea drink",
+      "\u{1F376}": "sake japanese drink alcohol rice wine",
+      "\u{1F377}": "wine glass drink alcohol beverage",
+      "\u{1F378}": "cocktail glass drink alcohol martini",
+      "\u{1F379}": "tropical drink alcohol beverage cocktail",
+      "\u{1F37A}": "beer mug drink alcohol beverage",
+      "\u{1F37B}": "clinking beer mugs drink alcohol cheers",
+      "\u{1F37C}": "baby bottle milk drink infant",
+      "\u{1F37D}\uFE0F": "fork knife plate cutlery dining",
+      "\u{1F37E}": "bottle with popping cork celebration drink",
+      "\u{1F37F}": "popcorn movie snack corn",
+      "\u{1F382}": "birthday cake celebration dessert",
+      "\u{1F942}": "clinking glasses drink alcohol champagne",
+      "\u{1F943}": "tumbler glass drink alcohol whiskey",
+      "\u{1F944}": "spoon cutlery silverware utensil",
+      "\u{1F957}": "green salad healthy food vegetables",
+      "\u{1F95B}": "glass of milk drink dairy beverage",
+      "\u{1F95C}": "peanuts food nuts legumes",
+      "\u{1F95F}": "dumpling food asian chinese",
+      "\u{1F960}": "fortune cookie chinese food prediction",
+      "\u{1F962}": "chopsticks utensils asian eating",
+      "\u{1F964}": "cup with straw drink beverage soda",
+      "\u{1F967}": "pie dessert food baked",
+      "\u{1F96E}": "moon cake chinese food festival",
+      "\u{1F9AA}": "oyster seafood shellfish pearl",
+      "\u{1F9C1}": "cupcake dessert sweet cake",
+      "\u{1F9C3}": "beverage box juice drink straw",
+      "\u{1F9C9}": "mate drink beverage tea south american",
+      "\u{1F9CA}": "ice cube cold frozen water",
+      "\u{1F9CB}": "bubble tea drink boba taiwanese",
+      "\u{1FAD0}": "blueberries fruit food berries",
+      "\u{1FAD1}": "bell pepper vegetable food",
+      "\u{1FAD2}": "olive fruit food mediterranean",
+      "\u{1FAD3}": "flatbread food pita naan",
+      "\u{1FAD4}": "tamale food mexican wrapped",
+      "\u{1FAD5}": "fondue food cheese melted",
+      "\u{1FAD6}": "teapot drink hot beverage",
+      // Animals & Nature
+      "\u{1F405}": "tiger cat wild animal dangerous",
+      "\u{1F406}": "leopard cat wild animal spots",
+      "\u{1F408}\u200D\u2B1B": "black cat feline animal pet",
+      "\u{1F40A}": "crocodile alligator reptile dangerous",
+      "\u{1F40B}": "whale sea creature marine mammal",
+      "\u{1F415}\u200D\u{1F9BA}": "service dog assistance animal",
+      "\u{1F419}": "octopus sea creature tentacles",
+      "\u{1F41F}": "fish sea creature swimming",
+      "\u{1F420}": "tropical fish sea creature aquarium",
+      "\u{1F421}": "blowfish pufferfish sea creature",
+      "\u{1F42C}": "dolphin sea creature marine mammal",
+      "\u{1F433}": "spouting whale sea creature marine mammal",
+      "\u{1F43F}\uFE0F": "chipmunk animal squirrel",
+      "\u{1F577}\uFE0F": "spider arachnid bug insect",
+      "\u{1F578}\uFE0F": "spider web cobweb arachnid",
+      "\u{1F980}": "crab seafood shellfish",
+      "\u{1F982}": "scorpion arachnid dangerous",
+      "\u{1F988}": "shark sea creature dangerous fish",
+      "\u{1F98D}": "gorilla ape primate monkey",
+      "\u{1F990}": "shrimp seafood shellfish",
+      "\u{1F991}": "squid sea creature tentacles",
+      "\u{1F993}": "zebra stripes wild animal",
+      "\u{1F994}": "hedgehog animal spiky cute",
+      "\u{1F995}": "sauropod dinosaur extinct long-neck",
+      "\u{1F996}": "tyrannosaurus rex dinosaur extinct",
+      "\u{1F997}": "cricket insect chirping bug",
+      "\u{1F99E}": "lobster seafood shellfish",
+      "\u{1F9A1}": "badger animal woodland",
+      "\u{1F9A3}": "mammoth extinct animal prehistoric",
+      "\u{1F9A4}": "dodo extinct bird animal",
+      "\u{1F9A5}": "sloth slow animal lazy",
+      "\u{1F9A6}": "otter swimming animal water",
+      "\u{1F9A7}": "orangutan ape primate monkey",
+      "\u{1F9A8}": "skunk animal smelly spray",
+      "\u{1F9A9}": "flamingo pink bird animal",
+      "\u{1F9AB}": "beaver animal dam builder",
+      "\u{1F9AC}": "bison buffalo animal wild",
+      "\u{1F9AE}": "guide dog service animal assistance",
+      "\u{1FAB6}": "feather bird plume light",
+      // Travel & Places
+      "\u2668\uFE0F": "hot springs steam bath spa onsen",
+      "\u26E9\uFE0F": "shinto shrine building religious japanese",
+      "\u26EA": "church building religious christian worship",
+      "\u26F0\uFE0F": "mountain nature landscape peak hill",
+      "\u26F2": "fountain water decoration park plaza",
+      "\u26FA": "tent camping outdoors shelter vacation",
+      "\u{1F301}": "foggy city weather mist urban",
+      "\u{1F303}": "night with stars city evening urban",
+      "\u{1F304}": "sunrise over mountains morning dawn nature",
+      "\u{1F305}": "sunrise morning dawn sun nature",
+      "\u{1F306}": "cityscape at dusk evening urban sunset",
+      "\u{1F307}": "sunset over buildings evening urban",
+      "\u{1F309}": "bridge at night city urban evening",
+      "\u{1F30B}": "volcano mountain eruption nature disaster",
+      "\u{1F30D}": "globe showing europe africa earth world planet",
+      "\u{1F30E}": "globe showing americas earth world planet",
+      "\u{1F30F}": "globe showing asia australia earth world planet",
+      "\u{1F310}": "globe with meridians earth world planet network",
+      "\u{1F3A0}": "carousel horse amusement park ride",
+      "\u{1F3A1}": "ferris wheel amusement park ride fair",
+      "\u{1F3A2}": "roller coaster amusement park ride thrill",
+      "\u{1F3AA}": "circus tent entertainment show performance",
+      "\u{1F3D4}\uFE0F": "snow capped mountain peak nature landscape",
+      "\u{1F3D5}\uFE0F": "camping tent outdoors nature vacation",
+      "\u{1F3D6}\uFE0F": "beach with umbrella vacation summer sand sea",
+      "\u{1F3D7}\uFE0F": "building construction site development crane",
+      "\u{1F3D8}\uFE0F": "houses buildings residential neighborhood",
+      "\u{1F3D9}\uFE0F": "cityscape urban buildings skyline",
+      "\u{1F3DA}\uFE0F": "derelict house abandoned building old",
+      "\u{1F3DB}\uFE0F": "classical building architecture historic landmark",
+      "\u{1F3DC}\uFE0F": "desert hot dry sand nature landscape",
+      "\u{1F3DD}\uFE0F": "desert island beach vacation tropical",
+      "\u{1F3DE}\uFE0F": "national park nature landscape scenic",
+      "\u{1F3DF}\uFE0F": "stadium sports arena event venue",
+      "\u{1F3E0}": "house building home residential dwelling",
+      "\u{1F3E1}": "house with garden home yard residential",
+      "\u{1F3E2}": "office building business work corporate",
+      "\u{1F3E3}": "japanese post office building mail service",
+      "\u{1F3E4}": "post office building mail service",
+      "\u{1F3E5}": "hospital building medical healthcare emergency",
+      "\u{1F3E6}": "bank building money finance business",
+      "\u{1F3E8}": "hotel building lodging accommodation travel",
+      "\u{1F3E9}": "love hotel building romance accommodation",
+      "\u{1F3EA}": "convenience store building shop retail",
+      "\u{1F3EB}": "school building education learning",
+      "\u{1F3EC}": "department store building shopping retail",
+      "\u{1F3ED}": "factory building industrial manufacturing",
+      "\u{1F3EF}": "japanese castle building landmark historic",
+      "\u{1F3F0}": "castle building landmark historic medieval",
+      "\u{1F488}": "barber pole haircut salon shop",
+      "\u{1F492}": "wedding chapel marriage ceremony church",
+      "\u{1F54B}": "kaaba building religious islamic mecca",
+      "\u{1F54C}": "mosque building religious islamic worship",
+      "\u{1F54D}": "synagogue building religious jewish worship",
+      "\u{1F5FA}\uFE0F": "world map geography atlas travel global",
+      "\u{1F5FB}": "mount fuji japan mountain landmark nature",
+      "\u{1F5FC}": "tokyo tower landmark japan building",
+      "\u{1F5FD}": "statue of liberty landmark usa freedom",
+      "\u{1F5FE}": "map of japan geography country asian",
+      "\u{1F9ED}": "compass navigation direction travel tool",
+      "\u{1F9F1}": "brick construction building material wall",
+      "\u{1FAA8}": "rock stone nature boulder mineral",
+      "\u{1FAB5}": "wood log nature lumber timber material",
+      "\u{1F6D5}": "hindu temple building religious worship",
+      "\u{1F6D6}": "hut house shelter primitive dwelling",
+      // Activities
+      "\u26BD": "soccer ball football sport team game",
+      "\u26BE": "baseball sport team game ball bat",
+      "\u26F3": "flag in hole golf sport course game",
+      "\u{1F3A3}": "fishing pole rod sport hook line",
+      "\u{1F3A4}": "microphone karaoke sing music performance",
+      "\u{1F3A7}": "headphone music audio listen sound",
+      "\u{1F3A8}": "artist palette art painting creativity",
+      "\u{1F3AC}": "clapper board movie film director action",
+      "\u{1F3AD}": "performing arts theater drama masks",
+      "\u{1F3AE}": "video game controller gaming play",
+      "\u{1F3AF}": "direct hit target dart game sport",
+      "\u{1F3B1}": "pool 8 ball billiards game sport cue",
+      "\u{1F3B2}": "game die dice gambling play random",
+      "\u{1F3B7}": "saxophone jazz instrument music brass",
+      "\u{1F3B8}": "guitar instrument music strings rock",
+      "\u{1F3B9}": "musical keyboard piano instrument keys",
+      "\u{1F3BA}": "trumpet brass instrument music fanfare",
+      "\u{1F3BB}": "violin instrument music strings classical",
+      "\u{1F3BC}": "musical score notes sheet music",
+      "\u{1F3BD}": "running shirt athletics sport race",
+      "\u{1F3BE}": "tennis sport racket ball court game",
+      "\u{1F3BF}": "skis winter sport snow mountain",
+      "\u{1F3C0}": "basketball sport team game ball",
+      "\u{1F3C8}": "american football sport team game ball",
+      "\u{1F3C9}": "rugby football sport team game ball",
+      "\u{1F3CF}": "cricket sport team game bat ball",
+      "\u{1F3D0}": "volleyball sport team game ball net",
+      "\u{1F3D1}": "field hockey stick sport team game ball",
+      "\u{1F3D2}": "ice hockey stick sport team game puck",
+      "\u{1F3D3}": "ping pong table tennis sport game paddle",
+      "\u{1F3F8}": "badminton sport game racket shuttlecock",
+      "\u{1F3F9}": "bow and arrow archery sport target shoot",
+      "\u{1F93F}": "diving mask snorkel underwater swim sport",
+      "\u{1F941}": "drum percussion instrument music rhythm",
+      "\u{1F945}": "goal net sports hockey soccer score",
+      "\u{1F94C}": "curling stone winter sport ice game",
+      "\u{1F94D}": "lacrosse sport team game stick ball",
+      "\u{1F94E}": "softball sport team game ball bat",
+      "\u{1F94F}": "flying disc frisbee sport game outdoor",
+      "\u{1F9E9}": "puzzle piece jigsaw game entertainment",
+      "\u{1FA80}": "yo-yo toy game skill string",
+      "\u{1FA81}": "kite flying outdoor toy wind sport",
+      "\u{1FA83}": "boomerang sport throw return australian",
+      "\u{1FA95}": "banjo instrument music strings folk",
+      "\u{1FA97}": "accordion instrument music squeeze box",
+      "\u{1FA98}": "long drum percussion instrument music",
+      "\u{1F6F7}": "sled winter sport snow ride",
+      // Weather
+      "\u2601\uFE0F": "cloud",
+      "\u26C5": "sun behind cloud",
+      "\u26C8\uFE0F": "cloud with lightning and rain",
+      "\u{1F324}\uFE0F": "sun behind one cloud",
+      "\u{1F325}\uFE0F": "sun behind two clouds",
+      "\u{1F326}\uFE0F": "sun behind three clouds",
+      "\u{1F327}\uFE0F": "cloud with rain",
+      "\u{1F328}\uFE0F": "cloud with snow",
+      "\u{1F329}\uFE0F": "cloud with lightning",
+      "\u{1F32A}\uFE0F": "cloud with tornado",
+      "\u{1F32B}\uFE0F": "cloud with fog",
+      "\u{1F31D}": "full moon",
+      "\u{1F311}": "new moon",
+      "\u{1F312}": "waxing crescent moon",
+      "\u{1F313}": "waxing gibbous moon",
+      "\u{1F314}": "full moon",
+      "\u{1F315}": "waning gibbous moon",
+      "\u{1F316}": "waning crescent moon",
+      "\u{1F317}": "last quarter moon",
+      "\u{1F318}": "first quarter moon",
+      "\u{1F319}": "crescent moon",
+      "\u{1F31A}": "new moon face",
+      "\u{1F31B}": "first quarter moon face",
+      "\u{1F31C}": "last quarter moon face",
+      "\u2600\uFE0F": "sun",
+      "\u{1F31E}": "sun with face",
+      "\u2B50": "star",
+      "\u{1F31F}": "shooting star",
+      "\u{1F320}": "milky way",
+      "\u2604\uFE0F": "comet",
+      "\u{1F321}\uFE0F": "thermometer",
+      "\u{1F32C}\uFE0F": "wind",
+      "\u{1F300}": "cyclone",
+      "\u{1F308}": "rainbow",
+      "\u{1F302}": "umbrella",
+      "\u2602\uFE0F": "umbrella",
+      "\u2614": "umbrella with rain",
+      "\u26F1\uFE0F": "umbrella on beach",
+      "\u26A1": "high voltage",
+      "\u2744\uFE0F": "snowflake",
+      "\u2603\uFE0F": "snowman",
+      "\u26C4": "snowman without snow",
+      "\u{1F525}": "fire",
+      "\u{1F4A7}": "droplet",
+      "\u{1F30A}": "wave",
+      // Objects
+      "\u231A": "watch timekeeping device",
+      "\u231B": "hourglass timer device",
+      "\u2328\uFE0F": "keyboard input device",
+      "\u23F0": "alarm clock timekeeping device",
+      "\u23F1\uFE0F": "stopwatch timer device",
+      "\u23F2\uFE0F": "timer device",
+      "\u23F3": "stopwatch timer device",
+      "\u260E\uFE0F": "telephone handset communication device",
+      "\u2692\uFE0F": "wrench and hammer tool fixing device",
+      "\u2694\uFE0F": "shield and sword defensive weapon",
+      "\u2696\uFE0F": "scale balance weight device",
+      "\u2699\uFE0F": "gear mechanical device",
+      "\u26B0\uFE0F": "coffin casket burial container",
+      "\u26B1\uFE0F": "hourglass memorial timer",
+      "\u26CF\uFE0F": "pickaxe tool mining device",
+      "\u26D3\uFE0F": "chain link security device",
+      "\u2702\uFE0F": "scissors cutting tool",
+      "\u2709\uFE0F": "envelope letter mail",
+      "\u270F\uFE0F": "pencil writing tool",
+      "\u2712\uFE0F": "pen writing tool",
+      "\u{1F380}": "bow ribbon decoration",
+      "\u{1F381}": "gift wrapped package",
+      "\u{1F388}": "balloon decoration",
+      "\u{1F389}": "party confetti decoration",
+      "\u{1F38A}": "party popper decoration",
+      "\u{1F38E}": "traditional japanese doll",
+      "\u{1F38F}": "origami paper decoration",
+      "\u{1F390}": "envelope letter mail",
+      "\u{1F399}\uFE0F": "microphone sound amplification device",
+      "\u{1F39A}\uFE0F": "headphones audio listening device",
+      "\u{1F39B}\uFE0F": "speaker sound amplification device",
+      "\u{1F39E}\uFE0F": "video cassette recording device",
+      "\u{1F3A5}": "video camera recording device",
+      "\u{1F3EE}": "lantern festival decoration",
+      "\u{1F3F7}\uFE0F": "price tag label",
+      "\u{1F3FA}": "bell gong musical instrument",
+      "\u{1F48C}": "envelope letter mail",
+      "\u{1F48E}": "gemstone jewelry accessory",
+      "\u{1F4A1}": "light bulb lighting device",
+      "\u{1F4A3}": "bomb explosive weapon",
+      "\u{1F4B0}": "money currency finance device",
+      "\u{1F4B3}": "credit card finance device",
+      "\u{1F4B4}": "money currency finance device",
+      "\u{1F4B5}": "money currency finance device",
+      "\u{1F4B6}": "money currency finance device",
+      "\u{1F4B7}": "money currency finance device",
+      "\u{1F4B8}": "money currency finance device",
+      "\u{1F4BB}": "computer desktop",
+      "\u{1F4BD}": "computer disk storage device",
+      "\u{1F4BE}": "floppy disk storage device",
+      "\u{1F4BF}": "compact disc storage device",
+      "\u{1F4C0}": "dvd disc storage device",
+      "\u{1F4C1}": "file folder storage",
+      "\u{1F4C2}": "file folder storage",
+      "\u{1F4C3}": "page of paper",
+      "\u{1F4C4}": "page of paper",
+      "\u{1F4C5}": "calendar date",
+      "\u{1F4C6}": "calendar date",
+      "\u{1F4C7}": "file folder storage",
+      "\u{1F4C8}": "chart graph",
+      "\u{1F4C9}": "chart graph",
+      "\u{1F4CA}": "chart graph",
+      "\u{1F4CB}": "clipboard storage container",
+      "\u{1F4CC}": "pushpin sticky note marker",
+      "\u{1F4CD}": "pin sticky note marker",
+      "\u{1F4CE}": "paperclip attachment",
+      "\u{1F4CF}": "ruler measuring tool",
+      "\u{1F4D0}": "ruler measuring tool",
+      "\u{1F4D1}": "page of paper",
+      "\u{1F4D2}": "book book",
+      "\u{1F4D3}": "book book",
+      "\u{1F4D4}": "book book",
+      "\u{1F4D5}": "book book",
+      "\u{1F4D6}": "book book",
+      "\u{1F4D7}": "book book",
+      "\u{1F4D8}": "book book",
+      "\u{1F4D9}": "book book",
+      "\u{1F4DA}": "book book",
+      "\u{1F4DC}": "scroll parchment paper",
+      "\u{1F4DD}": "pencil writing tool",
+      "\u{1F4DE}": "telephone handset communication device",
+      "\u{1F4DF}": "pager pager device",
+      "\u{1F4E0}": "television television device",
+      "\u{1F4E1}": "satellite communication device",
+      "\u{1F4E4}": "envelope letter mail",
+      "\u{1F4E5}": "envelope letter mail",
+      "\u{1F4E6}": "package shipping container",
+      "\u{1F4E7}": "envelope letter mail",
+      "\u{1F4E8}": "envelope letter mail",
+      "\u{1F4E9}": "envelope letter mail",
+      "\u{1F4EA}": "envelope letter mail",
+      "\u{1F4EB}": "envelope letter mail",
+      "\u{1F4EC}": "envelope letter mail",
+      "\u{1F4ED}": "envelope letter mail",
+      "\u{1F4EE}": "envelope letter mail",
+      "\u{1F4EF}": "envelope letter mail",
+      "\u{1F4F0}": "newspaper newspaper",
+      "\u{1F4F1}": "smartphone mobile phone",
+      "\u{1F4F2}": "smartphone mobile phone",
+      "\u{1F4F7}": "camera photo imaging device",
+      "\u{1F4F8}": "camera photo imaging device",
+      "\u{1F4F9}": "video camera recording device",
+      "\u{1F4FA}": "television television device",
+      "\u{1F4FB}": "radio broadcasting device",
+      "\u{1F4FC}": "vhs tape storage device",
+      "\u{1F4FD}\uFE0F": "video cassette recording device",
+      "\u{1F4FF}": "prayer beads religious accessory",
+      "\u{1F50B}": "battery power supply device",
+      "\u{1F50C}": "battery power supply device",
+      "\u{1F50D}": "magnifying glass search tool",
+      "\u{1F50E}": "magnifying glass search tool",
+      "\u{1F50F}": "lock security device",
+      "\u{1F510}": "lock security device",
+      "\u{1F511}": "key lock security device",
+      "\u{1F512}": "lock security device",
+      "\u{1F513}": "lock security device",
+      "\u{1F516}": "bookmark page marker",
+      "\u{1F517}": "link page marker",
+      "\u{1F526}": "flashlight flashlight device",
+      "\u{1F527}": "wrench tool fixing device",
+      "\u{1F528}": "hammer tool striking device",
+      "\u{1F529}": "gear mechanical device",
+      "\u{1F52B}": "gun firearm weapon",
+      "\u{1F52E}": "crystal ball fortune telling device",
+      "\u{1F56F}\uFE0F": "candle light source",
+      "\u{1F570}\uFE0F": "hourglass timer device",
+      "\u{1F579}\uFE0F": "joystick game controller",
+      "\u{1F587}\uFE0F": "paperclip attachment",
+      "\u{1F58A}\uFE0F": "pen writing tool",
+      "\u{1F58B}\uFE0F": "pen writing tool",
+      "\u{1F58C}\uFE0F": "paintbrush painting tool",
+      "\u{1F58D}\uFE0F": "paintbrush painting tool",
+      "\u{1F5A5}\uFE0F": "computer monitor screen",
+      "\u{1F5A8}\uFE0F": "printer output device",
+      "\u{1F5B1}\uFE0F": "computer mouse pointing device",
+      "\u{1F5B2}\uFE0F": "touchscreen input device",
+      "\u{1F5BC}\uFE0F": "picture frame photo display",
+      "\u{1F5C2}\uFE0F": "file folder storage",
+      "\u{1F5C3}\uFE0F": "file folder storage",
+      "\u{1F5C4}\uFE0F": "file folder storage",
+      "\u{1F5D1}\uFE0F": "trash can waste disposal",
+      "\u{1F5D2}\uFE0F": "notebook paper",
+      "\u{1F5D3}\uFE0F": "calendar paper",
+      "\u{1F5DC}\uFE0F": "clamp tool mechanical device",
+      "\u{1F5DD}\uFE0F": "lock and key security device",
+      "\u{1F5DE}\uFE0F": "file folder storage",
+      "\u{1F5E1}\uFE0F": "sword weapon",
+      "\u{1F5F3}\uFE0F": "file folder storage",
+      "\u{1F9E7}": "red envelope money gift",
+      "\u{1F9E8}": "firecracker explosive weapon",
+      "\u{1F9EE}": "calculator arithmetic device",
+      "\u{1F9EF}": "fire extinguisher safety device",
+      "\u{1F9F0}": "toolbox tool storage device",
+      "\u{1F9F2}": "magnet magnetic field device",
+      "\u{1F9F4}": "lotion cosmetic product",
+      "\u{1F9F7}": "link page marker",
+      "\u{1F9F8}": "pillow cushion",
+      "\u{1F9F9}": "broom cleaning tool",
+      "\u{1F9FA}": "basket storage container",
+      "\u{1F9FC}": "soap dispenser",
+      "\u{1F9FD}": "washcloth cleaning tool",
+      "\u{1F9FE}": "receipt invoice",
+      "\u{1F9FF}": "magic wand wizard spell casting device",
+      "\u{1FA84}": "magic wand wizard witch spell",
+      "\u{1FA85}": "pi\xF1ata party celebration mexican",
+      "\u{1FA86}": "nesting dolls russian matryoshka toy",
+      "\u{1FA91}": "bed bed",
+      "\u{1FA92}": "razor shaving tool",
+      "\u{1FA93}": "axe tool chopping device",
+      "\u{1FA94}": "candle light source",
+      "\u{1FA99}": "coin currency finance device",
+      "\u{1FA9A}": "saw tool woodworking device",
+      "\u{1FA9B}": "screwdriver tool fixing device",
+      "\u{1FA9C}": "lever mechanical device",
+      "\u{1FA9E}": "mirror reflection device",
+      "\u{1FA9F}": "curtain window covering",
+      "\u{1FAA1}": "sewing needle thread craft",
+      "\u{1FAA2}": "knot rope tied string",
+      "\u{1FAA3}": "bucket pail container water",
+      "\u{1FAA4}": "mouse trap rodent catch",
+      "\u{1FAA5}": "toothbrush dental hygiene tool",
+      "\u{1FAA6}": "headstone grave cemetery death",
+      "\u{1FAA7}": "placard sign protest announcement",
+      "\u{1FAA9}": "mirror ball disco party dance",
+      "\u{1FAAA}": "identification card id license",
+      "\u{1FAAB}": "low battery empty power dying",
+      "\u{1FAAC}": "hamsa amulet protection luck",
+      "\u{1FAAD}": "wireless speaker audio bluetooth",
+      "\u{1FAAE}": "folding hand fan cooling breeze",
+      "\u{1FAAF}": "khanda sikh religion symbol",
+      "\u{1FAB0}": "fly insect bug pest",
+      "\u{1FAB1}": "worm animal earth crawler",
+      "\u{1FAB2}": "beetle insect bug",
+      "\u{1FAB3}": "cockroach insect bug pest",
+      "\u{1FAB4}": "potted plant garden indoor nature",
+      "\u{1FAB7}": "lotus flower buddhism peace",
+      "\u{1FAB8}": "coral ocean sea marine",
+      "\u{1FAB9}": "empty nest bird home",
+      "\u{1FABA}": "nest with eggs bird home",
+      "\u{1FAE7}": "bubbles soap water floating",
+      "\u{1FAF8}": "rightwards hand pushing right",
+      "\u{1F6AA}": "door door",
+      "\u{1F6AC}": "cigarette smoking device",
+      "\u{1F6B0}": "water closet flushing device",
+      "\u{1F6BD}": "toilet flushing device",
+      "\u{1F6BF}": "shower shower head",
+      "\u{1F6C0}": "bathroom bathtub",
+      "\u{1F6C1}": "bathroom bathtub",
+      "\u{1F6CB}\uFE0F": "sofa couch seating",
+      "\u{1F6CC}": "bed and pillow sleeping arrangement",
+      "\u{1F6CD}\uFE0F": "shopping bag retail shopping",
+      "\u{1F6CE}\uFE0F": "bell doorbell communication device",
+      "\u{1F6CF}\uFE0F": "bed bed",
+      "\u{1F6D2}": "shopping cart retail shopping",
+      "\u{1F6E0}\uFE0F": "toolbox tool storage device",
+      "\u{1F6E2}\uFE0F": "oil barrel petroleum product",
+      "\u{1FAF9}": "leftwards hand pushing left",
+      "\u{1FAFA}": "palm down hand below under"
+    };
+    return (emojiDescriptions[emoji] || "").toLowerCase();
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.19.2</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue where content start position was not being applied from General settings</li>\n</ul>\n<h3>v2.19.1</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Show example frontmatter values for each field in &quot;Custom Field Names&quot; settings tab</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Updated CSS to address padding issue with <code>Bread Crumbs</code> and <code>Typwriter Mode</code> plugins</li>\n</ul>\n<h3>v2.19.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>Horizontal image positioning with new X-Position slider</li>\n<li>X-Position support in General, Folder Image, and Frontmatter settings</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.19.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -1872,7 +2846,7 @@ function getFrontmatterValue(frontmatter, fieldNames) {
   }
   return null;
 }
-module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
+module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
   constructor() {
     super(...arguments);
     __publicField(this, "debounceTimer", null);
@@ -1888,7 +2862,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
+      if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
         this.updateBanner(activeLeaf.view, false);
       }
     }, 100));
@@ -1902,45 +2876,21 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       this.app.workspace.on("active-leaf-change", this.handleActiveLeafChange.bind(this))
     );
     this.registerEvent(
-      this.app.metadataCache.on("changed", async (file) => {
-        var _a;
-        const frontmatter = (_a = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
-        if (!frontmatter) return;
-        const previousFrontmatter = this.lastFrontmatter.get(file.path);
-        if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
-          return;
-        }
-        const relevantFields = [
-          ...this.settings.customBannerField,
-          ...this.settings.customYPositionField,
-          ...this.settings.customXPositionField,
-          ...this.settings.customContentStartField,
-          ...this.settings.customImageDisplayField,
-          ...this.settings.customImageRepeatField,
-          ...this.settings.customBannerHeightField,
-          ...this.settings.customFadeField,
-          ...this.settings.customBorderRadiusField
-        ];
-        const hasRelevantFieldChange = relevantFields.some(
-          (field) => frontmatter[field] !== (previousFrontmatter == null ? void 0 : previousFrontmatter[field])
-        );
-        if (!hasRelevantFieldChange) return;
-        this.lastFrontmatter.set(file.path, frontmatter);
-        const leaves = this.app.workspace.getLeavesOfType("markdown");
-        for (const leaf of leaves) {
-          if (leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file === file && !leaf.containerEl.style.display && leaf.containerEl.matches(".workspace-leaf")) {
-            this.loadedImages.delete(file.path);
-            this.lastKeywords.delete(file.path);
-            await this.updateBanner(leaf.view, true);
-          }
-        }
-      })
-    );
-    this.registerEvent(
       this.app.workspace.on("layout-change", this.handleLayoutChange.bind(this))
     );
     this.registerEvent(
-      this.app.workspace.on("mode-change", this.handleModeChange.bind(this))
+      this.app.workspace.on("editor-change", this.debouncedEnsureBanner.bind(this))
+    );
+    this.registerEvent(
+      this.app.workspace.on("resize", this.debouncedEnsureBanner.bind(this))
+    );
+    this.registerEvent(
+      this.app.metadataCache.on("changed", (file) => {
+        const activeLeaf = this.app.workspace.activeLeaf;
+        if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView && activeLeaf.view.file === file) {
+          this.updateBanner(activeLeaf.view, true);
+        }
+      })
     );
     this.registerMarkdownPostProcessor(this.postProcessor.bind(this));
     this.setupMutationObserver();
@@ -1949,7 +2899,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       name: "\u{1F4CC} Pin current banner image",
       checkCallback: (checking) => {
         var _a;
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
         if (!activeView || !activeView.file) return false;
         const imageUrl = this.loadedImages.get(activeView.file.path);
         const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
@@ -1975,7 +2925,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       name: "\u{1F504} Refresh current banner image",
       checkCallback: (checking) => {
         var _a;
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
         if (!activeView || !activeView.file) return false;
         const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
         let bannerImage;
@@ -1992,44 +2942,56 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           this.loadedImages.delete(activeView.file.path);
           this.lastKeywords.delete(activeView.file.path);
           this.updateBanner(activeView, true).then(() => {
-            new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
+            new import_obsidian8.Notice("\u{1F504} Refreshed banner image");
           }).catch((error) => {
             console.error("Error refreshing image:", error);
-            new import_obsidian3.Notice("\u{1F62D} Failed to refresh image");
+            new import_obsidian8.Notice("\u{1F62D} Failed to refresh image");
           });
         }
         return true;
       }
     });
-    this.registerEvent(
-      this.app.workspace.on("editor-change", async (editor) => {
-        var _a;
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
-        if (!activeView || !activeView.file) return;
-        const currentFrontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
-        if (!currentFrontmatter || !currentFrontmatter.hasOwnProperty("pixel-banner") && !currentFrontmatter.hasOwnProperty("pixel-banner-query")) {
-          return;
-        }
-        const cursor = editor.getCursor();
-        const line = editor.getLine(cursor.line);
-        if (!line.includes("pixel-banner") && !line.includes("pixel-banner-query")) {
-          return;
-        }
-        await this.updateBanner(activeView, true);
-      })
-    );
     this.addCommand({
       id: "set-banner-image",
       name: "\u{1F3F7}\uFE0F Select Image",
       callback: () => this.handleSelectImage()
     });
+    this.addCommand({
+      id: "set-banner-icon",
+      name: "\u2B50 Set Banner Icon",
+      checkCallback: (checking) => {
+        var _a;
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+        if (!activeView || !activeView.file) return false;
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
+        let hasBanner = false;
+        for (const field of this.settings.customBannerField) {
+          if (frontmatter == null ? void 0 : frontmatter[field]) {
+            hasBanner = true;
+            break;
+          }
+        }
+        if (checking) return hasBanner;
+        if (hasBanner) {
+          this.handleSetBannerIcon();
+        }
+        return true;
+      }
+    });
     if (this.settings.bannerGap === void 0) {
       this.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
     }
+    this.registerEvent(
+      this.app.metadataCache.on("resolved", () => {
+        const leaf = this.app.workspace.activeLeaf;
+        if (leaf && leaf.view instanceof import_obsidian8.MarkdownView) {
+          this.updateBanner(leaf.view, true);
+        }
+      })
+    );
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    this.migrateCustomFields();
     if (!Array.isArray(this.settings.folderImages)) {
       this.settings.folderImages = [];
     }
@@ -2041,36 +3003,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       });
     }
   }
-  migrateCustomFields() {
-    const fieldsToMigrate = [
-      "customBannerField",
-      "customYPositionField",
-      "customXPositionField",
-      "customContentStartField",
-      "customImageDisplayField",
-      "customImageRepeatField",
-      "customBannerHeightField",
-      "customFadeField",
-      "customBorderRadiusField"
-    ];
-    fieldsToMigrate.forEach((field) => {
-      if (typeof this.settings[field] === "string") {
-        console.log(`converting ${field} to array`);
-        this.settings[field] = [this.settings[field]];
-      } else if (!Array.isArray(this.settings[field])) {
-        console.log(`setting default value for ${field}`);
-        this.settings[field] = DEFAULT_SETTINGS[field];
-      }
-    });
-    this.saveSettings();
-  }
   async saveSettings() {
     await this.saveData(this.settings);
     this.loadedImages.clear();
     this.lastKeywords.clear();
     this.imageCache.clear();
     this.app.workspace.iterateAllLeaves((leaf) => {
-      if (leaf.view instanceof import_obsidian3.MarkdownView) {
+      if (leaf.view instanceof import_obsidian8.MarkdownView) {
         this.updateBanner(leaf.view, true);
         if (this.settings.hidePixelBannerFields) {
           this.updateFieldVisibility(leaf.view);
@@ -2080,7 +3019,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   }
   async handleActiveLeafChange(leaf) {
     const previousLeaf = this.app.workspace.activeLeaf;
-    if (previousLeaf && previousLeaf.view instanceof import_obsidian3.MarkdownView) {
+    if (previousLeaf && previousLeaf.view instanceof import_obsidian8.MarkdownView) {
       const previousContentEl = previousLeaf.view.contentEl;
       previousContentEl.classList.remove("pixel-banner");
       ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
@@ -2098,23 +3037,25 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
               this.loadedImages.delete(previousLeaf.view.file.path);
             }
           }
+          const iconOverlays = container.querySelectorAll(".banner-icon-overlay");
+          iconOverlays.forEach((overlay) => overlay.remove());
         }
       });
     }
-    if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
+    if (leaf && leaf.view instanceof import_obsidian8.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, false);
     }
   }
   handleLayoutChange() {
     setTimeout(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && (activeLeaf.view instanceof import_obsidian3.MarkdownView || activeLeaf.view.getViewType() === "markdown")) {
+      if (activeLeaf && (activeLeaf.view instanceof import_obsidian8.MarkdownView || activeLeaf.view.getViewType() === "markdown")) {
         this.updateBanner(activeLeaf.view, false);
       }
     }, 100);
   }
   async handleModeChange(leaf) {
-    if (leaf && leaf.view instanceof import_obsidian3.MarkdownView && leaf.view.file) {
+    if (leaf && leaf.view instanceof import_obsidian8.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, true);
       if (this.settings.hidePixelBannerFields) {
         this.updateFieldVisibility(leaf.view);
@@ -2126,9 +3067,15 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (!view || !view.file) {
       return;
     }
+    if (!isContentChange) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
     const frontmatter = (_a = this.app.metadataCache.getFileCache(view.file)) == null ? void 0 : _a.frontmatter;
     const contentEl = view.contentEl;
     const isEmbedded = contentEl.classList.contains("internal-embed") && contentEl.classList.contains("markdown-embed");
+    const viewContent = contentEl;
+    const allOverlays = viewContent.querySelectorAll(".banner-icon-overlay");
+    allOverlays.forEach((overlay) => overlay.remove());
     const existingBanner = contentEl.querySelector(".pixel-banner-image");
     const folderSpecific = this.getFolderSpecificImage(view.file.path);
     let bannerImage = null;
@@ -2218,9 +3165,18 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     }
     if (!bannerImage) {
-      const viewContent = view.contentEl;
+      const viewContent2 = view.contentEl;
       const isReadingView = view.getMode && view.getMode() === "preview";
-      const container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") : viewContent.querySelector(".cm-sizer");
+      let container = isReadingView ? viewContent2.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") || viewContent2.querySelector(".markdown-preview-view") : viewContent2.querySelector(".cm-sizer") || viewContent2.querySelector(".markdown-source-view");
+      if (!container && viewContent2.classList.contains("markdown-preview-view")) {
+        container = viewContent2;
+      }
+      const oldViewIcons = container.querySelectorAll(".view-image-icon");
+      const oldPinIcons = container.querySelectorAll(".pin-icon");
+      const oldRefreshIcons = container.querySelectorAll(".refresh-icon");
+      const oldSelectIcons = container.querySelectorAll(".select-image-icon");
+      const oldBannerIconButtons = container.querySelectorAll(".set-banner-icon-button");
+      [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach((el) => el.remove());
       if (this.settings.showSelectImageIcon && container) {
         const existingSelectIcon = container.querySelector(".select-image-icon");
         if (!existingSelectIcon) {
@@ -2251,6 +3207,47 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     if (this.settings.hidePixelBannerFields && view.getMode() === "preview") {
       this.updateFieldVisibility(view);
     }
+    const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
+    if (isEmbedded) {
+      const embedContainer = contentEl.querySelector(".markdown-preview-sizer") || contentEl.querySelector(".markdown-embed-content") || contentEl;
+      const thisEmbedOverlays = embedContainer.querySelectorAll(":scope > .banner-icon-overlay");
+      thisEmbedOverlays.forEach((overlay) => {
+        overlay.remove();
+      });
+    } else {
+      ["markdown-preview-view", "markdown-source-view"].forEach((viewType) => {
+        const viewContainer = contentEl.querySelector(`.${viewType}`);
+        if (viewContainer) {
+          const mainOverlays = viewContainer.querySelectorAll(":scope > .banner-icon-overlay");
+          mainOverlays.forEach((overlay) => {
+            overlay.remove();
+          });
+        }
+      });
+    }
+    if (bannerIcon && typeof bannerIcon === "string" && bannerIcon.trim()) {
+      const cleanIcon = bannerIcon.trim();
+      const createIconOverlay = (banner, viewType) => {
+        if (!banner) {
+          return;
+        }
+        const bannerIconOverlay = document.createElement("div");
+        bannerIconOverlay.className = "banner-icon-overlay";
+        bannerIconOverlay.dataset.viewType = viewType;
+        bannerIconOverlay.textContent = cleanIcon;
+        banner.insertAdjacentElement("afterend", bannerIconOverlay);
+      };
+      if (isEmbedded) {
+        const embedContainer = contentEl.querySelector(".markdown-preview-sizer") || contentEl.querySelector(".markdown-embed-content") || contentEl;
+        const previewBanner = embedContainer.querySelector(":scope > .pixel-banner-image");
+        createIconOverlay(previewBanner, "preview");
+      } else {
+        const previewBanner = contentEl.querySelector(".markdown-preview-view .pixel-banner-image");
+        const sourceBanner = contentEl.querySelector(".markdown-source-view .pixel-banner-image");
+        createIconOverlay(previewBanner, "preview");
+        createIconOverlay(sourceBanner, "source");
+      }
+    }
   }
   setupMutationObserver() {
     this.observer = new MutationObserver((mutations) => {
@@ -2266,7 +3263,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
           );
           if (bannerRemoved || contentChanged) {
             const activeLeaf = this.app.workspace.activeLeaf;
-            if (activeLeaf && activeLeaf.view instanceof import_obsidian3.MarkdownView) {
+            if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
               const contentEl = activeLeaf.view.contentEl;
               const hasBanner = contentEl.querySelector('.pixel-banner-image[style*="display: block"]');
               if (!hasBanner) {
@@ -2387,7 +3384,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     const keywords = [keyword, fallbackKeyword];
     for (const currentKeyword of keywords) {
       try {
-        const response = await (0, import_obsidian3.requestUrl)({
+        const response = await (0, import_obsidian8.requestUrl)({
           url: `https://api.pexels.com/v1/search?query=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&size=${this.settings.imageSize}&orientation=${this.settings.imageOrientation}`,
           method: "GET",
           headers: {
@@ -2416,7 +3413,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       } catch (error) {
         console.error(`Error fetching image from API for keyword "${currentKeyword}":`, error);
-        new import_obsidian3.Notice(`Failed to fetch image: ${error.message}`);
+        new import_obsidian8.Notice(`Failed to fetch image: ${error.message}`);
       }
     }
     console.error("No images found for any keywords, including the random default.");
@@ -2473,7 +3470,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
+    new import_obsidian8.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
     return null;
   }
   async fetchFlickrImage(keyword) {
@@ -2525,7 +3522,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts");
+    new import_obsidian8.Notice("Failed to fetch an image after multiple attempts");
     return null;
   }
   async fetchUnsplashImage(keyword) {
@@ -2582,7 +3579,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian3.Notice("Failed to fetch an image after multiple attempts");
+    new import_obsidian8.Notice("Failed to fetch an image after multiple attempts");
     return null;
   }
   async makeRequest(url, options = {}) {
@@ -2592,7 +3589,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     this.rateLimiter.lastRequestTime = Date.now();
     try {
-      const response = await (0, import_obsidian3.requestUrl)({
+      const response = await (0, import_obsidian8.requestUrl)({
         url,
         headers: options.headers || {},
         ...options
@@ -2693,7 +3690,18 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
             ...this.settings.customImageRepeatField,
             ...this.settings.customBannerHeightField,
             ...this.settings.customFadeField,
-            ...this.settings.customBorderRadiusField
+            ...this.settings.customBorderRadiusField,
+            ...this.settings.customTitleColorField,
+            ...this.settings.customBannerShuffleField,
+            ...this.settings.customBannerIconField,
+            ...this.settings.customBannerIconSizeField,
+            ...this.settings.customBannerIconXPositionField,
+            ...this.settings.customBannerIconOpacityField,
+            ...this.settings.customBannerIconColorField,
+            ...this.settings.customBannerIconBackgroundColorField,
+            ...this.settings.customBannerIconPaddingField,
+            ...this.settings.customBannerIconBorderRadiusField,
+            ...this.settings.customBannerIconVeritalOffsetField
           ];
           const rows = frontmatterEl.querySelectorAll(".frontmatter-container .frontmatter-section-label");
           rows.forEach((row) => {
@@ -2711,7 +3719,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       this.observer.disconnect();
     }
     this.app.workspace.iterateAllLeaves((leaf) => {
-      if (leaf.view instanceof import_obsidian3.MarkdownView) {
+      if (leaf.view instanceof import_obsidian8.MarkdownView) {
         const viewContent = leaf.view.contentEl;
         if (viewContent._resizeObserver) {
           viewContent._resizeObserver.disconnect();
@@ -2805,6 +3813,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       throw error;
     }
   }
+  // -----------------------------------------
+  // -- show release notes for new versions --
+  // -----------------------------------------
   async checkVersion() {
     const currentVersion = this.manifest.version;
     const lastVersion = this.settings.lastVersion;
@@ -2815,11 +3826,17 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       await this.saveSettings();
     }
   }
+  // -----------------------------------------------
+  // -- get release notes for the current version --
+  // -----------------------------------------------
   async getReleaseNotes(version) {
     return releaseNotes;
   }
+  // ----------------------
+  // -- add pixel banner --
+  // ----------------------
   async addPixelBanner(el, ctx) {
-    var _a, _b, _c, _d;
+    var _a, _b;
     const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains("internal-embed") && viewContent.classList.contains("markdown-embed");
@@ -2836,7 +3853,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         container = viewContent;
       }
     } else {
-      container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") : viewContent.querySelector(".cm-sizer");
+      container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") || viewContent.querySelector(".markdown-preview-view") : viewContent.querySelector(".cm-sizer") || viewContent.querySelector(".markdown-source-view");
+      if (!container && viewContent.classList.contains("markdown-preview-view")) {
+        container = viewContent;
+      }
       if (!viewContent._resizeObserver) {
         const debouncedResize = debounce(() => {
           this.applyBannerWidth(viewContent);
@@ -2849,21 +3869,20 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       return;
     }
     let bannerDiv = container.querySelector(":scope > .pixel-banner-image");
-    let pinIcon = container.querySelector(":scope > .pin-icon");
     if (!bannerDiv) {
       bannerDiv = createDiv({ cls: "pixel-banner-image" });
       container.insertBefore(bannerDiv, container.firstChild);
       bannerDiv._isPersistentBanner = true;
     }
-    if (!isEmbedded) {
-      const existingViewIcon = container.querySelector(".view-image-icon");
-      const existingPinIcon = container.querySelector(".pin-icon");
-      const existingRefreshIcon = container.querySelector(".refresh-icon");
-      const existingSelectIcon = container.querySelector(".select-image-icon");
-      if (existingViewIcon) existingViewIcon.remove();
-      if (existingPinIcon) existingPinIcon.remove();
-      if (existingRefreshIcon) existingRefreshIcon.remove();
-      if (existingSelectIcon) existingSelectIcon.remove();
+    const oldViewIcons = container.querySelectorAll(".view-image-icon");
+    const oldPinIcons = container.querySelectorAll(".pin-icon");
+    const oldRefreshIcons = container.querySelectorAll(".refresh-icon");
+    const oldSelectIcons = container.querySelectorAll(".select-image-icon");
+    const oldBannerIconButtons = container.querySelectorAll(".set-banner-icon-button");
+    [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach((el2) => el2.remove());
+    if (isEmbedded) {
+      this.updateEmbeddedBannersVisibility();
+    } else {
       let leftOffset = this.settings.bannerGap + 5;
       if (this.settings.showSelectImageIcon) {
         const selectImageIcon = createDiv({ cls: "select-image-icon" });
@@ -2877,6 +3896,19 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         selectImageIcon.onclick = () => this.handleSelectImage();
         container.appendChild(selectImageIcon);
         leftOffset += 35;
+        if (bannerImage) {
+          const setBannerIconButton = createDiv({ cls: "set-banner-icon-button" });
+          setBannerIconButton.style.position = "absolute";
+          setBannerIconButton.style.top = "10px";
+          setBannerIconButton.style.left = `${leftOffset}px`;
+          setBannerIconButton.style.fontSize = "1.5em";
+          setBannerIconButton.style.cursor = "pointer";
+          setBannerIconButton.innerHTML = "\u2B50";
+          setBannerIconButton._isPersistentSetBannerIcon = true;
+          setBannerIconButton.onclick = () => this.handleSetBannerIcon();
+          container.appendChild(setBannerIconButton);
+          leftOffset += 35;
+        }
       }
       if (this.settings.showViewImageIcon) {
         const viewImageIcon = createDiv({ cls: "view-image-icon" });
@@ -2885,59 +3917,20 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         viewImageIcon.style.left = `${leftOffset}px`;
         viewImageIcon.style.fontSize = "1.5em";
         viewImageIcon.style.cursor = "pointer";
-        viewImageIcon.innerHTML = "\u{1F5BC}\uFE0F";
-        viewImageIcon._isPersistentViewImage = true;
         viewImageIcon.style.display = "none";
+        viewImageIcon._isPersistentViewImage = true;
+        viewImageIcon.innerHTML = "\u{1F5BC}\uFE0F";
+        viewImageIcon._updateVisibility = (newUrl) => {
+          viewImageIcon.style.display = newUrl ? "block" : "none";
+          if (newUrl) {
+            viewImageIcon.onclick = () => {
+              new ImageViewModal(this.app, newUrl).open();
+            };
+          }
+        };
         container.appendChild(viewImageIcon);
         leftOffset += 35;
-        const updateViewIcon = (imageUrl2) => {
-          if (imageUrl2) {
-            viewImageIcon.style.display = "block";
-            viewImageIcon.onclick = () => {
-              new ImageViewModal(this.app, imageUrl2).open();
-            };
-          } else {
-            viewImageIcon.style.display = "none";
-          }
-        };
-        viewImageIcon._updateVisibility = updateViewIcon;
       }
-      const imageUrl = this.loadedImages.get(file.path);
-      const inputType = this.getInputType(bannerImage);
-      const canPin = imageUrl && (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon;
-      if (canPin) {
-        const pinIcon2 = createDiv({ cls: "pin-icon" });
-        pinIcon2.style.position = "absolute";
-        pinIcon2.style.top = "10px";
-        pinIcon2.style.left = `${leftOffset}px`;
-        pinIcon2.style.fontSize = "1.5em";
-        pinIcon2.style.cursor = "pointer";
-        pinIcon2.innerHTML = "\u{1F4CC}";
-        pinIcon2._isPersistentPin = true;
-        pinIcon2.onclick = async () => {
-          try {
-            await handlePinIconClick(imageUrl, this);
-          } catch (error) {
-            console.error("Error pinning image:", error);
-            new import_obsidian3.Notice("Failed to pin the image.");
-          }
-        };
-        container.appendChild(pinIcon2);
-        leftOffset += 35;
-        if (this.settings.showRefreshIcon) {
-          const refreshIcon = createDiv({ cls: "refresh-icon" });
-          refreshIcon.style.position = "absolute";
-          refreshIcon.style.top = "10px";
-          refreshIcon.style.left = `${leftOffset}px`;
-          refreshIcon.style.fontSize = "1.5em";
-          refreshIcon.style.cursor = "pointer";
-          refreshIcon.innerHTML = "\u{1F504}";
-          refreshIcon._isPersistentRefresh = true;
-          container.appendChild(refreshIcon);
-        }
-      }
-    } else {
-      this.updateEmbeddedBannersVisibility();
     }
     if (!container._hasOverriddenSetChildrenInPlace) {
       const originalSetChildrenInPlace = container.setChildrenInPlace;
@@ -2947,10 +3940,11 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         const pinElement = this.querySelector(":scope > .pin-icon");
         const refreshElement = this.querySelector(":scope > .refresh-icon");
         const selectImageElement = this.querySelector(":scope > .select-image-icon");
+        const setBannerIconEl = this.querySelector(":scope > .set-banner-icon-button");
         children = Array.from(children).filter(
           (child) => {
-            var _a2, _b2, _c2, _d2, _e;
-            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c2 = child.classList) == null ? void 0 : _c2.contains("pin-icon")) && !((_d2 = child.classList) == null ? void 0 : _d2.contains("refresh-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("select-image-icon"));
+            var _a2, _b2, _c, _d, _e, _f;
+            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c = child.classList) == null ? void 0 : _c.contains("pin-icon")) && !((_d = child.classList) == null ? void 0 : _d.contains("refresh-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("select-image-icon")) && !((_f = child.classList) == null ? void 0 : _f.contains("set-banner-icon-button"));
           }
         );
         if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
@@ -2958,6 +3952,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
         if (selectImageElement == null ? void 0 : selectImageElement._isPersistentSelectImage) {
           children.push(selectImageElement);
+        }
+        if (setBannerIconEl == null ? void 0 : setBannerIconEl._isPersistentSetBannerIcon) {
+          children.push(setBannerIconEl);
         }
         if (viewImageElement == null ? void 0 : viewImageElement._isPersistentViewImage) {
           children.push(viewImageElement);
@@ -2984,15 +3981,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         }
       }
       if (imageUrl) {
-        const frontmatterYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField);
         const folderSpecific = this.getFolderSpecificImage(file.path);
-        const effectiveYPosition = (_a = frontmatterYPosition != null ? frontmatterYPosition : folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _a : this.settings.yPosition;
-        const frontmatterXPosition = getFrontmatterValue(frontmatter, this.settings.customXPositionField);
-        const effectiveXPosition = (_b = frontmatterXPosition != null ? frontmatterXPosition : folderSpecific == null ? void 0 : folderSpecific.xPosition) != null ? _b : this.settings.xPosition;
         const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
         const isSvg = imageUrl.includes("image/svg+xml") || file.path && file.path.toLowerCase().endsWith(".svg");
         bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-        bannerDiv.style.backgroundPosition = `${effectiveXPosition}% ${effectiveYPosition}%`;
         if (isSvg) {
           bannerDiv.style.backgroundSize = imageDisplay === "contain" ? "contain" : "100% 100%";
         } else {
@@ -3006,13 +3998,43 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         this.applyBannerSettings(bannerDiv, ctx);
         const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
         const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
-        const effectiveContentStart = (_d = (_c = parsedFrontmatterStart != null ? parsedFrontmatterStart : contentStartPosition) != null ? _c : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _d : this.settings.contentStartPosition;
+        const effectiveContentStart = (_b = (_a = parsedFrontmatterStart != null ? parsedFrontmatterStart : contentStartPosition) != null ? _a : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
         this.applyContentStartPosition(viewContent, effectiveContentStart);
         this.applyBannerWidth(viewContent);
-        if (!isEmbedded && (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon) {
-          const refreshIcon = container.querySelector(":scope > .refresh-icon");
-          if (refreshIcon && inputType === "keyword" && this.settings.showRefreshIcon) {
-            refreshIcon.style.display = "block";
+        const canPin = (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon && !isEmbedded;
+        if (canPin) {
+          let leftOffset = this.settings.bannerGap + 5;
+          const iconEls = container.querySelectorAll(".select-image-icon, .set-banner-icon-button, .view-image-icon");
+          if (iconEls == null ? void 0 : iconEls.length) {
+            leftOffset = 10 + 35 * iconEls.length + this.settings.bannerGap;
+          }
+          const pinIcon = createDiv({ cls: "pin-icon" });
+          pinIcon.style.position = "absolute";
+          pinIcon.style.top = "10px";
+          pinIcon.style.left = `${leftOffset}px`;
+          pinIcon.style.fontSize = "1.5em";
+          pinIcon.style.cursor = "pointer";
+          pinIcon.innerHTML = "\u{1F4CC}";
+          pinIcon._isPersistentPin = true;
+          pinIcon.onclick = async () => {
+            try {
+              await handlePinIconClick(imageUrl, this);
+            } catch (error) {
+              console.error("Error pinning image:", error);
+              new import_obsidian8.Notice("Failed to pin the image.");
+            }
+          };
+          container.appendChild(pinIcon);
+          leftOffset += 35;
+          if (inputType === "keyword" && this.settings.showRefreshIcon) {
+            const refreshIcon = createDiv({ cls: "refresh-icon" });
+            refreshIcon.style.position = "absolute";
+            refreshIcon.style.top = "10px";
+            refreshIcon.style.left = `${leftOffset}px`;
+            refreshIcon.style.fontSize = "1.5em";
+            refreshIcon.style.cursor = "pointer";
+            refreshIcon.innerHTML = "\u{1F504}";
+            refreshIcon._isPersistentRefresh = true;
             refreshIcon.onclick = async () => {
               try {
                 this.loadedImages.delete(file.path);
@@ -3026,41 +4048,26 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
                   if (viewImageIcon2 && viewImageIcon2._updateVisibility) {
                     viewImageIcon2._updateVisibility(newImageUrl);
                   }
-                  const pinIcon2 = container.querySelector(":scope > .pin-icon");
-                  if (pinIcon2) {
-                    pinIcon2.onclick = async () => {
-                      try {
-                        await handlePinIconClick(newImageUrl, this);
-                      } catch (error) {
-                        console.error("Error pinning image:", error);
-                        new import_obsidian3.Notice("Failed to pin the image.");
-                      }
-                    };
-                  }
-                  new import_obsidian3.Notice("\u{1F504} Refreshed banner image");
+                  pinIcon.onclick = async () => {
+                    try {
+                      await handlePinIconClick(newImageUrl, this);
+                    } catch (error) {
+                      console.error("Error pinning image:", error);
+                      new import_obsidian8.Notice("Failed to pin the image.");
+                    }
+                  };
+                  new import_obsidian8.Notice("\u{1F504} Refreshed banner image");
                 }
               } catch (error) {
                 console.error("Error refreshing image:", error);
-                new import_obsidian3.Notice("Failed to refresh image");
+                new import_obsidian8.Notice("Failed to refresh image");
               }
             };
-          } else if (refreshIcon) {
-            refreshIcon.style.display = "none";
+            container.appendChild(refreshIcon);
           }
-        } else {
-          if (pinIcon) pinIcon.style.display = "none";
-          const refreshIcon = container.querySelector(":scope > .refresh-icon");
-          if (refreshIcon) refreshIcon.style.display = "none";
         }
       } else {
         bannerDiv.style.display = "none";
-        if (pinIcon) pinIcon.style.display = "none";
-        const refreshIcon = container.querySelector(":scope > .refresh-icon");
-        if (refreshIcon) refreshIcon.style.display = "none";
-        const viewImageIcon = container.querySelector(":scope > .view-image-icon");
-        if (viewImageIcon && viewImageIcon._updateVisibility) {
-          viewImageIcon._updateVisibility(null);
-        }
         this.loadedImages.delete(file.path);
         this.lastKeywords.delete(file.path);
         if (!isEmbedded) {
@@ -3072,18 +4079,41 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   applyBannerSettings(bannerDiv, ctx) {
     const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
     const folderSpecific = this.getFolderSpecificImage(ctx.file.path);
+    const pixelBannerYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField) || (folderSpecific == null ? void 0 : folderSpecific.yPosition) || this.settings.yPosition;
+    const pixelBannerXPosition = getFrontmatterValue(frontmatter, this.settings.customXPositionField) || (folderSpecific == null ? void 0 : folderSpecific.xPosition) || this.settings.xPosition;
     const titleColor = getFrontmatterValue(frontmatter, this.settings.customTitleColorField) || (folderSpecific == null ? void 0 : folderSpecific.titleColor) || this.settings.titleColor;
+    const bannerIconSize = getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconSize) || this.settings.bannerIconSize || 70;
+    const bannerIconXPosition = getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconXPosition) || this.settings.bannerIconXPosition || 25;
+    const bannerIconOpacity = getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconOpacity) || this.settings.bannerIconOpacity || 100;
+    const bannerIconColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconColor) || this.settings.bannerIconColor || "var(--text-normal)";
+    const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconBackgroundColor) || this.settings.bannerIconBackgroundColor || "transparent";
+    const bannerIconPadding = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconPadding) || this.settings.bannerIconPadding || 0;
+    const bannerIconBorderRadius = getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconBorderRadius) || this.settings.bannerIconBorderRadius || 17;
+    const bannerIconVeritalOffset = getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconVeritalOffset) || this.settings.bannerIconVeritalOffset || 0;
     bannerDiv.style.backgroundSize = imageDisplay || "cover";
     bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
     bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
     bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
     bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
+    const bannerIconStart = `${bannerHeight - bannerIconSize / 2}px`;
+    const bannerHeightPlusIcon = `${parseInt(bannerHeight) + parseInt(bannerIconSize) / 2 + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPadding)}px`;
     const container = bannerDiv.closest(".markdown-preview-view, .markdown-source-view");
     if (container) {
+      container.style.setProperty("--pixel-banner-y-position", `${pixelBannerYPosition}%`);
+      container.style.setProperty("--pixel-banner-x-position", `${pixelBannerXPosition}%`);
       container.style.setProperty("--pixel-banner-title-color", titleColor);
+      container.style.setProperty("--pixel-banner-icon-size", `${bannerIconSize}px`);
+      container.style.setProperty("--pixel-banner-icon-start", bannerIconStart);
+      container.style.setProperty("--pixel-banner-icon-x", `${bannerIconXPosition}%`);
+      container.style.setProperty("--pixel-banner-icon-opacity", `${bannerIconOpacity}%`);
+      container.style.setProperty("--pixel-banner-icon-color", bannerIconColor);
+      container.style.setProperty("--pixel-banner-icon-background-color", bannerIconBackgroundColor);
+      container.style.setProperty("--pixel-banner-icon-padding", `${bannerIconPadding}px`);
+      container.style.setProperty("--pixel-banner-icon-border-radius", `${bannerIconBorderRadius}px`);
+      container.style.setProperty("--pixel-banner-icon-vertical-offset", `${bannerIconVeritalOffset}px`);
+      container.style.setProperty("--pixel-banner-embed-min-height", `${bannerHeightPlusIcon}`);
     }
   }
-  // Add this helper method to randomly select an API provider
   getActiveApiProvider() {
     if (this.settings.apiProvider !== "all") {
       return this.settings.apiProvider;
@@ -3098,7 +4128,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
     }
     return availableProviders[Math.floor(Math.random() * availableProviders.length)];
   }
-  // Add this new method to handle field visibility
   updateFieldVisibility(view) {
     if (!view || view.getMode() !== "preview") return;
     const fieldsToHide = [
@@ -3112,10 +4141,21 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       ...this.settings.customFadeField,
       ...this.settings.customBorderRadiusField,
       ...this.settings.customTitleColorField,
-      ...this.settings.customBannerShuffleField
+      ...this.settings.customBannerShuffleField,
+      ...this.settings.customBannerIconField,
+      ...this.settings.customBannerIconSizeField,
+      ...this.settings.customBannerIconXPositionField,
+      ...this.settings.customBannerIconOpacityField,
+      ...this.settings.customBannerIconColorField,
+      ...this.settings.customBannerIconBackgroundColorField,
+      ...this.settings.customBannerIconPaddingField,
+      ...this.settings.customBannerIconBorderRadiusField,
+      ...this.settings.customBannerIconVeritalOffsetField
     ];
     const propertiesContainer = view.contentEl.querySelector(".metadata-container");
-    if (!propertiesContainer) return;
+    if (!propertiesContainer) {
+      return;
+    }
     const propertyElements = propertiesContainer.querySelectorAll(".metadata-property");
     let visiblePropertiesCount = 0;
     let bannerPropertiesCount = 0;
@@ -3134,7 +4174,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
       propertiesContainer.classList.remove("pixel-banner-hidden-section");
     }
   }
-  // get random image from folder
   getRandomImageFromFolder(folderPath) {
     try {
       const folder = this.app.vault.getAbstractFileByPath(folderPath);
@@ -3189,7 +4228,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
   async handleSelectImage() {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) {
-      new import_obsidian3.Notice("No active file");
+      new import_obsidian8.Notice("No active file");
       return;
     }
     new ImageSelectionModal(
@@ -3210,7 +4249,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian3.Plugin {
         let updatedContent;
         if (hasFrontmatter) {
           updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-            const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
             let cleanedFrontmatter = frontmatter.trim();
             this.settings.customBannerField.forEach((field) => {
               const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, "g");
@@ -3234,23 +4272,122 @@ ${cleanContent}`;
         if (updatedContent !== fileContent) {
           await this.app.vault.modify(activeFile, updatedContent);
           if (this.settings.useShortPath && imageReference === selectedFile.path) {
-            new import_obsidian3.Notice("Banner image updated (full path used due to duplicate filenames)");
+            new import_obsidian8.Notice("Banner image updated (full path used due to duplicate filenames)");
           } else {
-            new import_obsidian3.Notice("Banner image updated");
+            new import_obsidian8.Notice("Banner image updated");
           }
         }
       },
       this.settings.defaultSelectImagePath
     ).open();
   }
+  async handleSetBannerIcon() {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) {
+      new import_obsidian8.Notice("No active file");
+      return;
+    }
+    new EmojiSelectionModal(
+      this.app,
+      this,
+      async (selectedEmoji) => {
+        let fileContent = await this.app.vault.read(activeFile);
+        const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+        const hasFrontmatter = frontmatterRegex.test(fileContent);
+        const bannerIconField = Array.isArray(this.settings.customBannerIconField) && this.settings.customBannerIconField.length > 0 ? this.settings.customBannerIconField[0] : "banner-icon";
+        fileContent = fileContent.replace(/^\s+/, "");
+        let updatedContent;
+        if (hasFrontmatter) {
+          updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+            let cleanedFrontmatter = frontmatter.trim();
+            this.settings.customBannerIconField.forEach((field) => {
+              const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, "g");
+              cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
+            });
+            cleanedFrontmatter = cleanedFrontmatter.trim();
+            const newFrontmatter = `${bannerIconField}: "${selectedEmoji}"${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+            return `---
+${newFrontmatter}
+---`;
+          });
+        } else {
+          const cleanContent = fileContent.replace(/^\s+/, "");
+          updatedContent = `---
+${bannerIconField}: "${selectedEmoji}"
+---
+
+${cleanContent}`;
+        }
+        updatedContent = updatedContent.replace(/^\s+/, "");
+        if (updatedContent !== fileContent) {
+          await this.app.vault.modify(activeFile, updatedContent);
+          const metadataUpdated = new Promise((resolve) => {
+            let eventRef = null;
+            let resolved = false;
+            const cleanup = () => {
+              if (eventRef) {
+                this.app.metadataCache.off("changed", eventRef);
+                eventRef = null;
+              }
+            };
+            const timeoutId = setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                cleanup();
+                resolve();
+              }
+            }, 2e3);
+            eventRef = this.app.metadataCache.on("changed", (file) => {
+              if (file.path === activeFile.path && !resolved) {
+                resolved = true;
+                clearTimeout(timeoutId);
+                cleanup();
+                setTimeout(resolve, 50);
+              }
+            });
+          });
+          await metadataUpdated;
+          const maxRetries = 3;
+          const retryDelay = 150;
+          let success = false;
+          for (let i = 0; i < maxRetries && !success; i++) {
+            const view = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+            if (view) {
+              try {
+                const cache = this.app.metadataCache.getFileCache(activeFile);
+                if (!cache || !cache.frontmatter || cache.frontmatter[bannerIconField] !== selectedEmoji) {
+                  await new Promise((resolve) => setTimeout(resolve, 100));
+                  continue;
+                }
+                await this.updateBanner(view, true);
+                success = true;
+              } catch (error) {
+                if (i < maxRetries - 1) {
+                  await new Promise((resolve) => setTimeout(resolve, retryDelay));
+                }
+              }
+            }
+          }
+          if (!success) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const view = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+            if (view) {
+              await this.updateBanner(view, true);
+            }
+          }
+          new import_obsidian8.Notice("Banner icon updated");
+        }
+      }
+    ).open();
+  }
 };
 async function handlePinIconClick(imageUrl, plugin, usedField = null) {
   const imageBlob = await fetchImage(imageUrl);
-  const { initialPath, file } = await saveImageLocally(imageBlob, plugin);
+  const { file } = await saveImageLocally(imageBlob, plugin);
   const finalPath = await waitForFileRename(file, plugin);
   if (!finalPath) {
     console.error("\u274C Failed to resolve valid file path");
-    new import_obsidian3.Notice("Failed to save image - file not found");
+    new import_obsidian8.Notice("Failed to save image - file not found");
     return;
   }
   await updateNoteFrontmatter(finalPath, plugin, usedField);
@@ -3261,7 +4398,7 @@ async function fetchImage(url) {
   if (!response.ok) throw new Error("Image download failed");
   return await response.arrayBuffer();
 }
-var FolderSelectionModal2 = class extends import_obsidian3.FuzzySuggestModal {
+var FolderSelectionModal2 = class extends import_obsidian8.FuzzySuggestModal {
   constructor(app2, defaultFolder, onChoose) {
     super(app2);
     this.defaultFolder = defaultFolder;
@@ -3348,7 +4485,6 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
   let updatedContent;
   if (hasFrontmatter) {
     updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-      const bannerRegex = new RegExp(`${bannerField}:\\s*.+`);
       let cleanedFrontmatter = frontmatter.trim();
       plugin.settings.customBannerField.forEach((field) => {
         const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, "g");
@@ -3372,9 +4508,9 @@ ${cleanContent}`;
   if (updatedContent !== fileContent) {
     await app.vault.modify(activeFile, updatedContent);
     if (plugin.settings.useShortPath && imageReference === imagePath) {
-      new import_obsidian3.Notice("Banner image pinned (full path used due to duplicate filenames)");
+      new import_obsidian8.Notice("Banner image pinned (full path used due to duplicate filenames)");
     } else {
-      new import_obsidian3.Notice("Banner image pinned");
+      new import_obsidian8.Notice("Banner image pinned");
     }
   }
 }
@@ -3382,7 +4518,7 @@ function hidePinIcon() {
   const pinIcon = document.querySelector(".pin-icon");
   if (pinIcon) pinIcon.style.display = "none";
 }
-var SaveImageModal2 = class extends import_obsidian3.Modal {
+var SaveImageModal2 = class extends import_obsidian8.Modal {
   constructor(app2, suggestedName, onSubmit) {
     super(app2);
     this.suggestedName = suggestedName;

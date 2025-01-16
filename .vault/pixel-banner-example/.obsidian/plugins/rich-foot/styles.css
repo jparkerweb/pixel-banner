@@ -152,6 +152,9 @@ body.theme-light .rich-foot--backlinks ul li a {
 
 .cm-sizer > .rich-foot {
     margin-top: 15px !important;
+    max-width: var(--max-width);
+    width: var(--line-width);
+    margin-inline: var(--content-margin) !important;
 }
 
 .cm-sizer .rich-foot--backlinks {

@@ -1,7 +1,12 @@
 ---
 header-image: images/jp-cover3a.jpg
-y: 20
-content-start: 177
+content-start: 370
+icon: 💀
+icon-size: "33"
+icon-bg-color: black
+icon-padding: "25"
+icon-y: "-20"
+icon-x: "90"
 ---
 # Embedded Note with its own Banner
 

@@ -18,7 +18,8 @@
     "y"
   ],
   "customXPositionField": [
-    "banner-x"
+    "banner-x",
+    "x"
   ],
   "customContentStartField": [
     "content-start",
@@ -40,17 +41,44 @@
     "banner-radius"
   ],
   "customTitleColorField": [
-    "banner-title-color"
+    "banner-inline-title-color"
   ],
   "customBannerShuffleField": [
     "banner-shuffle"
+  ],
+  "customBannerIconField": [
+    "icon"
+  ],
+  "customBannerIconSizeField": [
+    "icon-size"
+  ],
+  "customBannerIconXPositionField": [
+    "icon-x"
+  ],
+  "customBannerIconOpacityField": [
+    "icon-opacity"
+  ],
+  "customBannerIconColorField": [
+    "icon-color"
+  ],
+  "customBannerIconBackgroundColorField": [
+    "icon-bg-color"
+  ],
+  "customBannerIconPaddingField": [
+    "icon-padding"
+  ],
+  "customBannerIconBorderRadiusField": [
+    "icon-border-radius"
+  ],
+  "customBannerIconVeritalOffsetField": [
+    "icon-y"
   ],
   "folderImages": [
     {
       "folder": "notes",
       "image": "[[jp-cover2.jpg]]",
       "yPosition": 50,
-      "contentStartPosition": null,
+      "contentStartPosition": 350,
       "imageDisplay": "cover",
       "imageRepeat": false,
       "directChildrenOnly": true,
@@ -69,7 +97,15 @@
       "shuffleFolder": "shuffle-images",
       "imageDisplay": "cover",
       "imageRepeat": false,
-      "directChildrenOnly": false
+      "directChildrenOnly": false,
+      "bannerIconXPosition": 77,
+      "bannerIconSize": 72,
+      "bannerIconOpacity": 58,
+      "bannerIconColor": "",
+      "bannerIconBackgroundColor": "",
+      "bannerIconPadding": 0,
+      "bannerIconBorderRadius": 30,
+      "bannerIconVeritalOffset": 0
     },
     {
       "folder": "tests",
@@ -104,5 +140,18 @@
   "showSelectImageIcon": true,
   "defaultSelectImagePath": "pixel-banner-images",
   "useShortPath": true,
-  "bannerGap": 12
+  "bannerGap": 12,
+  "bannerIconSize": 70,
+  "bannerIconXPosition": 80,
+  "bannerIconOpacity": 100,
+  "bannerIconColor": "",
+  "bannerIconBackgroundColor": "",
+  "bannerIconPadding": "0",
+  "bannerIconBorderRadius": "17",
+  "bannerIconVeritalOffset": "0",
+  "bannerIcon": "💥",
+  "customBannerIconHeightField": [
+    "banner-icon-height"
+  ],
+  "bannerIconHeight": 70
 }

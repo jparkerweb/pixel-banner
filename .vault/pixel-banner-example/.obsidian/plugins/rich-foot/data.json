@@ -22,5 +22,5 @@
   "updateDelay": 3000,
   "excludedParentSelectors": [],
   "frontmatterExclusionField": "",
-  "lastVersion": "1.10.6"
+  "lastVersion": "1.10.7"
 }
