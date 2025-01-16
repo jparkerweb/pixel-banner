@@ -35,8 +35,7 @@
               "title": "Release Notes Generator"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -3134,7 +3133,7 @@
       "cmdr:Open Plugin Settings: Pixel Banner": false
     }
   },
-  "active": "dd6ed41c28754b26",
+  "active": "fc67a63095b6a8e2",
   "lastOpenFiles": [
     "🚩 Pixel-Banner.md",
     "releases/v2.20.0 - ⭐ The Icon has Landed.md",
