@@ -60,18 +60,87 @@ module.exports = class PixelBannerPlugin extends Plugin {
             this.app.workspace.on('layout-change', this.handleLayoutChange.bind(this))
         );
         this.registerEvent(
-            this.app.workspace.on('editor-change', this.debouncedEnsureBanner.bind(this))
-        );
-        this.registerEvent(
             this.app.workspace.on('resize', this.debouncedEnsureBanner.bind(this))
         );
 
         // Add metadata cache event listener for frontmatter changes
         this.registerEvent(
-            this.app.metadataCache.on('changed', (file) => {
-                const activeLeaf = this.app.workspace.activeLeaf;
-                if (activeLeaf && activeLeaf.view instanceof MarkdownView && activeLeaf.view.file === file) {
-                    this.updateBanner(activeLeaf.view, true);
+            this.app.metadataCache.on('changed', async (file) => {
+                // console.log('🔍 Metadata changed detected for file:', file.path);
+                
+                // Get the frontmatter
+                const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+                if (!frontmatter) {
+                    // console.log('❌ No frontmatter found, skipping update');
+                    return;
+                }
+
+                // Get the previous frontmatter
+                const previousFrontmatter = this.lastFrontmatter.get(file.path);
+                // console.log('📊 Frontmatter comparison:', {
+                //     current: frontmatter,
+                //     previous: previousFrontmatter
+                // });
+
+                // Check if frontmatter actually changed
+                if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
+                    // console.log('🟡 Frontmatter unchanged, skipping update');
+                    return;
+                }
+
+                // Check if any relevant fields exist and changed in the frontmatter
+                const relevantFields = [
+                    ...this.settings.customBannerField,
+                    ...this.settings.customYPositionField,
+                    ...this.settings.customXPositionField,
+                    ...this.settings.customContentStartField,
+                    ...this.settings.customImageDisplayField,
+                    ...this.settings.customImageRepeatField,
+                    ...this.settings.customBannerHeightField,
+                    ...this.settings.customFadeField,
+                    ...this.settings.customBorderRadiusField,
+                    ...this.settings.customBannerShuffleField,
+                    ...this.settings.customTitleColorField,
+                    ...this.settings.customBannerIconField,
+                    ...this.settings.customBannerIconSizeField,
+                    ...this.settings.customBannerIconXPositionField,
+                    ...this.settings.customBannerIconOpacityField,
+                    ...this.settings.customBannerIconColorField,
+                    ...this.settings.customBannerIconBackgroundColorField,
+                    ...this.settings.customBannerIconPaddingXField,
+                    ...this.settings.customBannerIconPaddingYField,
+                    ...this.settings.customBannerIconBorderRadiusField,
+                    ...this.settings.customBannerIconVeritalOffsetField
+                ];
+
+                // console.log('🔎 Checking relevant fields:', relevantFields);
+
+                const changedFields = relevantFields.filter(field => 
+                    frontmatter[field] !== previousFrontmatter?.[field]
+                );
+
+                const hasRelevantFieldChange = changedFields.length > 0;
+                // console.log('🔄 Changed fields:', changedFields);
+
+                if (!hasRelevantFieldChange) {
+                    // console.log('🟡 No relevant fields changed, skipping update');
+                    return;
+                }
+
+                // console.log('✅ Relevant changes detected, updating banner');
+                // Update the stored frontmatter
+                this.lastFrontmatter.set(file.path, frontmatter);
+
+                // Find all visible markdown leaves for this file
+                const leaves = this.app.workspace.getLeavesOfType("markdown");
+                for (const leaf of leaves) {
+                    if (leaf.view instanceof MarkdownView && leaf.view.file === file) {
+                        // console.log('🔄 Updating banner for leaf:', leaf.id);
+                        // Force a refresh of the banner
+                        this.loadedImages.delete(file.path);
+                        this.lastKeywords.delete(file.path);
+                        await this.updateBanner(leaf.view, true);
+                    }
                 }
             })
         );
@@ -199,7 +268,20 @@ module.exports = class PixelBannerPlugin extends Plugin {
             this.app.metadataCache.on('resolved', () => {
                 const leaf = this.app.workspace.activeLeaf;
                 if (leaf && leaf.view instanceof MarkdownView) {
-                    this.updateBanner(leaf.view, true);
+                    // Only update if we have a banner and it's not just a content change
+                    const contentEl = leaf.view.contentEl;
+                    const hasBanner = contentEl.querySelector('.pixel-banner-image');
+                    if (hasBanner) {
+                        // Check if this is a frontmatter change by looking at the metadata cache
+                        const file = leaf.view.file;
+                        const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+                        const previousFrontmatter = this.lastFrontmatter.get(file.path);
+                        
+                        // Only update if frontmatter changed
+                        if (JSON.stringify(frontmatter) !== JSON.stringify(previousFrontmatter)) {
+                            this.updateBanner(leaf.view, false);
+                        }
+                    }
                 }
             })
         );
@@ -282,13 +364,18 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     handleLayoutChange() {
+        // console.log('📐 Layout change detected');
         // Use setTimeout to give the view a chance to fully render
         setTimeout(() => {
             const activeLeaf = this.app.workspace.activeLeaf;
-            if (activeLeaf && (activeLeaf.view instanceof MarkdownView || activeLeaf.view.getViewType() === "markdown")) {
-                this.updateBanner(activeLeaf.view, false);
+            if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+                const contentEl = activeLeaf.view.contentEl;
+                const hasBanner = contentEl.querySelector('.pixel-banner-image');
+                if (hasBanner) {
+                    this.updateBanner(activeLeaf.view, false);
+                }
             }
-        }, 100); // 100ms delay
+        }, 100);
     }
 
     async handleModeChange(leaf) {
@@ -302,19 +389,20 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     async updateBanner(view, isContentChange) {
-        // console.log("updateBanner called with:", {
-        //     hasView: !!view,
-        //     hasFile: !!view?.file,
-        //     isContentChange
+        // console.log('🎯 updateBanner called:', {
+        //     file: view?.file?.path,
+        //     isContentChange,
+        //     caller: new Error().stack.split('\n')[2].trim()
         // });
 
         if (!view || !view.file) {
-            // console.log('⚠️ updateBanner called without valid view or file');
+            // console.log('❌ updateBanner: Invalid view or file');
             return;
         }
 
         // Add a small delay if this is a frontmatter change
         if (!isContentChange) {
+            // console.log('⏳ Adding delay for non-content change');
             await new Promise(resolve => setTimeout(resolve, 50));
         }
 
@@ -564,6 +652,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 bannerIconOverlay.className = 'banner-icon-overlay';
                 bannerIconOverlay.dataset.viewType = viewType;
                 bannerIconOverlay.textContent = cleanIcon;
+                bannerIconOverlay._isPersistentBannerIcon = true;
                 banner.insertAdjacentElement('afterend', bannerIconOverlay);
             };
 
@@ -586,23 +675,27 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     setupMutationObserver() {
+        // console.log('📝 Setting up mutation observer');
         this.observer = new MutationObserver((mutations) => {
             for (let mutation of mutations) {
                 if (mutation.type === 'childList') {
                     const removedNodes = Array.from(mutation.removedNodes);
                     const addedNodes = Array.from(mutation.addedNodes);
 
+                    // Only care about banner removal or structural changes
                     const bannerRemoved = removedNodes.some(node => 
                         node.classList && node.classList.contains('pixel-banner-image')
                     );
 
-                    const contentChanged = addedNodes.some(node => 
+                    // Only care about major structural changes that could affect banner placement
+                    const structuralChange = addedNodes.some(node => 
                         node.nodeType === Node.ELEMENT_NODE && 
                         (node.classList.contains('markdown-preview-section') || 
-                         node.classList.contains('cm-content'))
+                         node.classList.contains('cm-sizer'))  // Changed from cm-content to cm-sizer
                     );
 
-                    if (bannerRemoved || contentChanged) {
+                    if (bannerRemoved || structuralChange) {
+                        // console.log('🔄 Mutation observer detected change:', { bannerRemoved, structuralChange });
                         // Clean up pixel-banner class if no banner is present
                         const activeLeaf = this.app.workspace.activeLeaf;
                         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
@@ -611,8 +704,12 @@ module.exports = class PixelBannerPlugin extends Plugin {
                             if (!hasBanner) {
                                 contentEl.classList.remove('pixel-banner');
                             }
+                            // Only update banner if it was removed or if there was a structural change
+                            // AND if we actually have a banner to restore
+                            if ((bannerRemoved || structuralChange) && hasBanner) {
+                                this.debouncedEnsureBanner();
+                            }
                         }
-                        this.debouncedEnsureBanner();
                     }
                 }
             }
@@ -625,9 +722,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     debouncedEnsureBanner = debounce(() => {
+        // console.log('🔄 debouncedEnsureBanner called from:', new Error().stack.split('\n')[2].trim());
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-            this.updateBanner(activeLeaf.view, false);
+            // Only update if we have a banner
+            const contentEl = activeLeaf.view.contentEl;
+            const hasBanner = contentEl.querySelector('.pixel-banner-image');
+            if (hasBanner) {
+                this.updateBanner(activeLeaf.view, false);
+            }
         }
     }, 100);
 
@@ -1156,7 +1259,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         ...this.settings.customBannerIconOpacityField,
                         ...this.settings.customBannerIconColorField,
                         ...this.settings.customBannerIconBackgroundColorField,
-                        ...this.settings.customBannerIconPaddingField,
+                        ...this.settings.customBannerIconPaddingXField,
+                        ...this.settings.customBannerIconPaddingYField,
                         ...this.settings.customBannerIconBorderRadiusField,
                         ...this.settings.customBannerIconVeritalOffsetField
                     ];
@@ -1495,6 +1599,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 const refreshElement = this.querySelector(':scope > .refresh-icon');
                 const selectImageElement = this.querySelector(':scope > .select-image-icon');
                 const setBannerIconEl = this.querySelector(':scope > .set-banner-icon-button');
+                const bannerIconOverlay = this.querySelector(':scope > .banner-icon-overlay');
 
                 // Filter out old duplicates
                 children = Array.from(children).filter(child => 
@@ -1503,12 +1608,16 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     !child.classList?.contains('pin-icon') &&
                     !child.classList?.contains('refresh-icon') &&
                     !child.classList?.contains('select-image-icon') &&
-                    !child.classList?.contains('set-banner-icon-button')
+                    !child.classList?.contains('set-banner-icon-button') &&
+                    !child.classList?.contains('banner-icon-overlay')
                 );
 
                 // Re-inject "persistent" elements in the correct order:
                 if (bannerElement?._isPersistentBanner) {
                     children.unshift(bannerElement);
+                }
+                if (bannerIconOverlay) {
+                    children.push(bannerIconOverlay);
                 }
                 if (selectImageElement?._isPersistentSelectImage) {
                     children.push(selectImageElement);
@@ -1723,10 +1832,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
             folderSpecific?.bannerIconBackgroundColor || 
             this.settings.bannerIconBackgroundColor || 'transparent';
 
-        // Get banner-icon padding
-        const bannerIconPadding = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingField) || 
-            folderSpecific?.bannerIconPadding || 
-            this.settings.bannerIconPadding || 0;
+        // Get banner-icon padding X
+        const bannerIconPaddingX = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || 
+            folderSpecific?.bannerIconPaddingX || 
+            this.settings.bannerIconPaddingX || 0;
+
+        // Get banner-icon padding Y
+        const bannerIconPaddingY = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || 
+            folderSpecific?.bannerIconPaddingY || 
+            this.settings.bannerIconPaddingY || 0;
 
         // Get banner-icon border radius
         const bannerIconBorderRadius = getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || 
@@ -1745,7 +1859,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
 
         const bannerIconStart = `${(bannerHeight - (bannerIconSize / 2))}px`;
-        const bannerHeightPlusIcon = `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPadding))}px`;
+        const bannerHeightPlusIcon = `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px`;
 
         const container = bannerDiv.closest('.markdown-preview-view, .markdown-source-view');
         if (container) {
@@ -1758,7 +1872,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
             container.style.setProperty('--pixel-banner-icon-opacity', `${bannerIconOpacity}%`);
             container.style.setProperty('--pixel-banner-icon-color', bannerIconColor);
             container.style.setProperty('--pixel-banner-icon-background-color', bannerIconBackgroundColor);
-            container.style.setProperty('--pixel-banner-icon-padding', `${bannerIconPadding}px`);
+            container.style.setProperty('--pixel-banner-icon-padding-x', `${bannerIconPaddingX}px`);
+            container.style.setProperty('--pixel-banner-icon-padding-y', `${bannerIconPaddingY}px`);
             container.style.setProperty('--pixel-banner-icon-border-radius', `${bannerIconBorderRadius}px`);
             container.style.setProperty('--pixel-banner-icon-vertical-offset', `${bannerIconVeritalOffset}px`);
             container.style.setProperty('--pixel-banner-embed-min-height', `${bannerHeightPlusIcon}`);
@@ -1804,7 +1919,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
             ...this.settings.customBannerIconOpacityField,
             ...this.settings.customBannerIconColorField,
             ...this.settings.customBannerIconBackgroundColorField,
-            ...this.settings.customBannerIconPaddingField,
+            ...this.settings.customBannerIconPaddingXField,
+            ...this.settings.customBannerIconPaddingYField,
             ...this.settings.customBannerIconBorderRadiusField,
             ...this.settings.customBannerIconVeritalOffsetField
         ];

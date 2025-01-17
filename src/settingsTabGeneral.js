@@ -718,28 +718,44 @@ export function createGeneralSettings(containerEl, plugin) {
                 textInput.dispatchEvent(event);
             }));
 
-    // Banner Icon Padding
+    // Banner Icon Padding X
     new Setting(containerEl)
-        .setName('Default Banner Icon Padding')
-        .setDesc('Set the default padding for the banner icon')
+        .setName('Default Banner Icon Padding X')
+        .setDesc('Set the default padding X for the banner icon')
         .addSlider(slider => slider
             .setLimits(0, 100, 1)
-            .setValue(plugin.settings.bannerIconPadding)
+            .setValue(plugin.settings.bannerIconPaddingX)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconPadding = value;
+                plugin.settings.bannerIconPaddingX = value;
                 await plugin.saveSettings();
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconPadding = DEFAULT_SETTINGS.bannerIconPadding;
+                plugin.settings.bannerIconPaddingX = DEFAULT_SETTINGS.bannerIconPaddingX;
                 await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconPadding;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+            }));
+
+    // Banner Icon Padding Y
+    new Setting(containerEl)
+        .setName('Default Banner Icon Padding Y')
+        .setDesc('Set the default padding Y for the banner icon')
+        .addSlider(slider => slider
+            .setLimits(0, 100, 1)
+            .setValue(plugin.settings.bannerIconPaddingY)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+                plugin.settings.bannerIconPaddingY = value;
+                await plugin.saveSettings();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.bannerIconPaddingY = DEFAULT_SETTINGS.bannerIconPaddingY;
+                await plugin.saveSettings();
             }));
 
     // Banner Icon Border Radius

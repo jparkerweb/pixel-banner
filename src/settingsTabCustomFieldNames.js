@@ -164,11 +164,18 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-icon-bg-color, icon-bg-color'
         },
         {
-            setting: 'customBannerIconPaddingField',
-            name: 'Banner Icon Padding Field Names',
-            desc: 'Set custom field names for the banner icon padding in frontmatter (comma-separated)',
+            setting: 'customBannerIconPaddingXField',
+            name: 'Banner Icon Padding X Field Names',
+            desc: 'Set custom field names for the banner icon padding X in frontmatter (comma-separated)',
             values: '0, 10, 20',
-            placeholder: 'banner-icon-padding, icon-padding'
+            placeholder: 'banner-icon-padding-x, icon-padding-x'
+        },
+        {
+            setting: 'customBannerIconPaddingYField',
+            name: 'Banner Icon Padding Y Field Names',
+            desc: 'Set custom field names for the banner icon padding Y in frontmatter (comma-separated)',
+            values: '0, 10, 20',
+            placeholder: 'banner-icon-padding-y, icon-padding-y'
         },
         {
             setting: 'customBannerIconBorderRadiusField',

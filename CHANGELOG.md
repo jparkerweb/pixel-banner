@@ -2,6 +2,14 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.20.1] - 2025-01-17
+#### 📦 Updated
+- replaced `icon-padding` with `icon-padding-x` and `icon-padding-y` for more granular control
+
+#### 🐛 Fixed
+- resolved issue with the banner updating while editing a note's content (causing the banner to flicker)
+- resolved issue with the banner icon not being preserved when scrolling to the bottom of a note
+
 ### [v2.20.0] - 2025-01-16
 #### ✨ Added the highly requested feature: `Banner Icons`!
 - Add emoji overlays (⭐, 🎨, 📝, etc.) to your banners

@@ -1,6 +1,8 @@
 ---
 banner: "[[forest.jpg]]"
 content-start: 350
+icon: 🌲
+icon-size: "100"
 ---
 # 🚩 Pixel-Banner 
 🐙 [GitHub](https://github.com/jparkerweb/pixel-banner)
