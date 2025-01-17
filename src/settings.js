@@ -34,7 +34,8 @@ const DEFAULT_SETTINGS = {
     customBannerIconOpacityField: ['icon-opacity'],
     customBannerIconColorField: ['icon-color'],
     customBannerIconBackgroundColorField: ['icon-bg-color'],
-    customBannerIconPaddingField: ['icon-padding'],
+    customBannerIconPaddingXField: ['icon-padding-x'],
+    customBannerIconPaddingYField: ['icon-padding-y'],
     customBannerIconBorderRadiusField: ['icon-border-radius'],
     customBannerIconVeritalOffsetField: ['icon-y'],
     folderImages: [],
@@ -65,7 +66,8 @@ const DEFAULT_SETTINGS = {
     bannerIconOpacity: 100,
     bannerIconColor: '',
     bannerIconBackgroundColor: '',
-    bannerIconPadding: '0',
+    bannerIconPaddingX: '0',
+    bannerIconPaddingY: '0',
     bannerIconBorderRadius: '17',
     bannerIconVeritalOffset: '0',
 };
@@ -89,25 +91,6 @@ class FolderSuggestModal extends FuzzySuggestModal {
     onChooseItem(item) {
         this.onChoose(item);
     }
-}
-
-function migrateSettings(settings) {
-    const fieldsToMigrate = [
-        'customBannerField',
-        'customYPositionField',
-        'customXPositionField',
-        'customContentStartField',
-        'customImageDisplayField',
-        'customImageRepeatField'
-    ];
-
-    fieldsToMigrate.forEach(field => {
-        if (typeof settings[field] === 'string') {
-            settings[field] = [settings[field]];
-        }
-    });
-
-    return settings;
 }
 
 class PixelBannerSettingTab extends PluginSettingTab {

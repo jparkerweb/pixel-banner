@@ -607,22 +607,36 @@ class FolderImageSetting extends Setting {
                 text.inputEl.style.width = '160px';
             });
 
-        // Banner Icon Padding
-        new Setting(controlEl3)
-            .setName("Icon Padding")
+        const controlEl4 = this.settingEl.createDiv("setting-item-control full-width-control");
+
+        // Banner Icon Padding X
+        new Setting(controlEl4)
+            .setName("Icon Padding X")
             .addSlider(slider => slider
                 .setLimits(0, 100, 1)
-                .setValue(this.folderImage.bannerIconPadding || this.plugin.settings.bannerIconPadding)
+                .setValue(this.folderImage.bannerIconPaddingX || this.plugin.settings.bannerIconPaddingX)
                 .setDynamicTooltip()
                 .onChange(async (value) => {
-                    this.folderImage.bannerIconPadding = value;
+                    this.folderImage.bannerIconPaddingX = value;
                     await this.plugin.saveSettings();
                 }));
 
-        const controlEl4 = this.settingEl.createDiv("setting-item-control full-width-control");
+        // Banner Icon Padding Y
+        new Setting(controlEl4)
+            .setName("Icon Padding Y")
+            .addSlider(slider => slider
+                .setLimits(0, 100, 1)
+                .setValue(this.folderImage.bannerIconPaddingY || this.plugin.settings.bannerIconPaddingY)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.folderImage.bannerIconPaddingY = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        const controlEl5 = this.settingEl.createDiv("setting-item-control full-width-control");
 
         // Banner Icon Border Radius
-        new Setting(controlEl4)
+        new Setting(controlEl5)
             .setName("Icon Border Radius")
             .addSlider(slider => slider
                 .setLimits(0, 50, 1)
@@ -634,7 +648,7 @@ class FolderImageSetting extends Setting {
                 }));
 
         // Banner Icon Vertical Offset
-        new Setting(controlEl4)
+        new Setting(controlEl5)
             .setName("Icon Vertical Offset")
             .addSlider(slider => slider
                 .setLimits(-100, 100, 1)
