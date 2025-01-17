@@ -20,20 +20,6 @@
               "icon": "lucide-file",
               "title": "🚩 Pixel-Banner"
             }
-          },
-          {
-            "id": "335afda63a567fc7",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "tests/banner icon 2.md",
-                "mode": "preview",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "banner icon 2"
-            }
           }
         ]
       }
@@ -3359,6 +3345,46 @@
             "id": "ceac080a7944112c",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b0f7625414a64b52",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c891ff9a406e56ae",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "36a8060632a2dc38",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0f37313a7ad5b260",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -3366,7 +3392,7 @@
             }
           }
         ],
-        "currentTab": 323
+        "currentTab": 327
       }
     ],
     "direction": "horizontal",
@@ -3383,11 +3409,15 @@
       "cmdr:Open Plugin Settings: Pixel Banner": false
     }
   },
-  "active": "fc67a63095b6a8e2",
+  "active": "342e5185840138ef",
   "lastOpenFiles": [
     "tests/banner icon 2.md",
-    "tests/banner icon 1.md",
     "🚩 Pixel-Banner.md",
+    "tests/banner icon 1.md",
+    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 4 - all fields.md",
+    "tests/🧪 test - 7- shuffle time!.md",
+    "Untitled.md",
     "releases/v2.20.0 - ⭐ The Icon has Landed.md",
     "tests/🧪 test - 10 - embed tests.md",
     "banner icon test.md",
@@ -3408,10 +3438,6 @@
     "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
     "releases/v2.16.0 - 😱 Hide the Children, PART II.md",
     "releases/v2.13.0 - 🖼️ View my Banner.md",
-    "releases/v2.12.0 - 🔀 Random Image Shuffle.md",
-    "releases/v2.11.0 - 📌 Pin my URL Please.md",
-    "releases/v2.15.0 - 🏷️ Streamlined Banner Bliss.md",
-    "tests/various embedded heights/banner-height-50.md",
     "pixel-banner-images/artwork.webp",
     "tests/various embedded heights",
     "pixel-banner-images/test/grass.png",

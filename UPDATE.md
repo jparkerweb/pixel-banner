@@ -1,5 +1,9 @@
 ## 🎉 What's New
 
+### v2.20.2
+#### ✨ Added
+- added `banner-fade-in-animation-duration` general setting to control the duration of the fade in animation for the banner image
+
 ### v2.20.1
 #### 📦 Updated
 - replaced `icon-padding` with `icon-padding-x` and `icon-padding-y` for more granular control

@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.20.2] - 2025-01-17
+#### ✨ Added
+- added `banner-fade-in-animation-duration` general setting to control the duration of the fade in animation for the banner image
+
 ### [v2.20.1] - 2025-01-17
 #### 📦 Updated
 - replaced `icon-padding` with `icon-padding-x` and `icon-padding-y` for more granular control

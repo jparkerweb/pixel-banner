@@ -229,6 +229,33 @@ export function createGeneralSettings(containerEl, plugin) {
                 sliderEl.dispatchEvent(new Event('input'));
             }));
 
+    // Banner Fade In Animation Duration setting
+    new Setting(containerEl)
+        .setName('Banner Fade In Animation Duration')
+        .setDesc('Set the default fade in animation duration for the banner image (0-1000 milliseconds)')
+        .addSlider(slider => slider
+            .setLimits(0, 1000, 1)
+            .setValue(plugin.settings.bannerFadeInAnimationDuration)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+                plugin.settings.bannerFadeInAnimationDuration = value;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            })
+        )
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.bannerFadeInAnimationDuration = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+                // Update the slider value
+                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+                sliderEl.dispatchEvent(new Event('input'));
+            }));
+
     // Border Radius setting
     new Setting(containerEl)
         .setName('Border Radius')

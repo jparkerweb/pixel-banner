@@ -19,7 +19,7 @@
 	height: var(--pixel-banner-height, 350px);
     border-radius: var(--pixel-banner-radius, 17px) !important;
 	pointer-events: none;
-	/* animation: pixel-banner--fade-in 0.3s ease-in-out; */
+	animation: pixel-banner--fade-in var(--pixel-banner-fade-in-animation-duration, 300ms) ease-in-out;
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
