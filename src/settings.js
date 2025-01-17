@@ -44,6 +44,7 @@ const DEFAULT_SETTINGS = {
     imageRepeat: false,
     bannerHeight: 350,
     fade: -75,
+    bannerFadeInAnimationDuration: 300,
     borderRadius: 17,
     showPinIcon: true,
     pinnedImageFolder: 'pixel-banner-images',

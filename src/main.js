@@ -1856,6 +1856,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
         bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
         bannerDiv.style.setProperty('--pixel-banner-fade', `${fade}%`);
+        bannerDiv.style.setProperty('--pixel-banner-fade-in-animation-duration', `${this.settings.bannerFadeInAnimationDuration}ms`);
         bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
 
         const bannerIconStart = `${(bannerHeight - (bannerIconSize / 2))}px`;

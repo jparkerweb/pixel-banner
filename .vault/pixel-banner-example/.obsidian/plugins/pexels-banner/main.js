@@ -1101,6 +1101,20 @@ function createGeneralSettings(containerEl, plugin) {
     sliderEl.value = DEFAULT_SETTINGS.fade;
     sliderEl.dispatchEvent(new Event("input"));
   }));
+  new import_obsidian5.Setting(containerEl).setName("Banner Fade In Animation Duration").setDesc("Set the default fade in animation duration for the banner image (0-1000 milliseconds)").addSlider(
+    (slider) => slider.setLimits(0, 1e3, 1).setValue(plugin.settings.bannerFadeInAnimationDuration).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.bannerFadeInAnimationDuration = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerFadeInAnimationDuration = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
   new import_obsidian5.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addText((text) => {
     text.setPlaceholder("17").setValue(String(plugin.settings.borderRadius)).onChange(async (value) => {
       const numValue = Number(value);
@@ -1461,6 +1475,7 @@ var DEFAULT_SETTINGS = {
   imageRepeat: false,
   bannerHeight: 350,
   fade: -75,
+  bannerFadeInAnimationDuration: 300,
   borderRadius: 17,
   showPinIcon: true,
   pinnedImageFolder: "pixel-banner-images",
@@ -2846,7 +2861,7 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>replaced <code>icon-padding</code> with <code>icon-padding-x</code> and <code>icon-padding-y</code> for more granular control</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>resolved issue with the banner updating while editing a note&#39;s content (causing the banner to flicker)</li>\n<li>resolved issue with the banner icon not being preserved when scrolling to the bottom of a note</li>\n</ul>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>banner-fade-in-animation-duration</code> general setting to control the duration of the fade in animation for the banner image</li>\n</ul>\n<h3>v2.20.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>replaced <code>icon-padding</code> with <code>icon-padding-x</code> and <code>icon-padding-y</code> for more granular control</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>resolved issue with the banner updating while editing a note&#39;s content (causing the banner to flicker)</li>\n<li>resolved issue with the banner icon not being preserved when scrolling to the bottom of a note</li>\n</ul>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -4180,6 +4195,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
     bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
     bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
+    bannerDiv.style.setProperty("--pixel-banner-fade-in-animation-duration", `${this.settings.bannerFadeInAnimationDuration}ms`);
     bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
     const bannerIconStart = `${bannerHeight - bannerIconSize / 2}px`;
     const bannerHeightPlusIcon = `${parseInt(bannerHeight) + parseInt(bannerIconSize) / 2 + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY)}px`;

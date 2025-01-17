@@ -64,8 +64,11 @@
   "customBannerIconBackgroundColorField": [
     "icon-bg-color"
   ],
-  "customBannerIconPaddingField": [
-    "icon-padding"
+  "customBannerIconPaddingXField": [
+    "icon-padding-x"
+  ],
+  "customBannerIconPaddingYField": [
+    "icon-padding-y"
   ],
   "customBannerIconBorderRadiusField": [
     "icon-border-radius"
@@ -124,11 +127,12 @@
   "imageRepeat": false,
   "bannerHeight": 350,
   "fade": -75,
+  "bannerFadeInAnimationDuration": 300,
   "borderRadius": 17,
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.20.0",
+  "lastVersion": "2.20.1",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
   "hidePixelBannerFields": false,
@@ -142,13 +146,18 @@
   "useShortPath": true,
   "bannerGap": 12,
   "bannerIconSize": 70,
-  "bannerIconXPosition": 80,
+  "bannerIconXPosition": 79,
   "bannerIconOpacity": 100,
   "bannerIconColor": "",
   "bannerIconBackgroundColor": "",
-  "bannerIconPadding": "0",
+  "bannerIconPaddingX": "0",
+  "bannerIconPaddingY": "0",
   "bannerIconBorderRadius": "17",
   "bannerIconVeritalOffset": "0",
+  "customBannerIconPaddingField": [
+    "icon-padding"
+  ],
+  "bannerIconPadding": "0",
   "bannerIcon": "💥",
   "customBannerIconHeightField": [
     "banner-icon-height"
