@@ -733,6 +733,12 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
       text.inputEl.style.width = "160px";
     });
     const controlEl3 = this.settingEl.createDiv("setting-item-control full-width-control");
+    new import_obsidian3.Setting(controlEl3).setName("Icon Font Weight").addDropdown((dropdown) => {
+      dropdown.addOption("lighter", "Lighter").addOption("normal", "Normal").addOption("bold", "Bold").setValue(this.folderImage.bannerIconFontWeight || this.plugin.settings.bannerIconFontWeight).onChange(async (value) => {
+        this.folderImage.bannerIconFontWeight = value;
+        await this.plugin.saveSettings();
+      });
+    });
     new import_obsidian3.Setting(controlEl3).setName("Icon BG Color").addText((text) => {
       text.setPlaceholder("(e.g., #ffffff or transparent)").setValue(this.folderImage.bannerIconBackgroundColor || this.plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
         this.folderImage.bannerIconBackgroundColor = value;
@@ -904,6 +910,13 @@ function createCustomFieldsSettings(containerEl, plugin) {
       desc: "Set custom field names for the banner icon color in frontmatter (comma-separated)",
       values: "#ffffff, white, var(--text-normal)",
       placeholder: "banner-icon-color, icon-color"
+    },
+    {
+      setting: "customBannerIconFontWeightField",
+      name: "Banner Icon Font Weight Field Names",
+      desc: "Set custom field names for the banner icon font weight in frontmatter (comma-separated)",
+      values: "lighter, normal, bold",
+      placeholder: "banner-icon-font-weight, icon-font-weight"
     },
     {
       setting: "customBannerIconBackgroundColorField",
@@ -1375,6 +1388,19 @@ function createGeneralSettings(containerEl, plugin) {
     const event = new Event("input", { bubbles: true, cancelable: true });
     textInput.dispatchEvent(event);
   }));
+  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Font Weight").setDesc("Set the default font weight for the banner icon").addDropdown((dropdown) => {
+    dropdown.addOption("lighter", "Lighter").addOption("normal", "Normal").addOption("bold", "Bold").setValue(plugin.settings.bannerIconFontWeight || "normal").onChange(async (value) => {
+      plugin.settings.bannerIconFontWeight = value;
+      await plugin.saveSettings();
+    });
+    return dropdown;
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconFontWeight = DEFAULT_SETTINGS.bannerIconFontWeight;
+    await plugin.saveSettings();
+    const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
+    dropdownEl.value = DEFAULT_SETTINGS.bannerIconFontWeight;
+    dropdownEl.dispatchEvent(new Event("change"));
+  }));
   new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Background Color").setDesc("Set the default background color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or transparent)").setValue(plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
     plugin.settings.bannerIconBackgroundColor = value;
     await plugin.saveSettings();
@@ -1464,6 +1490,7 @@ var DEFAULT_SETTINGS = {
   customBannerIconXPositionField: ["icon-x"],
   customBannerIconOpacityField: ["icon-opacity"],
   customBannerIconColorField: ["icon-color"],
+  customBannerIconFontWeightField: ["icon-font-weight"],
   customBannerIconBackgroundColorField: ["icon-bg-color"],
   customBannerIconPaddingXField: ["icon-padding-x"],
   customBannerIconPaddingYField: ["icon-padding-y"],
@@ -1497,6 +1524,7 @@ var DEFAULT_SETTINGS = {
   bannerIconXPosition: 25,
   bannerIconOpacity: 100,
   bannerIconColor: "",
+  bannerIconFontWeight: "normal",
   bannerIconBackgroundColor: "",
   bannerIconPaddingX: "0",
   bannerIconPaddingY: "0",
@@ -2861,7 +2889,7 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>banner-fade-in-animation-duration</code> general setting to control the duration of the fade in animation for the banner image</li>\n</ul>\n<h3>v2.20.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>replaced <code>icon-padding</code> with <code>icon-padding-x</code> and <code>icon-padding-y</code> for more granular control</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>resolved issue with the banner updating while editing a note&#39;s content (causing the banner to flicker)</li>\n<li>resolved issue with the banner icon not being preserved when scrolling to the bottom of a note</li>\n</ul>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.3</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>font weight</code> option to the banner icon settings (general, folder images, and frontmatter)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>fixed issue with a large gap appearing between the banner and the note content when using the <code>hide embedded note banners</code> setting</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg" alt="screenshot"></a></p>\n<h3>v2.20.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>banner-fade-in-animation-duration</code> general setting to control the duration of the fade in animation for the banner image</li>\n</ul>\n<h3>v2.20.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>replaced <code>icon-padding</code> with <code>icon-padding-x</code> and <code>icon-padding-y</code> for more granular control</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>resolved issue with the banner updating while editing a note&#39;s content (causing the banner to flicker)</li>\n<li>resolved issue with the banner icon not being preserved when scrolling to the bottom of a note</li>\n</ul>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -4095,10 +4123,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         if (viewImageIcon && viewImageIcon._updateVisibility) {
           viewImageIcon._updateVisibility(imageUrl);
         }
-        this.applyBannerSettings(bannerDiv, ctx);
-        const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
-        const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
-        const effectiveContentStart = (_b = (_a = parsedFrontmatterStart != null ? parsedFrontmatterStart : contentStartPosition) != null ? _a : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
+        this.applyBannerSettings(bannerDiv, ctx, isEmbedded);
+        const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, this.settings.customHideEmbeddedNoteBannersField) || (folderSpecific == null ? void 0 : folderSpecific.hideEmbeddedNoteBanners) || this.settings.hideEmbeddedNoteBanners || false;
+        let effectiveContentStart = 0;
+        if (!hideEmbeddedNoteBanners || !isEmbedded) {
+          const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
+          const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
+          effectiveContentStart = (_b = (_a = parsedFrontmatterStart != null ? parsedFrontmatterStart : contentStartPosition) != null ? _a : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
+        }
         this.applyContentStartPosition(viewContent, effectiveContentStart);
         this.applyBannerWidth(viewContent);
         const canPin = (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon && !isEmbedded;
@@ -4176,7 +4208,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }
   }
-  applyBannerSettings(bannerDiv, ctx) {
+  applyBannerSettings(bannerDiv, ctx, isEmbedded) {
     const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
     const folderSpecific = this.getFolderSpecificImage(ctx.file.path);
     const pixelBannerYPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField) || (folderSpecific == null ? void 0 : folderSpecific.yPosition) || this.settings.yPosition;
@@ -4186,19 +4218,29 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     const bannerIconXPosition = getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconXPosition) || this.settings.bannerIconXPosition || 25;
     const bannerIconOpacity = getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconOpacity) || this.settings.bannerIconOpacity || 100;
     const bannerIconColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconColor) || this.settings.bannerIconColor || "var(--text-normal)";
+    const bannerIconFontWeight = getFrontmatterValue(frontmatter, this.settings.customBannerIconFontWeightField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconFontWeight) || this.settings.bannerIconFontWeight || "normal";
     const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconBackgroundColor) || this.settings.bannerIconBackgroundColor || "transparent";
     const bannerIconPaddingX = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconPaddingX) || this.settings.bannerIconPaddingX || 0;
     const bannerIconPaddingY = getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconPaddingY) || this.settings.bannerIconPaddingY || 0;
     const bannerIconBorderRadius = getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconBorderRadius) || this.settings.bannerIconBorderRadius || 17;
     const bannerIconVeritalOffset = getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || (folderSpecific == null ? void 0 : folderSpecific.bannerIconVeritalOffset) || this.settings.bannerIconVeritalOffset || 0;
+    const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, this.settings.customHideEmbeddedNoteBannersField) || (folderSpecific == null ? void 0 : folderSpecific.hideEmbeddedNoteBanners) || this.settings.hideEmbeddedNoteBanners || false;
     bannerDiv.style.backgroundSize = imageDisplay || "cover";
     bannerDiv.style.backgroundRepeat = imageRepeat ? "repeat" : "no-repeat";
-    bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
+    if (hideEmbeddedNoteBanners && isEmbedded) {
+      bannerDiv.style.setProperty("--pixel-banner-height", `0px`);
+    } else {
+      bannerDiv.style.setProperty("--pixel-banner-height", `${bannerHeight}px`);
+    }
     bannerDiv.style.setProperty("--pixel-banner-fade", `${fade}%`);
     bannerDiv.style.setProperty("--pixel-banner-fade-in-animation-duration", `${this.settings.bannerFadeInAnimationDuration}ms`);
     bannerDiv.style.setProperty("--pixel-banner-radius", `${borderRadius}px`);
-    const bannerIconStart = `${bannerHeight - bannerIconSize / 2}px`;
-    const bannerHeightPlusIcon = `${parseInt(bannerHeight) + parseInt(bannerIconSize) / 2 + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY)}px`;
+    let bannerIconStart = `${bannerIconSize}px`;
+    let bannerHeightPlusIcon = `0px`;
+    if (!hideEmbeddedNoteBanners) {
+      bannerIconStart = `${bannerHeight - bannerIconSize / 2}px`;
+      bannerHeightPlusIcon = `${parseInt(bannerHeight) + parseInt(bannerIconSize) / 2 + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY)}px`;
+    }
     const container = bannerDiv.closest(".markdown-preview-view, .markdown-source-view");
     if (container) {
       container.style.setProperty("--pixel-banner-y-position", `${pixelBannerYPosition}%`);
@@ -4209,6 +4251,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       container.style.setProperty("--pixel-banner-icon-x", `${bannerIconXPosition}%`);
       container.style.setProperty("--pixel-banner-icon-opacity", `${bannerIconOpacity}%`);
       container.style.setProperty("--pixel-banner-icon-color", bannerIconColor);
+      container.style.setProperty("--pixel-banner-icon-font-weight", bannerIconFontWeight);
       container.style.setProperty("--pixel-banner-icon-background-color", bannerIconBackgroundColor);
       container.style.setProperty("--pixel-banner-icon-padding-x", `${bannerIconPaddingX}px`);
       container.style.setProperty("--pixel-banner-icon-padding-y", `${bannerIconPaddingY}px`);

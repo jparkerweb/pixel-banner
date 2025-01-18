@@ -668,6 +668,7 @@
     opacity: var(--pixel-banner-icon-opacity, 100%);
     white-space: nowrap;
     color: var(--pixel-banner-icon-color, var(--text-normal));
+    font-weight: var(--pixel-banner-icon-font-weight, normal);
     background: var(--pixel-banner-icon-background-color, unset);
     padding-top: var(--pixel-banner-icon-padding-y, 0) !important;
     padding-right: var(--pixel-banner-icon-padding-x, 0) !important;

@@ -61,6 +61,9 @@
   "customBannerIconColorField": [
     "icon-color"
   ],
+  "customBannerIconFontWeightField": [
+    "icon-font-weight"
+  ],
   "customBannerIconBackgroundColorField": [
     "icon-bg-color"
   ],
@@ -120,6 +123,22 @@
       "imageRepeat": false,
       "directChildrenOnly": false,
       "titleColor": "var(--inline-title-color)"
+    },
+    {
+      "folder": "some/folder/path",
+      "image": "dog, cat, fish",
+      "imageDisplay": "cover",
+      "imageRepeat": false,
+      "yPosition": 50,
+      "xPosition": 50,
+      "contentStartPosition": 150,
+      "bannerHeight": 350,
+      "fade": -75,
+      "borderRadius": 17,
+      "titleColor": "var(--inline-title-color)",
+      "directChildrenOnly": false,
+      "enableImageShuffle": false,
+      "shuffleFolder": ""
     }
   ],
   "contentStartPosition": 150,
@@ -132,7 +151,7 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.20.1",
+  "lastVersion": "2.20.2",
   "showRefreshIcon": true,
   "showViewImageIcon": true,
   "hidePixelBannerFields": false,
@@ -149,6 +168,7 @@
   "bannerIconXPosition": 79,
   "bannerIconOpacity": 100,
   "bannerIconColor": "",
+  "bannerIconFontWeight": "normal",
   "bannerIconBackgroundColor": "",
   "bannerIconPaddingX": "0",
   "bannerIconPaddingY": "0",

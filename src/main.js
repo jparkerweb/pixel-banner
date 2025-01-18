@@ -1680,15 +1680,23 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 }
 
                 // Apply other styling (fade, borderRadius, etc.)
-                this.applyBannerSettings(bannerDiv, ctx);
+                this.applyBannerSettings(bannerDiv, ctx, isEmbedded);
 
-                // contentStart
-                const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
-                const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
-                const effectiveContentStart = parsedFrontmatterStart ??
-                    contentStartPosition ??
-                    folderSpecific?.contentStartPosition ??
-                    this.settings.contentStartPosition;
+                // Get hide embedded note banners setting
+                const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, this.settings.customHideEmbeddedNoteBannersField) || 
+                    folderSpecific?.hideEmbeddedNoteBanners || 
+                    this.settings.hideEmbeddedNoteBanners || false;
+                
+                let effectiveContentStart = 0;
+                if (!hideEmbeddedNoteBanners || !isEmbedded) {
+                    const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
+                    const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
+                    
+                    effectiveContentStart = parsedFrontmatterStart ??
+                        contentStartPosition ??
+                        folderSpecific?.contentStartPosition ??
+                        this.settings.contentStartPosition;
+                }
 
                 this.applyContentStartPosition(viewContent, effectiveContentStart);
                 this.applyBannerWidth(viewContent);
@@ -1788,7 +1796,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
     }
 
-    applyBannerSettings(bannerDiv, ctx) {
+    applyBannerSettings(bannerDiv, ctx, isEmbedded) {
         const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
         const folderSpecific = this.getFolderSpecificImage(ctx.file.path);
         
@@ -1827,6 +1835,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
             folderSpecific?.bannerIconColor || 
             this.settings.bannerIconColor || 'var(--text-normal)';
 
+        // Get banner-icon font weight
+        const bannerIconFontWeight = getFrontmatterValue(frontmatter, this.settings.customBannerIconFontWeightField) || 
+            folderSpecific?.bannerIconFontWeight || 
+            this.settings.bannerIconFontWeight || 'normal';
+
         // Get banner-icon background color
         const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || 
             folderSpecific?.bannerIconBackgroundColor || 
@@ -1852,15 +1865,28 @@ module.exports = class PixelBannerPlugin extends Plugin {
             folderSpecific?.bannerIconVeritalOffset || 
             this.settings.bannerIconVeritalOffset || 0;
 
+        // Get hide embedded note banners
+        const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, this.settings.customHideEmbeddedNoteBannersField) || 
+            folderSpecific?.hideEmbeddedNoteBanners || 
+            this.settings.hideEmbeddedNoteBanners || false;
+
         bannerDiv.style.backgroundSize = imageDisplay || 'cover';
         bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
-        bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
+        if (hideEmbeddedNoteBanners && isEmbedded) {
+            bannerDiv.style.setProperty('--pixel-banner-height', `0px`);
+        } else {
+            bannerDiv.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
+        }
         bannerDiv.style.setProperty('--pixel-banner-fade', `${fade}%`);
         bannerDiv.style.setProperty('--pixel-banner-fade-in-animation-duration', `${this.settings.bannerFadeInAnimationDuration}ms`);
         bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
 
-        const bannerIconStart = `${(bannerHeight - (bannerIconSize / 2))}px`;
-        const bannerHeightPlusIcon = `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px`;
+        let bannerIconStart = `${bannerIconSize}px`;
+        let bannerHeightPlusIcon = `0px`;
+        if (!hideEmbeddedNoteBanners) {
+            bannerIconStart = `${(bannerHeight - (bannerIconSize / 2))}px`;
+            bannerHeightPlusIcon = `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px`;
+        }
 
         const container = bannerDiv.closest('.markdown-preview-view, .markdown-source-view');
         if (container) {
@@ -1872,6 +1898,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             container.style.setProperty('--pixel-banner-icon-x', `${bannerIconXPosition}%`);
             container.style.setProperty('--pixel-banner-icon-opacity', `${bannerIconOpacity}%`);
             container.style.setProperty('--pixel-banner-icon-color', bannerIconColor);
+            container.style.setProperty('--pixel-banner-icon-font-weight', bannerIconFontWeight);
             container.style.setProperty('--pixel-banner-icon-background-color', bannerIconBackgroundColor);
             container.style.setProperty('--pixel-banner-icon-padding-x', `${bannerIconPaddingX}px`);
             container.style.setProperty('--pixel-banner-icon-padding-y', `${bannerIconPaddingY}px`);

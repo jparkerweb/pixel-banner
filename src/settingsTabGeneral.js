@@ -722,6 +722,33 @@ export function createGeneralSettings(containerEl, plugin) {
                 textInput.dispatchEvent(event);
             }));
 
+    // Banner Icon Font Weight
+    new Setting(containerEl)
+        .setName('Default Banner Icon Font Weight')
+        .setDesc('Set the default font weight for the banner icon')
+        .addDropdown(dropdown => {
+            dropdown
+                .addOption('lighter', 'Lighter')
+                .addOption('normal', 'Normal')
+                .addOption('bold', 'Bold')
+                .setValue(plugin.settings.bannerIconFontWeight || 'normal')
+                .onChange(async (value) => {
+                    plugin.settings.bannerIconFontWeight = value;
+                    await plugin.saveSettings();
+                });
+            return dropdown;
+        })
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.bannerIconFontWeight = DEFAULT_SETTINGS.bannerIconFontWeight;
+                await plugin.saveSettings();
+                const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
+                dropdownEl.value = DEFAULT_SETTINGS.bannerIconFontWeight;
+                dropdownEl.dispatchEvent(new Event('change'));
+            }));
+
     // Banner Icon Background Color
     new Setting(containerEl)
         .setName('Default Banner Icon Background Color')

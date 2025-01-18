@@ -1,5 +1,14 @@
 ## 🎉 What's New
 
+### v2.20.3
+#### ✨ Added
+- added `font weight` option to the banner icon settings (general, folder images, and frontmatter)
+
+#### 🐛 Fixed
+- fixed issue with a large gap appearing between the banner and the note content when using the `hide embedded note banners` setting
+
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg)
+
 ### v2.20.2
 #### ✨ Added
 - added `banner-fade-in-animation-duration` general setting to control the duration of the fade in animation for the banner image

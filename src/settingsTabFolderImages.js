@@ -593,6 +593,21 @@ class FolderImageSetting extends Setting {
 
         const controlEl3 = this.settingEl.createDiv("setting-item-control full-width-control");
 
+        // Banner Icon Font Weight
+        new Setting(controlEl3)
+            .setName("Icon Font Weight")
+            .addDropdown(dropdown => {
+                dropdown
+                    .addOption('lighter', 'Lighter')
+                    .addOption('normal', 'Normal')
+                    .addOption('bold', 'Bold')
+                    .setValue(this.folderImage.bannerIconFontWeight || this.plugin.settings.bannerIconFontWeight)
+                    .onChange(async (value) => {
+                        this.folderImage.bannerIconFontWeight = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+
         // Banner Icon Background Color
         new Setting(controlEl3)
             .setName("Icon BG Color")
