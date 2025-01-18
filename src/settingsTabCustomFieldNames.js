@@ -157,6 +157,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-icon-color, icon-color'
         },
         {
+            setting: 'customBannerIconFontWeightField',
+            name: 'Banner Icon Font Weight Field Names',
+            desc: 'Set custom field names for the banner icon font weight in frontmatter (comma-separated)',
+            values: 'lighter, normal, bold',
+            placeholder: 'banner-icon-font-weight, icon-font-weight'
+        },
+        {
             setting: 'customBannerIconBackgroundColorField',
             name: 'Banner Icon Background Color Field Names',
             desc: 'Set custom field names for the banner icon background color in frontmatter (comma-separated)',
