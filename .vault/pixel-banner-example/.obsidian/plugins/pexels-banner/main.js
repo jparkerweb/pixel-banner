@@ -2920,6 +2920,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     });
     __publicField(this, "lastYPositions", /* @__PURE__ */ new Map());
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
+    // Enhanced cache management properties
+    __publicField(this, "bannerStateCache", /* @__PURE__ */ new Map());
+    // Format: { cacheKey: { state: {...}, timestamp: number, leafId: string } }
+    __publicField(this, "MAX_CACHE_AGE", 30 * 60 * 1e3);
+    // 30 minutes in milliseconds
+    __publicField(this, "MAX_CACHE_ENTRIES", 20);
+    // Maximum number of entries to keep in cache
+    __publicField(this, "SHUFFLE_CACHE_AGE", 5 * 1e3);
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
       if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
@@ -2930,6 +2938,47 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         }
       }
     }, 100));
+  }
+  // 5 seconds in milliseconds for shuffled banners
+  // Helper method to get all cache entries for a file
+  getCacheEntriesForFile(filePath) {
+    return Array.from(this.bannerStateCache.entries()).filter(([key]) => key.startsWith(`${filePath}-`));
+  }
+  // Enhanced cache cleanup method
+  cleanupCache(force = false) {
+    var _a, _b, _c, _d;
+    const now = Date.now();
+    for (const [key, entry] of this.bannerStateCache) {
+      const maxAge = entry.isShuffled ? this.SHUFFLE_CACHE_AGE : this.MAX_CACHE_AGE;
+      if (force || now - entry.timestamp > maxAge) {
+        this.bannerStateCache.delete(key);
+        if ((_b = (_a = entry.state) == null ? void 0 : _a.imageUrl) == null ? void 0 : _b.startsWith("blob:")) {
+          URL.revokeObjectURL(entry.state.imageUrl);
+        }
+      }
+    }
+    if (!force && this.bannerStateCache.size > this.MAX_CACHE_ENTRIES) {
+      const entries = Array.from(this.bannerStateCache.entries()).sort(([, a], [, b]) => a.timestamp - b.timestamp);
+      while (entries.length > this.MAX_CACHE_ENTRIES) {
+        const [key, entry] = entries.shift();
+        this.bannerStateCache.delete(key);
+        if ((_d = (_c = entry.state) == null ? void 0 : _c.imageUrl) == null ? void 0 : _d.startsWith("blob:")) {
+          URL.revokeObjectURL(entry.state.imageUrl);
+        }
+      }
+    }
+  }
+  // Helper to invalidate cache for a specific leaf
+  invalidateLeafCache(leafId) {
+    var _a, _b;
+    for (const [key, entry] of this.bannerStateCache) {
+      if (key.endsWith(`-${leafId}`)) {
+        if ((_b = (_a = entry.state) == null ? void 0 : _a.imageUrl) == null ? void 0 : _b.startsWith("blob:")) {
+          URL.revokeObjectURL(entry.state.imageUrl);
+        }
+        this.bannerStateCache.delete(key);
+      }
+    }
   }
   async onload() {
     await this.loadSettings();
@@ -2973,6 +3022,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           ...this.settings.customBannerIconXPositionField,
           ...this.settings.customBannerIconOpacityField,
           ...this.settings.customBannerIconColorField,
+          ...this.settings.customBannerIconFontWeightField,
           ...this.settings.customBannerIconBackgroundColorField,
           ...this.settings.customBannerIconPaddingXField,
           ...this.settings.customBannerIconPaddingYField,
@@ -3133,42 +3183,135 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     });
   }
   async handleActiveLeafChange(leaf) {
-    const previousLeaf = this.app.workspace.activeLeaf;
-    if (previousLeaf && previousLeaf.view instanceof import_obsidian8.MarkdownView) {
-      const previousContentEl = previousLeaf.view.contentEl;
-      previousContentEl.classList.remove("pixel-banner");
-      ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
-        const container = previousContentEl.querySelector(`.${selector}`);
-        if (container) {
-          const previousBanner = container.querySelector(".pixel-banner-image");
-          if (previousBanner) {
-            previousBanner.style.backgroundImage = "";
-            previousBanner.style.display = "none";
-            if (previousLeaf.view.file) {
-              const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
-              if (existingUrl == null ? void 0 : existingUrl.startsWith("blob:")) {
-                URL.revokeObjectURL(existingUrl);
-              }
-              this.loadedImages.delete(previousLeaf.view.file.path);
+    var _a;
+    this.cleanupCache();
+    if (!leaf || !(leaf.view instanceof import_obsidian8.MarkdownView) || !leaf.view.file) {
+      return;
+    }
+    const currentPath = leaf.view.file.path;
+    const leafId = leaf.id;
+    const cacheKey = leafId;
+    const frontmatter = (_a = this.app.metadataCache.getFileCache(leaf.view.file)) == null ? void 0 : _a.frontmatter;
+    const currentTime = Date.now();
+    try {
+      const hasShufflePath = !!getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
+      const folderSpecific = this.getFolderSpecificImage(currentPath);
+      const isShuffled = hasShufflePath || (folderSpecific == null ? void 0 : folderSpecific.enableImageShuffle) || false;
+      const cachedState = this.bannerStateCache.get(cacheKey);
+      if (cachedState) {
+        cachedState.timestamp = currentTime;
+        if (isShuffled && currentTime - cachedState.timestamp > this.SHUFFLE_CACHE_AGE) {
+          this.loadedImages.delete(currentPath);
+          this.lastKeywords.delete(currentPath);
+          this.imageCache.delete(currentPath);
+        } else {
+          const relevantFields = [
+            ...this.settings.customBannerField,
+            ...this.settings.customYPositionField,
+            ...this.settings.customXPositionField,
+            ...this.settings.customContentStartField,
+            ...this.settings.customImageDisplayField,
+            ...this.settings.customImageRepeatField,
+            ...this.settings.customBannerHeightField,
+            ...this.settings.customFadeField,
+            ...this.settings.customBorderRadiusField,
+            ...this.settings.customBannerShuffleField,
+            ...this.settings.customTitleColorField,
+            ...this.settings.customBannerIconField,
+            ...this.settings.customBannerIconSizeField,
+            ...this.settings.customBannerIconXPositionField,
+            ...this.settings.customBannerIconOpacityField,
+            ...this.settings.customBannerIconColorField,
+            ...this.settings.customBannerIconFontWeightField,
+            ...this.settings.customBannerIconBackgroundColorField,
+            ...this.settings.customBannerIconPaddingXField,
+            ...this.settings.customBannerIconPaddingYField,
+            ...this.settings.customBannerIconBorderRadiusField,
+            ...this.settings.customBannerIconVeritalOffsetField
+          ];
+          const hasRelevantChanges = relevantFields.some(
+            (field) => {
+              var _a2;
+              return (frontmatter == null ? void 0 : frontmatter[field]) !== ((_a2 = cachedState.frontmatter) == null ? void 0 : _a2[field]);
             }
+          );
+          if (!hasRelevantChanges) {
+            return;
           }
-          const iconOverlays = container.querySelectorAll(".banner-icon-overlay");
-          iconOverlays.forEach((overlay) => overlay.remove());
+        }
+      }
+      const previousLeaf = this.app.workspace.activeLeaf;
+      if (previousLeaf && previousLeaf.view instanceof import_obsidian8.MarkdownView && previousLeaf !== leaf) {
+        this.cleanupPreviousLeaf(previousLeaf);
+      }
+      await this.updateBanner(leaf.view, false);
+      this.bannerStateCache.set(cacheKey, {
+        timestamp: currentTime,
+        frontmatter: frontmatter ? { ...frontmatter } : null,
+        leafId,
+        isShuffled,
+        state: {
+          imageUrl: this.loadedImages.get(currentPath)
+          // Add any other state we want to cache
         }
       });
-    }
-    if (leaf && leaf.view instanceof import_obsidian8.MarkdownView && leaf.view.file) {
-      await this.updateBanner(leaf.view, false);
+    } catch (error) {
+      console.error("Error in handleActiveLeafChange:", error);
+      this.invalidateLeafCache(leafId);
+      try {
+        await this.updateBanner(leaf.view, false);
+      } catch (recoveryError) {
+        console.error("Failed to recover from error:", recoveryError);
+      }
     }
   }
+  cleanupPreviousLeaf(previousLeaf) {
+    const previousContentEl = previousLeaf.view.contentEl;
+    previousContentEl.classList.remove("pixel-banner");
+    ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
+      const container = previousContentEl.querySelector(`.${selector}`);
+      if (container) {
+        const previousBanner = container.querySelector(".pixel-banner-image");
+        if (previousBanner) {
+          previousBanner.style.backgroundImage = "";
+          previousBanner.style.display = "none";
+          if (previousLeaf.view.file) {
+            const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
+            if (existingUrl == null ? void 0 : existingUrl.startsWith("blob:")) {
+              URL.revokeObjectURL(existingUrl);
+            }
+            this.loadedImages.delete(previousLeaf.view.file.path);
+          }
+        }
+        const iconOverlays = container.querySelectorAll(".banner-icon-overlay");
+        iconOverlays.forEach((overlay) => overlay.remove());
+      }
+    });
+  }
   handleLayoutChange() {
+    var _a, _b;
+    const currentLeafIds = new Set(
+      this.app.workspace.getLeavesOfType("markdown").map((leaf) => leaf.id)
+    );
+    for (const [key, entry] of this.bannerStateCache) {
+      if (entry.leafId && !currentLeafIds.has(entry.leafId)) {
+        if ((_b = (_a = entry.state) == null ? void 0 : _a.imageUrl) == null ? void 0 : _b.startsWith("blob:")) {
+          URL.revokeObjectURL(entry.state.imageUrl);
+        }
+        this.bannerStateCache.delete(key);
+      }
+    }
     setTimeout(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
       if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
         const contentEl = activeLeaf.view.contentEl;
         const hasBanner = contentEl.querySelector(".pixel-banner-image");
         if (hasBanner) {
-          this.updateBanner(activeLeaf.view, false);
+          const cacheKey = activeLeaf.id;
+          const cachedState = this.bannerStateCache.get(cacheKey);
+          if (!cachedState) {
+            this.updateBanner(activeLeaf.view, false);
+          }
         }
       }
     }, 100);
@@ -3821,6 +3964,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
             ...this.settings.customBannerIconXPositionField,
             ...this.settings.customBannerIconOpacityField,
             ...this.settings.customBannerIconColorField,
+            ...this.settings.customBannerIconFontWeightField,
             ...this.settings.customBannerIconBackgroundColorField,
             ...this.settings.customBannerIconPaddingXField,
             ...this.settings.customBannerIconPaddingYField,
@@ -4101,7 +4245,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       let imageUrl = this.loadedImages.get(file.path);
       const lastInput = this.lastKeywords.get(file.path);
       const inputType = this.getInputType(bannerImage);
-      if (!imageUrl || isContentChange && bannerImage !== lastInput) {
+      const hasShufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
+      const folderSpecific = this.getFolderSpecificImage(file.path);
+      const isShuffled = hasShufflePath || (folderSpecific == null ? void 0 : folderSpecific.enableImageShuffle);
+      if (!imageUrl || isShuffled || isContentChange && bannerImage !== lastInput) {
         imageUrl = await this.getImageUrl(inputType, bannerImage);
         if (imageUrl) {
           this.loadedImages.set(file.path, imageUrl);
@@ -4109,8 +4256,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         }
       }
       if (imageUrl) {
-        const folderSpecific = this.getFolderSpecificImage(file.path);
-        const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
+        const folderSpecific2 = this.getFolderSpecificImage(file.path);
+        const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific2 == null ? void 0 : folderSpecific2.imageDisplay) || this.settings.imageDisplay;
         const isSvg = imageUrl.includes("image/svg+xml") || file.path && file.path.toLowerCase().endsWith(".svg");
         bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
         if (isSvg) {
@@ -4124,12 +4271,12 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           viewImageIcon._updateVisibility(imageUrl);
         }
         this.applyBannerSettings(bannerDiv, ctx, isEmbedded);
-        const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, this.settings.customHideEmbeddedNoteBannersField) || (folderSpecific == null ? void 0 : folderSpecific.hideEmbeddedNoteBanners) || this.settings.hideEmbeddedNoteBanners || false;
+        const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, this.settings.customHideEmbeddedNoteBannersField) || (folderSpecific2 == null ? void 0 : folderSpecific2.hideEmbeddedNoteBanners) || this.settings.hideEmbeddedNoteBanners || false;
         let effectiveContentStart = 0;
         if (!hideEmbeddedNoteBanners || !isEmbedded) {
           const frontmatterContentStart = getFrontmatterValue(frontmatter, this.settings.customContentStartField);
           const parsedFrontmatterStart = frontmatterContentStart ? Number(frontmatterContentStart) : null;
-          effectiveContentStart = (_b = (_a = parsedFrontmatterStart != null ? parsedFrontmatterStart : contentStartPosition) != null ? _a : folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
+          effectiveContentStart = (_b = (_a = parsedFrontmatterStart != null ? parsedFrontmatterStart : contentStartPosition) != null ? _a : folderSpecific2 == null ? void 0 : folderSpecific2.contentStartPosition) != null ? _b : this.settings.contentStartPosition;
         }
         this.applyContentStartPosition(viewContent, effectiveContentStart);
         this.applyBannerWidth(viewContent);
@@ -4293,6 +4440,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       ...this.settings.customBannerIconXPositionField,
       ...this.settings.customBannerIconOpacityField,
       ...this.settings.customBannerIconColorField,
+      ...this.settings.customBannerIconFontWeightField,
       ...this.settings.customBannerIconBackgroundColorField,
       ...this.settings.customBannerIconPaddingXField,
       ...this.settings.customBannerIconPaddingYField,

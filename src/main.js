@@ -40,6 +40,65 @@ module.exports = class PixelBannerPlugin extends Plugin {
     };
     lastYPositions = new Map();
     lastFrontmatter = new Map();
+    
+    // Enhanced cache management properties
+    bannerStateCache = new Map(); // Format: { cacheKey: { state: {...}, timestamp: number, leafId: string } }
+    MAX_CACHE_AGE = 30 * 60 * 1000; // 30 minutes in milliseconds
+    MAX_CACHE_ENTRIES = 30; // Maximum number of entries to keep in cache
+    SHUFFLE_CACHE_AGE = 5 * 1000; // 5 seconds in milliseconds for shuffled banners
+
+    // Helper method to get all cache entries for a file
+    getCacheEntriesForFile(filePath) {
+        return Array.from(this.bannerStateCache.entries())
+            .filter(([key]) => key.startsWith(`${filePath}-`));
+    }
+
+    // Enhanced cache cleanup method
+    cleanupCache(force = false) {
+        const now = Date.now();
+        
+        // Clean up by age
+        for (const [key, entry] of this.bannerStateCache) {
+            // Use shorter timeout for shuffle images
+            const maxAge = entry.isShuffled ? this.SHUFFLE_CACHE_AGE : this.MAX_CACHE_AGE;
+            if (force || now - entry.timestamp > maxAge) {
+                this.bannerStateCache.delete(key);
+                // Also cleanup associated resources
+                if (entry.state?.imageUrl?.startsWith('blob:')) {
+                    URL.revokeObjectURL(entry.state.imageUrl);
+                }
+            }
+        }
+        
+        // Clean up by size if not doing a force cleanup
+        if (!force && this.bannerStateCache.size > this.MAX_CACHE_ENTRIES) {
+            // Sort entries by timestamp (oldest first)
+            const entries = Array.from(this.bannerStateCache.entries())
+                .sort(([, a], [, b]) => a.timestamp - b.timestamp);
+            
+            // Remove oldest entries until we're at max size
+            while (entries.length > this.MAX_CACHE_ENTRIES) {
+                const [key, entry] = entries.shift();
+                this.bannerStateCache.delete(key);
+                // Cleanup associated resources
+                if (entry.state?.imageUrl?.startsWith('blob:')) {
+                    URL.revokeObjectURL(entry.state.imageUrl);
+                }
+            }
+        }
+    }
+
+    // Helper to invalidate cache for a specific leaf
+    invalidateLeafCache(leafId) {
+        for (const [key, entry] of this.bannerStateCache) {
+            if (key.endsWith(`-${leafId}`)) {
+                if (entry.state?.imageUrl?.startsWith('blob:')) {
+                    URL.revokeObjectURL(entry.state.imageUrl);
+                }
+                this.bannerStateCache.delete(key);
+            }
+        }
+    }
 
     async onload() {
         await this.loadSettings();
@@ -106,6 +165,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     ...this.settings.customBannerIconXPositionField,
                     ...this.settings.customBannerIconOpacityField,
                     ...this.settings.customBannerIconColorField,
+                    ...this.settings.customBannerIconFontWeightField,
                     ...this.settings.customBannerIconBackgroundColorField,
                     ...this.settings.customBannerIconPaddingXField,
                     ...this.settings.customBannerIconPaddingYField,
@@ -322,57 +382,180 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     async handleActiveLeafChange(leaf) {
-        // Clean up banner from the previous note first
-        const previousLeaf = this.app.workspace.activeLeaf;
-        
-        if (previousLeaf && previousLeaf.view instanceof MarkdownView) {
-            const previousContentEl = previousLeaf.view.contentEl;
-            
-            // Remove pixel-banner class
-            previousContentEl.classList.remove('pixel-banner');
-            
-            // Clean up banner in both edit and preview modes
-            ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
-                const container = previousContentEl.querySelector(`.${selector}`);
-                if (container) {
-                    const previousBanner = container.querySelector('.pixel-banner-image');
-                    if (previousBanner) {
-                        previousBanner.style.backgroundImage = '';
-                        previousBanner.style.display = 'none';
-                        
-                        // Clean up any existing blob URLs
-                        if (previousLeaf.view.file) {
-                            const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
-                            if (existingUrl?.startsWith('blob:')) {
-                                URL.revokeObjectURL(existingUrl);
-                            }
-                            this.loadedImages.delete(previousLeaf.view.file.path);
-                        }
-                    }
+        // Run periodic cache cleanup
+        this.cleanupCache();
 
-                    // Clean up banner icon overlays
-                    const iconOverlays = container.querySelectorAll('.banner-icon-overlay');
-                    iconOverlays.forEach(overlay => overlay.remove());
-                }
-            });
+        // If no leaf or not a markdown view, just clean up previous
+        if (!leaf || !(leaf.view instanceof MarkdownView) || !leaf.view.file) {
+            return;
         }
 
-        // Then handle the new leaf
-        if (leaf && leaf.view instanceof MarkdownView && leaf.view.file) {
+        const currentPath = leaf.view.file.path;
+        const leafId = leaf.id;
+        const cacheKey = leafId;
+        const frontmatter = this.app.metadataCache.getFileCache(leaf.view.file)?.frontmatter;
+        const currentTime = Date.now();
+
+        try {
+            // Check if this note uses shuffle functionality
+            const hasShufflePath = !!getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
+            const folderSpecific = this.getFolderSpecificImage(currentPath);
+            const isShuffled = hasShufflePath || folderSpecific?.enableImageShuffle || false;
+
+            // Check cache first
+            const cachedState = this.bannerStateCache.get(cacheKey);
+            if (cachedState) {
+                // Update timestamp to keep entry fresh
+                cachedState.timestamp = currentTime;
+
+                // For shuffled banners, check if cache has expired
+                if (isShuffled && (currentTime - cachedState.timestamp > this.SHUFFLE_CACHE_AGE)) {
+                    // Cache expired for shuffled banner, force update
+                    // console.log('Shuffle cache expired, forcing update');
+                    // Clear all relevant caches for this file to force new image selection
+                    this.loadedImages.delete(currentPath);
+                    this.lastKeywords.delete(currentPath);
+                    this.imageCache.delete(currentPath);
+                } else {
+                    // Compare frontmatter for relevant changes
+                    const relevantFields = [
+                        ...this.settings.customBannerField,
+                        ...this.settings.customYPositionField,
+                        ...this.settings.customXPositionField,
+                        ...this.settings.customContentStartField,
+                        ...this.settings.customImageDisplayField,
+                        ...this.settings.customImageRepeatField,
+                        ...this.settings.customBannerHeightField,
+                        ...this.settings.customFadeField,
+                        ...this.settings.customBorderRadiusField,
+                        ...this.settings.customBannerShuffleField,
+                        ...this.settings.customTitleColorField,
+                        ...this.settings.customBannerIconField,
+                        ...this.settings.customBannerIconSizeField,
+                        ...this.settings.customBannerIconXPositionField,
+                        ...this.settings.customBannerIconOpacityField,
+                        ...this.settings.customBannerIconColorField,
+                        ...this.settings.customBannerIconFontWeightField,
+                        ...this.settings.customBannerIconBackgroundColorField,
+                        ...this.settings.customBannerIconPaddingXField,
+                        ...this.settings.customBannerIconPaddingYField,
+                        ...this.settings.customBannerIconBorderRadiusField,
+                        ...this.settings.customBannerIconVeritalOffsetField
+                    ];
+
+                    const hasRelevantChanges = relevantFields.some(field => 
+                        frontmatter?.[field] !== cachedState.frontmatter?.[field]
+                    );
+
+                    if (!hasRelevantChanges) {
+                        // No relevant changes, reuse existing banner
+                        return;
+                    }
+                }
+            }
+
+            // At this point we know we need to update the banner
+            // Clean up previous leaf first
+            const previousLeaf = this.app.workspace.activeLeaf;
+            if (previousLeaf && 
+                previousLeaf.view instanceof MarkdownView && 
+                previousLeaf !== leaf) {  // Only cleanup if it's actually a different leaf
+                this.cleanupPreviousLeaf(previousLeaf);
+            }
+
+            // Update banner
             await this.updateBanner(leaf.view, false);
+            
+            // Cache the new state
+            this.bannerStateCache.set(cacheKey, {
+                timestamp: currentTime,
+                frontmatter: frontmatter ? {...frontmatter} : null,
+                leafId,
+                isShuffled,
+                state: {
+                    imageUrl: this.loadedImages.get(currentPath),
+                    // Add any other state we want to cache
+                }
+            });
+
+        } catch (error) {
+            console.error('Error in handleActiveLeafChange:', error);
+            // Cleanup on error
+            this.invalidateLeafCache(leafId);
+            // Attempt recovery
+            try {
+                await this.updateBanner(leaf.view, false);
+            } catch (recoveryError) {
+                console.error('Failed to recover from error:', recoveryError);
+            }
         }
     }
 
+    cleanupPreviousLeaf(previousLeaf) {
+        const previousContentEl = previousLeaf.view.contentEl;
+        
+        // Remove pixel-banner class
+        previousContentEl.classList.remove('pixel-banner');
+        
+        // Clean up banner in both edit and preview modes
+        ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
+            const container = previousContentEl.querySelector(`.${selector}`);
+            if (container) {
+                const previousBanner = container.querySelector('.pixel-banner-image');
+                if (previousBanner) {
+                    previousBanner.style.backgroundImage = '';
+                    previousBanner.style.display = 'none';
+                    
+                    // Clean up any existing blob URLs
+                    if (previousLeaf.view.file) {
+                        const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
+                        if (existingUrl?.startsWith('blob:')) {
+                            URL.revokeObjectURL(existingUrl);
+                        }
+                        this.loadedImages.delete(previousLeaf.view.file.path);
+                    }
+                }
+
+                // Clean up banner icon overlays
+                const iconOverlays = container.querySelectorAll('.banner-icon-overlay');
+                iconOverlays.forEach(overlay => overlay.remove());
+            }
+        });
+    }
+
     handleLayoutChange() {
-        // console.log('📐 Layout change detected');
-        // Use setTimeout to give the view a chance to fully render
+        // Get current leaves to compare with cached ones
+        const currentLeafIds = new Set(
+            this.app.workspace.getLeavesOfType('markdown')
+                .map(leaf => leaf.id)
+        );
+
+        // Find and invalidate cache entries for closed leaves
+        for (const [key, entry] of this.bannerStateCache) {
+            if (entry.leafId && !currentLeafIds.has(entry.leafId)) {
+                // This leaf no longer exists, clean up its cache
+                if (entry.state?.imageUrl?.startsWith('blob:')) {
+                    URL.revokeObjectURL(entry.state.imageUrl);
+                }
+                this.bannerStateCache.delete(key);
+            }
+        }
+
+        // Handle layout changes for active leaf
         setTimeout(() => {
             const activeLeaf = this.app.workspace.activeLeaf;
             if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
                 const contentEl = activeLeaf.view.contentEl;
                 const hasBanner = contentEl.querySelector('.pixel-banner-image');
                 if (hasBanner) {
-                    this.updateBanner(activeLeaf.view, false);
+                    // Check if we have a valid cache entry before updating
+                    const cacheKey = activeLeaf.id;
+                    const cachedState = this.bannerStateCache.get(cacheKey);
+                    
+                    // Only update if we don't have a valid cache entry
+                    if (!cachedState) {
+                        this.updateBanner(activeLeaf.view, false);
+                    }
                 }
             }
         }, 100);
@@ -518,7 +701,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // Process this note's banner if it exists
         if (bannerImage) {
-            // console.log("Calling addPixelBanner with bannerImage:", bannerImage);
             await this.addPixelBanner(contentEl, { 
                 frontmatter, 
                 file: view.file, 
@@ -1258,6 +1440,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         ...this.settings.customBannerIconXPositionField,
                         ...this.settings.customBannerIconOpacityField,
                         ...this.settings.customBannerIconColorField,
+                        ...this.settings.customBannerIconFontWeightField,
                         ...this.settings.customBannerIconBackgroundColorField,
                         ...this.settings.customBannerIconPaddingXField,
                         ...this.settings.customBannerIconPaddingYField,
@@ -1646,7 +1829,13 @@ module.exports = class PixelBannerPlugin extends Plugin {
             const lastInput = this.lastKeywords.get(file.path);
             const inputType = this.getInputType(bannerImage);
 
-            if (!imageUrl || (isContentChange && bannerImage !== lastInput)) {
+            // Check if this is a shuffled banner
+            const hasShufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
+            const folderSpecific = this.getFolderSpecificImage(file.path);
+            const isShuffled = hasShufflePath || folderSpecific?.enableImageShuffle;
+
+            // Force URL refresh for shuffled banners or normal cache miss conditions
+            if (!imageUrl || isShuffled || (isContentChange && bannerImage !== lastInput)) {
                 imageUrl = await this.getImageUrl(inputType, bannerImage);
                 if (imageUrl) {
                     this.loadedImages.set(file.path, imageUrl);
@@ -1661,7 +1850,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     folderSpecific?.imageDisplay ||
                     this.settings.imageDisplay;
                 const isSvg = imageUrl.includes('image/svg+xml') ||
-                              (file.path && file.path.toLowerCase().endsWith('.svg'));
+                    (file.path && file.path.toLowerCase().endsWith('.svg'));
 
                 bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
 
@@ -1946,6 +2135,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             ...this.settings.customBannerIconXPositionField,
             ...this.settings.customBannerIconOpacityField,
             ...this.settings.customBannerIconColorField,
+            ...this.settings.customBannerIconFontWeightField,
             ...this.settings.customBannerIconBackgroundColorField,
             ...this.settings.customBannerIconPaddingXField,
             ...this.settings.customBannerIconPaddingYField,
