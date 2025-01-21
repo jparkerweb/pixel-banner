@@ -2,6 +2,15 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.20.4] - 2025-01-20
+#### 🐛 Fixed
+- fixed issue with banner not updating correctly when frontmatter changes
+- improved banner refresh logic to prevent unnecessary updates
+- optimized cache management for better performance
+
+#### 📦 Updated
+- improved banner width styling to combat the aggressive implementation of the `minimal` theme
+
 ### [v2.20.3] - 2025-01-18
 #### ✨ Added
 - added `font weight` option to the banner icon settings (general, folder images, and frontmatter)

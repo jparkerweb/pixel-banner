@@ -1,7 +1,7 @@
 ---
 banner: "[[shooting-star.png]]"
 content-start: 360
-icon: v2.20.3 - ⭐ The Icon has Landed
+icon: v2.20.4 - ⭐ The Icon has Landed
 icon-size: "30"
 icon-x: "50"
 icon-y: "-20"
