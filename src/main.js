@@ -30,6 +30,13 @@ function getFrontmatterValue(frontmatter, fieldNames) {
 // -- main plugin class --
 // -----------------------
 module.exports = class PixelBannerPlugin extends Plugin {
+    // Update modes for banner refresh
+    UPDATE_MODE = {
+        FULL_UPDATE: 'FULL_UPDATE',           // Complete update including new images
+        ENSURE_VISIBILITY: 'ENSURE_VISIBILITY', // Only ensure banner is visible with current image
+        SHUFFLE_UPDATE: 'SHUFFLE_UPDATE'       // Update for shuffle banners only
+    };
+
     debounceTimer = null;
     loadedImages = new Map();
     lastKeywords = new Map();
@@ -47,10 +54,18 @@ module.exports = class PixelBannerPlugin extends Plugin {
     MAX_CACHE_ENTRIES = 30; // Maximum number of entries to keep in cache
     SHUFFLE_CACHE_AGE = 5 * 1000; // 5 seconds in milliseconds for shuffled banners
 
+    // Helper method to generate cache key
+    generateCacheKey(filePath, leafId, isShuffled = false) {
+        // Ensure filePath is properly encoded to handle special characters and numbers
+        const encodedPath = encodeURIComponent(filePath);
+        return `${encodedPath}-${leafId}${isShuffled ? '-shuffle' : ''}`;
+    }
+
     // Helper method to get all cache entries for a file
     getCacheEntriesForFile(filePath) {
+        const encodedPath = encodeURIComponent(filePath);
         return Array.from(this.bannerStateCache.entries())
-            .filter(([key]) => key.startsWith(`${filePath}-`));
+            .filter(([key]) => key.startsWith(`${encodedPath}-`));
     }
 
     // Enhanced cache cleanup method
@@ -91,7 +106,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     // Helper to invalidate cache for a specific leaf
     invalidateLeafCache(leafId) {
         for (const [key, entry] of this.bannerStateCache) {
-            if (key.endsWith(`-${leafId}`)) {
+            if (key.includes(`-${leafId}`)) {
                 if (entry.state?.imageUrl?.startsWith('blob:')) {
                     URL.revokeObjectURL(entry.state.imageUrl);
                 }
@@ -392,7 +407,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         const currentPath = leaf.view.file.path;
         const leafId = leaf.id;
-        const cacheKey = leafId;
         const frontmatter = this.app.metadataCache.getFileCache(leaf.view.file)?.frontmatter;
         const currentTime = Date.now();
 
@@ -402,20 +416,27 @@ module.exports = class PixelBannerPlugin extends Plugin {
             const folderSpecific = this.getFolderSpecificImage(currentPath);
             const isShuffled = hasShufflePath || folderSpecific?.enableImageShuffle || false;
 
+            // Generate cache key using the new method
+            const cacheKey = this.generateCacheKey(currentPath, leafId, isShuffled);
+
             // Check cache first
             const cachedState = this.bannerStateCache.get(cacheKey);
+            const loadedImage = this.loadedImages.get(currentPath);
+            
+            let shouldUpdateBanner = false;
+
             if (cachedState) {
                 // Update timestamp to keep entry fresh
                 cachedState.timestamp = currentTime;
 
                 // For shuffled banners, check if cache has expired
                 if (isShuffled && (currentTime - cachedState.timestamp > this.SHUFFLE_CACHE_AGE)) {
+                    shouldUpdateBanner = true;
                     // Cache expired for shuffled banner, force update
-                    // console.log('Shuffle cache expired, forcing update');
-                    // Clear all relevant caches for this file to force new image selection
                     this.loadedImages.delete(currentPath);
                     this.lastKeywords.delete(currentPath);
                     this.imageCache.delete(currentPath);
+                    this.bannerStateCache.delete(cacheKey);
                 } else {
                     // Compare frontmatter for relevant changes
                     const relevantFields = [
@@ -428,8 +449,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         ...this.settings.customBannerHeightField,
                         ...this.settings.customFadeField,
                         ...this.settings.customBorderRadiusField,
-                        ...this.settings.customBannerShuffleField,
                         ...this.settings.customTitleColorField,
+                        ...this.settings.customBannerShuffleField,
                         ...this.settings.customBannerIconField,
                         ...this.settings.customBannerIconSizeField,
                         ...this.settings.customBannerIconXPositionField,
@@ -447,36 +468,44 @@ module.exports = class PixelBannerPlugin extends Plugin {
                         frontmatter?.[field] !== cachedState.frontmatter?.[field]
                     );
 
-                    if (!hasRelevantChanges) {
-                        // No relevant changes, reuse existing banner
-                        return;
+                    if (hasRelevantChanges) {
+                        shouldUpdateBanner = true;
                     }
                 }
+            } else {
+                shouldUpdateBanner = true;
+            }
+
+            // Always update banner if we don't have a loaded image for this path
+            if (!loadedImage) {
+                shouldUpdateBanner = true;
             }
 
             // At this point we know we need to update the banner
             // Clean up previous leaf first
             const previousLeaf = this.app.workspace.activeLeaf;
-            if (previousLeaf && 
-                previousLeaf.view instanceof MarkdownView && 
-                previousLeaf !== leaf) {  // Only cleanup if it's actually a different leaf
+            if (previousLeaf && previousLeaf.view instanceof MarkdownView && previousLeaf !== leaf) {  // Only cleanup if it's actually a different leaf
                 this.cleanupPreviousLeaf(previousLeaf);
             }
 
-            // Update banner
-            await this.updateBanner(leaf.view, false);
-            
-            // Cache the new state
-            this.bannerStateCache.set(cacheKey, {
-                timestamp: currentTime,
-                frontmatter: frontmatter ? {...frontmatter} : null,
-                leafId,
-                isShuffled,
-                state: {
-                    imageUrl: this.loadedImages.get(currentPath),
-                    // Add any other state we want to cache
-                }
-            });
+            // Update banner if needed
+            if (shouldUpdateBanner) {
+                await this.updateBanner(leaf.view, false, this.UPDATE_MODE.FULL_UPDATE);
+                
+                // Cache the new state
+                this.bannerStateCache.set(cacheKey, {
+                    timestamp: currentTime,
+                    frontmatter: frontmatter ? {...frontmatter} : null,
+                    leafId,
+                    isShuffled,
+                    state: {
+                        imageUrl: this.loadedImages.get(currentPath),
+                    }
+                });
+            } else {
+                // Even if we don't need to update the banner, we should still ensure it's visible
+                await this.updateBanner(leaf.view, false, this.UPDATE_MODE.ENSURE_VISIBILITY);
+            }
 
         } catch (error) {
             console.error('Error in handleActiveLeafChange:', error);
@@ -571,10 +600,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
     }
 
-    async updateBanner(view, isContentChange) {
+    async updateBanner(view, isContentChange, updateMode = this.UPDATE_MODE.FULL_UPDATE) {
         // console.log('🎯 updateBanner called:', {
         //     file: view?.file?.path,
         //     isContentChange,
+        //     updateMode,
         //     caller: new Error().stack.split('\n')[2].trim()
         // });
 
@@ -606,12 +636,26 @@ module.exports = class PixelBannerPlugin extends Plugin {
         let bannerImage = null;
 
         // Check for banner shuffle path in frontmatter first
-        const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
-        if (shufflePath) {
-            // If shuffle path exists in frontmatter, use it
+        const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField) || folderSpecific?.enableImageShuffle;
+        if (shufflePath && updateMode !== this.UPDATE_MODE.ENSURE_VISIBILITY) {
+            // If shuffle path exists in frontmatter and we're not just ensuring visibility,
+            // get a new random image
             const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
             if (randomImagePath) {
                 bannerImage = randomImagePath;
+            }
+        } else if (shufflePath && updateMode === this.UPDATE_MODE.ENSURE_VISIBILITY) {
+            // If we're just ensuring visibility, use the existing image from cache
+            const cacheKey = this.generateCacheKey(view.file.path, this.app.workspace.activeLeaf.id, true);
+            const cachedState = this.bannerStateCache.get(cacheKey);
+            if (cachedState?.state?.imageUrl) {
+                bannerImage = cachedState.state.imageUrl;
+            } else {
+                // If no cached image, fall back to getting a new one
+                const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
+                if (randomImagePath) {
+                    bannerImage = randomImagePath;
+                }
             }
         }
         
@@ -1852,6 +1896,30 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 const isSvg = imageUrl.includes('image/svg+xml') ||
                     (file.path && file.path.toLowerCase().endsWith('.svg'));
 
+                // Add blob URL validation
+                if (imageUrl.startsWith('blob:')) {
+                    try {
+                        // Attempt to fetch the blob URL to validate it
+                        const response = await fetch(imageUrl);
+                        if (!response.ok) {
+                            throw new Error('Blob URL validation failed');
+                        }
+                    } catch (error) {
+                        console.log('Blob URL invalid, refreshing image:', error);
+                        // Clear the invalid blob URL from cache
+                        this.loadedImages.delete(file.path);
+                        URL.revokeObjectURL(imageUrl);
+                        
+                        // Get a fresh image URL
+                        const inputType = this.getInputType(bannerImage);
+                        const freshImageUrl = await this.getImageUrl(inputType, bannerImage);
+                        if (freshImageUrl) {
+                            imageUrl = freshImageUrl;
+                            this.loadedImages.set(file.path, freshImageUrl);
+                        }
+                    }
+                }
+
                 bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
 
                 // SVG handling
@@ -2721,3 +2789,4 @@ async function waitForFileRename(file, plugin) {
         }, 1500);
     });
 }
+

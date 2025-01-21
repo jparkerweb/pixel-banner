@@ -2889,7 +2889,7 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.3</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>font weight</code> option to the banner icon settings (general, folder images, and frontmatter)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>fixed issue with a large gap appearing between the banner and the note content when using the <code>hide embedded note banners</code> setting</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg" alt="screenshot"></a></p>\n<h3>v2.20.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>banner-fade-in-animation-duration</code> general setting to control the duration of the fade in animation for the banner image</li>\n</ul>\n<h3>v2.20.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>replaced <code>icon-padding</code> with <code>icon-padding-x</code> and <code>icon-padding-y</code> for more granular control</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>resolved issue with the banner updating while editing a note&#39;s content (causing the banner to flicker)</li>\n<li>resolved issue with the banner icon not being preserved when scrolling to the bottom of a note</li>\n</ul>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.4</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>fixed issue with banner not updating correctly when frontmatter changes</li>\n<li>improved banner refresh logic to prevent unnecessary updates</li>\n<li>optimized cache management for better performance</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>improved banner width styling to combat the aggressive implementation of the <code>minimal</code> theme</li>\n</ul>\n<h3>v2.20.3</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>font weight</code> option to the banner icon settings (general, folder images, and frontmatter)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>fixed issue with a large gap appearing between the banner and the note content when using the <code>hide embedded note banners</code> setting</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg" alt="screenshot"></a></p>\n<h3>v2.20.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>banner-fade-in-animation-duration</code> general setting to control the duration of the fade in animation for the banner image</li>\n</ul>\n<h3>v2.20.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>replaced <code>icon-padding</code> with <code>icon-padding-x</code> and <code>icon-padding-y</code> for more granular control</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>resolved issue with the banner updating while editing a note&#39;s content (causing the banner to flicker)</li>\n<li>resolved issue with the banner icon not being preserved when scrolling to the bottom of a note</li>\n</ul>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -2909,6 +2909,15 @@ function getFrontmatterValue(frontmatter, fieldNames) {
 module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
   constructor() {
     super(...arguments);
+    // Update modes for banner refresh
+    __publicField(this, "UPDATE_MODE", {
+      FULL_UPDATE: "FULL_UPDATE",
+      // Complete update including new images
+      ENSURE_VISIBILITY: "ENSURE_VISIBILITY",
+      // Only ensure banner is visible with current image
+      SHUFFLE_UPDATE: "SHUFFLE_UPDATE"
+      // Update for shuffle banners only
+    });
     __publicField(this, "debounceTimer", null);
     __publicField(this, "loadedImages", /* @__PURE__ */ new Map());
     __publicField(this, "lastKeywords", /* @__PURE__ */ new Map());
@@ -2925,7 +2934,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     // Format: { cacheKey: { state: {...}, timestamp: number, leafId: string } }
     __publicField(this, "MAX_CACHE_AGE", 30 * 60 * 1e3);
     // 30 minutes in milliseconds
-    __publicField(this, "MAX_CACHE_ENTRIES", 20);
+    __publicField(this, "MAX_CACHE_ENTRIES", 30);
     // Maximum number of entries to keep in cache
     __publicField(this, "SHUFFLE_CACHE_AGE", 5 * 1e3);
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
@@ -2940,9 +2949,15 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     }, 100));
   }
   // 5 seconds in milliseconds for shuffled banners
+  // Helper method to generate cache key
+  generateCacheKey(filePath, leafId, isShuffled = false) {
+    const encodedPath = encodeURIComponent(filePath);
+    return `${encodedPath}-${leafId}${isShuffled ? "-shuffle" : ""}`;
+  }
   // Helper method to get all cache entries for a file
   getCacheEntriesForFile(filePath) {
-    return Array.from(this.bannerStateCache.entries()).filter(([key]) => key.startsWith(`${filePath}-`));
+    const encodedPath = encodeURIComponent(filePath);
+    return Array.from(this.bannerStateCache.entries()).filter(([key]) => key.startsWith(`${encodedPath}-`));
   }
   // Enhanced cache cleanup method
   cleanupCache(force = false) {
@@ -2972,7 +2987,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
   invalidateLeafCache(leafId) {
     var _a, _b;
     for (const [key, entry] of this.bannerStateCache) {
-      if (key.endsWith(`-${leafId}`)) {
+      if (key.includes(`-${leafId}`)) {
         if ((_b = (_a = entry.state) == null ? void 0 : _a.imageUrl) == null ? void 0 : _b.startsWith("blob:")) {
           URL.revokeObjectURL(entry.state.imageUrl);
         }
@@ -3190,20 +3205,24 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     }
     const currentPath = leaf.view.file.path;
     const leafId = leaf.id;
-    const cacheKey = leafId;
     const frontmatter = (_a = this.app.metadataCache.getFileCache(leaf.view.file)) == null ? void 0 : _a.frontmatter;
     const currentTime = Date.now();
     try {
       const hasShufflePath = !!getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
       const folderSpecific = this.getFolderSpecificImage(currentPath);
       const isShuffled = hasShufflePath || (folderSpecific == null ? void 0 : folderSpecific.enableImageShuffle) || false;
+      const cacheKey = this.generateCacheKey(currentPath, leafId, isShuffled);
       const cachedState = this.bannerStateCache.get(cacheKey);
+      const loadedImage = this.loadedImages.get(currentPath);
+      let shouldUpdateBanner = false;
       if (cachedState) {
         cachedState.timestamp = currentTime;
         if (isShuffled && currentTime - cachedState.timestamp > this.SHUFFLE_CACHE_AGE) {
+          shouldUpdateBanner = true;
           this.loadedImages.delete(currentPath);
           this.lastKeywords.delete(currentPath);
           this.imageCache.delete(currentPath);
+          this.bannerStateCache.delete(cacheKey);
         } else {
           const relevantFields = [
             ...this.settings.customBannerField,
@@ -3215,8 +3234,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
             ...this.settings.customBannerHeightField,
             ...this.settings.customFadeField,
             ...this.settings.customBorderRadiusField,
-            ...this.settings.customBannerShuffleField,
             ...this.settings.customTitleColorField,
+            ...this.settings.customBannerShuffleField,
             ...this.settings.customBannerIconField,
             ...this.settings.customBannerIconSizeField,
             ...this.settings.customBannerIconXPositionField,
@@ -3235,26 +3254,34 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
               return (frontmatter == null ? void 0 : frontmatter[field]) !== ((_a2 = cachedState.frontmatter) == null ? void 0 : _a2[field]);
             }
           );
-          if (!hasRelevantChanges) {
-            return;
+          if (hasRelevantChanges) {
+            shouldUpdateBanner = true;
           }
         }
+      } else {
+        shouldUpdateBanner = true;
+      }
+      if (!loadedImage) {
+        shouldUpdateBanner = true;
       }
       const previousLeaf = this.app.workspace.activeLeaf;
       if (previousLeaf && previousLeaf.view instanceof import_obsidian8.MarkdownView && previousLeaf !== leaf) {
         this.cleanupPreviousLeaf(previousLeaf);
       }
-      await this.updateBanner(leaf.view, false);
-      this.bannerStateCache.set(cacheKey, {
-        timestamp: currentTime,
-        frontmatter: frontmatter ? { ...frontmatter } : null,
-        leafId,
-        isShuffled,
-        state: {
-          imageUrl: this.loadedImages.get(currentPath)
-          // Add any other state we want to cache
-        }
-      });
+      if (shouldUpdateBanner) {
+        await this.updateBanner(leaf.view, false, this.UPDATE_MODE.FULL_UPDATE);
+        this.bannerStateCache.set(cacheKey, {
+          timestamp: currentTime,
+          frontmatter: frontmatter ? { ...frontmatter } : null,
+          leafId,
+          isShuffled,
+          state: {
+            imageUrl: this.loadedImages.get(currentPath)
+          }
+        });
+      } else {
+        await this.updateBanner(leaf.view, false, this.UPDATE_MODE.ENSURE_VISIBILITY);
+      }
     } catch (error) {
       console.error("Error in handleActiveLeafChange:", error);
       this.invalidateLeafCache(leafId);
@@ -3324,8 +3351,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }
   }
-  async updateBanner(view, isContentChange) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+  async updateBanner(view, isContentChange, updateMode = this.UPDATE_MODE.FULL_UPDATE) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
     if (!view || !view.file) {
       return;
     }
@@ -3341,11 +3368,22 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     const existingBanner = contentEl.querySelector(".pixel-banner-image");
     const folderSpecific = this.getFolderSpecificImage(view.file.path);
     let bannerImage = null;
-    const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField);
-    if (shufflePath) {
+    const shufflePath = getFrontmatterValue(frontmatter, this.settings.customBannerShuffleField) || (folderSpecific == null ? void 0 : folderSpecific.enableImageShuffle);
+    if (shufflePath && updateMode !== this.UPDATE_MODE.ENSURE_VISIBILITY) {
       const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
       if (randomImagePath) {
         bannerImage = randomImagePath;
+      }
+    } else if (shufflePath && updateMode === this.UPDATE_MODE.ENSURE_VISIBILITY) {
+      const cacheKey = this.generateCacheKey(view.file.path, this.app.workspace.activeLeaf.id, true);
+      const cachedState = this.bannerStateCache.get(cacheKey);
+      if ((_b = cachedState == null ? void 0 : cachedState.state) == null ? void 0 : _b.imageUrl) {
+        bannerImage = cachedState.state.imageUrl;
+      } else {
+        const randomImagePath = await this.getRandomImageFromFolder(shufflePath);
+        if (randomImagePath) {
+          bannerImage = randomImagePath;
+        }
       }
     }
     if (!bannerImage) {
@@ -3362,9 +3400,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       this.loadedImages.delete(view.file.path);
       this.lastKeywords.delete(view.file.path);
     }
-    let yPosition = (_b = folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _b : this.settings.yPosition;
-    let xPosition = (_c = folderSpecific == null ? void 0 : folderSpecific.xPosition) != null ? _c : this.settings.xPosition;
-    let contentStartPosition = (_d = folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _d : this.settings.contentStartPosition;
+    let yPosition = (_c = folderSpecific == null ? void 0 : folderSpecific.yPosition) != null ? _c : this.settings.yPosition;
+    let xPosition = (_d = folderSpecific == null ? void 0 : folderSpecific.xPosition) != null ? _d : this.settings.xPosition;
+    let contentStartPosition = (_e = folderSpecific == null ? void 0 : folderSpecific.contentStartPosition) != null ? _e : this.settings.contentStartPosition;
     if (bannerImage) {
       if (Array.isArray(bannerImage)) {
         bannerImage = bannerImage.flat()[0];
@@ -3388,10 +3426,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }
     let imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific == null ? void 0 : folderSpecific.imageDisplay) || this.settings.imageDisplay;
-    let imageRepeat = (_f = (_e = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField)) != null ? _e : folderSpecific == null ? void 0 : folderSpecific.imageRepeat) != null ? _f : this.settings.imageRepeat;
-    let bannerHeight = (_h = (_g = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField)) != null ? _g : folderSpecific == null ? void 0 : folderSpecific.bannerHeight) != null ? _h : this.settings.bannerHeight;
-    let fade = (_j = (_i = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _i : folderSpecific == null ? void 0 : folderSpecific.fade) != null ? _j : this.settings.fade;
-    let borderRadius = (_l = (_k = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _k : folderSpecific == null ? void 0 : folderSpecific.borderRadius) != null ? _l : this.settings.borderRadius;
+    let imageRepeat = (_g = (_f = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField)) != null ? _f : folderSpecific == null ? void 0 : folderSpecific.imageRepeat) != null ? _g : this.settings.imageRepeat;
+    let bannerHeight = (_i = (_h = getFrontmatterValue(frontmatter, this.settings.customBannerHeightField)) != null ? _h : folderSpecific == null ? void 0 : folderSpecific.bannerHeight) != null ? _i : this.settings.bannerHeight;
+    let fade = (_k = (_j = getFrontmatterValue(frontmatter, this.settings.customFadeField)) != null ? _j : folderSpecific == null ? void 0 : folderSpecific.fade) != null ? _k : this.settings.fade;
+    let borderRadius = (_m = (_l = getFrontmatterValue(frontmatter, this.settings.customBorderRadiusField)) != null ? _l : folderSpecific == null ? void 0 : folderSpecific.borderRadius) != null ? _m : this.settings.borderRadius;
     if (bannerImage) {
       await this.addPixelBanner(contentEl, {
         frontmatter,
@@ -4259,6 +4297,24 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         const folderSpecific2 = this.getFolderSpecificImage(file.path);
         const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) || (folderSpecific2 == null ? void 0 : folderSpecific2.imageDisplay) || this.settings.imageDisplay;
         const isSvg = imageUrl.includes("image/svg+xml") || file.path && file.path.toLowerCase().endsWith(".svg");
+        if (imageUrl.startsWith("blob:")) {
+          try {
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+              throw new Error("Blob URL validation failed");
+            }
+          } catch (error) {
+            console.log("Blob URL invalid, refreshing image:", error);
+            this.loadedImages.delete(file.path);
+            URL.revokeObjectURL(imageUrl);
+            const inputType2 = this.getInputType(bannerImage);
+            const freshImageUrl = await this.getImageUrl(inputType2, bannerImage);
+            if (freshImageUrl) {
+              imageUrl = freshImageUrl;
+              this.loadedImages.set(file.path, freshImageUrl);
+            }
+          }
+        }
         bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
         if (isSvg) {
           bannerDiv.style.backgroundSize = imageDisplay === "contain" ? "contain" : "100% 100%";

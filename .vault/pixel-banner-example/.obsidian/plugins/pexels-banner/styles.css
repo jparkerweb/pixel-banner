@@ -24,6 +24,8 @@
 	transform: translateZ(0);
 	background-repeat: no-repeat;
     z-index: -1;
+    width: unset !important;
+    max-width: unset !important;
 }
 
 .markdown-embed-content .markdown-preview-view {
@@ -604,6 +606,7 @@
 .pin-icon,
 .refresh-icon {
     animation: pixel-banner--icon-fade-in 0.3s ease-in-out;
+    width: unset !important;
 }
 
 .select-image-icon {
@@ -676,4 +679,6 @@
     padding-left: var(--pixel-banner-icon-padding-x, 0) !important;
     border-radius: var(--pixel-banner-icon-border-radius, 17px);
     margin-top: var(--pixel-banner-icon-vertical-offset, 0);
+    width: unset !important;
+    max-width: unset !important;
 }
