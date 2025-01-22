@@ -4,6 +4,7 @@
     "cssclasses": "multitext",
     "tags": "tags",
     "pexels-banner-y-position": "number",
-    "banner": "text"
+    "banner": "text",
+    "banner-height": "number"
   }
 }

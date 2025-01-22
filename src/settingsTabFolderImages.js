@@ -336,8 +336,8 @@ class FolderImageSetting extends Setting {
         const heightInput = containerEl.createEl('input', {
             type: 'number',
             attr: {
-                min: '100',
-                max: '2500'
+                min: '0',
+                max: '1280'
             }
         });
         heightInput.style.width = '50px';
@@ -347,7 +347,7 @@ class FolderImageSetting extends Setting {
         heightInput.addEventListener('change', async () => {
             let value = heightInput.value ? parseInt(heightInput.value) : null;
             if (value !== null) {
-                value = Math.max(100, Math.min(2500, value));
+                value = Math.max(0, Math.min(1280, value));
                 this.folderImage.bannerHeight = value;
                 heightInput.value = value;
             } else {

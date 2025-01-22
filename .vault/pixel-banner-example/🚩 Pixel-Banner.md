@@ -1,11 +1,12 @@
 ---
+icon: "🌲"
 banner: "[[forest.jpg]]"
 content-start: 350
-icon: 🌲
 icon-size: "100"
 ---
 # 🚩 Pixel-Banner 
 🐙 [GitHub](https://github.com/jparkerweb/pixel-banner)
+🖼️ [Release Pics](https://github.com/jparkerweb/ref/tree/main/equill-labs/pixel-banner)
 📝 [Release Notes Generator](https://jparkerweb.github.io/release-notes/)
 
 

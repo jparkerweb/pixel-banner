@@ -1,59 +1,8 @@
 ## 🎉 What's New
 
-### v2.20.4
-#### 🐛 Fixed
-- fixed issue with banner not updating correctly when frontmatter changes
-- improved banner refresh logic to prevent unnecessary updates
-- optimized cache management for better performance
-
-#### 📦 Updated
-- improved banner width styling to combat the aggressive implementation of the `minimal` theme
-
-### v2.20.3
+### v2.21.0
 #### ✨ Added
-- added `font weight` option to the banner icon settings (general, folder images, and frontmatter)
+- New Targeting Modal with controls to set zoom level, height, and position for your banner image
+- Command palette option and icon button to quickly open the targeting modal
 
-#### 🐛 Fixed
-- fixed issue with a large gap appearing between the banner and the note content when using the `hide embedded note banners` setting
-
-[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg)
-
-### v2.20.2
-#### ✨ Added
-- added `banner-fade-in-animation-duration` general setting to control the duration of the fade in animation for the banner image
-
-### v2.20.1
-#### 📦 Updated
-- replaced `icon-padding` with `icon-padding-x` and `icon-padding-y` for more granular control
-
-#### 🐛 Fixed
-- resolved issue with the banner updating while editing a note's content (causing the banner to flicker)
-- resolved issue with the banner icon not being preserved when scrolling to the bottom of a note
-
-### v2.20.0
-#### ✨ Added the highly requested feature: `Banner Icons`!
-- Add emoji overlays (⭐, 🎨, 📝, etc.) to your banners
-- Customize icon appearance:
-  > - Size (10-200px)
-  > - Position (left/right alignment)
-  > - Opacity (0-100%)
-  > - Color (any CSS color)
-  > - Background color (any CSS color or transparent)
-  > - Padding (spacing around the icon)
-  > - Border radius (rounded corners)
-  > - Vertical offset (adjust up/down position)
-- Set icons in multiple ways:
-  > - Click the ⭐ button on any banner to choose an icon
-  > - Set via frontmatter using banner-icon field (or your custom field name)
-  > - Configure default icon settings globally  
-  > - Set per-folder icon settings
-  > - Icons persist across banner image changes and refreshes
-  > - Icons work with all banner types (API images, local images, URLs)
-  > - Icons appear in both edit and preview modes
-  > - Icons maintain their position relative to banner height
-
-#### 📦 Updated
-- Removed the "fade-in" animation from banner images
-
-
-[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg)
+[![screenshot](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg)](https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg)

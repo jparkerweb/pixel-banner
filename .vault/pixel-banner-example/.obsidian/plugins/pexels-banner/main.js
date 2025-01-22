@@ -554,8 +554,8 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
     const heightInput = containerEl.createEl("input", {
       type: "number",
       attr: {
-        min: "100",
-        max: "2500"
+        min: "0",
+        max: "1280"
       }
     });
     heightInput.style.width = "50px";
@@ -565,7 +565,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
     heightInput.addEventListener("change", async () => {
       let value = heightInput.value ? parseInt(heightInput.value) : null;
       if (value !== null) {
-        value = Math.max(100, Math.min(2500, value));
+        value = Math.max(0, Math.min(1280, value));
         this.folderImage.bannerHeight = value;
         heightInput.value = value;
       } else {
@@ -1070,7 +1070,7 @@ function createGeneralSettings(containerEl, plugin) {
       toggleEl.dispatchEvent(event);
     }
   }));
-  new import_obsidian5.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (100-2500 pixels)").addText((text) => {
+  new import_obsidian5.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (0-1280 pixels)").addText((text) => {
     text.setPlaceholder("350").setValue(String(plugin.settings.bannerHeight)).onChange(async (value) => {
       if (value === "" || !isNaN(Number(value))) {
         await plugin.saveSettings();
@@ -1081,7 +1081,7 @@ function createGeneralSettings(containerEl, plugin) {
       if (isNaN(numValue) || event.target.value === "") {
         numValue = 350;
       } else {
-        numValue = Math.max(100, Math.min(2500, numValue));
+        numValue = Math.max(0, Math.min(1280, numValue));
       }
       plugin.settings.bannerHeight = numValue;
       text.setValue(String(numValue));
@@ -1089,8 +1089,8 @@ function createGeneralSettings(containerEl, plugin) {
       plugin.updateAllBanners();
     });
     text.inputEl.type = "number";
-    text.inputEl.min = "100";
-    text.inputEl.max = "2500";
+    text.inputEl.min = "0";
+    text.inputEl.max = "1280";
     text.inputEl.style.width = "50px";
   }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
     plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
@@ -1276,6 +1276,19 @@ function createGeneralSettings(containerEl, plugin) {
     const toggleComponent = showViewImageIconSetting.components[0];
     if (toggleComponent) {
       toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+    }
+    plugin.updateAllBanners();
+  }));
+  const showSetTargetXYPositionSetting = new import_obsidian5.Setting(containerEl).setName("Show Set Target X/Y Position").setDesc("Show an icon to set the target x/y position for the banner image").addToggle((toggle) => toggle.setValue(plugin.settings.showSetTargetXYPosition).onChange(async (value) => {
+    plugin.settings.showSetTargetXYPosition = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.showSetTargetXYPosition = DEFAULT_SETTINGS.showSetTargetXYPosition;
+    await plugin.saveSettings();
+    const toggleComponent = showSetTargetXYPositionSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.showSetTargetXYPosition);
     }
     plugin.updateAllBanners();
   }));
@@ -1510,6 +1523,7 @@ var DEFAULT_SETTINGS = {
   lastVersion: null,
   showRefreshIcon: true,
   showViewImageIcon: false,
+  showSetTargetXYPosition: true,
   hidePixelBannerFields: false,
   hidePropertiesSectionIfOnlyBanner: false,
   titleColor: "var(--inline-title-color)",
@@ -1604,6 +1618,674 @@ function debounce(func, wait) {
 
 // src/modals.js
 var import_obsidian7 = require("obsidian");
+
+// src/emojis.js
+var emojiList = [
+  { category: "Smileys & Emotion", emojis: ["\u{1F600}", "\u{1F603}", "\u{1F604}", "\u{1F601}", "\u{1F605}", "\u{1F602}", "\u{1F923}", "\u{1F60A}", "\u{1F607}", "\u{1F642}", "\u{1F643}", "\u{1F609}", "\u{1F60C}", "\u{1F60D}", "\u{1F970}", "\u{1F618}", "\u{1F617}", "\u{1F619}", "\u{1F61A}", "\u{1F60B}", "\u{1F61B}", "\u{1F61D}", "\u{1F61C}", "\u{1F92A}", "\u{1F928}", "\u{1F9D0}", "\u{1F913}", "\u{1F60E}", "\u{1F929}", "\u{1F973}", "\u{1F60F}", "\u{1F612}", "\u{1F61E}", "\u{1F614}", "\u{1F61F}", "\u{1F615}", "\u{1F641}", "\u2639\uFE0F", "\u{1F623}", "\u{1F616}", "\u{1F62B}", "\u{1F629}", "\u{1F97A}", "\u{1F622}", "\u{1F62D}", "\u{1F624}", "\u{1F620}", "\u{1F621}", "\u{1F92C}", "\u{1F92F}", "\u{1F633}", "\u{1F975}", "\u{1F976}", "\u{1F631}", "\u{1F628}", "\u{1F630}", "\u{1F625}", "\u{1F613}", "\u{1F917}", "\u{1F914}", "\u{1F92D}", "\u{1F92B}", "\u{1F925}", "\u{1F636}", "\u{1F610}", "\u{1F611}", "\u{1F62C}", "\u{1F644}", "\u{1F62F}", "\u{1F626}", "\u{1F627}", "\u{1F62E}", "\u{1F632}", "\u{1F971}", "\u{1F634}", "\u{1F924}", "\u{1F62A}", "\u{1F635}", "\u{1F910}", "\u{1F974}", "\u{1F922}", "\u{1F92E}", "\u{1F927}", "\u{1F637}", "\u{1F912}", "\u{1F915}"] },
+  { category: "People & Body", emojis: ["\u{1F44B}", "\u{1F91A}", "\u{1F590}\uFE0F", "\u270B", "\u{1F596}", "\u{1F44C}", "\u{1F90C}", "\u{1F90F}", "\u270C\uFE0F", "\u{1F91E}", "\u{1F91F}", "\u{1F918}", "\u{1F919}", "\u{1F448}", "\u{1F449}", "\u{1F446}", "\u{1F595}", "\u{1F447}", "\u261D\uFE0F", "\u{1F44D}", "\u{1F44E}", "\u270A", "\u{1F44A}", "\u{1F91B}", "\u{1F91C}", "\u{1F44F}", "\u{1F64C}", "\u{1F450}", "\u{1F932}", "\u{1F91D}", "\u{1F64F}", "\u270D\uFE0F", "\u{1F485}", "\u{1F933}", "\u{1F4AA}", "\u{1F9BE}", "\u{1F9BF}", "\u{1F9B5}", "\u{1F9B6}", "\u{1F442}", "\u{1F9BB}", "\u{1F443}", "\u{1F9E0}", "\u{1FAC0}", "\u{1FAC1}", "\u{1F9B7}", "\u{1F9B4}", "\u{1F440}", "\u{1F441}\uFE0F", "\u{1F445}", "\u{1F444}", "\u{1F48B}", "\u{1FA78}", "\u{1F476}", "\u{1F467}", "\u{1F9D2}", "\u{1F466}", "\u{1F469}", "\u{1F9D1}", "\u{1F468}", "\u{1F469}\u200D\u{1F9B1}", "\u{1F9D1}\u200D\u{1F9B1}", "\u{1F468}\u200D\u{1F9B1}", "\u{1F469}\u200D\u{1F9B0}", "\u{1F9D1}\u200D\u{1F9B0}", "\u{1F468}\u200D\u{1F9B0}", "\u{1F471}\u200D\u2640\uFE0F", "\u{1F471}", "\u{1F471}\u200D\u2642\uFE0F", "\u{1F469}\u200D\u{1F9B3}", "\u{1F9D1}\u200D\u{1F9B3}", "\u{1F468}\u200D\u{1F9B3}", "\u{1F469}\u200D\u{1F9B2}", "\u{1F9D1}\u200D\u{1F9B2}", "\u{1F468}\u200D\u{1F9B2}", "\u{1F9D4}", "\u{1F475}", "\u{1F9D3}", "\u{1F474}"] },
+  { category: "Animals & Nature", emojis: ["\u{1F436}", "\u{1F431}", "\u{1F42D}", "\u{1F439}", "\u{1F430}", "\u{1F98A}", "\u{1F43B}", "\u{1F43C}", "\u{1F428}", "\u{1F42F}", "\u{1F981}", "\u{1F42E}", "\u{1F437}", "\u{1F438}", "\u{1F435}", "\u{1F414}", "\u{1F427}", "\u{1F426}", "\u{1F424}", "\u{1F986}", "\u{1F985}", "\u{1F989}", "\u{1F987}", "\u{1F43A}", "\u{1F417}", "\u{1F434}", "\u{1F984}", "\u{1F41D}", "\u{1FAB1}", "\u{1F41B}", "\u{1F98B}", "\u{1F40C}", "\u{1F41E}", "\u{1F41C}", "\u{1FAB0}", "\u{1FAB2}", "\u{1FAB3}", "\u{1F99F}", "\u{1F997}", "\u{1F577}\uFE0F", "\u{1F578}\uFE0F", "\u{1F982}", "\u{1F422}", "\u{1F40D}", "\u{1F98E}", "\u{1F996}", "\u{1F995}", "\u{1F419}", "\u{1F991}", "\u{1F990}", "\u{1F99E}", "\u{1F980}", "\u{1F421}", "\u{1F420}", "\u{1F41F}", "\u{1F42C}", "\u{1F433}", "\u{1F40B}", "\u{1F988}", "\u{1F40A}", "\u{1F405}", "\u{1F406}", "\u{1F993}", "\u{1F98D}", "\u{1F9A7}", "\u{1F9A3}", "\u{1F418}", "\u{1F99B}", "\u{1F98F}", "\u{1F42A}", "\u{1F42B}", "\u{1F992}", "\u{1F998}", "\u{1F9AC}", "\u{1F403}", "\u{1F402}", "\u{1F404}", "\u{1F40E}", "\u{1F416}", "\u{1F40F}", "\u{1F411}", "\u{1F999}", "\u{1F410}", "\u{1F98C}", "\u{1F415}", "\u{1F429}", "\u{1F9AE}", "\u{1F415}\u200D\u{1F9BA}", "\u{1F408}", "\u{1F408}\u200D\u2B1B", "\u{1FAB6}", "\u{1F413}", "\u{1F983}", "\u{1F9A4}", "\u{1F99A}", "\u{1F99C}", "\u{1F9A2}", "\u{1F9A9}", "\u{1F54A}\uFE0F", "\u{1F407}", "\u{1F99D}", "\u{1F9A8}", "\u{1F9A1}", "\u{1F9AB}", "\u{1F9A6}", "\u{1F9A5}", "\u{1F401}", "\u{1F400}", "\u{1F43F}\uFE0F", "\u{1F9EF}", "\u{1F994}"] },
+  { category: "Food & Drink", emojis: ["\u{1F34E}", "\u{1F350}", "\u{1F34A}", "\u{1F34B}", "\u{1F34C}", "\u{1F349}", "\u{1F347}", "\u{1F353}", "\u{1FAD0}", "\u{1F348}", "\u{1F352}", "\u{1F351}", "\u{1F96D}", "\u{1F34D}", "\u{1F965}", "\u{1F95D}", "\u{1F345}", "\u{1F346}", "\u{1F951}", "\u{1F966}", "\u{1F96C}", "\u{1F952}", "\u{1F336}\uFE0F", "\u{1FAD1}", "\u{1F955}", "\u{1F9C4}", "\u{1F9C5}", "\u{1F954}", "\u{1F360}", "\u{1F950}", "\u{1F96F}", "\u{1F35E}", "\u{1F956}", "\u{1F968}", "\u{1F9C0}", "\u{1F95A}", "\u{1F373}", "\u{1F9C8}", "\u{1F95E}", "\u{1F9C7}", "\u{1F953}", "\u{1F969}", "\u{1F357}", "\u{1F356}", "\u{1F9B4}", "\u{1F32D}", "\u{1F354}", "\u{1F35F}", "\u{1F355}", "\u{1FAD3}", "\u{1F96A}", "\u{1F959}", "\u{1F9C6}", "\u{1F32E}", "\u{1F32F}", "\u{1FAD4}", "\u{1F957}", "\u{1F958}", "\u{1FAD5}", "\u{1F96B}", "\u{1F35D}", "\u{1F35C}", "\u{1F372}", "\u{1F35B}", "\u{1F363}", "\u{1F371}", "\u{1F95F}", "\u{1F9AA}", "\u{1F364}", "\u{1F359}", "\u{1F35A}", "\u{1F358}", "\u{1F365}", "\u{1F960}", "\u{1F96E}", "\u{1F362}", "\u{1F361}", "\u{1F367}", "\u{1F368}", "\u{1F366}", "\u{1F967}", "\u{1F9C1}", "\u{1F370}", "\u{1F382}", "\u{1F36E}", "\u{1F36D}", "\u{1F36C}", "\u{1F36B}", "\u{1F37F}", "\u{1F369}", "\u{1F36A}", "\u{1F330}", "\u{1F95C}", "\u{1F36F}", "\u{1F95B}", "\u{1F37C}", "\u{1FAD6}", "\u2615", "\u{1F375}", "\u{1F9C3}", "\u{1F964}", "\u{1F9CB}", "\u{1F376}", "\u{1F37A}", "\u{1F37B}", "\u{1F942}", "\u{1F377}", "\u{1F943}", "\u{1F378}", "\u{1F379}", "\u{1F9C9}", "\u{1F37E}", "\u{1F9CA}", "\u{1F944}", "\u{1F374}", "\u{1F37D}\uFE0F", "\u{1F962}", "\u{1F9C2}"] },
+  { category: "Travel & Places", emojis: ["\u{1F30D}", "\u{1F30E}", "\u{1F30F}", "\u{1F310}", "\u{1F5FA}\uFE0F", "\u{1F5FE}", "\u{1F9ED}", "\u{1F3D4}\uFE0F", "\u26F0\uFE0F", "\u{1F30B}", "\u{1F5FB}", "\u{1F3D5}\uFE0F", "\u{1F3D6}\uFE0F", "\u{1F3DC}\uFE0F", "\u{1F3DD}\uFE0F", "\u{1F3DE}\uFE0F", "\u{1F3DF}\uFE0F", "\u{1F3DB}\uFE0F", "\u{1F3D7}\uFE0F", "\u{1F9F1}", "\u{1FAA8}", "\u{1FAB5}", "\u{1F6D6}", "\u{1F3D8}\uFE0F", "\u{1F3DA}\uFE0F", "\u{1F3E0}", "\u{1F3E1}", "\u{1F3E2}", "\u{1F3E3}", "\u{1F3E4}", "\u{1F3E5}", "\u{1F3E6}", "\u{1F3E8}", "\u{1F3E9}", "\u{1F3EA}", "\u{1F3EB}", "\u{1F3EC}", "\u{1F3ED}", "\u{1F3EF}", "\u{1F3F0}", "\u{1F492}", "\u{1F5FC}", "\u{1F5FD}", "\u26EA", "\u{1F54C}", "\u{1F6D5}", "\u{1F54D}", "\u26E9\uFE0F", "\u{1F54B}", "\u26F2", "\u26FA", "\u{1F301}", "\u{1F303}", "\u{1F3D9}\uFE0F", "\u{1F304}", "\u{1F305}", "\u{1F306}", "\u{1F307}", "\u{1F309}", "\u2668\uFE0F", "\u{1F3A0}", "\u{1F3A1}", "\u{1F3A2}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
+  { category: "Activities", emojis: ["\u26BD", "\u{1F3C0}", "\u{1F3C8}", "\u26BE", "\u{1F94E}", "\u{1F3BE}", "\u{1F3D0}", "\u{1F3C9}", "\u{1F94F}", "\u{1F3B1}", "\u{1FA80}", "\u{1F3D3}", "\u{1F3F8}", "\u{1F3D2}", "\u{1F3D1}", "\u{1F94D}", "\u{1F3CF}", "\u{1FA83}", "\u{1F945}", "\u26F3", "\u{1FA81}", "\u{1F3A3}", "\u{1F93F}", "\u{1F3BD}", "\u{1F3BF}", "\u{1F6F7}", "\u{1F94C}", "\u{1F3AF}", "\u{1FA80}", "\u{1FA81}", "\u{1F3B1}", "\u{1F3AE}", "\u{1F3B2}", "\u{1F9E9}", "\u{1F3AD}", "\u{1F3A8}", "\u{1F3AA}", "\u{1F3A4}", "\u{1F3A7}", "\u{1F3BC}", "\u{1F3B9}", "\u{1F941}", "\u{1FA98}", "\u{1F3B7}", "\u{1F3BA}", "\u{1FA97}", "\u{1F3B8}", "\u{1FA95}", "\u{1F3BB}", "\u{1F3AC}", "\u{1F3F9}"] },
+  { category: "Objects", emojis: ["\u231A", "\u{1F4F1}", "\u{1F4F2}", "\u{1F4BB}", "\u2328\uFE0F", "\u{1F5A5}\uFE0F", "\u{1F5A8}\uFE0F", "\u{1F5B1}\uFE0F", "\u{1F5B2}\uFE0F", "\u{1F579}\uFE0F", "\u{1F5DC}\uFE0F", "\u{1F4BD}", "\u{1F4BE}", "\u{1F4BF}", "\u{1F4C0}", "\u{1F4FC}", "\u{1F4F7}", "\u{1F4F8}", "\u{1F4F9}", "\u{1F3A5}", "\u{1F4FD}\uFE0F", "\u{1F39E}\uFE0F", "\u{1F4DE}", "\u260E\uFE0F", "\u{1F4DF}", "\u{1F4E0}", "\u{1F4FA}", "\u{1F4FB}", "\u{1F399}\uFE0F", "\u{1F39A}\uFE0F", "\u{1F39B}\uFE0F", "\u{1F9ED}", "\u23F1\uFE0F", "\u23F2\uFE0F", "\u23F0", "\u{1F570}\uFE0F", "\u231B", "\u23F3", "\u{1F4E1}", "\u{1F50B}", "\u{1F50C}", "\u{1F4A1}", "\u{1F526}", "\u{1F56F}\uFE0F", "\u{1FA94}", "\u{1F9EF}", "\u{1F6E2}\uFE0F", "\u{1F4B8}", "\u{1F4B5}", "\u{1F4B4}", "\u{1F4B6}", "\u{1F4B7}", "\u{1FA99}", "\u{1F4B0}", "\u{1F4B3}", "\u{1F48E}", "\u2696\uFE0F", "\u{1F9F0}", "\u{1FA9B}", "\u{1F527}", "\u{1F528}", "\u2692\uFE0F", "\u{1F6E0}\uFE0F", "\u26CF\uFE0F", "\u{1FA9A}", "\u{1F529}", "\u2699\uFE0F", "\u{1FA9C}", "\u{1F9F1}", "\u26D3\uFE0F", "\u{1F9F2}", "\u{1F52B}", "\u{1F4A3}", "\u{1F9E8}", "\u{1FA93}", "\u{1F52A}", "\u{1F5E1}\uFE0F", "\u2694\uFE0F", "\u{1F6E1}\uFE0F", "\u{1F6AC}", "\u26B0\uFE0F", "\u{1FAA6}", "\u26B1\uFE0F", "\u{1F3FA}", "\u{1F52E}", "\u{1F4FF}", "\u{1F9FF}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
+  { category: "Weather", emojis: ["\u2601\uFE0F", "\u26C5", "\u26C8\uFE0F", "\u{1F324}\uFE0F", "\u{1F325}\uFE0F", "\u{1F326}\uFE0F", "\u{1F327}\uFE0F", "\u{1F328}\uFE0F", "\u{1F329}\uFE0F", "\u{1F32A}\uFE0F", "\u{1F32B}\uFE0F", "\u{1F31D}", "\u{1F311}", "\u{1F312}", "\u{1F313}", "\u{1F314}", "\u{1F315}", "\u{1F316}", "\u{1F317}", "\u{1F318}", "\u{1F319}", "\u{1F31A}", "\u{1F31B}", "\u{1F31C}", "\u2600\uFE0F", "\u{1F31E}", "\u2B50", "\u{1F31F}", "\u{1F320}", "\u2604\uFE0F", "\u{1F321}\uFE0F", "\u{1F32C}\uFE0F", "\u{1F300}", "\u{1F308}", "\u{1F302}", "\u2602\uFE0F", "\u2614", "\u26F1\uFE0F", "\u26A1", "\u2744\uFE0F", "\u2603\uFE0F", "\u26C4", "\u{1F525}", "\u{1F4A7}", "\u{1F30A}"] },
+  { category: "Symbols", emojis: ["\u2764\uFE0F", "\u{1F9E1}", "\u{1F49B}", "\u{1F49A}", "\u{1F499}", "\u{1F49C}", "\u{1F5A4}", "\u{1F90D}", "\u{1F90E}", "\u{1F494}", "\u2763\uFE0F", "\u{1F495}", "\u{1F49E}", "\u{1F493}", "\u{1F497}", "\u{1F496}", "\u{1F498}", "\u{1F49D}", "\u{1F49F}", "\u262E\uFE0F", "\u271D\uFE0F", "\u262A\uFE0F", "\u{1F549}\uFE0F", "\u2638\uFE0F", "\u2721\uFE0F", "\u{1F52F}", "\u{1F54E}", "\u262F\uFE0F", "\u2626\uFE0F", "\u{1F6D0}", "\u26CE", "\u2648", "\u2649", "\u264A", "\u264B", "\u264C", "\u264D", "\u264E", "\u264F", "\u2650", "\u2651", "\u2652", "\u2653", "\u{1F194}", "\u269B\uFE0F", "\u{1F251}", "\u2622\uFE0F", "\u2623\uFE0F", "\u{1F4F4}", "\u{1F4F3}", "\u{1F236}", "\u{1F21A}", "\u{1F238}", "\u{1F23A}", "\u{1F237}\uFE0F", "\u2734\uFE0F", "\u{1F19A}", "\u{1F4AE}", "\u{1F250}", "\u3299\uFE0F", "\u3297\uFE0F", "\u{1F234}", "\u{1F235}", "\u{1F239}", "\u{1F232}", "\u{1F170}\uFE0F", "\u{1F171}\uFE0F", "\u{1F18E}", "\u{1F191}", "\u{1F17E}\uFE0F", "\u{1F198}", "\u274C", "\u2B55", "\u{1F6D1}", "\u26D4", "\u{1F4DB}", "\u{1F6AB}", "\u{1F4AF}", "\u{1F4A2}", "\u2668\uFE0F", "\u{1F6B7}", "\u{1F6AF}", "\u{1F6B3}", "\u{1F6B1}", "\u{1F51E}", "\u{1F4F5}", "\u{1F6AD}", "\u2757", "\u2755", "\u2753", "\u2754", "\u203C\uFE0F", "\u2049\uFE0F", "\u{1F505}", "\u{1F506}", "\u303D\uFE0F", "\u26A0\uFE0F", "\u{1F6B8}", "\u{1F531}", "\u269C\uFE0F", "\u{1F530}", "\u267B\uFE0F", "\u2705", "\u{1F22F}", "\u{1F4B9}", "\u2747\uFE0F", "\u2733\uFE0F", "\u274E", "\u{1F310}", "\u{1F4A0}", "\u24C2\uFE0F", "\u{1F300}", "\u{1F4A4}", "\u{1F3E7}", "\u{1F6BE}", "\u267F", "\u{1F17F}\uFE0F", "\u{1F6D7}", "\u{1F233}", "\u{1F202}\uFE0F", "\u{1F6C2}", "\u{1F6C3}", "\u{1F6C4}", "\u{1F6C5}", "\u{1F6B9}", "\u{1F6BA}", "\u{1F6BC}", "\u26A7", "\u{1F6BB}", "\u{1F6AE}", "\u{1F3A6}", "\u{1F4F6}", "\u{1F201}", "\u{1F523}", "\u2139\uFE0F", "\u{1F524}", "\u{1F521}", "\u{1F520}", "\u{1F196}", "\u{1F197}", "\u{1F199}", "\u{1F192}", "\u{1F195}", "\u{1F193}", "0\uFE0F\u20E3", "1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}", "\u{1F522}", "#\uFE0F\u20E3", "*\uFE0F\u20E3", "\u23CF\uFE0F", "\u25B6\uFE0F", "\u23F8\uFE0F", "\u23EF\uFE0F", "\u23F9\uFE0F", "\u23FA\uFE0F", "\u23ED\uFE0F", "\u23EE\uFE0F", "\u23E9", "\u23EA", "\u23EB", "\u23EC", "\u25C0\uFE0F", "\u{1F53C}", "\u{1F53D}", "\u27A1\uFE0F", "\u2B05\uFE0F", "\u2B06\uFE0F", "\u2B07\uFE0F", "\u2197\uFE0F", "\u2198\uFE0F", "\u2199\uFE0F", "\u2196\uFE0F", "\u2195\uFE0F", "\u2194\uFE0F", "\u21AA\uFE0F", "\u21A9\uFE0F", "\u2934\uFE0F", "\u2935\uFE0F", "\u{1F500}", "\u{1F501}", "\u{1F502}", "\u{1F504}", "\u{1F503}", "\u{1F3B5}", "\u{1F3B6}", "\u2795", "\u2796", "\u2797", "\u2716\uFE0F", "\u267E\uFE0F", "\u{1F4B2}", "\u{1F4B1}", "\u2122\uFE0F", "\xA9\uFE0F", "\xAE\uFE0F", "\u3030\uFE0F", "\u27B0", "\u27BF", "\u{1F51A}", "\u{1F519}", "\u{1F51B}", "\u{1F51D}", "\u{1F51C}", "\u2714\uFE0F", "\u2611\uFE0F", "\u{1F518}", "\u{1F534}", "\u{1F7E0}", "\u{1F7E1}", "\u{1F7E2}", "\u{1F535}", "\u{1F7E3}", "\u26AB", "\u26AA", "\u{1F7E4}", "\u{1F53A}", "\u{1F53B}", "\u{1F538}", "\u{1F539}", "\u{1F536}", "\u{1F537}", "\u{1F533}", "\u{1F532}", "\u25AA\uFE0F", "\u25AB\uFE0F", "\u25FE", "\u25FD", "\u25FC\uFE0F", "\u25FB\uFE0F", "\u{1F7E5}", "\u{1F7E7}", "\u{1F7E8}", "\u{1F7E9}", "\u{1F7E6}", "\u{1F7EA}", "\u2B1B", "\u2B1C", "\u{1F7EB}", "\u{1F508}", "\u{1F507}", "\u{1F509}", "\u{1F50A}", "\u{1F514}", "\u{1F515}", "\u{1F4E3}", "\u{1F4E2}", "\u{1F441}\uFE0F\u200D\u{1F5E8}\uFE0F", "\u{1F4AC}", "\u{1F4AD}", "\u{1F5EF}\uFE0F", "\u2660\uFE0F", "\u2663\uFE0F", "\u2665\uFE0F", "\u2666\uFE0F", "\u{1F0CF}", "\u{1F3B4}", "\u{1F004}"] },
+  { category: "Flags", emojis: ["\u{1F3F3}\uFE0F", "\u{1F3F4}", "\u{1F3C1}", "\u{1F6A9}", "\u{1F3F3}\uFE0F\u200D\u{1F308}", "\u{1F3F3}\uFE0F\u200D\u26A7\uFE0F", "\u{1F3F4}\u200D\u2620\uFE0F", "\u{1F1E6}\u{1F1EB}", "\u{1F1E6}\u{1F1FD}", "\u{1F1E6}\u{1F1F1}", "\u{1F1E9}\u{1F1FF}", "\u{1F1E6}\u{1F1F8}", "\u{1F1E6}\u{1F1E9}", "\u{1F1E6}\u{1F1F4}", "\u{1F1E6}\u{1F1EE}", "\u{1F1E6}\u{1F1F6}", "\u{1F1E6}\u{1F1EC}", "\u{1F1E6}\u{1F1F7}", "\u{1F1E6}\u{1F1F2}", "\u{1F1E6}\u{1F1FC}", "\u{1F1E6}\u{1F1FA}", "\u{1F1E6}\u{1F1F9}", "\u{1F1E6}\u{1F1FF}", "\u{1F1E7}\u{1F1F8}", "\u{1F1E7}\u{1F1ED}", "\u{1F1E7}\u{1F1E9}", "\u{1F1E7}\u{1F1E7}", "\u{1F1E7}\u{1F1FE}", "\u{1F1E7}\u{1F1EA}", "\u{1F1E7}\u{1F1FF}", "\u{1F1E7}\u{1F1EF}", "\u{1F1E7}\u{1F1F2}", "\u{1F1E7}\u{1F1F9}", "\u{1F1E7}\u{1F1F4}", "\u{1F1E7}\u{1F1E6}", "\u{1F1E7}\u{1F1FC}", "\u{1F1E7}\u{1F1F7}", "\u{1F1EE}\u{1F1F4}", "\u{1F1FB}\u{1F1EC}", "\u{1F1E7}\u{1F1F3}", "\u{1F1E7}\u{1F1EC}", "\u{1F1E7}\u{1F1EB}", "\u{1F1E7}\u{1F1EE}", "\u{1F1F0}\u{1F1ED}", "\u{1F1E8}\u{1F1F2}", "\u{1F1E8}\u{1F1E6}", "\u{1F1EE}\u{1F1E8}", "\u{1F1E8}\u{1F1FB}", "\u{1F1E7}\u{1F1F6}", "\u{1F1F0}\u{1F1FE}", "\u{1F1E8}\u{1F1EB}", "\u{1F1F9}\u{1F1E9}", "\u{1F1E8}\u{1F1F1}", "\u{1F1E8}\u{1F1F3}", "\u{1F1E8}\u{1F1FD}", "\u{1F1E8}\u{1F1E8}", "\u{1F1E8}\u{1F1F4}", "\u{1F1F0}\u{1F1F2}", "\u{1F1E8}\u{1F1EC}", "\u{1F1E8}\u{1F1E9}", "\u{1F1E8}\u{1F1F0}", "\u{1F1E8}\u{1F1F7}", "\u{1F1E8}\u{1F1EE}", "\u{1F1ED}\u{1F1F7}", "\u{1F1E8}\u{1F1FA}", "\u{1F1E8}\u{1F1FC}", "\u{1F1E8}\u{1F1FE}", "\u{1F1E8}\u{1F1FF}", "\u{1F1E9}\u{1F1F0}", "\u{1F1E9}\u{1F1EF}", "\u{1F1E9}\u{1F1F2}", "\u{1F1E9}\u{1F1F4}", "\u{1F1EA}\u{1F1E8}", "\u{1F1EA}\u{1F1EC}", "\u{1F1F8}\u{1F1FB}", "\u{1F1EC}\u{1F1F6}", "\u{1F1EA}\u{1F1F7}", "\u{1F1EA}\u{1F1EA}", "\u{1F1EA}\u{1F1F9}", "\u{1F1EA}\u{1F1FA}", "\u{1F1EB}\u{1F1F0}", "\u{1F1EB}\u{1F1F4}", "\u{1F1EB}\u{1F1EF}", "\u{1F1EB}\u{1F1EE}", "\u{1F1EB}\u{1F1F7}", "\u{1F1EC}\u{1F1EB}", "\u{1F1F5}\u{1F1EB}", "\u{1F1F9}\u{1F1EB}", "\u{1F1EC}\u{1F1E6}", "\u{1F1EC}\u{1F1F2}", "\u{1F1EC}\u{1F1EA}", "\u{1F1E9}\u{1F1EA}", "\u{1F1EC}\u{1F1ED}", "\u{1F1EC}\u{1F1EE}", "\u{1F1EC}\u{1F1F7}", "\u{1F1EC}\u{1F1F1}", "\u{1F1EC}\u{1F1E9}", "\u{1F1EC}\u{1F1F5}", "\u{1F1EC}\u{1F1FA}", "\u{1F1EC}\u{1F1F9}", "\u{1F1EC}\u{1F1EC}", "\u{1F1EC}\u{1F1F3}", "\u{1F1EC}\u{1F1FC}", "\u{1F1EC}\u{1F1FE}", "\u{1F1ED}\u{1F1F9}", "\u{1F1ED}\u{1F1F3}", "\u{1F1ED}\u{1F1F0}", "\u{1F1ED}\u{1F1FA}", "\u{1F1EE}\u{1F1F8}", "\u{1F1EE}\u{1F1F3}", "\u{1F1EE}\u{1F1E9}", "\u{1F1EE}\u{1F1F7}", "\u{1F1EE}\u{1F1F6}", "\u{1F1EE}\u{1F1EA}", "\u{1F1EE}\u{1F1F2}", "\u{1F1EE}\u{1F1F1}", "\u{1F1EE}\u{1F1F9}", "\u{1F1EF}\u{1F1F2}", "\u{1F1EF}\u{1F1F5}", "\u{1F38C}", "\u{1F1EF}\u{1F1EA}", "\u{1F1EF}\u{1F1F4}", "\u{1F1F0}\u{1F1FF}", "\u{1F1F0}\u{1F1EA}", "\u{1F1F0}\u{1F1EE}", "\u{1F1FD}\u{1F1F0}", "\u{1F1F0}\u{1F1FC}", "\u{1F1F0}\u{1F1EC}", "\u{1F1F1}\u{1F1E6}", "\u{1F1F1}\u{1F1FB}", "\u{1F1F1}\u{1F1E7}", "\u{1F1F1}\u{1F1F8}", "\u{1F1F1}\u{1F1F7}", "\u{1F1F1}\u{1F1FE}", "\u{1F1F1}\u{1F1EE}", "\u{1F1F1}\u{1F1F9}", "\u{1F1F1}\u{1F1FA}", "\u{1F1F2}\u{1F1F4}", "\u{1F1F2}\u{1F1F0}", "\u{1F1F2}\u{1F1EC}", "\u{1F1F2}\u{1F1FC}", "\u{1F1F2}\u{1F1FE}", "\u{1F1F2}\u{1F1FB}", "\u{1F1F2}\u{1F1F1}", "\u{1F1F2}\u{1F1F9}", "\u{1F1F2}\u{1F1ED}", "\u{1F1F2}\u{1F1F6}", "\u{1F1F2}\u{1F1F7}", "\u{1F1FE}\u{1F1F9}", "\u{1F1F2}\u{1F1FD}", "\u{1F1EB}\u{1F1F2}", "\u{1F1F2}\u{1F1E9}", "\u{1F1F2}\u{1F1E8}", "\u{1F1F2}\u{1F1F3}", "\u{1F1F2}\u{1F1EA}", "\u{1F1F2}\u{1F1F8}", "\u{1F1F2}\u{1F1E6}", "\u{1F1F2}\u{1F1FF}", "\u{1F1F2}\u{1F1F2}", "\u{1F1F3}\u{1F1E6}", "\u{1F1F3}\u{1F1F7}", "\u{1F1F3}\u{1F1F5}", "\u{1F1F3}\u{1F1F1}", "\u{1F1F3}\u{1F1E8}", "\u{1F1F3}\u{1F1FF}", "\u{1F1F3}\u{1F1EE}", "\u{1F1F3}\u{1F1EA}", "\u{1F1F3}\u{1F1EC}", "\u{1F1F3}\u{1F1FA}", "\u{1F1F3}\u{1F1EB}", "\u{1F1F0}\u{1F1F5}", "\u{1F1F2}\u{1F1F5}", "\u{1F1F3}\u{1F1F4}", "\u{1F1F4}\u{1F1F2}", "\u{1F1F5}\u{1F1F0}", "\u{1F1F5}\u{1F1FC}", "\u{1F1F5}\u{1F1F8}", "\u{1F1F5}\u{1F1E6}", "\u{1F1F5}\u{1F1EC}", "\u{1F1F5}\u{1F1FE}", "\u{1F1F5}\u{1F1EA}", "\u{1F1F5}\u{1F1ED}", "\u{1F1F5}\u{1F1F3}", "\u{1F1F5}\u{1F1F1}", "\u{1F1F5}\u{1F1F9}", "\u{1F1F5}\u{1F1F7}", "\u{1F1F6}\u{1F1E6}", "\u{1F1F7}\u{1F1EA}", "\u{1F1F7}\u{1F1F4}", "\u{1F1F7}\u{1F1FA}", "\u{1F1F7}\u{1F1FC}", "\u{1F1FC}\u{1F1F8}", "\u{1F1F8}\u{1F1F2}", "\u{1F1F8}\u{1F1E6}", "\u{1F1F8}\u{1F1F3}", "\u{1F1F7}\u{1F1F8}", "\u{1F1F8}\u{1F1E8}", "\u{1F1F8}\u{1F1F1}", "\u{1F1F8}\u{1F1EC}", "\u{1F1F8}\u{1F1FD}", "\u{1F1F8}\u{1F1F0}", "\u{1F1F8}\u{1F1EE}", "\u{1F1EC}\u{1F1F8}", "\u{1F1F8}\u{1F1E7}", "\u{1F1F8}\u{1F1F4}", "\u{1F1FF}\u{1F1E6}", "\u{1F1F0}\u{1F1F7}", "\u{1F1F8}\u{1F1F8}", "\u{1F1EA}\u{1F1F8}", "\u{1F1F1}\u{1F1F0}", "\u{1F1E7}\u{1F1F1}", "\u{1F1F8}\u{1F1ED}", "\u{1F1F0}\u{1F1F3}", "\u{1F1F1}\u{1F1E8}", "\u{1F1F5}\u{1F1F2}", "\u{1F1FB}\u{1F1E8}", "\u{1F1F8}\u{1F1E9}", "\u{1F1F8}\u{1F1F7}", "\u{1F1F8}\u{1F1FF}", "\u{1F1F8}\u{1F1EA}", "\u{1F1E8}\u{1F1ED}", "\u{1F1F8}\u{1F1FE}", "\u{1F1F9}\u{1F1FC}", "\u{1F1F9}\u{1F1EF}", "\u{1F1F9}\u{1F1FF}", "\u{1F1F9}\u{1F1ED}", "\u{1F1F9}\u{1F1F1}", "\u{1F1F9}\u{1F1EC}", "\u{1F1F9}\u{1F1F0}", "\u{1F1F9}\u{1F1F4}", "\u{1F1F9}\u{1F1F9}", "\u{1F1F9}\u{1F1F3}", "\u{1F1F9}\u{1F1F7}", "\u{1F1F9}\u{1F1F2}", "\u{1F1F9}\u{1F1E8}", "\u{1F1F9}\u{1F1FB}", "\u{1F1FB}\u{1F1EE}", "\u{1F1FA}\u{1F1EC}", "\u{1F1FA}\u{1F1E6}", "\u{1F1E6}\u{1F1EA}", "\u{1F1EC}\u{1F1E7}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}", "\u{1F1FA}\u{1F1F3}", "\u{1F1FA}\u{1F1F8}", "\u{1F1FA}\u{1F1FE}", "\u{1F1FA}\u{1F1FF}", "\u{1F1FB}\u{1F1FA}", "\u{1F1FB}\u{1F1E6}", "\u{1F1FB}\u{1F1EA}", "\u{1F1FB}\u{1F1F3}", "\u{1F1FC}\u{1F1EB}", "\u{1F1EA}\u{1F1ED}", "\u{1F1FE}\u{1F1EA}", "\u{1F1FF}\u{1F1F2}", "\u{1F1FF}\u{1F1FC}"] }
+];
+var emojiDescriptions = {
+  // Smileys & Emotion
+  "\u2639\uFE0F": "frowning face sad unhappy upset",
+  "\u{1F910}": "zipper-mouth face quiet silence secret mute",
+  "\u{1F912}": "face with thermometer sick ill fever temperature",
+  "\u{1F913}": "nerd face glasses smart geek studious",
+  "\u{1F914}": "thinking face thoughtful curious pondering",
+  "\u{1F915}": "face with head-bandage injury hurt bandaged",
+  "\u{1F917}": "hugging face hug comfort happy",
+  "\u{1F922}": "nauseated face sick vomit gross disgusted",
+  "\u{1F923}": "rolling on the floor laughing happy cry rofl lol",
+  "\u{1F924}": "drooling face food hungry desire want",
+  "\u{1F925}": "lying face liar nose growing pinocchio",
+  "\u{1F927}": "sneezing face sick cold allergy achoo",
+  "\u{1F928}": "face with raised eyebrow skeptical suspicious doubt",
+  "\u{1F929}": "star-struck excited amazed starry-eyed",
+  "\u{1F92A}": "zany face crazy silly wild goofy",
+  "\u{1F92B}": "shushing face quiet silence secret",
+  "\u{1F92C}": "face with symbols on mouth swearing angry cursing",
+  "\u{1F92D}": "face with hand over mouth giggling surprise",
+  "\u{1F92E}": "face vomiting sick throw up gross ill",
+  "\u{1F92F}": "exploding head mind blown shocked amazed",
+  "\u{1F970}": "smiling face with hearts love heart adore affection",
+  "\u{1F971}": "yawning face sleepy tired bored",
+  "\u{1F973}": "partying face celebration party festive",
+  "\u{1F974}": "woozy face drunk dizzy tipsy disoriented",
+  "\u{1F975}": "hot face heat sweating overheated",
+  "\u{1F976}": "cold face freezing ice frozen",
+  "\u{1F97A}": "pleading face begging puppy eyes",
+  "\u{1F9D0}": "face with monocle smart sophisticated examine",
+  "\u{1F600}": "grinning face smile happy joyful",
+  "\u{1F601}": "beaming face with smiling eyes grin happy proud",
+  "\u{1F602}": "face with tears of joy laughing crying happy lol",
+  "\u{1F603}": "grinning face with big eyes smile happy excited",
+  "\u{1F604}": "grinning face with smiling eyes happy joy laugh",
+  "\u{1F605}": "grinning face with sweat happy relief nervous",
+  "\u{1F607}": "smiling face with halo angel innocent blessed",
+  "\u{1F609}": "winking face flirt playful joke",
+  "\u{1F60A}": "smiling face with smiling eyes happy sweet shy",
+  "\u{1F60B}": "face savoring food yummy delicious tasty",
+  "\u{1F60C}": "relieved face calm relaxed content",
+  "\u{1F60D}": "smiling face with heart-eyes love heart adore",
+  "\u{1F60E}": "smiling face with sunglasses cool confident",
+  "\u{1F60F}": "smirking face flirt smug suggestive",
+  "\u{1F610}": "neutral face expressionless blank meh",
+  "\u{1F611}": "expressionless face blank unimpressed",
+  "\u{1F612}": "unamused face unhappy annoyed unimpressed",
+  "\u{1F613}": "downcast face with sweat tired stressed",
+  "\u{1F614}": "pensive face sad thoughtful reflective",
+  "\u{1F615}": "confused face puzzled unsure",
+  "\u{1F616}": "confounded face confused frustrated",
+  "\u{1F617}": "kissing face love affection",
+  "\u{1F618}": "face blowing a kiss love heart flirt",
+  "\u{1F619}": "kissing face with smiling eyes love happy",
+  "\u{1F61A}": "kissing face with closed eyes love shy",
+  "\u{1F61B}": "face with tongue playful silly taste",
+  "\u{1F61C}": "winking face with tongue playful silly joke",
+  "\u{1F61D}": "squinting face with tongue playful silly ecstatic",
+  "\u{1F61E}": "disappointed face sad unhappy dejected",
+  "\u{1F61F}": "worried face concerned anxious nervous",
+  "\u{1F620}": "angry face mad furious",
+  "\u{1F621}": "pouting face angry rage mad",
+  "\u{1F622}": "crying face sad tear unhappy",
+  "\u{1F623}": "persevering face struggling frustrated",
+  "\u{1F624}": "face with steam from nose angry frustrated proud",
+  "\u{1F625}": "sad but relieved face disappointed relieved",
+  "\u{1F626}": "frowning face with open mouth shock horror",
+  "\u{1F627}": "anguished face shocked scared distressed",
+  "\u{1F628}": "fearful face scared worried shocked",
+  "\u{1F629}": "weary face tired frustrated exhausted",
+  "\u{1F62A}": "sleepy face tired drowsy rest",
+  "\u{1F62B}": "tired face exhausted weary",
+  "\u{1F62C}": "grimacing face awkward nervous uncomfortable",
+  "\u{1F62D}": "loudly crying face sad sobbing upset",
+  "\u{1F62E}": "face with open mouth surprise shock wow gasp",
+  "\u{1F62F}": "hushed face surprised shocked stunned",
+  "\u{1F630}": "anxious face with sweat nervous worried",
+  "\u{1F631}": "face screaming in fear scared shocked",
+  "\u{1F632}": "astonished face shocked surprised amazed wow",
+  "\u{1F633}": "flushed face blushing embarrassed surprised",
+  "\u{1F634}": "sleeping face sleep zzz tired rest",
+  "\u{1F635}": "dizzy face spiral confused disoriented",
+  "\u{1F636}": "face without mouth speechless silent blank",
+  "\u{1F637}": "face with medical mask sick ill covid virus",
+  "\u{1F641}": "slightly frowning face sad disappointed",
+  "\u{1F642}": "slightly smiling face happy content",
+  "\u{1F643}": "upside-down face silly playful ironic",
+  "\u{1F644}": "face with rolling eyes exasperated annoyed",
+  // People & Body
+  "\u261D\uFE0F": "index pointing up direction gesture",
+  "\u270A": "raised fist power solidarity strength",
+  "\u270B": "raised hand stop high five palm",
+  "\u270C\uFE0F": "victory hand peace victory yeah",
+  "\u270D\uFE0F": "writing hand write note signature",
+  "\u{1F440}": "eyes look see watch",
+  "\u{1F441}\uFE0F": "eye look see watch",
+  "\u{1F442}": "ear hear listen sound",
+  "\u{1F443}": "nose smell sniff",
+  "\u{1F444}": "mouth lips kiss speak",
+  "\u{1F445}": "tongue taste lick",
+  "\u{1F446}": "backhand index pointing up direction gesture",
+  "\u{1F447}": "backhand index pointing down direction gesture",
+  "\u{1F448}": "backhand index pointing left direction gesture",
+  "\u{1F449}": "backhand index pointing right direction gesture",
+  "\u{1F44A}": "oncoming fist punch bro fist bump",
+  "\u{1F44B}": "waving hand hello goodbye wave greeting",
+  "\u{1F44C}": "ok hand perfect agree approval",
+  "\u{1F44D}": "thumbs up approve like yes good",
+  "\u{1F44E}": "thumbs down disapprove dislike no bad",
+  "\u{1F44F}": "clapping hands praise applause congratulations bravo",
+  "\u{1F450}": "open hands hug welcome",
+  "\u{1F466}": "boy child young male kid",
+  "\u{1F467}": "girl child young female kid",
+  "\u{1F468}": "man male adult person gender",
+  "\u{1F468}\u200D\u{1F9B0}": "man red hair male person ginger hairstyle",
+  "\u{1F468}\u200D\u{1F9B1}": "man curly hair male person hairstyle",
+  "\u{1F468}\u200D\u{1F9B2}": "man bald male person no hair",
+  "\u{1F468}\u200D\u{1F9B3}": "man white hair male person hairstyle",
+  "\u{1F469}": "woman female adult person gender",
+  "\u{1F469}\u200D\u{1F9B0}": "woman red hair female person ginger hairstyle",
+  "\u{1F469}\u200D\u{1F9B1}": "woman curly hair female person hairstyle",
+  "\u{1F469}\u200D\u{1F9B2}": "woman bald female person no hair",
+  "\u{1F469}\u200D\u{1F9B3}": "woman white hair female person hairstyle",
+  "\u{1F471}": "person blonde hair human hairstyle",
+  "\u{1F471}\u200D\u2640\uFE0F": "woman blonde hair female person hairstyle",
+  "\u{1F471}\u200D\u2642\uFE0F": "man blonde hair male person hairstyle",
+  "\u{1F474}": "old man elderly male person senior",
+  "\u{1F475}": "old woman elderly female person senior",
+  "\u{1F476}": "baby child infant young newborn",
+  "\u{1F485}": "nail polish beauty manicure cosmetics",
+  "\u{1F48B}": "kiss mark lips love romance",
+  "\u{1F4AA}": "flexed biceps strong muscle flex",
+  "\u{1F590}\uFE0F": "hand with fingers splayed stop halt palm",
+  "\u{1F595}": "middle finger rude offensive gesture",
+  "\u{1F596}": "vulcan salute star trek spock prosper",
+  "\u{1F90C}": "pinched fingers italian what gesture",
+  "\u{1F90F}": "pinching hand small tiny little",
+  "\u{1F918}": "sign of the horns rock metal music",
+  "\u{1F919}": "call me hand phone hang loose",
+  "\u{1F91A}": "raised back of hand stop halt",
+  "\u{1F91B}": "left-facing fist bump greeting",
+  "\u{1F91C}": "right-facing fist bump greeting",
+  "\u{1F91D}": "handshake deal agreement partnership",
+  "\u{1F91E}": "crossed fingers luck hopeful wish",
+  "\u{1F91F}": "love-you gesture rock love sign",
+  "\u{1F932}": "palms up together pray beg",
+  "\u{1F933}": "selfie camera phone photo",
+  "\u{1F9B4}": "bone skeleton body structure",
+  "\u{1F9B5}": "leg kick foot limb",
+  "\u{1F9B6}": "foot toe kick limb",
+  "\u{1F9B7}": "tooth teeth dental",
+  "\u{1F9BB}": "ear with hearing aid accessibility deaf",
+  "\u{1F9BE}": "mechanical arm robot prosthetic",
+  "\u{1F9BF}": "mechanical leg robot prosthetic",
+  "\u{1F9D1}": "person adult gender-neutral human",
+  "\u{1F9D1}\u200D\u{1F9B0}": "person red hair human ginger hairstyle",
+  "\u{1F9D1}\u200D\u{1F9B1}": "person curly hair human hairstyle",
+  "\u{1F9D1}\u200D\u{1F9B2}": "person bald human no hair",
+  "\u{1F9D1}\u200D\u{1F9B3}": "person white hair human hairstyle",
+  "\u{1F9D2}": "child young kid gender-neutral youth",
+  "\u{1F9D3}": "older person elderly human senior",
+  "\u{1F9D4}": "person beard facial hair face",
+  "\u{1F9E0}": "brain mind intellect thinking",
+  "\u{1FA78}": "drop of blood injury period medical",
+  "\u{1FAC0}": "anatomical heart organ cardiac",
+  "\u{1FAC1}": "lungs breathing organ respiratory",
+  "\u{1F64C}": "raising hands celebration praise hooray",
+  "\u{1F64F}": "folded hands please thank you pray hope",
+  // Food & Drink
+  "\u2615": "hot beverage coffee tea drink",
+  "\u{1F330}": "chestnut food nut seed",
+  "\u{1F358}": "rice cracker japanese food snack",
+  "\u{1F359}": "rice ball japanese food onigiri",
+  "\u{1F35A}": "cooked rice food asian grain",
+  "\u{1F35B}": "curry rice food indian spicy",
+  "\u{1F35C}": "steaming bowl noodles ramen soup",
+  "\u{1F361}": "dango japanese food dessert sweet",
+  "\u{1F362}": "oden japanese food skewer",
+  "\u{1F363}": "sushi japanese food fish rice",
+  "\u{1F364}": "fried shrimp seafood tempura",
+  "\u{1F365}": "fish cake japanese food naruto",
+  "\u{1F366}": "soft ice cream dessert cold sweet",
+  "\u{1F367}": "shaved ice dessert cold sweet",
+  "\u{1F368}": "ice cream dessert cold sweet",
+  "\u{1F369}": "doughnut sweet dessert breakfast",
+  "\u{1F36A}": "cookie sweet dessert biscuit",
+  "\u{1F36B}": "chocolate bar candy sweet dessert",
+  "\u{1F36C}": "candy sweet dessert sugar",
+  "\u{1F36D}": "lollipop candy sweet dessert",
+  "\u{1F36E}": "custard dessert sweet pudding",
+  "\u{1F36F}": "honey pot sweet bee food",
+  "\u{1F370}": "shortcake dessert sweet slice",
+  "\u{1F371}": "bento box japanese food lunch",
+  "\u{1F372}": "pot of food stew soup cooking",
+  "\u{1F374}": "fork and knife cutlery silverware",
+  "\u{1F375}": "teacup without handle green tea drink",
+  "\u{1F376}": "sake japanese drink alcohol rice wine",
+  "\u{1F377}": "wine glass drink alcohol beverage",
+  "\u{1F378}": "cocktail glass drink alcohol martini",
+  "\u{1F379}": "tropical drink alcohol beverage cocktail",
+  "\u{1F37A}": "beer mug drink alcohol beverage",
+  "\u{1F37B}": "clinking beer mugs drink alcohol cheers",
+  "\u{1F37C}": "baby bottle milk drink infant",
+  "\u{1F37D}\uFE0F": "fork knife plate cutlery dining",
+  "\u{1F37E}": "bottle with popping cork celebration drink",
+  "\u{1F37F}": "popcorn movie snack corn",
+  "\u{1F382}": "birthday cake celebration dessert",
+  "\u{1F942}": "clinking glasses drink alcohol champagne",
+  "\u{1F943}": "tumbler glass drink alcohol whiskey",
+  "\u{1F944}": "spoon cutlery silverware utensil",
+  "\u{1F957}": "green salad healthy food vegetables",
+  "\u{1F95B}": "glass of milk drink dairy beverage",
+  "\u{1F95C}": "peanuts food nuts legumes",
+  "\u{1F95F}": "dumpling food asian chinese",
+  "\u{1F960}": "fortune cookie chinese food prediction",
+  "\u{1F962}": "chopsticks utensils asian eating",
+  "\u{1F964}": "cup with straw drink beverage soda",
+  "\u{1F967}": "pie dessert food baked",
+  "\u{1F96E}": "moon cake chinese food festival",
+  "\u{1F9AA}": "oyster seafood shellfish pearl",
+  "\u{1F9C1}": "cupcake dessert sweet cake",
+  "\u{1F9C3}": "beverage box juice drink straw",
+  "\u{1F9C9}": "mate drink beverage tea south american",
+  "\u{1F9CA}": "ice cube cold frozen water",
+  "\u{1F9CB}": "bubble tea drink boba taiwanese",
+  "\u{1FAD0}": "blueberries fruit food berries",
+  "\u{1FAD1}": "bell pepper vegetable food",
+  "\u{1FAD2}": "olive fruit food mediterranean",
+  "\u{1FAD3}": "flatbread food pita naan",
+  "\u{1FAD4}": "tamale food mexican wrapped",
+  "\u{1FAD5}": "fondue food cheese melted",
+  "\u{1FAD6}": "teapot drink hot beverage",
+  // Animals & Nature
+  "\u{1F405}": "tiger cat wild animal dangerous",
+  "\u{1F406}": "leopard cat wild animal spots",
+  "\u{1F408}\u200D\u2B1B": "black cat feline animal pet",
+  "\u{1F40A}": "crocodile alligator reptile dangerous",
+  "\u{1F40B}": "whale sea creature marine mammal",
+  "\u{1F415}\u200D\u{1F9BA}": "service dog assistance animal",
+  "\u{1F419}": "octopus sea creature tentacles",
+  "\u{1F41F}": "fish sea creature swimming",
+  "\u{1F420}": "tropical fish sea creature aquarium",
+  "\u{1F421}": "blowfish pufferfish sea creature",
+  "\u{1F42C}": "dolphin sea creature marine mammal",
+  "\u{1F433}": "spouting whale sea creature marine mammal",
+  "\u{1F43F}\uFE0F": "chipmunk animal squirrel",
+  "\u{1F577}\uFE0F": "spider arachnid bug insect",
+  "\u{1F578}\uFE0F": "spider web cobweb arachnid",
+  "\u{1F982}": "scorpion arachnid dangerous",
+  "\u{1F980}": "crab seafood shellfish",
+  "\u{1F988}": "shark sea creature dangerous fish",
+  "\u{1F98D}": "gorilla ape primate monkey",
+  "\u{1F990}": "shrimp seafood shellfish",
+  "\u{1F991}": "squid sea creature tentacles",
+  "\u{1F993}": "zebra stripes wild animal",
+  "\u{1F994}": "hedgehog animal spiky cute",
+  "\u{1F995}": "sauropod dinosaur extinct long-neck",
+  "\u{1F996}": "tyrannosaurus rex dinosaur extinct",
+  "\u{1F997}": "cricket insect chirping bug",
+  "\u{1F99E}": "lobster seafood shellfish",
+  "\u{1F9A1}": "badger animal woodland",
+  "\u{1F9A3}": "mammoth extinct animal prehistoric",
+  "\u{1F9A4}": "dodo extinct bird animal",
+  "\u{1F9A5}": "sloth slow animal lazy",
+  "\u{1F9A6}": "otter swimming animal water",
+  "\u{1F9A7}": "orangutan ape primate monkey",
+  "\u{1F9A8}": "skunk animal smelly spray",
+  "\u{1F9A9}": "flamingo pink bird animal",
+  "\u{1F9AB}": "beaver animal dam builder",
+  "\u{1F9AC}": "bison buffalo animal wild",
+  "\u{1F9AE}": "guide dog service animal assistance",
+  "\u{1FAB6}": "feather bird plume light",
+  // Travel & Places
+  "\u2668\uFE0F": "hot springs steam bath spa onsen",
+  "\u26E9\uFE0F": "shinto shrine building religious japanese",
+  "\u26EA": "church building religious christian worship",
+  "\u26F0\uFE0F": "mountain nature landscape peak hill",
+  "\u26F2": "fountain water decoration park plaza",
+  "\u26FA": "tent camping outdoors shelter vacation",
+  "\u{1F301}": "foggy city weather mist urban",
+  "\u{1F303}": "night with stars city evening urban",
+  "\u{1F304}": "sunrise over mountains morning dawn nature",
+  "\u{1F305}": "sunrise morning dawn sun nature",
+  "\u{1F306}": "cityscape at dusk evening urban sunset",
+  "\u{1F307}": "sunset over buildings evening urban",
+  "\u{1F309}": "bridge at night city urban evening",
+  "\u{1F30B}": "volcano mountain eruption nature disaster",
+  "\u{1F30D}": "globe showing europe africa earth world planet",
+  "\u{1F30E}": "globe showing americas earth world planet",
+  "\u{1F30F}": "globe showing asia australia earth world planet",
+  "\u{1F310}": "globe with meridians earth world planet network",
+  "\u{1F3A0}": "carousel horse amusement park ride",
+  "\u{1F3A1}": "ferris wheel amusement park ride fair",
+  "\u{1F3A2}": "roller coaster amusement park ride thrill",
+  "\u{1F3AA}": "circus tent entertainment show performance",
+  "\u{1F3D4}\uFE0F": "snow capped mountain peak nature landscape",
+  "\u{1F3D5}\uFE0F": "camping tent outdoors nature vacation",
+  "\u{1F3D6}\uFE0F": "beach with umbrella vacation summer sand sea",
+  "\u{1F3D7}\uFE0F": "building construction site development crane",
+  "\u{1F3D8}\uFE0F": "houses buildings residential neighborhood",
+  "\u{1F3D9}\uFE0F": "cityscape urban buildings skyline",
+  "\u{1F3DA}\uFE0F": "derelict house abandoned building old",
+  "\u{1F3DB}\uFE0F": "classical building architecture historic landmark",
+  "\u{1F3DC}\uFE0F": "desert hot dry sand nature landscape",
+  "\u{1F3DD}\uFE0F": "desert island beach vacation tropical",
+  "\u{1F3DE}\uFE0F": "national park nature landscape scenic",
+  "\u{1F3DF}\uFE0F": "stadium sports arena event venue",
+  "\u{1F3E0}": "house building home residential dwelling",
+  "\u{1F3E1}": "house with garden home yard residential",
+  "\u{1F3E2}": "office building business work corporate",
+  "\u{1F3E3}": "japanese post office building mail service",
+  "\u{1F3E4}": "post office building mail service",
+  "\u{1F3E5}": "hospital building medical healthcare emergency",
+  "\u{1F3E6}": "bank building money finance business",
+  "\u{1F3E8}": "hotel building lodging accommodation travel",
+  "\u{1F3E9}": "love hotel building romance accommodation",
+  "\u{1F3EA}": "convenience store building shop retail",
+  "\u{1F3EB}": "school building education learning",
+  "\u{1F3EC}": "department store building shopping retail",
+  "\u{1F3ED}": "factory building industrial manufacturing",
+  "\u{1F3EF}": "japanese castle building landmark historic",
+  "\u{1F3F0}": "castle building landmark historic medieval",
+  "\u{1F488}": "barber pole haircut salon shop",
+  "\u{1F492}": "wedding chapel marriage ceremony church",
+  "\u{1F54B}": "kaaba building religious islamic mecca",
+  "\u{1F54C}": "mosque building religious islamic worship",
+  "\u{1F54D}": "synagogue building religious jewish worship",
+  "\u{1F5FA}\uFE0F": "world map geography atlas travel global",
+  "\u{1F5FB}": "mount fuji japan mountain landmark nature",
+  "\u{1F5FC}": "tokyo tower landmark japan building",
+  "\u{1F5FD}": "statue of liberty landmark usa freedom",
+  "\u{1F5FE}": "map of japan geography country asian",
+  "\u{1F9ED}": "compass navigation direction travel tool",
+  "\u{1F9F1}": "brick construction building material wall",
+  "\u{1FAA8}": "rock stone nature boulder mineral",
+  "\u{1FAB5}": "wood log nature lumber timber material",
+  "\u{1F6D5}": "hindu temple building religious worship",
+  "\u{1F6D6}": "hut house shelter primitive dwelling",
+  // Activities
+  "\u26BD": "soccer ball football sport team game",
+  "\u26BE": "baseball sport team game ball bat",
+  "\u26F3": "flag in hole golf sport course game",
+  "\u{1F3A3}": "fishing pole rod sport hook line",
+  "\u{1F3A4}": "microphone karaoke sing music performance",
+  "\u{1F3A7}": "headphone music audio listen sound",
+  "\u{1F3A8}": "artist palette art painting creativity",
+  "\u{1F3AC}": "clapper board movie film director action",
+  "\u{1F3AD}": "performing arts theater drama masks",
+  "\u{1F3AE}": "video game controller gaming play",
+  "\u{1F3AF}": "direct hit target dart game sport",
+  "\u{1F3B1}": "pool 8 ball billiards game sport cue",
+  "\u{1F3B2}": "game die dice gambling play random",
+  "\u{1F3B7}": "saxophone jazz instrument music brass",
+  "\u{1F3B8}": "guitar instrument music strings rock",
+  "\u{1F3B9}": "musical keyboard piano instrument keys",
+  "\u{1F3BA}": "trumpet brass instrument music fanfare",
+  "\u{1F3BB}": "violin instrument music strings classical",
+  "\u{1F3BC}": "musical score notes sheet music",
+  "\u{1F3BD}": "running shirt athletics sport race",
+  "\u{1F3BE}": "tennis sport racket ball court game",
+  "\u{1F3BF}": "skis winter sport snow mountain",
+  "\u{1F3C0}": "basketball sport team game ball",
+  "\u{1F3C8}": "american football sport team game ball",
+  "\u{1F3C9}": "rugby football sport team game ball",
+  "\u{1F3CF}": "cricket sport team game bat ball",
+  "\u{1F3D0}": "volleyball sport team game ball net",
+  "\u{1F3D1}": "field hockey stick sport team game ball",
+  "\u{1F3D2}": "ice hockey stick sport team game puck",
+  "\u{1F3D3}": "ping pong table tennis sport game paddle",
+  "\u{1F3F8}": "badminton sport game racket shuttlecock",
+  "\u{1F3F9}": "bow and arrow archery sport target shoot",
+  "\u{1F93F}": "diving mask snorkel underwater swim sport",
+  "\u{1F941}": "drum percussion instrument music rhythm",
+  "\u{1F945}": "goal net sports hockey soccer score",
+  "\u{1F94C}": "curling stone winter sport ice game",
+  "\u{1F94D}": "lacrosse sport team game stick ball",
+  "\u{1F94E}": "softball sport team game ball bat",
+  "\u{1F94F}": "flying disc frisbee sport game outdoor",
+  "\u{1F9E9}": "puzzle piece jigsaw game entertainment",
+  "\u{1FA80}": "yo-yo toy game skill string",
+  "\u{1FA81}": "kite flying outdoor toy wind sport",
+  "\u{1FA83}": "boomerang sport throw return australian",
+  "\u{1FA95}": "banjo instrument music strings folk",
+  "\u{1FA97}": "accordion instrument music squeeze box",
+  "\u{1FA98}": "long drum percussion instrument music",
+  "\u{1F6F7}": "sled winter sport snow ride",
+  // Weather
+  "\u2601\uFE0F": "cloud",
+  "\u26C5": "sun behind cloud",
+  "\u26C8\uFE0F": "cloud with lightning and rain",
+  "\u{1F324}\uFE0F": "sun behind one cloud",
+  "\u{1F325}\uFE0F": "sun behind two clouds",
+  "\u{1F326}\uFE0F": "sun behind three clouds",
+  "\u{1F327}\uFE0F": "cloud with rain",
+  "\u{1F328}\uFE0F": "cloud with snow",
+  "\u{1F329}\uFE0F": "cloud with lightning",
+  "\u{1F32A}\uFE0F": "cloud with tornado",
+  "\u{1F32B}\uFE0F": "cloud with fog",
+  "\u{1F31D}": "full moon",
+  "\u{1F311}": "new moon",
+  "\u{1F312}": "waxing crescent moon",
+  "\u{1F313}": "waxing gibbous moon",
+  "\u{1F314}": "full moon",
+  "\u{1F315}": "waning gibbous moon",
+  "\u{1F316}": "waning crescent moon",
+  "\u{1F317}": "last quarter moon",
+  "\u{1F318}": "first quarter moon",
+  "\u{1F319}": "crescent moon",
+  "\u{1F31A}": "new moon face",
+  "\u{1F31B}": "first quarter moon face",
+  "\u{1F31C}": "last quarter moon face",
+  "\u2600\uFE0F": "sun",
+  "\u{1F31E}": "sun with face",
+  "\u2B50": "star",
+  "\u{1F31F}": "shooting star",
+  "\u{1F320}": "milky way",
+  "\u2604\uFE0F": "comet",
+  "\u{1F321}\uFE0F": "thermometer",
+  "\u{1F32C}\uFE0F": "wind",
+  "\u{1F300}": "cyclone",
+  "\u{1F308}": "rainbow",
+  "\u{1F302}": "umbrella",
+  "\u2602\uFE0F": "umbrella",
+  "\u2614": "umbrella with rain",
+  "\u26F1\uFE0F": "umbrella on beach",
+  "\u26A1": "high voltage",
+  "\u2744\uFE0F": "snowflake",
+  "\u2603\uFE0F": "snowman",
+  "\u26C4": "snowman without snow",
+  "\u{1F525}": "fire",
+  "\u{1F4A7}": "droplet",
+  "\u{1F30A}": "wave",
+  // Objects
+  "\u231A": "watch timekeeping device",
+  "\u231B": "hourglass timer device",
+  "\u2328\uFE0F": "keyboard input device",
+  "\u23F0": "alarm clock timekeeping device",
+  "\u23F1\uFE0F": "stopwatch timer device",
+  "\u23F2\uFE0F": "timer device",
+  "\u23F3": "stopwatch timer device",
+  "\u260E\uFE0F": "telephone handset communication device",
+  "\u2692\uFE0F": "wrench and hammer tool fixing device",
+  "\u2694\uFE0F": "shield and sword defensive weapon",
+  "\u2696\uFE0F": "scale balance weight device",
+  "\u2699\uFE0F": "gear mechanical device",
+  "\u26B0\uFE0F": "coffin casket burial container",
+  "\u26B1\uFE0F": "hourglass memorial timer",
+  "\u26CF\uFE0F": "pickaxe tool mining device",
+  "\u26D3\uFE0F": "chain link security device",
+  "\u2702\uFE0F": "scissors cutting tool",
+  "\u2709\uFE0F": "envelope letter mail",
+  "\u270F\uFE0F": "pencil writing tool",
+  "\u2712\uFE0F": "pen writing tool",
+  "\u{1F380}": "bow ribbon decoration",
+  "\u{1F381}": "gift wrapped package",
+  "\u{1F388}": "balloon decoration",
+  "\u{1F389}": "party confetti decoration",
+  "\u{1F38A}": "party popper decoration",
+  "\u{1F38E}": "traditional japanese doll",
+  "\u{1F38F}": "origami paper decoration",
+  "\u{1F390}": "envelope letter mail",
+  "\u{1F399}\uFE0F": "microphone sound amplification device",
+  "\u{1F39A}\uFE0F": "headphones audio listening device",
+  "\u{1F39B}\uFE0F": "speaker sound amplification device",
+  "\u{1F39E}\uFE0F": "video cassette recording device",
+  "\u{1F3A5}": "video camera recording device",
+  "\u{1F3EE}": "lantern festival decoration",
+  "\u{1F3F7}\uFE0F": "price tag label",
+  "\u{1F3FA}": "bell gong musical instrument",
+  "\u{1F48C}": "envelope letter mail",
+  "\u{1F48E}": "gemstone jewelry accessory",
+  "\u{1F4A1}": "light bulb lighting device",
+  "\u{1F4A3}": "bomb explosive weapon",
+  "\u{1F4B0}": "money currency finance device",
+  "\u{1F4B3}": "credit card finance device",
+  "\u{1F4B4}": "money currency finance device",
+  "\u{1F4B5}": "money currency finance device",
+  "\u{1F4B6}": "money currency finance device",
+  "\u{1F4B7}": "money currency finance device",
+  "\u{1F4B8}": "money currency finance device",
+  "\u{1F4BB}": "computer desktop",
+  "\u{1F4BD}": "computer disk storage device",
+  "\u{1F4BE}": "floppy disk storage device",
+  "\u{1F4BF}": "compact disc storage device",
+  "\u{1F4C0}": "dvd disc storage device",
+  "\u{1F4C1}": "file folder storage",
+  "\u{1F4C2}": "file folder storage",
+  "\u{1F4C3}": "page of paper",
+  "\u{1F4C4}": "page of paper",
+  "\u{1F4C5}": "calendar date",
+  "\u{1F4C6}": "calendar date",
+  "\u{1F4C7}": "file folder storage",
+  "\u{1F4C8}": "chart graph",
+  "\u{1F4C9}": "chart graph",
+  "\u{1F4CA}": "chart graph",
+  "\u{1F4CB}": "clipboard storage container",
+  "\u{1F4CC}": "pushpin sticky note marker",
+  "\u{1F4CD}": "pin sticky note marker",
+  "\u{1F4CE}": "paperclip attachment",
+  "\u{1F4CF}": "ruler measuring tool",
+  "\u{1F4D0}": "ruler measuring tool",
+  "\u{1F4D1}": "page of paper",
+  "\u{1F4D2}": "book book",
+  "\u{1F4D3}": "book book",
+  "\u{1F4D4}": "book book",
+  "\u{1F4D5}": "book book",
+  "\u{1F4D6}": "book book",
+  "\u{1F4D7}": "book book",
+  "\u{1F4D8}": "book book",
+  "\u{1F4D9}": "book book",
+  "\u{1F4DA}": "book book",
+  "\u{1F4DC}": "scroll parchment paper",
+  "\u{1F4DD}": "pencil writing tool",
+  "\u{1F4DE}": "telephone handset communication device",
+  "\u{1F4DF}": "pager pager device",
+  "\u{1F4E0}": "television television device",
+  "\u{1F4E1}": "satellite communication device",
+  "\u{1F4E4}": "envelope letter mail",
+  "\u{1F4E5}": "envelope letter mail",
+  "\u{1F4E6}": "package shipping container",
+  "\u{1F4E7}": "envelope letter mail",
+  "\u{1F4E8}": "envelope letter mail",
+  "\u{1F4E9}": "envelope letter mail",
+  "\u{1F4EA}": "envelope letter mail",
+  "\u{1F4EB}": "envelope letter mail",
+  "\u{1F4EC}": "envelope letter mail",
+  "\u{1F4ED}": "envelope letter mail",
+  "\u{1F4EE}": "envelope letter mail",
+  "\u{1F4EF}": "envelope letter mail",
+  "\u{1F4F0}": "newspaper newspaper",
+  "\u{1F4F1}": "smartphone mobile phone",
+  "\u{1F4F2}": "smartphone mobile phone",
+  "\u{1F4F7}": "camera photo imaging device",
+  "\u{1F4F8}": "camera photo imaging device",
+  "\u{1F4F9}": "video camera recording device",
+  "\u{1F4FA}": "television television device",
+  "\u{1F4FB}": "radio broadcasting device",
+  "\u{1F4FC}": "vhs tape storage device",
+  "\u{1F4FD}\uFE0F": "video cassette recording device",
+  "\u{1F4FF}": "prayer beads religious accessory",
+  "\u{1F50B}": "battery power supply device",
+  "\u{1F50C}": "battery power supply device",
+  "\u{1F50D}": "magnifying glass search tool",
+  "\u{1F50E}": "magnifying glass search tool",
+  "\u{1F50F}": "lock security device",
+  "\u{1F510}": "lock security device",
+  "\u{1F511}": "key lock security device",
+  "\u{1F512}": "lock security device",
+  "\u{1F513}": "lock security device",
+  "\u{1F516}": "bookmark page marker",
+  "\u{1F517}": "link page marker",
+  "\u{1F526}": "flashlight flashlight device",
+  "\u{1F527}": "wrench tool fixing device",
+  "\u{1F528}": "hammer tool striking device",
+  "\u{1F529}": "gear mechanical device",
+  "\u{1F52B}": "gun firearm weapon",
+  "\u{1F52E}": "crystal ball fortune telling device",
+  "\u{1F56F}\uFE0F": "candle light source",
+  "\u{1F570}\uFE0F": "hourglass timer device",
+  "\u{1F579}\uFE0F": "joystick game controller",
+  "\u{1F587}\uFE0F": "paperclip attachment",
+  "\u{1F58A}\uFE0F": "pen writing tool",
+  "\u{1F58B}\uFE0F": "pen writing tool",
+  "\u{1F58C}\uFE0F": "paintbrush painting tool",
+  "\u{1F58D}\uFE0F": "paintbrush painting tool",
+  "\u{1F5A5}\uFE0F": "computer monitor screen",
+  "\u{1F5A8}\uFE0F": "printer output device",
+  "\u{1F5B1}\uFE0F": "computer mouse pointing device",
+  "\u{1F5B2}\uFE0F": "touchscreen input device",
+  "\u{1F5BC}\uFE0F": "picture frame photo display",
+  "\u{1F5C2}\uFE0F": "file folder storage",
+  "\u{1F5C3}\uFE0F": "file folder storage",
+  "\u{1F5C4}\uFE0F": "file folder storage",
+  "\u{1F5D1}\uFE0F": "trash can waste disposal",
+  "\u{1F5D2}\uFE0F": "notebook paper",
+  "\u{1F5D3}\uFE0F": "calendar paper",
+  "\u{1F5DC}\uFE0F": "clamp tool mechanical device",
+  "\u{1F5DD}\uFE0F": "lock and key security device",
+  "\u{1F5DE}\uFE0F": "file folder storage",
+  "\u{1F5E1}\uFE0F": "sword weapon",
+  "\u{1F5F3}\uFE0F": "file folder storage",
+  "\u{1F9E7}": "red envelope money gift",
+  "\u{1F9E8}": "firecracker explosive weapon",
+  "\u{1F9EE}": "calculator arithmetic device",
+  "\u{1F9EF}": "fire extinguisher safety device",
+  "\u{1F9F0}": "toolbox tool storage device",
+  "\u{1F9F2}": "magnet magnetic field device",
+  "\u{1F9F4}": "lotion cosmetic product",
+  "\u{1F9F7}": "link page marker",
+  "\u{1F9F8}": "pillow cushion",
+  "\u{1F9F9}": "broom cleaning tool",
+  "\u{1F9FA}": "basket storage container",
+  "\u{1F9FC}": "soap dispenser",
+  "\u{1F9FD}": "washcloth cleaning tool",
+  "\u{1F9FE}": "receipt invoice",
+  "\u{1F9FF}": "magic wand wizard spell casting device",
+  "\u{1FA84}": "magic wand wizard witch spell",
+  "\u{1FA85}": "pi\xF1ata party celebration mexican",
+  "\u{1FA86}": "nesting dolls russian matryoshka toy",
+  "\u{1FA91}": "bed bed",
+  "\u{1FA92}": "razor shaving tool",
+  "\u{1FA93}": "axe tool chopping device",
+  "\u{1FA94}": "candle light source",
+  "\u{1FA99}": "coin currency finance device",
+  "\u{1FA9A}": "saw tool woodworking device",
+  "\u{1FA9B}": "screwdriver tool fixing device",
+  "\u{1FA9C}": "lever mechanical device",
+  "\u{1FA9E}": "mirror reflection device",
+  "\u{1FA9F}": "curtain window covering",
+  "\u{1FAA1}": "sewing needle thread craft",
+  "\u{1FAA2}": "knot rope tied string",
+  "\u{1FAA3}": "bucket pail container water",
+  "\u{1FAA4}": "mouse trap rodent catch",
+  "\u{1FAA5}": "toothbrush dental hygiene tool",
+  "\u{1FAA6}": "headstone grave cemetery death",
+  "\u{1FAA7}": "placard sign protest announcement",
+  "\u{1FAA9}": "mirror ball disco party dance",
+  "\u{1FAAA}": "identification card id license",
+  "\u{1FAAB}": "low battery empty power dying",
+  "\u{1FAAC}": "hamsa amulet protection luck",
+  "\u{1FAAD}": "wireless speaker audio bluetooth",
+  "\u{1FAAE}": "folding hand fan cooling breeze",
+  "\u{1FAAF}": "khanda sikh religion symbol",
+  "\u{1FAB0}": "fly insect bug pest",
+  "\u{1FAB1}": "worm animal earth crawler",
+  "\u{1FAB2}": "beetle insect bug",
+  "\u{1FAB3}": "cockroach insect bug pest",
+  "\u{1FAB4}": "potted plant garden indoor nature",
+  "\u{1FAB7}": "lotus flower buddhism peace",
+  "\u{1FAB8}": "coral ocean sea marine",
+  "\u{1FAB9}": "empty nest bird home",
+  "\u{1FABA}": "nest with eggs bird home",
+  "\u{1FAE7}": "bubbles soap water floating",
+  "\u{1FAF8}": "rightwards hand pushing right",
+  "\u{1F6AA}": "door door",
+  "\u{1F6AC}": "cigarette smoking device",
+  "\u{1F6B0}": "water closet flushing device",
+  "\u{1F6BD}": "toilet flushing device",
+  "\u{1F6BF}": "shower shower head",
+  "\u{1F6C0}": "bathroom bathtub",
+  "\u{1F6C1}": "bathroom bathtub",
+  "\u{1F6CB}\uFE0F": "sofa couch seating",
+  "\u{1F6CC}": "bed and pillow sleeping arrangement",
+  "\u{1F6CD}\uFE0F": "shopping bag retail shopping",
+  "\u{1F6CE}\uFE0F": "bell doorbell communication device",
+  "\u{1F6CF}\uFE0F": "bed bed",
+  "\u{1F6D2}": "shopping cart retail shopping",
+  "\u{1F6E0}\uFE0F": "toolbox tool storage device",
+  "\u{1F6E2}\uFE0F": "oil barrel petroleum product",
+  "\u{1FAF9}": "leftwards hand pushing left",
+  "\u{1FAFA}": "palm down hand below under"
+};
+
+// src/modals.js
 var ReleaseNotesModal = class extends import_obsidian7.Modal {
   constructor(app2, version, releaseNotes2) {
     super(app2);
@@ -2119,21 +2801,7 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
     this.searchQuery = "";
     this.currentPage = 1;
     this.emojisPerPage = 100;
-    this.emojis = this.getEmojis();
-  }
-  getEmojis() {
-    return [
-      { category: "Smileys & Emotion", emojis: ["\u{1F600}", "\u{1F603}", "\u{1F604}", "\u{1F601}", "\u{1F605}", "\u{1F602}", "\u{1F923}", "\u{1F60A}", "\u{1F607}", "\u{1F642}", "\u{1F643}", "\u{1F609}", "\u{1F60C}", "\u{1F60D}", "\u{1F970}", "\u{1F618}", "\u{1F617}", "\u{1F619}", "\u{1F61A}", "\u{1F60B}", "\u{1F61B}", "\u{1F61D}", "\u{1F61C}", "\u{1F92A}", "\u{1F928}", "\u{1F9D0}", "\u{1F913}", "\u{1F60E}", "\u{1F929}", "\u{1F973}", "\u{1F60F}", "\u{1F612}", "\u{1F61E}", "\u{1F614}", "\u{1F61F}", "\u{1F615}", "\u{1F641}", "\u2639\uFE0F", "\u{1F623}", "\u{1F616}", "\u{1F62B}", "\u{1F629}", "\u{1F97A}", "\u{1F622}", "\u{1F62D}", "\u{1F624}", "\u{1F620}", "\u{1F621}", "\u{1F92C}", "\u{1F92F}", "\u{1F633}", "\u{1F975}", "\u{1F976}", "\u{1F631}", "\u{1F628}", "\u{1F630}", "\u{1F625}", "\u{1F613}", "\u{1F917}", "\u{1F914}", "\u{1F92D}", "\u{1F92B}", "\u{1F925}", "\u{1F636}", "\u{1F610}", "\u{1F611}", "\u{1F62C}", "\u{1F644}", "\u{1F62F}", "\u{1F626}", "\u{1F627}", "\u{1F62E}", "\u{1F632}", "\u{1F971}", "\u{1F634}", "\u{1F924}", "\u{1F62A}", "\u{1F635}", "\u{1F910}", "\u{1F974}", "\u{1F922}", "\u{1F92E}", "\u{1F927}", "\u{1F637}", "\u{1F912}", "\u{1F915}"] },
-      { category: "People & Body", emojis: ["\u{1F44B}", "\u{1F91A}", "\u{1F590}\uFE0F", "\u270B", "\u{1F596}", "\u{1F44C}", "\u{1F90C}", "\u{1F90F}", "\u270C\uFE0F", "\u{1F91E}", "\u{1F91F}", "\u{1F918}", "\u{1F919}", "\u{1F448}", "\u{1F449}", "\u{1F446}", "\u{1F595}", "\u{1F447}", "\u261D\uFE0F", "\u{1F44D}", "\u{1F44E}", "\u270A", "\u{1F44A}", "\u{1F91B}", "\u{1F91C}", "\u{1F44F}", "\u{1F64C}", "\u{1F450}", "\u{1F932}", "\u{1F91D}", "\u{1F64F}", "\u270D\uFE0F", "\u{1F485}", "\u{1F933}", "\u{1F4AA}", "\u{1F9BE}", "\u{1F9BF}", "\u{1F9B5}", "\u{1F9B6}", "\u{1F442}", "\u{1F9BB}", "\u{1F443}", "\u{1F9E0}", "\u{1FAC0}", "\u{1FAC1}", "\u{1F9B7}", "\u{1F9B4}", "\u{1F440}", "\u{1F441}\uFE0F", "\u{1F445}", "\u{1F444}", "\u{1F48B}", "\u{1FA78}", "\u{1F476}", "\u{1F467}", "\u{1F9D2}", "\u{1F466}", "\u{1F469}", "\u{1F9D1}", "\u{1F468}", "\u{1F469}\u200D\u{1F9B1}", "\u{1F9D1}\u200D\u{1F9B1}", "\u{1F468}\u200D\u{1F9B1}", "\u{1F469}\u200D\u{1F9B0}", "\u{1F9D1}\u200D\u{1F9B0}", "\u{1F468}\u200D\u{1F9B0}", "\u{1F471}\u200D\u2640\uFE0F", "\u{1F471}", "\u{1F471}\u200D\u2642\uFE0F", "\u{1F469}\u200D\u{1F9B3}", "\u{1F9D1}\u200D\u{1F9B3}", "\u{1F468}\u200D\u{1F9B3}", "\u{1F469}\u200D\u{1F9B2}", "\u{1F9D1}\u200D\u{1F9B2}", "\u{1F468}\u200D\u{1F9B2}", "\u{1F9D4}", "\u{1F475}", "\u{1F9D3}", "\u{1F474}"] },
-      { category: "Animals & Nature", emojis: ["\u{1F436}", "\u{1F431}", "\u{1F42D}", "\u{1F439}", "\u{1F430}", "\u{1F98A}", "\u{1F43B}", "\u{1F43C}", "\u{1F428}", "\u{1F42F}", "\u{1F981}", "\u{1F42E}", "\u{1F437}", "\u{1F438}", "\u{1F435}", "\u{1F414}", "\u{1F427}", "\u{1F426}", "\u{1F424}", "\u{1F986}", "\u{1F985}", "\u{1F989}", "\u{1F987}", "\u{1F43A}", "\u{1F417}", "\u{1F434}", "\u{1F984}", "\u{1F41D}", "\u{1FAB1}", "\u{1F41B}", "\u{1F98B}", "\u{1F40C}", "\u{1F41E}", "\u{1F41C}", "\u{1FAB0}", "\u{1FAB2}", "\u{1FAB3}", "\u{1F99F}", "\u{1F997}", "\u{1F577}\uFE0F", "\u{1F578}\uFE0F", "\u{1F982}", "\u{1F422}", "\u{1F40D}", "\u{1F98E}", "\u{1F996}", "\u{1F995}", "\u{1F419}", "\u{1F991}", "\u{1F990}", "\u{1F99E}", "\u{1F980}", "\u{1F421}", "\u{1F420}", "\u{1F41F}", "\u{1F42C}", "\u{1F433}", "\u{1F40B}", "\u{1F988}", "\u{1F40A}", "\u{1F405}", "\u{1F406}", "\u{1F993}", "\u{1F98D}", "\u{1F9A7}", "\u{1F9A3}", "\u{1F418}", "\u{1F99B}", "\u{1F98F}", "\u{1F42A}", "\u{1F42B}", "\u{1F992}", "\u{1F998}", "\u{1F9AC}", "\u{1F403}", "\u{1F402}", "\u{1F404}", "\u{1F40E}", "\u{1F416}", "\u{1F40F}", "\u{1F411}", "\u{1F999}", "\u{1F410}", "\u{1F98C}", "\u{1F415}", "\u{1F429}", "\u{1F9AE}", "\u{1F415}\u200D\u{1F9BA}", "\u{1F408}", "\u{1F408}\u200D\u2B1B", "\u{1FAB6}", "\u{1F413}", "\u{1F983}", "\u{1F9A4}", "\u{1F99A}", "\u{1F99C}", "\u{1F9A2}", "\u{1F9A9}", "\u{1F54A}\uFE0F", "\u{1F407}", "\u{1F99D}", "\u{1F9A8}", "\u{1F9A1}", "\u{1F9AB}", "\u{1F9A6}", "\u{1F9A5}", "\u{1F401}", "\u{1F400}", "\u{1F43F}\uFE0F", "\u{1F994}"] },
-      { category: "Food & Drink", emojis: ["\u{1F34E}", "\u{1F350}", "\u{1F34A}", "\u{1F34B}", "\u{1F34C}", "\u{1F349}", "\u{1F347}", "\u{1F353}", "\u{1FAD0}", "\u{1F348}", "\u{1F352}", "\u{1F351}", "\u{1F96D}", "\u{1F34D}", "\u{1F965}", "\u{1F95D}", "\u{1F345}", "\u{1F346}", "\u{1F951}", "\u{1F966}", "\u{1F96C}", "\u{1F952}", "\u{1F336}\uFE0F", "\u{1FAD1}", "\u{1F955}", "\u{1F9C4}", "\u{1F9C5}", "\u{1F954}", "\u{1F360}", "\u{1F950}", "\u{1F96F}", "\u{1F35E}", "\u{1F956}", "\u{1F968}", "\u{1F9C0}", "\u{1F95A}", "\u{1F373}", "\u{1F9C8}", "\u{1F95E}", "\u{1F9C7}", "\u{1F953}", "\u{1F969}", "\u{1F357}", "\u{1F356}", "\u{1F9B4}", "\u{1F32D}", "\u{1F354}", "\u{1F35F}", "\u{1F355}", "\u{1FAD3}", "\u{1F96A}", "\u{1F959}", "\u{1F9C6}", "\u{1F32E}", "\u{1F32F}", "\u{1FAD4}", "\u{1F957}", "\u{1F958}", "\u{1FAD5}", "\u{1F96B}", "\u{1F35D}", "\u{1F35C}", "\u{1F372}", "\u{1F35B}", "\u{1F363}", "\u{1F371}", "\u{1F95F}", "\u{1F9AA}", "\u{1F364}", "\u{1F359}", "\u{1F35A}", "\u{1F358}", "\u{1F365}", "\u{1F960}", "\u{1F96E}", "\u{1F362}", "\u{1F361}", "\u{1F367}", "\u{1F368}", "\u{1F366}", "\u{1F967}", "\u{1F9C1}", "\u{1F370}", "\u{1F382}", "\u{1F36E}", "\u{1F36D}", "\u{1F36C}", "\u{1F36B}", "\u{1F37F}", "\u{1F369}", "\u{1F36A}", "\u{1F330}", "\u{1F95C}", "\u{1F36F}", "\u{1F95B}", "\u{1F37C}", "\u{1FAD6}", "\u2615", "\u{1F375}", "\u{1F9C3}", "\u{1F964}", "\u{1F9CB}", "\u{1F376}", "\u{1F37A}", "\u{1F37B}", "\u{1F942}", "\u{1F377}", "\u{1F943}", "\u{1F378}", "\u{1F379}", "\u{1F9C9}", "\u{1F37E}", "\u{1F9CA}", "\u{1F944}", "\u{1F374}", "\u{1F37D}\uFE0F", "\u{1F962}", "\u{1F9C2}"] },
-      { category: "Travel & Places", emojis: ["\u{1F30D}", "\u{1F30E}", "\u{1F30F}", "\u{1F310}", "\u{1F5FA}\uFE0F", "\u{1F5FE}", "\u{1F9ED}", "\u{1F3D4}\uFE0F", "\u26F0\uFE0F", "\u{1F30B}", "\u{1F5FB}", "\u{1F3D5}\uFE0F", "\u{1F3D6}\uFE0F", "\u{1F3DC}\uFE0F", "\u{1F3DD}\uFE0F", "\u{1F3DE}\uFE0F", "\u{1F3DF}\uFE0F", "\u{1F3DB}\uFE0F", "\u{1F3D7}\uFE0F", "\u{1F9F1}", "\u{1FAA8}", "\u{1FAB5}", "\u{1F6D6}", "\u{1F3D8}\uFE0F", "\u{1F3DA}\uFE0F", "\u{1F3E0}", "\u{1F3E1}", "\u{1F3E2}", "\u{1F3E3}", "\u{1F3E4}", "\u{1F3E5}", "\u{1F3E6}", "\u{1F3E8}", "\u{1F3E9}", "\u{1F3EA}", "\u{1F3EB}", "\u{1F3EC}", "\u{1F3ED}", "\u{1F3EF}", "\u{1F3F0}", "\u{1F492}", "\u{1F5FC}", "\u{1F5FD}", "\u26EA", "\u{1F54C}", "\u{1F6D5}", "\u{1F54D}", "\u26E9\uFE0F", "\u{1F54B}", "\u26F2", "\u26FA", "\u{1F301}", "\u{1F303}", "\u{1F3D9}\uFE0F", "\u{1F304}", "\u{1F305}", "\u{1F306}", "\u{1F307}", "\u{1F309}", "\u2668\uFE0F", "\u{1F3A0}", "\u{1F3A1}", "\u{1F3A2}", "\u{1F488}", "\u{1F3AA}"] },
-      { category: "Activities", emojis: ["\u26BD", "\u{1F3C0}", "\u{1F3C8}", "\u26BE", "\u{1F94E}", "\u{1F3BE}", "\u{1F3D0}", "\u{1F3C9}", "\u{1F94F}", "\u{1F3B1}", "\u{1FA80}", "\u{1F3D3}", "\u{1F3F8}", "\u{1F3D2}", "\u{1F3D1}", "\u{1F94D}", "\u{1F3CF}", "\u{1FA83}", "\u{1F945}", "\u26F3", "\u{1FA81}", "\u{1F3A3}", "\u{1F93F}", "\u{1F3BD}", "\u{1F3BF}", "\u{1F6F7}", "\u{1F94C}", "\u{1F3AF}", "\u{1FA80}", "\u{1FA81}", "\u{1F3B1}", "\u{1F3AE}", "\u{1F3B2}", "\u{1F9E9}", "\u{1F3AD}", "\u{1F3A8}", "\u{1F3AA}", "\u{1F3A4}", "\u{1F3A7}", "\u{1F3BC}", "\u{1F3B9}", "\u{1F941}", "\u{1FA98}", "\u{1F3B7}", "\u{1F3BA}", "\u{1FA97}", "\u{1F3B8}", "\u{1FA95}", "\u{1F3BB}", "\u{1F3AC}", "\u{1F3F9}"] },
-      { category: "Objects", emojis: ["\u231A", "\u{1F4F1}", "\u{1F4F2}", "\u{1F4BB}", "\u2328\uFE0F", "\u{1F5A5}\uFE0F", "\u{1F5A8}\uFE0F", "\u{1F5B1}\uFE0F", "\u{1F5B2}\uFE0F", "\u{1F579}\uFE0F", "\u{1F5DC}\uFE0F", "\u{1F4BD}", "\u{1F4BE}", "\u{1F4BF}", "\u{1F4C0}", "\u{1F4FC}", "\u{1F4F7}", "\u{1F4F8}", "\u{1F4F9}", "\u{1F3A5}", "\u{1F4FD}\uFE0F", "\u{1F39E}\uFE0F", "\u{1F4DE}", "\u260E\uFE0F", "\u{1F4DF}", "\u{1F4E0}", "\u{1F4FA}", "\u{1F4FB}", "\u{1F399}\uFE0F", "\u{1F39A}\uFE0F", "\u{1F39B}\uFE0F", "\u{1F9ED}", "\u23F1\uFE0F", "\u23F2\uFE0F", "\u23F0", "\u{1F570}\uFE0F", "\u231B", "\u23F3", "\u{1F4E1}", "\u{1F50B}", "\u{1F50C}", "\u{1F4A1}", "\u{1F526}", "\u{1F56F}\uFE0F", "\u{1FA94}", "\u{1F9EF}", "\u{1F6E2}\uFE0F", "\u{1F4B8}", "\u{1F4B5}", "\u{1F4B4}", "\u{1F4B6}", "\u{1F4B7}", "\u{1FA99}", "\u{1F4B0}", "\u{1F4B3}", "\u{1F48E}", "\u2696\uFE0F", "\u{1F9F0}", "\u{1FA9B}", "\u{1F527}", "\u{1F528}", "\u2692\uFE0F", "\u{1F6E0}\uFE0F", "\u26CF\uFE0F", "\u{1FA9A}", "\u{1F529}", "\u2699\uFE0F", "\u{1FA9C}", "\u{1F9F1}", "\u26D3\uFE0F", "\u{1F9F2}", "\u{1F52B}", "\u{1F4A3}", "\u{1F9E8}", "\u{1FA93}", "\u{1F52A}", "\u{1F5E1}\uFE0F", "\u2694\uFE0F", "\u{1F6E1}\uFE0F", "\u{1F6AC}", "\u26B0\uFE0F", "\u{1FAA6}", "\u26B1\uFE0F", "\u{1F3FA}", "\u{1F52E}", "\u{1F4FF}", "\u{1F9FF}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
-      { category: "Weather", emojis: ["\u2601\uFE0F", "\u26C5", "\u26C8\uFE0F", "\u{1F324}\uFE0F", "\u{1F325}\uFE0F", "\u{1F326}\uFE0F", "\u{1F327}\uFE0F", "\u{1F328}\uFE0F", "\u{1F329}\uFE0F", "\u{1F32A}\uFE0F", "\u{1F32B}\uFE0F", "\u{1F31D}", "\u{1F311}", "\u{1F312}", "\u{1F313}", "\u{1F314}", "\u{1F315}", "\u{1F316}", "\u{1F317}", "\u{1F318}", "\u{1F319}", "\u{1F31A}", "\u{1F31B}", "\u{1F31C}", "\u2600\uFE0F", "\u{1F31E}", "\u2B50", "\u{1F31F}", "\u{1F320}", "\u2604\uFE0F", "\u{1F321}\uFE0F", "\u{1F32C}\uFE0F", "\u{1F300}", "\u{1F308}", "\u{1F302}", "\u2602\uFE0F", "\u2614", "\u26F1\uFE0F", "\u26A1", "\u2744\uFE0F", "\u2603\uFE0F", "\u26C4", "\u{1F525}", "\u{1F4A7}", "\u{1F30A}"] },
-      { category: "Symbols", emojis: ["\u2764\uFE0F", "\u{1F9E1}", "\u{1F49B}", "\u{1F49A}", "\u{1F499}", "\u{1F49C}", "\u{1F5A4}", "\u{1F90D}", "\u{1F90E}", "\u{1F494}", "\u2763\uFE0F", "\u{1F495}", "\u{1F49E}", "\u{1F493}", "\u{1F497}", "\u{1F496}", "\u{1F498}", "\u{1F49D}", "\u{1F49F}", "\u262E\uFE0F", "\u271D\uFE0F", "\u262A\uFE0F", "\u{1F549}\uFE0F", "\u2638\uFE0F", "\u2721\uFE0F", "\u{1F52F}", "\u{1F54E}", "\u262F\uFE0F", "\u2626\uFE0F", "\u{1F6D0}", "\u26CE", "\u2648", "\u2649", "\u264A", "\u264B", "\u264C", "\u264D", "\u264E", "\u264F", "\u2650", "\u2651", "\u2652", "\u2653", "\u{1F194}", "\u269B\uFE0F", "\u{1F251}", "\u2622\uFE0F", "\u2623\uFE0F", "\u{1F4F4}", "\u{1F4F3}", "\u{1F236}", "\u{1F21A}", "\u{1F238}", "\u{1F23A}", "\u{1F237}\uFE0F", "\u2734\uFE0F", "\u{1F19A}", "\u{1F4AE}", "\u{1F250}", "\u3299\uFE0F", "\u3297\uFE0F", "\u{1F234}", "\u{1F235}", "\u{1F239}", "\u{1F232}", "\u{1F170}\uFE0F", "\u{1F171}\uFE0F", "\u{1F18E}", "\u{1F191}", "\u{1F17E}\uFE0F", "\u{1F198}", "\u274C", "\u2B55", "\u{1F6D1}", "\u26D4", "\u{1F4DB}", "\u{1F6AB}", "\u{1F4AF}", "\u{1F4A2}", "\u2668\uFE0F", "\u{1F6B7}", "\u{1F6AF}", "\u{1F6B3}", "\u{1F6B1}", "\u{1F51E}", "\u{1F4F5}", "\u{1F6AD}", "\u2757", "\u2755", "\u2753", "\u2754", "\u203C\uFE0F", "\u2049\uFE0F", "\u{1F505}", "\u{1F506}", "\u303D\uFE0F", "\u26A0\uFE0F", "\u{1F6B8}", "\u{1F531}", "\u269C\uFE0F", "\u{1F530}", "\u267B\uFE0F", "\u2705", "\u{1F22F}", "\u{1F4B9}", "\u2747\uFE0F", "\u2733\uFE0F", "\u274E", "\u{1F310}", "\u{1F4A0}", "\u24C2\uFE0F", "\u{1F300}", "\u{1F4A4}", "\u{1F3E7}", "\u{1F6BE}", "\u267F", "\u{1F17F}\uFE0F", "\u{1F6D7}", "\u{1F233}", "\u{1F202}\uFE0F", "\u{1F6C2}", "\u{1F6C3}", "\u{1F6C4}", "\u{1F6C5}", "\u{1F6B9}", "\u{1F6BA}", "\u{1F6BC}", "\u26A7", "\u{1F6BB}", "\u{1F6AE}", "\u{1F3A6}", "\u{1F4F6}", "\u{1F201}", "\u{1F523}", "\u2139\uFE0F", "\u{1F524}", "\u{1F521}", "\u{1F520}", "\u{1F196}", "\u{1F197}", "\u{1F199}", "\u{1F192}", "\u{1F195}", "\u{1F193}", "0\uFE0F\u20E3", "1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}", "\u{1F522}", "#\uFE0F\u20E3", "*\uFE0F\u20E3", "\u23CF\uFE0F", "\u25B6\uFE0F", "\u23F8\uFE0F", "\u23EF\uFE0F", "\u23F9\uFE0F", "\u23FA\uFE0F", "\u23ED\uFE0F", "\u23EE\uFE0F", "\u23E9", "\u23EA", "\u23EB", "\u23EC", "\u25C0\uFE0F", "\u{1F53C}", "\u{1F53D}", "\u27A1\uFE0F", "\u2B05\uFE0F", "\u2B06\uFE0F", "\u2B07\uFE0F", "\u2197\uFE0F", "\u2198\uFE0F", "\u2199\uFE0F", "\u2196\uFE0F", "\u2195\uFE0F", "\u2194\uFE0F", "\u21AA\uFE0F", "\u21A9\uFE0F", "\u2934\uFE0F", "\u2935\uFE0F", "\u{1F500}", "\u{1F501}", "\u{1F502}", "\u{1F504}", "\u{1F503}", "\u{1F3B5}", "\u{1F3B6}", "\u2795", "\u2796", "\u2797", "\u2716\uFE0F", "\u267E\uFE0F", "\u{1F4B2}", "\u{1F4B1}", "\u2122\uFE0F", "\xA9\uFE0F", "\xAE\uFE0F", "\u3030\uFE0F", "\u27B0", "\u27BF", "\u{1F51A}", "\u{1F519}", "\u{1F51B}", "\u{1F51D}", "\u{1F51C}", "\u2714\uFE0F", "\u2611\uFE0F", "\u{1F518}", "\u{1F534}", "\u{1F7E0}", "\u{1F7E1}", "\u{1F7E2}", "\u{1F535}", "\u{1F7E3}", "\u26AB", "\u26AA", "\u{1F7E4}", "\u{1F53A}", "\u{1F53B}", "\u{1F538}", "\u{1F539}", "\u{1F536}", "\u{1F537}", "\u{1F533}", "\u{1F532}", "\u25AA\uFE0F", "\u25AB\uFE0F", "\u25FE", "\u25FD", "\u25FC\uFE0F", "\u25FB\uFE0F", "\u{1F7E5}", "\u{1F7E7}", "\u{1F7E8}", "\u{1F7E9}", "\u{1F7E6}", "\u{1F7EA}", "\u2B1B", "\u2B1C", "\u{1F7EB}", "\u{1F508}", "\u{1F507}", "\u{1F509}", "\u{1F50A}", "\u{1F514}", "\u{1F515}", "\u{1F4E3}", "\u{1F4E2}", "\u{1F441}\uFE0F\u200D\u{1F5E8}\uFE0F", "\u{1F4AC}", "\u{1F4AD}", "\u{1F5EF}\uFE0F", "\u2660\uFE0F", "\u2663\uFE0F", "\u2665\uFE0F", "\u2666\uFE0F", "\u{1F0CF}", "\u{1F3B4}", "\u{1F004}"] },
-      { category: "Flags", emojis: ["\u{1F3F3}\uFE0F", "\u{1F3F4}", "\u{1F3C1}", "\u{1F6A9}", "\u{1F3F3}\uFE0F\u200D\u{1F308}", "\u{1F3F3}\uFE0F\u200D\u26A7\uFE0F", "\u{1F3F4}\u200D\u2620\uFE0F", "\u{1F1E6}\u{1F1EB}", "\u{1F1E6}\u{1F1FD}", "\u{1F1E6}\u{1F1F1}", "\u{1F1E9}\u{1F1FF}", "\u{1F1E6}\u{1F1F8}", "\u{1F1E6}\u{1F1E9}", "\u{1F1E6}\u{1F1F4}", "\u{1F1E6}\u{1F1EE}", "\u{1F1E6}\u{1F1F6}", "\u{1F1E6}\u{1F1EC}", "\u{1F1E6}\u{1F1F7}", "\u{1F1E6}\u{1F1F2}", "\u{1F1E6}\u{1F1FC}", "\u{1F1E6}\u{1F1FA}", "\u{1F1E6}\u{1F1F9}", "\u{1F1E6}\u{1F1FF}", "\u{1F1E7}\u{1F1F8}", "\u{1F1E7}\u{1F1ED}", "\u{1F1E7}\u{1F1E9}", "\u{1F1E7}\u{1F1E7}", "\u{1F1E7}\u{1F1FE}", "\u{1F1E7}\u{1F1EA}", "\u{1F1E7}\u{1F1FF}", "\u{1F1E7}\u{1F1EF}", "\u{1F1E7}\u{1F1F2}", "\u{1F1E7}\u{1F1F9}", "\u{1F1E7}\u{1F1F4}", "\u{1F1E7}\u{1F1E6}", "\u{1F1E7}\u{1F1FC}", "\u{1F1E7}\u{1F1F7}", "\u{1F1EE}\u{1F1F4}", "\u{1F1FB}\u{1F1EC}", "\u{1F1E7}\u{1F1F3}", "\u{1F1E7}\u{1F1EC}", "\u{1F1E7}\u{1F1EB}", "\u{1F1E7}\u{1F1EE}", "\u{1F1F0}\u{1F1ED}", "\u{1F1E8}\u{1F1F2}", "\u{1F1E8}\u{1F1E6}", "\u{1F1EE}\u{1F1E8}", "\u{1F1E8}\u{1F1FB}", "\u{1F1E7}\u{1F1F6}", "\u{1F1F0}\u{1F1FE}", "\u{1F1E8}\u{1F1EB}", "\u{1F1F9}\u{1F1E9}", "\u{1F1E8}\u{1F1F1}", "\u{1F1E8}\u{1F1F3}", "\u{1F1E8}\u{1F1FD}", "\u{1F1E8}\u{1F1E8}", "\u{1F1E8}\u{1F1F4}", "\u{1F1F0}\u{1F1F2}", "\u{1F1E8}\u{1F1EC}", "\u{1F1E8}\u{1F1E9}", "\u{1F1E8}\u{1F1F0}", "\u{1F1E8}\u{1F1F7}", "\u{1F1E8}\u{1F1EE}", "\u{1F1ED}\u{1F1F7}", "\u{1F1E8}\u{1F1FA}", "\u{1F1E8}\u{1F1FC}", "\u{1F1E8}\u{1F1FE}", "\u{1F1E8}\u{1F1FF}", "\u{1F1E9}\u{1F1F0}", "\u{1F1E9}\u{1F1EF}", "\u{1F1E9}\u{1F1F2}", "\u{1F1E9}\u{1F1F4}", "\u{1F1EA}\u{1F1E8}", "\u{1F1EA}\u{1F1EC}", "\u{1F1F8}\u{1F1FB}", "\u{1F1EC}\u{1F1F6}", "\u{1F1EA}\u{1F1F7}", "\u{1F1EA}\u{1F1EA}", "\u{1F1EA}\u{1F1F9}", "\u{1F1EA}\u{1F1FA}", "\u{1F1EB}\u{1F1F0}", "\u{1F1EB}\u{1F1F4}", "\u{1F1EB}\u{1F1EF}", "\u{1F1EB}\u{1F1EE}", "\u{1F1EB}\u{1F1F7}", "\u{1F1EC}\u{1F1EB}", "\u{1F1F5}\u{1F1EB}", "\u{1F1F9}\u{1F1EB}", "\u{1F1EC}\u{1F1E6}", "\u{1F1EC}\u{1F1F2}", "\u{1F1EC}\u{1F1EA}", "\u{1F1E9}\u{1F1EA}", "\u{1F1EC}\u{1F1ED}", "\u{1F1EC}\u{1F1EE}", "\u{1F1EC}\u{1F1F7}", "\u{1F1EC}\u{1F1F1}", "\u{1F1EC}\u{1F1E9}", "\u{1F1EC}\u{1F1F5}", "\u{1F1EC}\u{1F1FA}", "\u{1F1EC}\u{1F1F9}", "\u{1F1EC}\u{1F1EC}", "\u{1F1EC}\u{1F1F3}", "\u{1F1EC}\u{1F1FC}", "\u{1F1EC}\u{1F1FE}", "\u{1F1ED}\u{1F1F9}", "\u{1F1ED}\u{1F1F3}", "\u{1F1ED}\u{1F1F0}", "\u{1F1ED}\u{1F1FA}", "\u{1F1EE}\u{1F1F8}", "\u{1F1EE}\u{1F1F3}", "\u{1F1EE}\u{1F1E9}", "\u{1F1EE}\u{1F1F7}", "\u{1F1EE}\u{1F1F6}", "\u{1F1EE}\u{1F1EA}", "\u{1F1EE}\u{1F1F2}", "\u{1F1EE}\u{1F1F1}", "\u{1F1EE}\u{1F1F9}", "\u{1F1EF}\u{1F1F2}", "\u{1F1EF}\u{1F1F5}", "\u{1F38C}", "\u{1F1EF}\u{1F1EA}", "\u{1F1EF}\u{1F1F4}", "\u{1F1F0}\u{1F1FF}", "\u{1F1F0}\u{1F1EA}", "\u{1F1F0}\u{1F1EE}", "\u{1F1FD}\u{1F1F0}", "\u{1F1F0}\u{1F1FC}", "\u{1F1F0}\u{1F1EC}", "\u{1F1F1}\u{1F1E6}", "\u{1F1F1}\u{1F1FB}", "\u{1F1F1}\u{1F1E7}", "\u{1F1F1}\u{1F1F8}", "\u{1F1F1}\u{1F1F7}", "\u{1F1F1}\u{1F1FE}", "\u{1F1F1}\u{1F1EE}", "\u{1F1F1}\u{1F1F9}", "\u{1F1F1}\u{1F1FA}", "\u{1F1F2}\u{1F1F4}", "\u{1F1F2}\u{1F1F0}", "\u{1F1F2}\u{1F1EC}", "\u{1F1F2}\u{1F1FC}", "\u{1F1F2}\u{1F1FE}", "\u{1F1F2}\u{1F1FB}", "\u{1F1F2}\u{1F1F1}", "\u{1F1F2}\u{1F1F9}", "\u{1F1F2}\u{1F1ED}", "\u{1F1F2}\u{1F1F6}", "\u{1F1F2}\u{1F1F7}", "\u{1F1FE}\u{1F1F9}", "\u{1F1F2}\u{1F1FD}", "\u{1F1EB}\u{1F1F2}", "\u{1F1F2}\u{1F1E9}", "\u{1F1F2}\u{1F1E8}", "\u{1F1F2}\u{1F1F3}", "\u{1F1F2}\u{1F1EA}", "\u{1F1F2}\u{1F1F8}", "\u{1F1F2}\u{1F1E6}", "\u{1F1F2}\u{1F1FF}", "\u{1F1F2}\u{1F1F2}", "\u{1F1F3}\u{1F1E6}", "\u{1F1F3}\u{1F1F7}", "\u{1F1F3}\u{1F1F5}", "\u{1F1F3}\u{1F1F1}", "\u{1F1F3}\u{1F1E8}", "\u{1F1F3}\u{1F1FF}", "\u{1F1F3}\u{1F1EE}", "\u{1F1F3}\u{1F1EA}", "\u{1F1F3}\u{1F1EC}", "\u{1F1F3}\u{1F1FA}", "\u{1F1F3}\u{1F1EB}", "\u{1F1F0}\u{1F1F5}", "\u{1F1F2}\u{1F1F5}", "\u{1F1F3}\u{1F1F4}", "\u{1F1F4}\u{1F1F2}", "\u{1F1F5}\u{1F1F0}", "\u{1F1F5}\u{1F1FC}", "\u{1F1F5}\u{1F1F8}", "\u{1F1F5}\u{1F1E6}", "\u{1F1F5}\u{1F1EC}", "\u{1F1F5}\u{1F1FE}", "\u{1F1F5}\u{1F1EA}", "\u{1F1F5}\u{1F1ED}", "\u{1F1F5}\u{1F1F3}", "\u{1F1F5}\u{1F1F1}", "\u{1F1F5}\u{1F1F9}", "\u{1F1F5}\u{1F1F7}", "\u{1F1F6}\u{1F1E6}", "\u{1F1F7}\u{1F1EA}", "\u{1F1F7}\u{1F1F4}", "\u{1F1F7}\u{1F1FA}", "\u{1F1F7}\u{1F1FC}", "\u{1F1FC}\u{1F1F8}", "\u{1F1F8}\u{1F1F2}", "\u{1F1F8}\u{1F1E6}", "\u{1F1F8}\u{1F1F3}", "\u{1F1F7}\u{1F1F8}", "\u{1F1F8}\u{1F1E8}", "\u{1F1F8}\u{1F1F1}", "\u{1F1F8}\u{1F1EC}", "\u{1F1F8}\u{1F1FD}", "\u{1F1F8}\u{1F1F0}", "\u{1F1F8}\u{1F1EE}", "\u{1F1EC}\u{1F1F8}", "\u{1F1F8}\u{1F1E7}", "\u{1F1F8}\u{1F1F4}", "\u{1F1FF}\u{1F1E6}", "\u{1F1F0}\u{1F1F7}", "\u{1F1F8}\u{1F1F8}", "\u{1F1EA}\u{1F1F8}", "\u{1F1F1}\u{1F1F0}", "\u{1F1E7}\u{1F1F1}", "\u{1F1F8}\u{1F1ED}", "\u{1F1F0}\u{1F1F3}", "\u{1F1F1}\u{1F1E8}", "\u{1F1F5}\u{1F1F2}", "\u{1F1FB}\u{1F1E8}", "\u{1F1F8}\u{1F1E9}", "\u{1F1F8}\u{1F1F7}", "\u{1F1F8}\u{1F1FF}", "\u{1F1F8}\u{1F1EA}", "\u{1F1E8}\u{1F1ED}", "\u{1F1F8}\u{1F1FE}", "\u{1F1F9}\u{1F1FC}", "\u{1F1F9}\u{1F1EF}", "\u{1F1F9}\u{1F1FF}", "\u{1F1F9}\u{1F1ED}", "\u{1F1F9}\u{1F1F1}", "\u{1F1F9}\u{1F1EC}", "\u{1F1F9}\u{1F1F0}", "\u{1F1F9}\u{1F1F4}", "\u{1F1F9}\u{1F1F9}", "\u{1F1F9}\u{1F1F3}", "\u{1F1F9}\u{1F1F7}", "\u{1F1F9}\u{1F1F2}", "\u{1F1F9}\u{1F1E8}", "\u{1F1F9}\u{1F1FB}", "\u{1F1FB}\u{1F1EE}", "\u{1F1FA}\u{1F1EC}", "\u{1F1FA}\u{1F1E6}", "\u{1F1E6}\u{1F1EA}", "\u{1F1EC}\u{1F1E7}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}", "\u{1F1FA}\u{1F1F3}", "\u{1F1FA}\u{1F1F8}", "\u{1F1FA}\u{1F1FE}", "\u{1F1FA}\u{1F1FF}", "\u{1F1FB}\u{1F1FA}", "\u{1F1FB}\u{1F1E6}", "\u{1F1FB}\u{1F1EA}", "\u{1F1FB}\u{1F1F3}", "\u{1F1FC}\u{1F1EB}", "\u{1F1EA}\u{1F1ED}", "\u{1F1FE}\u{1F1EA}", "\u{1F1FF}\u{1F1F2}", "\u{1F1FF}\u{1F1FC}"] }
-    ];
+    this.emojis = emojiList;
   }
   onOpen() {
     const { contentEl } = this;
@@ -2228,658 +2896,6 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
     document.head.appendChild(style);
   }
   getEmojiDescription(emoji) {
-    const emojiDescriptions = {
-      // Smileys & Emotion
-      "\u2639\uFE0F": "frowning face sad unhappy upset",
-      "\u{1F910}": "zipper-mouth face quiet silence secret mute",
-      "\u{1F912}": "face with thermometer sick ill fever temperature",
-      "\u{1F913}": "nerd face glasses smart geek studious",
-      "\u{1F914}": "thinking face thoughtful curious pondering",
-      "\u{1F915}": "face with head-bandage injury hurt bandaged",
-      "\u{1F917}": "hugging face hug comfort happy",
-      "\u{1F922}": "nauseated face sick vomit gross disgusted",
-      "\u{1F923}": "rolling on the floor laughing happy cry rofl lol",
-      "\u{1F924}": "drooling face food hungry desire want",
-      "\u{1F925}": "lying face liar nose growing pinocchio",
-      "\u{1F927}": "sneezing face sick cold allergy achoo",
-      "\u{1F928}": "face with raised eyebrow skeptical suspicious doubt",
-      "\u{1F929}": "star-struck excited amazed starry-eyed",
-      "\u{1F92A}": "zany face crazy silly wild goofy",
-      "\u{1F92B}": "shushing face quiet silence secret",
-      "\u{1F92C}": "face with symbols on mouth swearing angry cursing",
-      "\u{1F92D}": "face with hand over mouth giggling surprise",
-      "\u{1F92E}": "face vomiting sick throw up gross ill",
-      "\u{1F92F}": "exploding head mind blown shocked amazed",
-      "\u{1F970}": "smiling face with hearts love heart adore affection",
-      "\u{1F971}": "yawning face sleepy tired bored",
-      "\u{1F973}": "partying face celebration party festive",
-      "\u{1F974}": "woozy face drunk dizzy tipsy disoriented",
-      "\u{1F975}": "hot face heat sweating overheated",
-      "\u{1F976}": "cold face freezing ice frozen",
-      "\u{1F97A}": "pleading face begging puppy eyes",
-      "\u{1F9D0}": "face with monocle smart sophisticated examine",
-      "\u{1F600}": "grinning face smile happy joyful",
-      "\u{1F601}": "beaming face with smiling eyes grin happy proud",
-      "\u{1F602}": "face with tears of joy laughing crying happy lol",
-      "\u{1F603}": "grinning face with big eyes smile happy excited",
-      "\u{1F604}": "grinning face with smiling eyes happy joy laugh",
-      "\u{1F605}": "grinning face with sweat happy relief nervous",
-      "\u{1F607}": "smiling face with halo angel innocent blessed",
-      "\u{1F609}": "winking face flirt playful joke",
-      "\u{1F60A}": "smiling face with smiling eyes happy sweet shy",
-      "\u{1F60B}": "face savoring food yummy delicious tasty",
-      "\u{1F60C}": "relieved face calm relaxed content",
-      "\u{1F60D}": "smiling face with heart-eyes love heart adore",
-      "\u{1F60E}": "smiling face with sunglasses cool confident",
-      "\u{1F60F}": "smirking face flirt smug suggestive",
-      "\u{1F610}": "neutral face expressionless blank meh",
-      "\u{1F611}": "expressionless face blank unimpressed",
-      "\u{1F612}": "unamused face unhappy annoyed unimpressed",
-      "\u{1F613}": "downcast face with sweat tired stressed",
-      "\u{1F614}": "pensive face sad thoughtful reflective",
-      "\u{1F615}": "confused face puzzled unsure",
-      "\u{1F616}": "confounded face confused frustrated",
-      "\u{1F617}": "kissing face love affection",
-      "\u{1F618}": "face blowing a kiss love heart flirt",
-      "\u{1F619}": "kissing face with smiling eyes love happy",
-      "\u{1F61A}": "kissing face with closed eyes love shy",
-      "\u{1F61B}": "face with tongue playful silly taste",
-      "\u{1F61C}": "winking face with tongue playful silly joke",
-      "\u{1F61D}": "squinting face with tongue playful silly ecstatic",
-      "\u{1F61E}": "disappointed face sad unhappy dejected",
-      "\u{1F61F}": "worried face concerned anxious nervous",
-      "\u{1F620}": "angry face mad furious",
-      "\u{1F621}": "pouting face angry rage mad",
-      "\u{1F622}": "crying face sad tear unhappy",
-      "\u{1F623}": "persevering face struggling frustrated",
-      "\u{1F624}": "face with steam from nose angry frustrated proud",
-      "\u{1F625}": "sad but relieved face disappointed relieved",
-      "\u{1F626}": "frowning face with open mouth shock horror",
-      "\u{1F627}": "anguished face shocked scared distressed",
-      "\u{1F628}": "fearful face scared worried shocked",
-      "\u{1F629}": "weary face tired frustrated exhausted",
-      "\u{1F62A}": "sleepy face tired drowsy rest",
-      "\u{1F62B}": "tired face exhausted weary",
-      "\u{1F62C}": "grimacing face awkward nervous uncomfortable",
-      "\u{1F62D}": "loudly crying face sad sobbing upset",
-      "\u{1F62E}": "face with open mouth surprise shock wow gasp",
-      "\u{1F62F}": "hushed face surprised shocked stunned",
-      "\u{1F630}": "anxious face with sweat nervous worried",
-      "\u{1F631}": "face screaming in fear scared shocked",
-      "\u{1F632}": "astonished face shocked surprised amazed wow",
-      "\u{1F633}": "flushed face blushing embarrassed surprised",
-      "\u{1F634}": "sleeping face sleep zzz tired rest",
-      "\u{1F635}": "dizzy face spiral confused disoriented",
-      "\u{1F636}": "face without mouth speechless silent blank",
-      "\u{1F637}": "face with medical mask sick ill covid virus",
-      "\u{1F641}": "slightly frowning face sad disappointed",
-      "\u{1F642}": "slightly smiling face happy content",
-      "\u{1F643}": "upside-down face silly playful ironic",
-      "\u{1F644}": "face with rolling eyes exasperated annoyed",
-      // People & Body
-      "\u261D\uFE0F": "index pointing up direction gesture",
-      "\u270A": "raised fist power solidarity strength",
-      "\u270B": "raised hand stop high five palm",
-      "\u270C\uFE0F": "victory hand peace victory yeah",
-      "\u270D\uFE0F": "writing hand write note signature",
-      "\u{1F440}": "eyes look see watch",
-      "\u{1F441}\uFE0F": "eye look see watch",
-      "\u{1F442}": "ear hear listen sound",
-      "\u{1F443}": "nose smell sniff",
-      "\u{1F444}": "mouth lips kiss speak",
-      "\u{1F445}": "tongue taste lick",
-      "\u{1F446}": "backhand index pointing up direction gesture",
-      "\u{1F447}": "backhand index pointing down direction gesture",
-      "\u{1F448}": "backhand index pointing left direction gesture",
-      "\u{1F449}": "backhand index pointing right direction gesture",
-      "\u{1F44A}": "oncoming fist punch bro fist bump",
-      "\u{1F44B}": "waving hand hello goodbye wave greeting",
-      "\u{1F44C}": "ok hand perfect agree approval",
-      "\u{1F44D}": "thumbs up approve like yes good",
-      "\u{1F44E}": "thumbs down disapprove dislike no bad",
-      "\u{1F44F}": "clapping hands praise applause congratulations bravo",
-      "\u{1F450}": "open hands hug welcome",
-      "\u{1F466}": "boy child young male kid",
-      "\u{1F467}": "girl child young female kid",
-      "\u{1F468}": "man male adult person gender",
-      "\u{1F468}\u200D\u{1F9B0}": "man red hair male person ginger hairstyle",
-      "\u{1F468}\u200D\u{1F9B1}": "man curly hair male person hairstyle",
-      "\u{1F468}\u200D\u{1F9B2}": "man bald male person no hair",
-      "\u{1F468}\u200D\u{1F9B3}": "man white hair male person hairstyle",
-      "\u{1F469}": "woman female adult person gender",
-      "\u{1F469}\u200D\u{1F9B0}": "woman red hair female person ginger hairstyle",
-      "\u{1F469}\u200D\u{1F9B1}": "woman curly hair female person hairstyle",
-      "\u{1F469}\u200D\u{1F9B2}": "woman bald female person no hair",
-      "\u{1F469}\u200D\u{1F9B3}": "woman white hair female person hairstyle",
-      "\u{1F471}": "person blonde hair human hairstyle",
-      "\u{1F471}\u200D\u2640\uFE0F": "woman blonde hair female person hairstyle",
-      "\u{1F471}\u200D\u2642\uFE0F": "man blonde hair male person hairstyle",
-      "\u{1F474}": "old man elderly male person senior",
-      "\u{1F475}": "old woman elderly female person senior",
-      "\u{1F476}": "baby child infant young newborn",
-      "\u{1F485}": "nail polish beauty manicure cosmetics",
-      "\u{1F48B}": "kiss mark lips love romance",
-      "\u{1F4AA}": "flexed biceps strong muscle flex",
-      "\u{1F590}\uFE0F": "hand with fingers splayed stop halt palm",
-      "\u{1F595}": "middle finger rude offensive gesture",
-      "\u{1F596}": "vulcan salute star trek spock prosper",
-      "\u{1F90C}": "pinched fingers italian what gesture",
-      "\u{1F90F}": "pinching hand small tiny little",
-      "\u{1F918}": "sign of the horns rock metal music",
-      "\u{1F919}": "call me hand phone hang loose",
-      "\u{1F91A}": "raised back of hand stop halt",
-      "\u{1F91B}": "left-facing fist bump greeting",
-      "\u{1F91C}": "right-facing fist bump greeting",
-      "\u{1F91D}": "handshake deal agreement partnership",
-      "\u{1F91E}": "crossed fingers luck hopeful wish",
-      "\u{1F91F}": "love-you gesture rock love sign",
-      "\u{1F932}": "palms up together pray beg",
-      "\u{1F933}": "selfie camera phone photo",
-      "\u{1F9B4}": "bone skeleton body structure",
-      "\u{1F9B5}": "leg kick foot limb",
-      "\u{1F9B6}": "foot toe kick limb",
-      "\u{1F9B7}": "tooth teeth dental",
-      "\u{1F9BB}": "ear with hearing aid accessibility deaf",
-      "\u{1F9BE}": "mechanical arm robot prosthetic",
-      "\u{1F9BF}": "mechanical leg robot prosthetic",
-      "\u{1F9D1}": "person adult gender-neutral human",
-      "\u{1F9D1}\u200D\u{1F9B0}": "person red hair human ginger hairstyle",
-      "\u{1F9D1}\u200D\u{1F9B1}": "person curly hair human hairstyle",
-      "\u{1F9D1}\u200D\u{1F9B2}": "person bald human no hair",
-      "\u{1F9D1}\u200D\u{1F9B3}": "person white hair human hairstyle",
-      "\u{1F9D2}": "child young kid gender-neutral youth",
-      "\u{1F9D3}": "older person elderly human senior",
-      "\u{1F9D4}": "person beard facial hair face",
-      "\u{1F9E0}": "brain mind intellect thinking",
-      "\u{1FA78}": "drop of blood injury period medical",
-      "\u{1FAC0}": "anatomical heart organ cardiac",
-      "\u{1FAC1}": "lungs breathing organ respiratory",
-      "\u{1F64C}": "raising hands celebration praise hooray",
-      "\u{1F64F}": "folded hands please thank you pray hope",
-      // Food & Drink
-      "\u2615": "hot beverage coffee tea drink",
-      "\u{1F330}": "chestnut food nut seed",
-      "\u{1F358}": "rice cracker japanese food snack",
-      "\u{1F359}": "rice ball japanese food onigiri",
-      "\u{1F35A}": "cooked rice food asian grain",
-      "\u{1F35B}": "curry rice food indian spicy",
-      "\u{1F35C}": "steaming bowl noodles ramen soup",
-      "\u{1F361}": "dango japanese food dessert sweet",
-      "\u{1F362}": "oden japanese food skewer",
-      "\u{1F363}": "sushi japanese food fish rice",
-      "\u{1F364}": "fried shrimp seafood tempura",
-      "\u{1F365}": "fish cake japanese food naruto",
-      "\u{1F366}": "soft ice cream dessert cold sweet",
-      "\u{1F367}": "shaved ice dessert cold sweet",
-      "\u{1F368}": "ice cream dessert cold sweet",
-      "\u{1F369}": "doughnut sweet dessert breakfast",
-      "\u{1F36A}": "cookie sweet dessert biscuit",
-      "\u{1F36B}": "chocolate bar candy sweet dessert",
-      "\u{1F36C}": "candy sweet dessert sugar",
-      "\u{1F36D}": "lollipop candy sweet dessert",
-      "\u{1F36E}": "custard dessert sweet pudding",
-      "\u{1F36F}": "honey pot sweet bee food",
-      "\u{1F370}": "shortcake dessert sweet slice",
-      "\u{1F371}": "bento box japanese food lunch",
-      "\u{1F372}": "pot of food stew soup cooking",
-      "\u{1F374}": "fork and knife cutlery silverware",
-      "\u{1F375}": "teacup without handle green tea drink",
-      "\u{1F376}": "sake japanese drink alcohol rice wine",
-      "\u{1F377}": "wine glass drink alcohol beverage",
-      "\u{1F378}": "cocktail glass drink alcohol martini",
-      "\u{1F379}": "tropical drink alcohol beverage cocktail",
-      "\u{1F37A}": "beer mug drink alcohol beverage",
-      "\u{1F37B}": "clinking beer mugs drink alcohol cheers",
-      "\u{1F37C}": "baby bottle milk drink infant",
-      "\u{1F37D}\uFE0F": "fork knife plate cutlery dining",
-      "\u{1F37E}": "bottle with popping cork celebration drink",
-      "\u{1F37F}": "popcorn movie snack corn",
-      "\u{1F382}": "birthday cake celebration dessert",
-      "\u{1F942}": "clinking glasses drink alcohol champagne",
-      "\u{1F943}": "tumbler glass drink alcohol whiskey",
-      "\u{1F944}": "spoon cutlery silverware utensil",
-      "\u{1F957}": "green salad healthy food vegetables",
-      "\u{1F95B}": "glass of milk drink dairy beverage",
-      "\u{1F95C}": "peanuts food nuts legumes",
-      "\u{1F95F}": "dumpling food asian chinese",
-      "\u{1F960}": "fortune cookie chinese food prediction",
-      "\u{1F962}": "chopsticks utensils asian eating",
-      "\u{1F964}": "cup with straw drink beverage soda",
-      "\u{1F967}": "pie dessert food baked",
-      "\u{1F96E}": "moon cake chinese food festival",
-      "\u{1F9AA}": "oyster seafood shellfish pearl",
-      "\u{1F9C1}": "cupcake dessert sweet cake",
-      "\u{1F9C3}": "beverage box juice drink straw",
-      "\u{1F9C9}": "mate drink beverage tea south american",
-      "\u{1F9CA}": "ice cube cold frozen water",
-      "\u{1F9CB}": "bubble tea drink boba taiwanese",
-      "\u{1FAD0}": "blueberries fruit food berries",
-      "\u{1FAD1}": "bell pepper vegetable food",
-      "\u{1FAD2}": "olive fruit food mediterranean",
-      "\u{1FAD3}": "flatbread food pita naan",
-      "\u{1FAD4}": "tamale food mexican wrapped",
-      "\u{1FAD5}": "fondue food cheese melted",
-      "\u{1FAD6}": "teapot drink hot beverage",
-      // Animals & Nature
-      "\u{1F405}": "tiger cat wild animal dangerous",
-      "\u{1F406}": "leopard cat wild animal spots",
-      "\u{1F408}\u200D\u2B1B": "black cat feline animal pet",
-      "\u{1F40A}": "crocodile alligator reptile dangerous",
-      "\u{1F40B}": "whale sea creature marine mammal",
-      "\u{1F415}\u200D\u{1F9BA}": "service dog assistance animal",
-      "\u{1F419}": "octopus sea creature tentacles",
-      "\u{1F41F}": "fish sea creature swimming",
-      "\u{1F420}": "tropical fish sea creature aquarium",
-      "\u{1F421}": "blowfish pufferfish sea creature",
-      "\u{1F42C}": "dolphin sea creature marine mammal",
-      "\u{1F433}": "spouting whale sea creature marine mammal",
-      "\u{1F43F}\uFE0F": "chipmunk animal squirrel",
-      "\u{1F577}\uFE0F": "spider arachnid bug insect",
-      "\u{1F578}\uFE0F": "spider web cobweb arachnid",
-      "\u{1F980}": "crab seafood shellfish",
-      "\u{1F982}": "scorpion arachnid dangerous",
-      "\u{1F988}": "shark sea creature dangerous fish",
-      "\u{1F98D}": "gorilla ape primate monkey",
-      "\u{1F990}": "shrimp seafood shellfish",
-      "\u{1F991}": "squid sea creature tentacles",
-      "\u{1F993}": "zebra stripes wild animal",
-      "\u{1F994}": "hedgehog animal spiky cute",
-      "\u{1F995}": "sauropod dinosaur extinct long-neck",
-      "\u{1F996}": "tyrannosaurus rex dinosaur extinct",
-      "\u{1F997}": "cricket insect chirping bug",
-      "\u{1F99E}": "lobster seafood shellfish",
-      "\u{1F9A1}": "badger animal woodland",
-      "\u{1F9A3}": "mammoth extinct animal prehistoric",
-      "\u{1F9A4}": "dodo extinct bird animal",
-      "\u{1F9A5}": "sloth slow animal lazy",
-      "\u{1F9A6}": "otter swimming animal water",
-      "\u{1F9A7}": "orangutan ape primate monkey",
-      "\u{1F9A8}": "skunk animal smelly spray",
-      "\u{1F9A9}": "flamingo pink bird animal",
-      "\u{1F9AB}": "beaver animal dam builder",
-      "\u{1F9AC}": "bison buffalo animal wild",
-      "\u{1F9AE}": "guide dog service animal assistance",
-      "\u{1FAB6}": "feather bird plume light",
-      // Travel & Places
-      "\u2668\uFE0F": "hot springs steam bath spa onsen",
-      "\u26E9\uFE0F": "shinto shrine building religious japanese",
-      "\u26EA": "church building religious christian worship",
-      "\u26F0\uFE0F": "mountain nature landscape peak hill",
-      "\u26F2": "fountain water decoration park plaza",
-      "\u26FA": "tent camping outdoors shelter vacation",
-      "\u{1F301}": "foggy city weather mist urban",
-      "\u{1F303}": "night with stars city evening urban",
-      "\u{1F304}": "sunrise over mountains morning dawn nature",
-      "\u{1F305}": "sunrise morning dawn sun nature",
-      "\u{1F306}": "cityscape at dusk evening urban sunset",
-      "\u{1F307}": "sunset over buildings evening urban",
-      "\u{1F309}": "bridge at night city urban evening",
-      "\u{1F30B}": "volcano mountain eruption nature disaster",
-      "\u{1F30D}": "globe showing europe africa earth world planet",
-      "\u{1F30E}": "globe showing americas earth world planet",
-      "\u{1F30F}": "globe showing asia australia earth world planet",
-      "\u{1F310}": "globe with meridians earth world planet network",
-      "\u{1F3A0}": "carousel horse amusement park ride",
-      "\u{1F3A1}": "ferris wheel amusement park ride fair",
-      "\u{1F3A2}": "roller coaster amusement park ride thrill",
-      "\u{1F3AA}": "circus tent entertainment show performance",
-      "\u{1F3D4}\uFE0F": "snow capped mountain peak nature landscape",
-      "\u{1F3D5}\uFE0F": "camping tent outdoors nature vacation",
-      "\u{1F3D6}\uFE0F": "beach with umbrella vacation summer sand sea",
-      "\u{1F3D7}\uFE0F": "building construction site development crane",
-      "\u{1F3D8}\uFE0F": "houses buildings residential neighborhood",
-      "\u{1F3D9}\uFE0F": "cityscape urban buildings skyline",
-      "\u{1F3DA}\uFE0F": "derelict house abandoned building old",
-      "\u{1F3DB}\uFE0F": "classical building architecture historic landmark",
-      "\u{1F3DC}\uFE0F": "desert hot dry sand nature landscape",
-      "\u{1F3DD}\uFE0F": "desert island beach vacation tropical",
-      "\u{1F3DE}\uFE0F": "national park nature landscape scenic",
-      "\u{1F3DF}\uFE0F": "stadium sports arena event venue",
-      "\u{1F3E0}": "house building home residential dwelling",
-      "\u{1F3E1}": "house with garden home yard residential",
-      "\u{1F3E2}": "office building business work corporate",
-      "\u{1F3E3}": "japanese post office building mail service",
-      "\u{1F3E4}": "post office building mail service",
-      "\u{1F3E5}": "hospital building medical healthcare emergency",
-      "\u{1F3E6}": "bank building money finance business",
-      "\u{1F3E8}": "hotel building lodging accommodation travel",
-      "\u{1F3E9}": "love hotel building romance accommodation",
-      "\u{1F3EA}": "convenience store building shop retail",
-      "\u{1F3EB}": "school building education learning",
-      "\u{1F3EC}": "department store building shopping retail",
-      "\u{1F3ED}": "factory building industrial manufacturing",
-      "\u{1F3EF}": "japanese castle building landmark historic",
-      "\u{1F3F0}": "castle building landmark historic medieval",
-      "\u{1F488}": "barber pole haircut salon shop",
-      "\u{1F492}": "wedding chapel marriage ceremony church",
-      "\u{1F54B}": "kaaba building religious islamic mecca",
-      "\u{1F54C}": "mosque building religious islamic worship",
-      "\u{1F54D}": "synagogue building religious jewish worship",
-      "\u{1F5FA}\uFE0F": "world map geography atlas travel global",
-      "\u{1F5FB}": "mount fuji japan mountain landmark nature",
-      "\u{1F5FC}": "tokyo tower landmark japan building",
-      "\u{1F5FD}": "statue of liberty landmark usa freedom",
-      "\u{1F5FE}": "map of japan geography country asian",
-      "\u{1F9ED}": "compass navigation direction travel tool",
-      "\u{1F9F1}": "brick construction building material wall",
-      "\u{1FAA8}": "rock stone nature boulder mineral",
-      "\u{1FAB5}": "wood log nature lumber timber material",
-      "\u{1F6D5}": "hindu temple building religious worship",
-      "\u{1F6D6}": "hut house shelter primitive dwelling",
-      // Activities
-      "\u26BD": "soccer ball football sport team game",
-      "\u26BE": "baseball sport team game ball bat",
-      "\u26F3": "flag in hole golf sport course game",
-      "\u{1F3A3}": "fishing pole rod sport hook line",
-      "\u{1F3A4}": "microphone karaoke sing music performance",
-      "\u{1F3A7}": "headphone music audio listen sound",
-      "\u{1F3A8}": "artist palette art painting creativity",
-      "\u{1F3AC}": "clapper board movie film director action",
-      "\u{1F3AD}": "performing arts theater drama masks",
-      "\u{1F3AE}": "video game controller gaming play",
-      "\u{1F3AF}": "direct hit target dart game sport",
-      "\u{1F3B1}": "pool 8 ball billiards game sport cue",
-      "\u{1F3B2}": "game die dice gambling play random",
-      "\u{1F3B7}": "saxophone jazz instrument music brass",
-      "\u{1F3B8}": "guitar instrument music strings rock",
-      "\u{1F3B9}": "musical keyboard piano instrument keys",
-      "\u{1F3BA}": "trumpet brass instrument music fanfare",
-      "\u{1F3BB}": "violin instrument music strings classical",
-      "\u{1F3BC}": "musical score notes sheet music",
-      "\u{1F3BD}": "running shirt athletics sport race",
-      "\u{1F3BE}": "tennis sport racket ball court game",
-      "\u{1F3BF}": "skis winter sport snow mountain",
-      "\u{1F3C0}": "basketball sport team game ball",
-      "\u{1F3C8}": "american football sport team game ball",
-      "\u{1F3C9}": "rugby football sport team game ball",
-      "\u{1F3CF}": "cricket sport team game bat ball",
-      "\u{1F3D0}": "volleyball sport team game ball net",
-      "\u{1F3D1}": "field hockey stick sport team game ball",
-      "\u{1F3D2}": "ice hockey stick sport team game puck",
-      "\u{1F3D3}": "ping pong table tennis sport game paddle",
-      "\u{1F3F8}": "badminton sport game racket shuttlecock",
-      "\u{1F3F9}": "bow and arrow archery sport target shoot",
-      "\u{1F93F}": "diving mask snorkel underwater swim sport",
-      "\u{1F941}": "drum percussion instrument music rhythm",
-      "\u{1F945}": "goal net sports hockey soccer score",
-      "\u{1F94C}": "curling stone winter sport ice game",
-      "\u{1F94D}": "lacrosse sport team game stick ball",
-      "\u{1F94E}": "softball sport team game ball bat",
-      "\u{1F94F}": "flying disc frisbee sport game outdoor",
-      "\u{1F9E9}": "puzzle piece jigsaw game entertainment",
-      "\u{1FA80}": "yo-yo toy game skill string",
-      "\u{1FA81}": "kite flying outdoor toy wind sport",
-      "\u{1FA83}": "boomerang sport throw return australian",
-      "\u{1FA95}": "banjo instrument music strings folk",
-      "\u{1FA97}": "accordion instrument music squeeze box",
-      "\u{1FA98}": "long drum percussion instrument music",
-      "\u{1F6F7}": "sled winter sport snow ride",
-      // Weather
-      "\u2601\uFE0F": "cloud",
-      "\u26C5": "sun behind cloud",
-      "\u26C8\uFE0F": "cloud with lightning and rain",
-      "\u{1F324}\uFE0F": "sun behind one cloud",
-      "\u{1F325}\uFE0F": "sun behind two clouds",
-      "\u{1F326}\uFE0F": "sun behind three clouds",
-      "\u{1F327}\uFE0F": "cloud with rain",
-      "\u{1F328}\uFE0F": "cloud with snow",
-      "\u{1F329}\uFE0F": "cloud with lightning",
-      "\u{1F32A}\uFE0F": "cloud with tornado",
-      "\u{1F32B}\uFE0F": "cloud with fog",
-      "\u{1F31D}": "full moon",
-      "\u{1F311}": "new moon",
-      "\u{1F312}": "waxing crescent moon",
-      "\u{1F313}": "waxing gibbous moon",
-      "\u{1F314}": "full moon",
-      "\u{1F315}": "waning gibbous moon",
-      "\u{1F316}": "waning crescent moon",
-      "\u{1F317}": "last quarter moon",
-      "\u{1F318}": "first quarter moon",
-      "\u{1F319}": "crescent moon",
-      "\u{1F31A}": "new moon face",
-      "\u{1F31B}": "first quarter moon face",
-      "\u{1F31C}": "last quarter moon face",
-      "\u2600\uFE0F": "sun",
-      "\u{1F31E}": "sun with face",
-      "\u2B50": "star",
-      "\u{1F31F}": "shooting star",
-      "\u{1F320}": "milky way",
-      "\u2604\uFE0F": "comet",
-      "\u{1F321}\uFE0F": "thermometer",
-      "\u{1F32C}\uFE0F": "wind",
-      "\u{1F300}": "cyclone",
-      "\u{1F308}": "rainbow",
-      "\u{1F302}": "umbrella",
-      "\u2602\uFE0F": "umbrella",
-      "\u2614": "umbrella with rain",
-      "\u26F1\uFE0F": "umbrella on beach",
-      "\u26A1": "high voltage",
-      "\u2744\uFE0F": "snowflake",
-      "\u2603\uFE0F": "snowman",
-      "\u26C4": "snowman without snow",
-      "\u{1F525}": "fire",
-      "\u{1F4A7}": "droplet",
-      "\u{1F30A}": "wave",
-      // Objects
-      "\u231A": "watch timekeeping device",
-      "\u231B": "hourglass timer device",
-      "\u2328\uFE0F": "keyboard input device",
-      "\u23F0": "alarm clock timekeeping device",
-      "\u23F1\uFE0F": "stopwatch timer device",
-      "\u23F2\uFE0F": "timer device",
-      "\u23F3": "stopwatch timer device",
-      "\u260E\uFE0F": "telephone handset communication device",
-      "\u2692\uFE0F": "wrench and hammer tool fixing device",
-      "\u2694\uFE0F": "shield and sword defensive weapon",
-      "\u2696\uFE0F": "scale balance weight device",
-      "\u2699\uFE0F": "gear mechanical device",
-      "\u26B0\uFE0F": "coffin casket burial container",
-      "\u26B1\uFE0F": "hourglass memorial timer",
-      "\u26CF\uFE0F": "pickaxe tool mining device",
-      "\u26D3\uFE0F": "chain link security device",
-      "\u2702\uFE0F": "scissors cutting tool",
-      "\u2709\uFE0F": "envelope letter mail",
-      "\u270F\uFE0F": "pencil writing tool",
-      "\u2712\uFE0F": "pen writing tool",
-      "\u{1F380}": "bow ribbon decoration",
-      "\u{1F381}": "gift wrapped package",
-      "\u{1F388}": "balloon decoration",
-      "\u{1F389}": "party confetti decoration",
-      "\u{1F38A}": "party popper decoration",
-      "\u{1F38E}": "traditional japanese doll",
-      "\u{1F38F}": "origami paper decoration",
-      "\u{1F390}": "envelope letter mail",
-      "\u{1F399}\uFE0F": "microphone sound amplification device",
-      "\u{1F39A}\uFE0F": "headphones audio listening device",
-      "\u{1F39B}\uFE0F": "speaker sound amplification device",
-      "\u{1F39E}\uFE0F": "video cassette recording device",
-      "\u{1F3A5}": "video camera recording device",
-      "\u{1F3EE}": "lantern festival decoration",
-      "\u{1F3F7}\uFE0F": "price tag label",
-      "\u{1F3FA}": "bell gong musical instrument",
-      "\u{1F48C}": "envelope letter mail",
-      "\u{1F48E}": "gemstone jewelry accessory",
-      "\u{1F4A1}": "light bulb lighting device",
-      "\u{1F4A3}": "bomb explosive weapon",
-      "\u{1F4B0}": "money currency finance device",
-      "\u{1F4B3}": "credit card finance device",
-      "\u{1F4B4}": "money currency finance device",
-      "\u{1F4B5}": "money currency finance device",
-      "\u{1F4B6}": "money currency finance device",
-      "\u{1F4B7}": "money currency finance device",
-      "\u{1F4B8}": "money currency finance device",
-      "\u{1F4BB}": "computer desktop",
-      "\u{1F4BD}": "computer disk storage device",
-      "\u{1F4BE}": "floppy disk storage device",
-      "\u{1F4BF}": "compact disc storage device",
-      "\u{1F4C0}": "dvd disc storage device",
-      "\u{1F4C1}": "file folder storage",
-      "\u{1F4C2}": "file folder storage",
-      "\u{1F4C3}": "page of paper",
-      "\u{1F4C4}": "page of paper",
-      "\u{1F4C5}": "calendar date",
-      "\u{1F4C6}": "calendar date",
-      "\u{1F4C7}": "file folder storage",
-      "\u{1F4C8}": "chart graph",
-      "\u{1F4C9}": "chart graph",
-      "\u{1F4CA}": "chart graph",
-      "\u{1F4CB}": "clipboard storage container",
-      "\u{1F4CC}": "pushpin sticky note marker",
-      "\u{1F4CD}": "pin sticky note marker",
-      "\u{1F4CE}": "paperclip attachment",
-      "\u{1F4CF}": "ruler measuring tool",
-      "\u{1F4D0}": "ruler measuring tool",
-      "\u{1F4D1}": "page of paper",
-      "\u{1F4D2}": "book book",
-      "\u{1F4D3}": "book book",
-      "\u{1F4D4}": "book book",
-      "\u{1F4D5}": "book book",
-      "\u{1F4D6}": "book book",
-      "\u{1F4D7}": "book book",
-      "\u{1F4D8}": "book book",
-      "\u{1F4D9}": "book book",
-      "\u{1F4DA}": "book book",
-      "\u{1F4DC}": "scroll parchment paper",
-      "\u{1F4DD}": "pencil writing tool",
-      "\u{1F4DE}": "telephone handset communication device",
-      "\u{1F4DF}": "pager pager device",
-      "\u{1F4E0}": "television television device",
-      "\u{1F4E1}": "satellite communication device",
-      "\u{1F4E4}": "envelope letter mail",
-      "\u{1F4E5}": "envelope letter mail",
-      "\u{1F4E6}": "package shipping container",
-      "\u{1F4E7}": "envelope letter mail",
-      "\u{1F4E8}": "envelope letter mail",
-      "\u{1F4E9}": "envelope letter mail",
-      "\u{1F4EA}": "envelope letter mail",
-      "\u{1F4EB}": "envelope letter mail",
-      "\u{1F4EC}": "envelope letter mail",
-      "\u{1F4ED}": "envelope letter mail",
-      "\u{1F4EE}": "envelope letter mail",
-      "\u{1F4EF}": "envelope letter mail",
-      "\u{1F4F0}": "newspaper newspaper",
-      "\u{1F4F1}": "smartphone mobile phone",
-      "\u{1F4F2}": "smartphone mobile phone",
-      "\u{1F4F7}": "camera photo imaging device",
-      "\u{1F4F8}": "camera photo imaging device",
-      "\u{1F4F9}": "video camera recording device",
-      "\u{1F4FA}": "television television device",
-      "\u{1F4FB}": "radio broadcasting device",
-      "\u{1F4FC}": "vhs tape storage device",
-      "\u{1F4FD}\uFE0F": "video cassette recording device",
-      "\u{1F4FF}": "prayer beads religious accessory",
-      "\u{1F50B}": "battery power supply device",
-      "\u{1F50C}": "battery power supply device",
-      "\u{1F50D}": "magnifying glass search tool",
-      "\u{1F50E}": "magnifying glass search tool",
-      "\u{1F50F}": "lock security device",
-      "\u{1F510}": "lock security device",
-      "\u{1F511}": "key lock security device",
-      "\u{1F512}": "lock security device",
-      "\u{1F513}": "lock security device",
-      "\u{1F516}": "bookmark page marker",
-      "\u{1F517}": "link page marker",
-      "\u{1F526}": "flashlight flashlight device",
-      "\u{1F527}": "wrench tool fixing device",
-      "\u{1F528}": "hammer tool striking device",
-      "\u{1F529}": "gear mechanical device",
-      "\u{1F52B}": "gun firearm weapon",
-      "\u{1F52E}": "crystal ball fortune telling device",
-      "\u{1F56F}\uFE0F": "candle light source",
-      "\u{1F570}\uFE0F": "hourglass timer device",
-      "\u{1F579}\uFE0F": "joystick game controller",
-      "\u{1F587}\uFE0F": "paperclip attachment",
-      "\u{1F58A}\uFE0F": "pen writing tool",
-      "\u{1F58B}\uFE0F": "pen writing tool",
-      "\u{1F58C}\uFE0F": "paintbrush painting tool",
-      "\u{1F58D}\uFE0F": "paintbrush painting tool",
-      "\u{1F5A5}\uFE0F": "computer monitor screen",
-      "\u{1F5A8}\uFE0F": "printer output device",
-      "\u{1F5B1}\uFE0F": "computer mouse pointing device",
-      "\u{1F5B2}\uFE0F": "touchscreen input device",
-      "\u{1F5BC}\uFE0F": "picture frame photo display",
-      "\u{1F5C2}\uFE0F": "file folder storage",
-      "\u{1F5C3}\uFE0F": "file folder storage",
-      "\u{1F5C4}\uFE0F": "file folder storage",
-      "\u{1F5D1}\uFE0F": "trash can waste disposal",
-      "\u{1F5D2}\uFE0F": "notebook paper",
-      "\u{1F5D3}\uFE0F": "calendar paper",
-      "\u{1F5DC}\uFE0F": "clamp tool mechanical device",
-      "\u{1F5DD}\uFE0F": "lock and key security device",
-      "\u{1F5DE}\uFE0F": "file folder storage",
-      "\u{1F5E1}\uFE0F": "sword weapon",
-      "\u{1F5F3}\uFE0F": "file folder storage",
-      "\u{1F9E7}": "red envelope money gift",
-      "\u{1F9E8}": "firecracker explosive weapon",
-      "\u{1F9EE}": "calculator arithmetic device",
-      "\u{1F9EF}": "fire extinguisher safety device",
-      "\u{1F9F0}": "toolbox tool storage device",
-      "\u{1F9F2}": "magnet magnetic field device",
-      "\u{1F9F4}": "lotion cosmetic product",
-      "\u{1F9F7}": "link page marker",
-      "\u{1F9F8}": "pillow cushion",
-      "\u{1F9F9}": "broom cleaning tool",
-      "\u{1F9FA}": "basket storage container",
-      "\u{1F9FC}": "soap dispenser",
-      "\u{1F9FD}": "washcloth cleaning tool",
-      "\u{1F9FE}": "receipt invoice",
-      "\u{1F9FF}": "magic wand wizard spell casting device",
-      "\u{1FA84}": "magic wand wizard witch spell",
-      "\u{1FA85}": "pi\xF1ata party celebration mexican",
-      "\u{1FA86}": "nesting dolls russian matryoshka toy",
-      "\u{1FA91}": "bed bed",
-      "\u{1FA92}": "razor shaving tool",
-      "\u{1FA93}": "axe tool chopping device",
-      "\u{1FA94}": "candle light source",
-      "\u{1FA99}": "coin currency finance device",
-      "\u{1FA9A}": "saw tool woodworking device",
-      "\u{1FA9B}": "screwdriver tool fixing device",
-      "\u{1FA9C}": "lever mechanical device",
-      "\u{1FA9E}": "mirror reflection device",
-      "\u{1FA9F}": "curtain window covering",
-      "\u{1FAA1}": "sewing needle thread craft",
-      "\u{1FAA2}": "knot rope tied string",
-      "\u{1FAA3}": "bucket pail container water",
-      "\u{1FAA4}": "mouse trap rodent catch",
-      "\u{1FAA5}": "toothbrush dental hygiene tool",
-      "\u{1FAA6}": "headstone grave cemetery death",
-      "\u{1FAA7}": "placard sign protest announcement",
-      "\u{1FAA9}": "mirror ball disco party dance",
-      "\u{1FAAA}": "identification card id license",
-      "\u{1FAAB}": "low battery empty power dying",
-      "\u{1FAAC}": "hamsa amulet protection luck",
-      "\u{1FAAD}": "wireless speaker audio bluetooth",
-      "\u{1FAAE}": "folding hand fan cooling breeze",
-      "\u{1FAAF}": "khanda sikh religion symbol",
-      "\u{1FAB0}": "fly insect bug pest",
-      "\u{1FAB1}": "worm animal earth crawler",
-      "\u{1FAB2}": "beetle insect bug",
-      "\u{1FAB3}": "cockroach insect bug pest",
-      "\u{1FAB4}": "potted plant garden indoor nature",
-      "\u{1FAB7}": "lotus flower buddhism peace",
-      "\u{1FAB8}": "coral ocean sea marine",
-      "\u{1FAB9}": "empty nest bird home",
-      "\u{1FABA}": "nest with eggs bird home",
-      "\u{1FAE7}": "bubbles soap water floating",
-      "\u{1FAF8}": "rightwards hand pushing right",
-      "\u{1F6AA}": "door door",
-      "\u{1F6AC}": "cigarette smoking device",
-      "\u{1F6B0}": "water closet flushing device",
-      "\u{1F6BD}": "toilet flushing device",
-      "\u{1F6BF}": "shower shower head",
-      "\u{1F6C0}": "bathroom bathtub",
-      "\u{1F6C1}": "bathroom bathtub",
-      "\u{1F6CB}\uFE0F": "sofa couch seating",
-      "\u{1F6CC}": "bed and pillow sleeping arrangement",
-      "\u{1F6CD}\uFE0F": "shopping bag retail shopping",
-      "\u{1F6CE}\uFE0F": "bell doorbell communication device",
-      "\u{1F6CF}\uFE0F": "bed bed",
-      "\u{1F6D2}": "shopping cart retail shopping",
-      "\u{1F6E0}\uFE0F": "toolbox tool storage device",
-      "\u{1F6E2}\uFE0F": "oil barrel petroleum product",
-      "\u{1FAF9}": "leftwards hand pushing left",
-      "\u{1FAFA}": "palm down hand below under"
-    };
     return (emojiDescriptions[emoji] || "").toLowerCase();
   }
   onClose() {
@@ -2887,9 +2903,271 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
     contentEl.empty();
   }
 };
+var TargetPositionModal = class extends import_obsidian7.Modal {
+  constructor(app2, plugin, onPositionChange) {
+    var _a;
+    super(app2);
+    this.plugin = plugin;
+    this.onPositionChange = onPositionChange;
+    this.isDragging = false;
+    const activeFile = this.app.workspace.getActiveFile();
+    const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a.frontmatter;
+    const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) ? this.plugin.settings.customImageDisplayField[0].split(",")[0].trim() : this.plugin.settings.customImageDisplayField;
+    const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
+    const yField = Array.isArray(this.plugin.settings.customYPositionField) ? this.plugin.settings.customYPositionField[0].split(",")[0].trim() : this.plugin.settings.customYPositionField;
+    const heightField = Array.isArray(this.plugin.settings.customBannerHeightField) ? this.plugin.settings.customBannerHeightField[0].split(",")[0].trim() : this.plugin.settings.customBannerHeightField;
+    this.currentX = (frontmatter == null ? void 0 : frontmatter[xField]) || this.plugin.settings.xPosition;
+    this.currentY = (frontmatter == null ? void 0 : frontmatter[yField]) || this.plugin.settings.yPosition;
+    this.currentHeight = (frontmatter == null ? void 0 : frontmatter[heightField]) || this.plugin.settings.bannerHeight;
+    this.currentDisplay = (frontmatter == null ? void 0 : frontmatter[displayField]) || this.plugin.settings.imageDisplay;
+    this.currentZoom = 100;
+    if (this.currentDisplay && this.currentDisplay.endsWith("%")) {
+      this.currentZoom = parseInt(this.currentDisplay) || 100;
+      this.currentDisplay = "cover-zoom";
+    }
+  }
+  // Helper to update frontmatter with new display value
+  updateDisplayMode(mode, zoom = null) {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) return;
+    const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) ? this.plugin.settings.customImageDisplayField[0].split(",")[0].trim() : this.plugin.settings.customImageDisplayField;
+    let newValue = mode;
+    if (mode === "cover-zoom") {
+      newValue = `${zoom}%`;
+    }
+    this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+      fm[displayField] = newValue;
+    });
+  }
+  updateBannerHeight(height) {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) return;
+    const heightField = Array.isArray(this.plugin.settings.customBannerHeightField) ? this.plugin.settings.customBannerHeightField[0].split(",")[0].trim() : this.plugin.settings.customBannerHeightField;
+    this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+      frontmatter[heightField] = height;
+    });
+  }
+  onPositionChange(x, y) {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) return;
+    this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+      frontmatter.bannerTargetX = x;
+      frontmatter.bannerTargetY = y;
+    });
+  }
+  onOpen() {
+    const { contentEl, modalEl, bgEl } = this;
+    contentEl.empty();
+    contentEl.addClass("target-position-modal");
+    modalEl.style.opacity = "0.8";
+    bgEl.style.opacity = "0";
+    const mainContainer = contentEl.createDiv({ cls: "main-container" });
+    mainContainer.style.display = "flex";
+    mainContainer.style.flexDirection = "row";
+    mainContainer.style.gap = "20px";
+    mainContainer.style.alignItems = "stretch";
+    const controlPanel = mainContainer.createDiv({ cls: "control-panel" });
+    controlPanel.style.display = "flex";
+    controlPanel.style.flexDirection = "column";
+    controlPanel.style.gap = "10px";
+    controlPanel.style.flex = "0 auto";
+    const displaySelect = controlPanel.createEl("select", { cls: "display-mode-select" });
+    ["cover", "auto", "contain", "cover-zoom"].forEach((mode) => {
+      const option = displaySelect.createEl("option", {
+        text: mode.replace("-", " "),
+        value: mode
+      });
+      if (mode === this.currentDisplay) {
+        option.selected = true;
+      }
+    });
+    const zoomContainer = controlPanel.createDiv({ cls: "zoom-container" });
+    zoomContainer.style.display = this.currentDisplay === "cover-zoom" ? "flex" : "none";
+    zoomContainer.style.flexDirection = "column";
+    zoomContainer.style.gap = "5px";
+    zoomContainer.style.alignItems = "center";
+    zoomContainer.style.marginTop = "10px";
+    zoomContainer.style.height = "100%";
+    const zoomValue = zoomContainer.createDiv({ cls: "zoom-value" });
+    zoomValue.style.fontFamily = "var(--font-monospace)";
+    zoomValue.style.fontSize = "0.9em";
+    zoomValue.setText(`${this.currentZoom}%`);
+    const zoomSlider = zoomContainer.createEl("input", {
+      type: "range",
+      cls: "zoom-slider",
+      attr: {
+        min: "0",
+        max: "500",
+        step: "10",
+        value: this.currentZoom
+      }
+    });
+    zoomSlider.style.flex = "1";
+    zoomSlider.style.writingMode = "vertical-lr";
+    zoomSlider.style.direction = "rtl";
+    displaySelect.addEventListener("change", () => {
+      const mode = displaySelect.value;
+      zoomContainer.style.display = mode === "cover-zoom" ? "flex" : "none";
+      this.updateDisplayMode(mode, mode === "cover-zoom" ? this.currentZoom : null);
+    });
+    zoomSlider.addEventListener("input", () => {
+      this.currentZoom = parseInt(zoomSlider.value);
+      zoomValue.setText(`${this.currentZoom}%`);
+      this.updateDisplayMode("cover-zoom", this.currentZoom);
+    });
+    const heightContainer = mainContainer.createDiv({ cls: "height-container" });
+    heightContainer.style.display = "flex";
+    heightContainer.style.flexDirection = "column";
+    heightContainer.style.gap = "10px";
+    heightContainer.style.alignItems = "center";
+    heightContainer.style.minWidth = "60px";
+    heightContainer.style.flex = "0 auto";
+    const heightLabel = heightContainer.createEl("div", {
+      text: "Height",
+      cls: "height-label"
+    });
+    heightLabel.style.color = "var(--text-muted)";
+    heightLabel.style.fontSize = "0.9em";
+    const heightValue = heightContainer.createDiv({ cls: "height-value" });
+    heightValue.style.fontFamily = "var(--font-monospace)";
+    heightValue.style.fontSize = "0.9em";
+    heightValue.setText(`${this.currentHeight}px`);
+    const heightSlider = heightContainer.createEl("input", {
+      type: "range",
+      cls: "height-slider",
+      attr: {
+        min: "0",
+        max: "1280",
+        step: "10",
+        value: this.currentHeight
+      }
+    });
+    heightSlider.style.flex = "1";
+    heightSlider.style.writingMode = "vertical-lr";
+    heightSlider.style.direction = "rtl";
+    heightSlider.addEventListener("input", () => {
+      this.currentHeight = parseInt(heightSlider.value);
+      heightValue.setText(`${this.currentHeight}px`);
+      this.updateBannerHeight(this.currentHeight);
+    });
+    const targetContainer = mainContainer.createDiv({ cls: "target-container" });
+    targetContainer.style.display = "flex";
+    targetContainer.style.flexDirection = "column";
+    targetContainer.style.gap = "10px";
+    targetContainer.style.flexGrow = "1";
+    const targetArea = targetContainer.createDiv({ cls: "target-area" });
+    targetArea.style.width = "300px";
+    targetArea.style.height = "300px";
+    targetArea.style.border = "2px solid var(--background-modifier-border)";
+    targetArea.style.position = "relative";
+    targetArea.style.backgroundColor = "var(--background-primary)";
+    targetArea.style.cursor = "crosshair";
+    targetArea.style.flexGrow = "1";
+    const verticalLine = targetArea.createDiv({ cls: "vertical-line" });
+    const horizontalLine = targetArea.createDiv({ cls: "horizontal-line" });
+    const positionIndicator = targetContainer.createEl("div", {
+      cls: "position-indicator"
+    });
+    positionIndicator.style.textAlign = "center";
+    positionIndicator.style.fontFamily = "var(--font-monospace)";
+    positionIndicator.style.fontSize = "0.9em";
+    positionIndicator.style.color = "var(--text-muted)";
+    positionIndicator.style.width = "300px";
+    positionIndicator.setText(`X: ${this.currentX}%, Y: ${this.currentY}%`);
+    const updatePositionIndicator = () => {
+      positionIndicator.setText(`X: ${this.currentX}%, Y: ${this.currentY}%`);
+    };
+    this.addStyle();
+    const updatePosition = (e) => {
+      const rect = targetArea.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+      const y = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
+      verticalLine.style.left = `${x}%`;
+      horizontalLine.style.top = `${y}%`;
+      this.currentX = Math.round(x);
+      this.currentY = Math.round(y);
+      const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
+      const yField = Array.isArray(this.plugin.settings.customYPositionField) ? this.plugin.settings.customYPositionField[0].split(",")[0].trim() : this.plugin.settings.customYPositionField;
+      this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+        frontmatter[xField] = this.currentX;
+        frontmatter[yField] = this.currentY;
+      });
+      updatePositionIndicator();
+    };
+    targetArea.addEventListener("click", updatePosition);
+    verticalLine.style.left = `${this.currentX}%`;
+    horizontalLine.style.top = `${this.currentY}%`;
+    const resetButton = contentEl.createEl("button", {
+      text: "Reset to Defaults",
+      cls: "mod-cta reset-button"
+    });
+    resetButton.style.marginTop = "20px";
+    resetButton.style.width = "100%";
+    resetButton.addEventListener("click", () => {
+      displaySelect.value = "cover";
+      zoomContainer.style.display = "none";
+      this.currentDisplay = "cover";
+      this.updateDisplayMode("cover", null);
+      this.currentZoom = 100;
+      zoomSlider.value = this.currentZoom;
+      zoomValue.setText(`${this.currentZoom}%`);
+      this.currentHeight = this.plugin.settings.bannerHeight;
+      heightSlider.value = this.currentHeight;
+      heightValue.setText(`${this.currentHeight}px`);
+      this.updateBannerHeight(this.currentHeight);
+      this.currentX = 50;
+      this.currentY = 50;
+      verticalLine.style.left = `${this.currentX}%`;
+      horizontalLine.style.top = `${this.currentY}%`;
+      updatePositionIndicator();
+      const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
+      const yField = Array.isArray(this.plugin.settings.customYPositionField) ? this.plugin.settings.customYPositionField[0].split(",")[0].trim() : this.plugin.settings.customYPositionField;
+      this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+        frontmatter[xField] = this.currentX;
+        frontmatter[yField] = this.currentY;
+      });
+    });
+  }
+  addStyle() {
+    const style = document.createElement("style");
+    style.textContent = `
+            .target-position-modal .target-area {
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .target-position-modal .vertical-line {
+                position: absolute;
+                background-color: var(--text-accent);
+                pointer-events: none;
+                width: 1px;
+                height: 100%;
+                left: ${this.currentX}%;
+            }
+            .target-position-modal .horizontal-line {
+                position: absolute;
+                background-color: var(--text-accent);
+                pointer-events: none;
+                width: 100%;
+                height: 1px;
+                top: ${this.currentY}%;
+            }
+            .target-position-modal .position-indicator {
+                text-align: center;
+                margin-top: 10px;
+                font-family: var(--font-monospace);
+            }
+        `;
+    document.head.appendChild(style);
+  }
+  onClose() {
+    const style = document.head.querySelector("style:last-child");
+    if (style) {
+      style.remove();
+    }
+  }
+};
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.20.4</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>fixed issue with banner not updating correctly when frontmatter changes</li>\n<li>improved banner refresh logic to prevent unnecessary updates</li>\n<li>optimized cache management for better performance</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>improved banner width styling to combat the aggressive implementation of the <code>minimal</code> theme</li>\n</ul>\n<h3>v2.20.3</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>font weight</code> option to the banner icon settings (general, folder images, and frontmatter)</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>fixed issue with a large gap appearing between the banner and the note content when using the <code>hide embedded note banners</code> setting</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/patches/v2.20.3.jpg" alt="screenshot"></a></p>\n<h3>v2.20.2</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>added <code>banner-fade-in-animation-duration</code> general setting to control the duration of the fade in animation for the banner image</li>\n</ul>\n<h3>v2.20.1</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>replaced <code>icon-padding</code> with <code>icon-padding-x</code> and <code>icon-padding-y</code> for more granular control</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>resolved issue with the banner updating while editing a note&#39;s content (causing the banner to flicker)</li>\n<li>resolved issue with the banner icon not being preserved when scrolling to the bottom of a note</li>\n</ul>\n<h3>v2.20.0</h3>\n<h4>\u2728 Added the highly requested feature: <code>Banner Icons</code>!</h4>\n<ul>\n<li>Add emoji overlays (\u2B50, \u{1F3A8}, \u{1F4DD}, etc.) to your banners</li>\n<li>Customize icon appearance:<blockquote>\n<ul>\n<li>Size (10-200px)</li>\n<li>Position (left/right alignment)</li>\n<li>Opacity (0-100%)</li>\n<li>Color (any CSS color)</li>\n<li>Background color (any CSS color or transparent)</li>\n<li>Padding (spacing around the icon)</li>\n<li>Border radius (rounded corners)</li>\n<li>Vertical offset (adjust up/down position)</li>\n</ul>\n</blockquote>\n</li>\n<li>Set icons in multiple ways:<blockquote>\n<ul>\n<li>Click the \u2B50 button on any banner to choose an icon</li>\n<li>Set via frontmatter using banner-icon field (or your custom field name)</li>\n<li>Configure default icon settings globally  </li>\n<li>Set per-folder icon settings</li>\n<li>Icons persist across banner image changes and refreshes</li>\n<li>Icons work with all banner types (API images, local images, URLs)</li>\n<li>Icons appear in both edit and preview modes</li>\n<li>Icons maintain their position relative to banner height</li>\n</ul>\n</blockquote>\n</li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Removed the &quot;fade-in&quot; animation from banner images</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.20.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -3146,6 +3424,26 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           this.handleSetBannerIcon();
         }
         return true;
+      }
+    });
+    this.addCommand({
+      id: "set-banner-position",
+      name: "\u{1F3AF} Set Banner Position",
+      checkCallback: (checking) => {
+        const activeFile = this.app.workspace.getActiveFile();
+        const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
+        if (checking) {
+          return hasBanner;
+        }
+        if (hasBanner) {
+          new TargetPositionModal(
+            this.app,
+            this,
+            (position) => this.updateBannerPosition(activeFile, position)
+          ).open();
+          return true;
+        }
+        return false;
       }
     });
     if (this.settings.bannerGap === void 0) {
@@ -4181,11 +4479,12 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       bannerDiv._isPersistentBanner = true;
     }
     const oldViewIcons = container.querySelectorAll(".view-image-icon");
+    const oldTargetIcons = container.querySelectorAll(".target-btn");
     const oldPinIcons = container.querySelectorAll(".pin-icon");
     const oldRefreshIcons = container.querySelectorAll(".refresh-icon");
     const oldSelectIcons = container.querySelectorAll(".select-image-icon");
     const oldBannerIconButtons = container.querySelectorAll(".set-banner-icon-button");
-    [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach((el2) => el2.remove());
+    [...oldViewIcons, ...oldTargetIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach((el2) => el2.remove());
     if (isEmbedded) {
       this.updateEmbeddedBannersVisibility();
     } else {
@@ -4216,7 +4515,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           leftOffset += 35;
         }
       }
-      if (this.settings.showViewImageIcon) {
+      if (bannerImage && this.settings.showViewImageIcon && !isEmbedded) {
         const viewImageIcon = createDiv({ cls: "view-image-icon" });
         viewImageIcon.style.position = "absolute";
         viewImageIcon.style.top = "10px";
@@ -4237,12 +4536,49 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         container.appendChild(viewImageIcon);
         leftOffset += 35;
       }
+      const activeFile = this.app.workspace.getActiveFile();
+      const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
+      if (bannerImage && this.settings.showSetTargetXYPosition && !isEmbedded && hasBanner) {
+        const targetBtn = createDiv({ cls: "target-btn" });
+        targetBtn.style.position = "absolute";
+        targetBtn.style.top = "10px";
+        targetBtn.style.left = `${leftOffset}px`;
+        targetBtn.style.fontSize = "1.5em";
+        targetBtn.style.cursor = "pointer";
+        targetBtn._isPersistentTarget = true;
+        targetBtn.innerHTML = "\u{1F3AF}";
+        const currentBannerImage = bannerImage;
+        targetBtn.onclick = () => {
+          new TargetPositionModal(this.app, this, (x, y) => {
+            var _a2;
+            const activeFile2 = this.app.workspace.getActiveFile();
+            if (activeFile2) {
+              const frontmatter2 = (_a2 = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a2.frontmatter;
+              if (frontmatter2) {
+                const xFields = Array.isArray(this.settings.customXPositionField) ? this.settings.customXPositionField[0].split(",")[0].trim() : this.settings.customXPositionField;
+                const yFields = Array.isArray(this.settings.customYPositionField) ? this.settings.customYPositionField[0].split(",")[0].trim() : this.settings.customYPositionField;
+                this.app.fileManager.processFrontMatter(activeFile2, (fm) => {
+                  fm[xFields] = x;
+                  fm[yFields] = y;
+                });
+                if (currentBannerImage && currentBannerImage.style) {
+                  currentBannerImage.style.objectPosition = `${x}% ${y}%`;
+                }
+              }
+            }
+          }).open();
+        };
+        container._targetBtn = targetBtn;
+        container.appendChild(targetBtn);
+        leftOffset += 35;
+      }
     }
     if (!container._hasOverriddenSetChildrenInPlace) {
       const originalSetChildrenInPlace = container.setChildrenInPlace;
       container.setChildrenInPlace = function(children) {
         const bannerElement = this.querySelector(":scope > .pixel-banner-image");
         const viewImageElement = this.querySelector(":scope > .view-image-icon");
+        const targetElement = this.querySelector(":scope > .target-btn");
         const pinElement = this.querySelector(":scope > .pin-icon");
         const refreshElement = this.querySelector(":scope > .refresh-icon");
         const selectImageElement = this.querySelector(":scope > .select-image-icon");
@@ -4250,8 +4586,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         const bannerIconOverlay = this.querySelector(":scope > .banner-icon-overlay");
         children = Array.from(children).filter(
           (child) => {
-            var _a2, _b2, _c, _d, _e, _f, _g;
-            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c = child.classList) == null ? void 0 : _c.contains("pin-icon")) && !((_d = child.classList) == null ? void 0 : _d.contains("refresh-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("select-image-icon")) && !((_f = child.classList) == null ? void 0 : _f.contains("set-banner-icon-button")) && !((_g = child.classList) == null ? void 0 : _g.contains("banner-icon-overlay"));
+            var _a2, _b2, _c, _d, _e, _f, _g, _h;
+            return !((_a2 = child.classList) == null ? void 0 : _a2.contains("pixel-banner-image")) && !((_b2 = child.classList) == null ? void 0 : _b2.contains("view-image-icon")) && !((_c = child.classList) == null ? void 0 : _c.contains("target-btn")) && !((_d = child.classList) == null ? void 0 : _d.contains("pin-icon")) && !((_e = child.classList) == null ? void 0 : _e.contains("refresh-icon")) && !((_f = child.classList) == null ? void 0 : _f.contains("select-image-icon")) && !((_g = child.classList) == null ? void 0 : _g.contains("set-banner-icon-button")) && !((_h = child.classList) == null ? void 0 : _h.contains("banner-icon-overlay"));
           }
         );
         if (bannerElement == null ? void 0 : bannerElement._isPersistentBanner) {
@@ -4268,6 +4604,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         }
         if (viewImageElement == null ? void 0 : viewImageElement._isPersistentViewImage) {
           children.push(viewImageElement);
+        }
+        if (targetElement == null ? void 0 : targetElement._isPersistentTarget) {
+          children.push(targetElement);
         }
         if (pinElement == null ? void 0 : pinElement._isPersistentPin) {
           children.push(pinElement);
@@ -4730,6 +5069,20 @@ ${cleanContent}`;
         }
       }
     ).open();
+  }
+  async updateBannerPosition(file, position) {
+    if (!file) return;
+    const metadata = this.app.metadataCache.getFileCache(file);
+    if (!(metadata == null ? void 0 : metadata.frontmatter)) return;
+    await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+      frontmatter.banner_x = position.x;
+      frontmatter.banner_y = position.y;
+    });
+  }
+  hasBannerFrontmatter(file) {
+    var _a;
+    const metadata = this.app.metadataCache.getFileCache(file);
+    return ((_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a.banner) !== void 0;
   }
 };
 async function handlePinIconClick(imageUrl, plugin, usedField = null) {

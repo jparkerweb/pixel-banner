@@ -1,6 +1,6 @@
 import { Plugin, MarkdownView, requestUrl, Notice, Modal, FuzzySuggestModal } from 'obsidian';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from './settings';
-import { ReleaseNotesModal, ImageViewModal, ImageSelectionModal, EmojiSelectionModal } from './modals';
+import { ReleaseNotesModal, ImageViewModal, ImageSelectionModal, EmojiSelectionModal, TargetPositionModal } from './modals';
 import { releaseNotes } from 'virtual:release-notes';
 
 // ---------------------------
@@ -330,6 +330,30 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     this.handleSetBannerIcon();
                 }
                 return true;
+            }
+        });
+
+        // Add command to open targeting modal
+        this.addCommand({
+            id: 'set-banner-position',
+            name: '🎯 Set Banner Position',
+            checkCallback: (checking) => {
+                const activeFile = this.app.workspace.getActiveFile();
+                const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
+                
+                if (checking) {
+                    return hasBanner;
+                }
+
+                if (hasBanner) {
+                    new TargetPositionModal(
+                        this.app,
+                        this,
+                        (position) => this.updateBannerPosition(activeFile, position)
+                    ).open();
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -1731,6 +1755,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // 2) Remove existing icons (to avoid stacking or flicker)
         const oldViewIcons = container.querySelectorAll('.view-image-icon');
+        const oldTargetIcons = container.querySelectorAll('.target-btn');
         const oldPinIcons = container.querySelectorAll('.pin-icon');
         const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
         const oldSelectIcons = container.querySelectorAll('.select-image-icon');
@@ -1738,13 +1763,14 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
         // console.log("Cleaning up old icons:", {
         //     viewIcons: oldViewIcons.length,
+        //     targetIcons: oldTargetIcons.length,
         //     pinIcons: oldPinIcons.length,
         //     refreshIcons: oldRefreshIcons.length,
         //     selectIcons: oldSelectIcons.length,
         //     bannerIconButtons: oldBannerIconButtons.length
         // });
 
-        [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach(el => el.remove());
+        [...oldViewIcons, ...oldTargetIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach(el => el.remove());
 
         // 3) If embedded, just update the embedded banners' visibility and skip icon creation
         if (isEmbedded) {
@@ -1789,7 +1815,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
             }
 
             // "View image" icon
-            if (this.settings.showViewImageIcon) {
+            if (bannerImage && this.settings.showViewImageIcon && !isEmbedded) {
                 const viewImageIcon = createDiv({ cls: 'view-image-icon' });
                 viewImageIcon.style.position = 'absolute';
                 viewImageIcon.style.top = '10px';
@@ -1813,6 +1839,55 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 container.appendChild(viewImageIcon);
                 leftOffset += 35;
             }
+
+            const activeFile = this.app.workspace.getActiveFile();
+            const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
+
+            // "Target position" icon
+            if (bannerImage && this.settings.showSetTargetXYPosition && !isEmbedded && hasBanner) {
+                const targetBtn = createDiv({ cls: 'target-btn' });
+                targetBtn.style.position = 'absolute';
+                targetBtn.style.top = '10px';
+                targetBtn.style.left = `${leftOffset}px`;
+                targetBtn.style.fontSize = '1.5em';
+                targetBtn.style.cursor = 'pointer';
+                targetBtn._isPersistentTarget = true;
+                targetBtn.innerHTML = '🎯';
+
+                // Capture bannerImage in closure
+                const currentBannerImage = bannerImage;
+
+                targetBtn.onclick = () => {
+                    new TargetPositionModal(this.app, this, (x, y) => {
+
+                        const activeFile = this.app.workspace.getActiveFile();
+                        if (activeFile) {
+                            const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+                            if (frontmatter) {
+                                const xFields = Array.isArray(this.settings.customXPositionField) 
+                                    ? this.settings.customXPositionField[0].split(',')[0].trim()
+                                    : this.settings.customXPositionField;
+                                const yFields = Array.isArray(this.settings.customYPositionField)
+                                    ? this.settings.customYPositionField[0].split(',')[0].trim()
+                                    : this.settings.customYPositionField;
+
+                                this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                                    fm[xFields] = x;
+                                    fm[yFields] = y;
+                                });
+
+                                if (currentBannerImage && currentBannerImage.style) {
+                                    currentBannerImage.style.objectPosition = `${x}% ${y}%`;
+                                }
+                            }
+                        }
+                    }).open();
+                };
+
+                container._targetBtn = targetBtn;
+                container.appendChild(targetBtn);
+                leftOffset += 35;
+            }
         }
 
         // 4) Override setChildrenInPlace to preserve persistent elements
@@ -1822,6 +1897,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 // Get all persistent elements
                 const bannerElement = this.querySelector(':scope > .pixel-banner-image');
                 const viewImageElement = this.querySelector(':scope > .view-image-icon');
+                const targetElement = this.querySelector(':scope > .target-btn');
                 const pinElement = this.querySelector(':scope > .pin-icon');
                 const refreshElement = this.querySelector(':scope > .refresh-icon');
                 const selectImageElement = this.querySelector(':scope > .select-image-icon');
@@ -1832,6 +1908,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 children = Array.from(children).filter(child => 
                     !child.classList?.contains('pixel-banner-image') &&
                     !child.classList?.contains('view-image-icon') &&
+                    !child.classList?.contains('target-btn') &&
                     !child.classList?.contains('pin-icon') &&
                     !child.classList?.contains('refresh-icon') &&
                     !child.classList?.contains('select-image-icon') &&
@@ -1854,6 +1931,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
                 }
                 if (viewImageElement?._isPersistentViewImage) {
                     children.push(viewImageElement);
+                }
+                if (targetElement?._isPersistentTarget) {
+                    children.push(targetElement);
                 }
                 if (pinElement?._isPersistentPin) {
                     children.push(pinElement);
@@ -2316,11 +2396,11 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     // Check if filename is unique in vault
                     const allFiles = this.app.vault.getFiles();
                     const matchingFiles = allFiles.filter(f => f.name === selectedFile.name);
-                    
+                        
                     // Use short path only if filename is unique
                     imageReference = matchingFiles.length === 1 ? 
-                        selectedFile.name : 
-                        selectedFile.path;
+                    selectedFile.name : 
+                    selectedFile.path;
                 }
 
                 let fileContent = await this.app.vault.read(activeFile);
@@ -2482,9 +2562,24 @@ module.exports = class PixelBannerPlugin extends Plugin {
             }
         ).open();
     }
+
+    async updateBannerPosition(file, position) {
+        if (!file) return;
+        
+        const metadata = this.app.metadataCache.getFileCache(file);
+        if (!metadata?.frontmatter) return;
+
+        await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+            frontmatter.banner_x = position.x;
+            frontmatter.banner_y = position.y;
+        });
+    }
+
+    hasBannerFrontmatter(file) {
+        const metadata = this.app.metadataCache.getFileCache(file);
+        return metadata?.frontmatter?.banner !== undefined;
+    }
 }
-
-
 
 // ----------------------------------------------------------------------------
 // -- helper for pinning an image once chosen from UI or loaded from keyword --
@@ -2634,7 +2729,7 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
         plugin.settings.customBannerField[0] : 'banner');
 
     fileContent = fileContent.replace(/^\s+/, '');
-    
+
     let updatedContent;
     if (hasFrontmatter) {
         updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {

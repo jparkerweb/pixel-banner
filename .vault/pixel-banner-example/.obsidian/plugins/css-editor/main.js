@@ -9955,6 +9955,13 @@ var CssEditorView = class extends import_obsidian2.ItemView {
         import_view5.EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.requestSave(update.state.doc.toString());
+            if (this.file) {
+              this.app.workspace.trigger(
+                "css-editor-change",
+                this.file,
+                update.state.doc.toString()
+              );
+            }
           }
         })
       ]
@@ -9977,6 +9984,14 @@ var CssEditorView = class extends import_obsidian2.ItemView {
         clearInterval(timer);
     }, 200);
     this.registerInterval(timer);
+    this.registerEvent(
+      this.app.workspace.on("css-editor-change", async (file, data) => {
+        var _a;
+        if (((_a = this.file) == null ? void 0 : _a.name) === file.name && this.getEditorData() !== data) {
+          this.dispatchEditorData(data);
+        }
+      })
+    );
   }
   getEditorData() {
     return this.editor.state.doc.toString();
@@ -9987,7 +10002,8 @@ var CssEditorView = class extends import_obsidian2.ItemView {
         from: 0,
         to: this.editor.state.doc.length,
         insert: data
-      }
+      },
+      selection: this.editor.state.selection
     });
   }
   getState() {
@@ -10471,5 +10487,3 @@ var CssEditorPlugin = class extends import_obsidian7.Plugin {
     });
   }
 };
-
-/* nosourcemap */
