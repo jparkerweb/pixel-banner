@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.21.0] - 2025-01-21
+#### ✨ Added
+- New Targeting Modal with controls to set zoom level, height, and position for your banner image
+- Command palette option and icon button to quickly open the targeting modal
+
 ### [v2.20.4] - 2025-01-20
 #### 🐛 Fixed
 - fixed issue with banner not updating correctly when frontmatter changes

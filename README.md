@@ -26,7 +26,7 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 - **Banner Image selection** modal, local image picker with sort options
 - Control **select, pin, and refresh banner via commands** from command palette and hotkeys
 - Adjust **vertical position** of the banner image
-- Set **banner height** (100-2500 pixels) as well as **content start position** of note
+- Set **banner height** (1-1280 pixels) as well as **content start position** of note
 - Set the banner **image display** to cover, auto, or contain
 - Control **banner fade** transparency (-1500 to 100)
 - Banner image **border radius** customization
@@ -164,7 +164,7 @@ You can set default banner images for entire folders:
    - Folder path
    - Enable Image Shuffle option: Randomly select an image from a specified folder each time the note loads
    - Y-position (0-100)
-   - Banner height (100-2500 pixels)
+   - Banner height (0-1280 pixels)
    - Fade effect (-1500 to 100)
    - Border radius
    - Inline title color

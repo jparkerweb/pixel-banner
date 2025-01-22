@@ -157,7 +157,7 @@ export function createGeneralSettings(containerEl, plugin) {
     // Banner Height setting
     new Setting(containerEl)
         .setName('Banner Height')
-        .setDesc('Set the default height of the banner image (100-2500 pixels)')
+        .setDesc('Set the default height of the banner image (0-1280 pixels)')
         .addText(text => {
             text.setPlaceholder('350')
                 .setValue(String(plugin.settings.bannerHeight))
@@ -175,8 +175,8 @@ export function createGeneralSettings(containerEl, plugin) {
                     // If the value is not a number or is empty, set to default
                     numValue = 350;
                 } else {
-                    // Ensure value is between 100 and 2500
-                    numValue = Math.max(100, Math.min(2500, numValue));
+                    // Ensure value is between 0 and 1280
+                    numValue = Math.max(0, Math.min(1280, numValue));
                 }
                 plugin.settings.bannerHeight = numValue;
                 text.setValue(String(numValue));
@@ -185,8 +185,8 @@ export function createGeneralSettings(containerEl, plugin) {
             });
 
             text.inputEl.type = 'number';
-            text.inputEl.min = '100';
-            text.inputEl.max = '2500';
+            text.inputEl.min = '0';
+            text.inputEl.max = '1280';
             text.inputEl.style.width = '50px';
         })
         .addExtraButton(button => button
@@ -518,6 +518,32 @@ export function createGeneralSettings(containerEl, plugin) {
                 const toggleComponent = showViewImageIconSetting.components[0];
                 if (toggleComponent) {
                     toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+                }
+                
+                plugin.updateAllBanners();
+            }));
+
+    // Add the showSetTargetXYPosition setting
+    const showSetTargetXYPositionSetting = new Setting(containerEl)
+        .setName('Show Set Target X/Y Position')
+        .setDesc('Show an icon to set the target x/y position for the banner image')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.showSetTargetXYPosition)
+            .onChange(async (value) => {
+                plugin.settings.showSetTargetXYPosition = value;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.showSetTargetXYPosition = DEFAULT_SETTINGS.showSetTargetXYPosition;
+                await plugin.saveSettings();
+                
+                const toggleComponent = showSetTargetXYPositionSetting.components[0];
+                if (toggleComponent) {
+                    toggleComponent.setValue(DEFAULT_SETTINGS.showSetTargetXYPosition);
                 }
                 
                 plugin.updateAllBanners();

@@ -1,10 +1,11 @@
 ---
-header-image: images/jp-cover3a.jpg
+banner: images/jp-cover3a.jpg
 content-start: 370
 icon: 💀
 icon-size: "33"
 icon-bg-color: black
-icon-padding: "25"
+icon-padding-x: "15"
+icon-padding-y: "15"
 icon-y: "-20"
 icon-x: "90"
 ---

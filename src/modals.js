@@ -1,4 +1,5 @@
 import { Modal, Setting, Notice, FuzzySuggestModal } from 'obsidian';
+import { emojiList, emojiDescriptions } from `./emojis.js`;
 
 export class ReleaseNotesModal extends Modal {
     constructor(app, version, releaseNotes) {
@@ -684,23 +685,7 @@ export class EmojiSelectionModal extends Modal {
         this.searchQuery = '';
         this.currentPage = 1;
         this.emojisPerPage = 100;
-        this.emojis = this.getEmojis();
-    }
-
-    getEmojis() {
-        // A comprehensive list of emojis with categories
-        return [
-            { category: "Smileys & Emotion", emojis: ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"] },
-            { category: "People & Body", emojis: ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻", "👃", "🧠", "🫀", "🫁", "🦷", "🦴", "👀", "👁️", "👅", "👄", "💋", "🩸", "👶", "👧", "🧒", "👦", "👩", "🧑", "👨", "👩‍🦱", "🧑‍🦱", "👨‍🦱", "👩‍🦰", "🧑‍🦰", "👨‍🦰", "👱‍♀️", "👱", "👱‍♂️", "👩‍🦳", "🧑‍🦳", "👨‍🦳", "👩‍🦲", "🧑‍🦲", "👨‍🦲", "🧔", "👵", "🧓", "👴"] },
-            { category: "Animals & Nature", emojis: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🪱", "🐛", "🦋", "🐌", "🐞", "🐜", "🪰", "🪲", "🪳", "🦟", "🦗", "🕷️", "🕸️", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🦣", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🦬", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕‍🦺", "🐈", "🐈‍⬛", "🪶", "🐓", "🦃", "🦤", "🦚", "🦜", "🦢", "🦩", "🕊️", "🐇", "🦝", "🦨", "🦡", "🦫", "🦦", "🦥", "🐁", "🐀", "🐿️", "🦔"] },
-            { category: "Food & Drink", emojis: ["🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🥕", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕", "🫓", "🥪", "🥙", "🧆", "🌮", "🌯", "🫔", "🥗", "🥘", "🫕", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🦪", "🍤", "🍙", "🍚", "🍘", "🍥", "🥠", "🥮", "🍢", "🍡", "🍧", "🍨", "🍦", "🥧", "🧁", "🍰", "🎂", "🍮", "🍭", "🍬", "🍫", "🍿", "🍩", "🍪", "🌰", "🥜", "🍯", "🥛", "🍼", "🫖", "☕", "🍵", "🧃", "🥤", "🧋", "🍶", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸", "🍹", "🧉", "🍾", "🧊", "🥄", "🍴", "🍽️", "🥢", "🧂"] },
-            { category: "Travel & Places", emojis: ["🌍", "🌎", "🌏", "🌐", "🗺️", "🗾", "🧭", "🏔️", "⛰️", "🌋", "🗻", "🏕️", "🏖️", "🏜️", "🏝️", "🏞️", "🏟️", "🏛️", "🏗️", "🧱", "🪨", "🪵", "🛖", "🏘️", "🏚️", "🏠", "🏡", "🏢", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭", "🏯", "🏰", "💒", "🗼", "🗽", "⛪", "🕌", "🛕", "🕍", "⛩️", "🕋", "⛲", "⛺", "🌁", "🌃", "🏙️", "🌄", "🌅", "🌆", "🌇", "🌉", "♨️", "🎠", "🎡", "🎢", "💈", "🎪"] },
-            { category: "Activities", emojis: ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🪃", "🥅", "⛳", "🪁", "🎣", "🤿", "🎽", "🎿", "🛷", "🥌", "🎯", "🪀", "🪁", "🎱", "🎮", "🎲", "🧩", "🎭", "🎨", "🎪", "🎤", "🎧", "🎼", "🎹", "🥁", "🪘", "🎷", "🎺", "🪗", "🎸", "🪕", "🎻", "🎬", "🏹"] },
-            { category: "Objects", emojis: ["⌚", "📱", "📲", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "🕹️", "🗜️", "💽", "💾", "💿", "📀", "📼", "📷", "📸", "📹", "🎥", "📽️", "🎞️", "📞", "☎️", "📟", "📠", "📺", "📻", "🎙️", "🎚️", "🎛️", "🧭", "⏱️", "⏲️", "⏰", "🕰️", "⌛", "⏳", "📡", "🔋", "🔌", "💡", "🔦", "🕯️", "🪔", "🧯", "🛢️", "💸", "💵", "💴", "💶", "💷", "🪙", "💰", "💳", "💎", "⚖️", "🧰", "🪛", "🔧", "🔨", "⚒️", "🛠️", "⛏️", "🪚", "🔩", "⚙️", "🪜", "🧱", "⛓️", "🧲", "🔫", "💣", "🧨", "🪓", "🔪", "🗡️", "⚔️", "🛡️", "🚬", "⚰️", "🪦", "⚱️", "🏺", "🔮", "📿", "🧿", "💈", "⚗️", "🔭", "🔬", "🕳️", "🩹", "🩺", "💊", "💉", "🩸", "🧬", "🦠", "🧫", "🧪", "🌡️", "🧹", "🧺", "🧻", "🚽", "🚰", "🚿", "🛁", "🛀", "🧼", "🪥", "🪒", "🧽", "🪣", "🧴", "🛎️", "🔑", "🗝️", "🚪", "🪑", "🛋️", "🛏️", "🛌", "🧸", "🪆", "🖼️", "🪞", "🪟", "🛍️", "🛒", "🎁", "🎈", "🎏", "🎀", "🪄", "🪅", "🎊", "🎉", "🎎", "🏮", "🎐", "🧧", "✉️", "📩", "📨", "📧", "💌", "📥", "📤", "📦", "🏷️", "📪", "📫", "📬", "📭", "📮", "📯", "📜", "📃", "📄", "📑", "🧾", "📊", "📈", "📉", "🗒️", "🗓️", "📆", "📅", "🗑️", "📇", "🗃️", "🗳️", "🗄️", "📋", "📁", "📂", "🗂️", "🗞️", "📰", "📓", "📔", "📒", "📕", "📗", "📘", "📙", "📚", "📖", "🔖", "🧷", "🔗", "📎", "🖇️", "📐", "📏", "🧮", "📌", "📍", "✂️", "🖊️", "🖋️", "✒️", "🖌️", "🖍️", "📝", "✏️", "🔍", "🔎", "🔏", "🔐", "🔒", "🔓"] },
-            { category: "Weather", emojis: ["☁️", "⛅", "⛈️", "🌤️", "🌥️", "🌦️", "🌧️", "🌨️", "🌩️", "🌪️", "🌫️", "🌝", "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘", "🌙", "🌚", "🌛", "🌜", "☀️", "🌞", "⭐", "🌟", "🌠", "☄️", "🌡️", "🌬️", "🌀", "🌈", "🌂", "☂️", "☔", "⛱️", "⚡", "❄️", "☃️", "⛄", "🔥", "💧", "🌊"] },
-            { category: "Symbols", emojis: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉️", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "⛎", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "🆔", "⚛️", "🉑", "☢️", "☣️", "📴", "📳", "🈶", "🈚", "🈸", "🈺", "🈷️", "✴️", "🆚", "💮", "🉐", "㊙️", "㊗️", "🈴", "🈵", "🈹", "🈲", "🅰️", "🅱️", "🆎", "🆑", "🅾️", "🆘", "❌", "⭕", "🛑", "⛔", "📛", "🚫", "💯", "💢", "♨️", "🚷", "🚯", "🚳", "🚱", "🔞", "📵", "🚭", "❗", "❕", "❓", "❔", "‼️", "⁉️", "🔅", "🔆", "〽️", "⚠️", "🚸", "🔱", "⚜️", "🔰", "♻️", "✅", "🈯", "💹", "❇️", "✳️", "❎", "🌐", "💠", "Ⓜ️", "🌀", "💤", "🏧", "🚾", "♿", "🅿️", "🛗", "🈳", "🈂️", "🛂", "🛃", "🛄", "🛅", "🚹", "🚺", "🚼", "⚧", "🚻", "🚮", "🎦", "📶", "🈁", "🔣", "ℹ️", "🔤", "🔡", "🔠", "🆖", "🆗", "🆙", "🆒", "🆕", "🆓", "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🔢", "#️⃣", "*️⃣", "⏏️", "▶️", "⏸️", "⏯️", "⏹️", "⏺️", "⏭️", "⏮️", "⏩", "⏪", "⏫", "⏬", "◀️", "🔼", "🔽", "➡️", "⬅️", "⬆️", "⬇️", "↗️", "↘️", "↙️", "↖️", "↕️", "↔️", "↪️", "↩️", "⤴️", "⤵️", "🔀", "🔁", "🔂", "🔄", "🔃", "🎵", "🎶", "➕", "➖", "➗", "✖️", "♾️", "💲", "💱", "™️", "©️", "®️", "〰️", "➰", "➿", "🔚", "🔙", "🔛", "🔝", "🔜", "✔️", "☑️", "🔘", "🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "⚫", "⚪", "🟤", "🔺", "🔻", "🔸", "🔹", "🔶", "🔷", "🔳", "🔲", "▪️", "▫️", "◾", "◽", "◼️", "◻️", "🟥", "🟧", "🟨", "🟩", "🟦", "🟪", "⬛", "⬜", "🟫", "🔈", "🔇", "🔉", "🔊", "🔔", "🔕", "📣", "📢", "👁️‍🗨️", "💬", "💭", "🗯️", "♠️", "♣️", "♥️", "♦️", "🃏", "🎴", "🀄"] },            
-            { category: "Flags", emojis: ["🏳️", "🏴", "🏁", "🚩", "🏳️‍🌈", "🏳️‍⚧️", "🏴‍☠️", "🇦🇫", "🇦🇽", "🇦🇱", "🇩🇿", "🇦🇸", "🇦🇩", "🇦🇴", "🇦🇮", "🇦🇶", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇼", "🇦🇺", "🇦🇹", "🇦🇿", "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇾", "🇧🇪", "🇧🇿", "🇧🇯", "🇧🇲", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇷", "🇮🇴", "🇻🇬", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇰🇭", "🇨🇲", "🇨🇦", "🇮🇨", "🇨🇻", "🇧🇶", "🇰🇾", "🇨🇫", "🇹🇩", "🇨🇱", "🇨🇳", "🇨🇽", "🇨🇨", "🇨🇴", "🇰🇲", "🇨🇬", "🇨🇩", "🇨🇰", "🇨🇷", "🇨🇮", "🇭🇷", "🇨🇺", "🇨🇼", "🇨🇾", "🇨🇿", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇪🇨", "🇪🇬", "🇸🇻", "🇬🇶", "🇪🇷", "🇪🇪", "🇪🇹", "🇪🇺", "🇫🇰", "🇫🇴", "🇫🇯", "🇫🇮", "🇫🇷", "🇬🇫", "🇵🇫", "🇹🇫", "🇬🇦", "🇬🇲", "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇮", "🇬🇷", "🇬🇱", "🇬🇩", "🇬🇵", "🇬🇺", "🇬🇹", "🇬🇬", "🇬🇳", "🇬🇼", "🇬🇾", "🇭🇹", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇲", "🇮🇱", "🇮🇹", "🇯🇲", "🇯🇵", "🎌", "🇯🇪", "🇯🇴", "🇰🇿", "🇰🇪", "🇰🇮", "🇽🇰", "🇰🇼", "🇰🇬", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹", "🇱🇺", "🇲🇴", "🇲🇰", "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶", "🇲🇷", "🇾🇹", "🇲🇽", "🇫🇲", "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇸", "🇲🇦", "🇲🇿", "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇨", "🇳🇿", "🇳🇮", "🇳🇪", "🇳🇬", "🇳🇺", "🇳🇫", "🇰🇵", "🇲🇵", "🇳🇴", "🇴🇲", "🇵🇰", "🇵🇼", "🇵🇸", "🇵🇦", "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇳", "🇵🇱", "🇵🇹", "🇵🇷", "🇶🇦", "🇷🇪", "🇷🇴", "🇷🇺", "🇷🇼", "🇼🇸", "🇸🇲", "🇸🇦", "🇸🇳", "🇷🇸", "🇸🇨", "🇸🇱", "🇸🇬", "🇸🇽", "🇸🇰", "🇸🇮", "🇬🇸", "🇸🇧", "🇸🇴", "🇿🇦", "🇰🇷", "🇸🇸", "🇪🇸", "🇱🇰", "🇧🇱", "🇸🇭", "🇰🇳", "🇱🇨", "🇵🇲", "🇻🇨", "🇸🇩", "🇸🇷", "🇸🇿", "🇸🇪", "🇨🇭", "🇸🇾", "🇹🇼", "🇹🇯", "🇹🇿", "🇹🇭", "🇹🇱", "🇹🇬", "🇹🇰", "🇹🇴", "🇹🇹", "🇹🇳", "🇹🇷", "🇹🇲", "🇹🇨", "🇹🇻", "🇻🇮", "🇺🇬", "🇺🇦", "🇦🇪", "🇬🇧", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "🇺🇳", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇺", "🇻🇦", "🇻🇪", "🇻🇳", "🇼🇫", "🇪🇭", "🇾🇪", "🇿🇲", "🇿🇼"] }
-        ];
+        this.emojis = emojiList;
     }
 
     onOpen() {
@@ -818,665 +803,6 @@ export class EmojiSelectionModal extends Modal {
     }
 
     getEmojiDescription(emoji) {
-        const emojiDescriptions = {
-            // Smileys & Emotion
-            '☹️': 'frowning face sad unhappy upset',
-            '🤐': 'zipper-mouth face quiet silence secret mute',
-            '🤒': 'face with thermometer sick ill fever temperature',
-            '🤓': 'nerd face glasses smart geek studious',
-            '🤔': 'thinking face thoughtful curious pondering',
-            '🤕': 'face with head-bandage injury hurt bandaged',
-            '🤗': 'hugging face hug comfort happy',
-            '🤢': 'nauseated face sick vomit gross disgusted',
-            '🤣': 'rolling on the floor laughing happy cry rofl lol',
-            '🤤': 'drooling face food hungry desire want',
-            '🤥': 'lying face liar nose growing pinocchio',
-            '🤧': 'sneezing face sick cold allergy achoo',
-            '🤨': 'face with raised eyebrow skeptical suspicious doubt',
-            '🤩': 'star-struck excited amazed starry-eyed',
-            '🤪': 'zany face crazy silly wild goofy',
-            '🤫': 'shushing face quiet silence secret',
-            '🤬': 'face with symbols on mouth swearing angry cursing',
-            '🤭': 'face with hand over mouth giggling surprise',
-            '🤮': 'face vomiting sick throw up gross ill',
-            '🤯': 'exploding head mind blown shocked amazed',
-            '🥰': 'smiling face with hearts love heart adore affection',
-            '🥱': 'yawning face sleepy tired bored',
-            '🥳': 'partying face celebration party festive',
-            '🥴': 'woozy face drunk dizzy tipsy disoriented',
-            '🥵': 'hot face heat sweating overheated',
-            '🥶': 'cold face freezing ice frozen',
-            '🥺': 'pleading face begging puppy eyes',
-            '🧐': 'face with monocle smart sophisticated examine',
-            '😀': 'grinning face smile happy joyful',
-            '😁': 'beaming face with smiling eyes grin happy proud',
-            '😂': 'face with tears of joy laughing crying happy lol',
-            '😃': 'grinning face with big eyes smile happy excited',
-            '😄': 'grinning face with smiling eyes happy joy laugh',
-            '😅': 'grinning face with sweat happy relief nervous',
-            '😇': 'smiling face with halo angel innocent blessed',
-            '😉': 'winking face flirt playful joke',
-            '😊': 'smiling face with smiling eyes happy sweet shy',
-            '😋': 'face savoring food yummy delicious tasty',
-            '😌': 'relieved face calm relaxed content',
-            '😍': 'smiling face with heart-eyes love heart adore',
-            '😎': 'smiling face with sunglasses cool confident',
-            '😏': 'smirking face flirt smug suggestive',
-            '😐': 'neutral face expressionless blank meh',
-            '😑': 'expressionless face blank unimpressed',
-            '😒': 'unamused face unhappy annoyed unimpressed',
-            '😓': 'downcast face with sweat tired stressed',
-            '😔': 'pensive face sad thoughtful reflective',
-            '😕': 'confused face puzzled unsure',
-            '😖': 'confounded face confused frustrated',
-            '😗': 'kissing face love affection',
-            '😘': 'face blowing a kiss love heart flirt',
-            '😙': 'kissing face with smiling eyes love happy',
-            '😚': 'kissing face with closed eyes love shy',
-            '😛': 'face with tongue playful silly taste',
-            '😜': 'winking face with tongue playful silly joke',
-            '😝': 'squinting face with tongue playful silly ecstatic',
-            '😞': 'disappointed face sad unhappy dejected',
-            '😟': 'worried face concerned anxious nervous',
-            '😠': 'angry face mad furious',
-            '😡': 'pouting face angry rage mad',
-            '😢': 'crying face sad tear unhappy',
-            '😣': 'persevering face struggling frustrated',
-            '😤': 'face with steam from nose angry frustrated proud',
-            '😥': 'sad but relieved face disappointed relieved',
-            '😦': 'frowning face with open mouth shock horror',
-            '😧': 'anguished face shocked scared distressed',
-            '😨': 'fearful face scared worried shocked',
-            '😩': 'weary face tired frustrated exhausted',
-            '😪': 'sleepy face tired drowsy rest',
-            '😫': 'tired face exhausted weary',
-            '😬': 'grimacing face awkward nervous uncomfortable',
-            '😭': 'loudly crying face sad sobbing upset',
-            '😮': 'face with open mouth surprise shock wow gasp',
-            '😯': 'hushed face surprised shocked stunned',
-            '😰': 'anxious face with sweat nervous worried',
-            '😱': 'face screaming in fear scared shocked',
-            '😲': 'astonished face shocked surprised amazed wow',
-            '😳': 'flushed face blushing embarrassed surprised',
-            '😴': 'sleeping face sleep zzz tired rest',
-            '😵': 'dizzy face spiral confused disoriented',
-            '😶': 'face without mouth speechless silent blank',
-            '😷': 'face with medical mask sick ill covid virus',
-            '🙁': 'slightly frowning face sad disappointed',
-            '🙂': 'slightly smiling face happy content',
-            '🙃': 'upside-down face silly playful ironic',
-            '🙄': 'face with rolling eyes exasperated annoyed',
-
-            // People & Body
-            '☝️': 'index pointing up direction gesture',
-            '✊': 'raised fist power solidarity strength',
-            '✋': 'raised hand stop high five palm',
-            '✌️': 'victory hand peace victory yeah',
-            '✍️': 'writing hand write note signature',
-            '👀': 'eyes look see watch',
-            '👁️': 'eye look see watch',
-            '👂': 'ear hear listen sound',
-            '👃': 'nose smell sniff',
-            '👄': 'mouth lips kiss speak',
-            '👅': 'tongue taste lick',
-            '👆': 'backhand index pointing up direction gesture',
-            '👇': 'backhand index pointing down direction gesture',
-            '👈': 'backhand index pointing left direction gesture',
-            '👉': 'backhand index pointing right direction gesture',
-            '👊': 'oncoming fist punch bro fist bump',
-            '👋': 'waving hand hello goodbye wave greeting',
-            '👌': 'ok hand perfect agree approval',
-            '👍': 'thumbs up approve like yes good',
-            '👎': 'thumbs down disapprove dislike no bad',
-            '👏': 'clapping hands praise applause congratulations bravo',
-            '👐': 'open hands hug welcome',
-            '👦': 'boy child young male kid',
-            '👧': 'girl child young female kid',
-            '👨': 'man male adult person gender',
-            '👨‍🦰': 'man red hair male person ginger hairstyle',
-            '👨‍🦱': 'man curly hair male person hairstyle',
-            '👨‍🦲': 'man bald male person no hair',
-            '👨‍🦳': 'man white hair male person hairstyle',
-            '👩': 'woman female adult person gender',
-            '👩‍🦰': 'woman red hair female person ginger hairstyle',
-            '👩‍🦱': 'woman curly hair female person hairstyle',
-            '👩‍🦲': 'woman bald female person no hair',
-            '👩‍🦳': 'woman white hair female person hairstyle',
-            '👱': 'person blonde hair human hairstyle',
-            '👱‍♀️': 'woman blonde hair female person hairstyle',
-            '👱‍♂️': 'man blonde hair male person hairstyle',
-            '👴': 'old man elderly male person senior',
-            '👵': 'old woman elderly female person senior',
-            '👶': 'baby child infant young newborn',
-            '💅': 'nail polish beauty manicure cosmetics',
-            '💋': 'kiss mark lips love romance',
-            '💪': 'flexed biceps strong muscle flex',
-            '🖐️': 'hand with fingers splayed stop halt palm',
-            '🖕': 'middle finger rude offensive gesture',
-            '🖖': 'vulcan salute star trek spock prosper',
-            '🤌': 'pinched fingers italian what gesture',
-            '🤏': 'pinching hand small tiny little',
-            '🤘': 'sign of the horns rock metal music',
-            '🤙': 'call me hand phone hang loose',
-            '🤚': 'raised back of hand stop halt',
-            '🤛': 'left-facing fist bump greeting',
-            '🤜': 'right-facing fist bump greeting',
-            '🤝': 'handshake deal agreement partnership',
-            '🤞': 'crossed fingers luck hopeful wish',
-            '🤟': 'love-you gesture rock love sign',
-            '🤲': 'palms up together pray beg',
-            '🤳': 'selfie camera phone photo',
-            '🦴': 'bone skeleton body structure',
-            '🦵': 'leg kick foot limb',
-            '🦶': 'foot toe kick limb',
-            '🦷': 'tooth teeth dental',
-            '🦻': 'ear with hearing aid accessibility deaf',
-            '🦾': 'mechanical arm robot prosthetic',
-            '🦿': 'mechanical leg robot prosthetic',
-            '🧑': 'person adult gender-neutral human',
-            '🧑‍🦰': 'person red hair human ginger hairstyle',
-            '🧑‍🦱': 'person curly hair human hairstyle',
-            '🧑‍🦲': 'person bald human no hair',
-            '🧑‍🦳': 'person white hair human hairstyle',
-            '🧒': 'child young kid gender-neutral youth',
-            '🧓': 'older person elderly human senior',
-            '🧔': 'person beard facial hair face',
-            '🧠': 'brain mind intellect thinking',
-            '🩸': 'drop of blood injury period medical',
-            '🫀': 'anatomical heart organ cardiac',
-            '🫁': 'lungs breathing organ respiratory',
-            '🙌': 'raising hands celebration praise hooray',
-            '🙏': 'folded hands please thank you pray hope',
-
-            // Food & Drink
-            '☕': 'hot beverage coffee tea drink',
-            '🌰': 'chestnut food nut seed',
-            '🍘': 'rice cracker japanese food snack',
-            '🍙': 'rice ball japanese food onigiri',
-            '🍚': 'cooked rice food asian grain',
-            '🍛': 'curry rice food indian spicy',
-            '🍜': 'steaming bowl noodles ramen soup',
-            '🍡': 'dango japanese food dessert sweet',
-            '🍢': 'oden japanese food skewer',
-            '🍣': 'sushi japanese food fish rice',
-            '🍤': 'fried shrimp seafood tempura',
-            '🍥': 'fish cake japanese food naruto',
-            '🍦': 'soft ice cream dessert cold sweet',
-            '🍧': 'shaved ice dessert cold sweet',
-            '🍨': 'ice cream dessert cold sweet',
-            '🍩': 'doughnut sweet dessert breakfast',
-            '🍪': 'cookie sweet dessert biscuit',
-            '🍫': 'chocolate bar candy sweet dessert',
-            '🍬': 'candy sweet dessert sugar',
-            '🍭': 'lollipop candy sweet dessert',
-            '🍮': 'custard dessert sweet pudding',
-            '🍯': 'honey pot sweet bee food',
-            '🍰': 'shortcake dessert sweet slice',
-            '🍱': 'bento box japanese food lunch',
-            '🍲': 'pot of food stew soup cooking',
-            '🍴': 'fork and knife cutlery silverware',
-            '🍵': 'teacup without handle green tea drink',
-            '🍶': 'sake japanese drink alcohol rice wine',
-            '🍷': 'wine glass drink alcohol beverage',
-            '🍸': 'cocktail glass drink alcohol martini',
-            '🍹': 'tropical drink alcohol beverage cocktail',
-            '🍺': 'beer mug drink alcohol beverage',
-            '🍻': 'clinking beer mugs drink alcohol cheers',
-            '🍼': 'baby bottle milk drink infant',
-            '🍽️': 'fork knife plate cutlery dining',
-            '🍾': 'bottle with popping cork celebration drink',
-            '🍿': 'popcorn movie snack corn',
-            '🎂': 'birthday cake celebration dessert',
-            '🥂': 'clinking glasses drink alcohol champagne',
-            '🥃': 'tumbler glass drink alcohol whiskey',
-            '🥄': 'spoon cutlery silverware utensil',
-            '🥗': 'green salad healthy food vegetables',
-            '🥛': 'glass of milk drink dairy beverage',
-            '🥜': 'peanuts food nuts legumes',
-            '🥟': 'dumpling food asian chinese',
-            '🥠': 'fortune cookie chinese food prediction',
-            '🥢': 'chopsticks utensils asian eating',
-            '🥤': 'cup with straw drink beverage soda',
-            '🥧': 'pie dessert food baked',
-            '🥮': 'moon cake chinese food festival',
-            '🦪': 'oyster seafood shellfish pearl',
-            '🧁': 'cupcake dessert sweet cake',
-            '🧃': 'beverage box juice drink straw',
-            '🧉': 'mate drink beverage tea south american',
-            '🧊': 'ice cube cold frozen water',
-            '🧋': 'bubble tea drink boba taiwanese',
-            '🫐': 'blueberries fruit food berries',
-            '🫑': 'bell pepper vegetable food',
-            '🫒': 'olive fruit food mediterranean',
-            '🫓': 'flatbread food pita naan',
-            '🫔': 'tamale food mexican wrapped',
-            '🫕': 'fondue food cheese melted',
-            '🫖': 'teapot drink hot beverage',
-
-            // Animals & Nature
-            '🐅': 'tiger cat wild animal dangerous',
-            '🐆': 'leopard cat wild animal spots',
-            '🐈‍⬛': 'black cat feline animal pet',
-            '🐊': 'crocodile alligator reptile dangerous',
-            '🐋': 'whale sea creature marine mammal',
-            '🐕‍🦺': 'service dog assistance animal',
-            '🐙': 'octopus sea creature tentacles',
-            '🐟': 'fish sea creature swimming',
-            '🐠': 'tropical fish sea creature aquarium',
-            '🐡': 'blowfish pufferfish sea creature',
-            '🐬': 'dolphin sea creature marine mammal',
-            '🐳': 'spouting whale sea creature marine mammal',
-            '🐿️': 'chipmunk animal squirrel',
-            '🕷️': 'spider arachnid bug insect',
-            '🕸️': 'spider web cobweb arachnid',
-            '🦀': 'crab seafood shellfish',
-            '🦂': 'scorpion arachnid dangerous',
-            '🦈': 'shark sea creature dangerous fish',
-            '🦍': 'gorilla ape primate monkey',
-            '🦐': 'shrimp seafood shellfish',
-            '🦑': 'squid sea creature tentacles',
-            '🦓': 'zebra stripes wild animal',
-            '🦔': 'hedgehog animal spiky cute',
-            '🦕': 'sauropod dinosaur extinct long-neck',
-            '🦖': 'tyrannosaurus rex dinosaur extinct',
-            '🦗': 'cricket insect chirping bug',
-            '🦞': 'lobster seafood shellfish',
-            '🦡': 'badger animal woodland',
-            '🦣': 'mammoth extinct animal prehistoric',
-            '🦤': 'dodo extinct bird animal',
-            '🦥': 'sloth slow animal lazy',
-            '🦦': 'otter swimming animal water',
-            '🦧': 'orangutan ape primate monkey',
-            '🦨': 'skunk animal smelly spray',
-            '🦩': 'flamingo pink bird animal',
-            '🦫': 'beaver animal dam builder',
-            '🦬': 'bison buffalo animal wild',
-            '🦮': 'guide dog service animal assistance',
-            '🪶': 'feather bird plume light',
-
-            // Travel & Places
-            '♨️': 'hot springs steam bath spa onsen',
-            '⛩️': 'shinto shrine building religious japanese',
-            '⛪': 'church building religious christian worship',
-            '⛰️': 'mountain nature landscape peak hill',
-            '⛲': 'fountain water decoration park plaza',
-            '⛺': 'tent camping outdoors shelter vacation',
-            '🌁': 'foggy city weather mist urban',
-            '🌃': 'night with stars city evening urban',
-            '🌄': 'sunrise over mountains morning dawn nature',
-            '🌅': 'sunrise morning dawn sun nature',
-            '🌆': 'cityscape at dusk evening urban sunset',
-            '🌇': 'sunset over buildings evening urban',
-            '🌉': 'bridge at night city urban evening',
-            '🌋': 'volcano mountain eruption nature disaster',
-            '🌍': 'globe showing europe africa earth world planet',
-            '🌎': 'globe showing americas earth world planet',
-            '🌏': 'globe showing asia australia earth world planet',
-            '🌐': 'globe with meridians earth world planet network',
-            '🎠': 'carousel horse amusement park ride',
-            '🎡': 'ferris wheel amusement park ride fair',
-            '🎢': 'roller coaster amusement park ride thrill',
-            '🎪': 'circus tent entertainment show performance',
-            '🏔️': 'snow capped mountain peak nature landscape',
-            '🏕️': 'camping tent outdoors nature vacation',
-            '🏖️': 'beach with umbrella vacation summer sand sea',
-            '🏗️': 'building construction site development crane',
-            '🏘️': 'houses buildings residential neighborhood',
-            '🏙️': 'cityscape urban buildings skyline',
-            '🏚️': 'derelict house abandoned building old',
-            '🏛️': 'classical building architecture historic landmark',
-            '🏜️': 'desert hot dry sand nature landscape',
-            '🏝️': 'desert island beach vacation tropical',
-            '🏞️': 'national park nature landscape scenic',
-            '🏟️': 'stadium sports arena event venue',
-            '🏠': 'house building home residential dwelling',
-            '🏡': 'house with garden home yard residential',
-            '🏢': 'office building business work corporate',
-            '🏣': 'japanese post office building mail service',
-            '🏤': 'post office building mail service',
-            '🏥': 'hospital building medical healthcare emergency',
-            '🏦': 'bank building money finance business',
-            '🏨': 'hotel building lodging accommodation travel',
-            '🏩': 'love hotel building romance accommodation',
-            '🏪': 'convenience store building shop retail',
-            '🏫': 'school building education learning',
-            '🏬': 'department store building shopping retail',
-            '🏭': 'factory building industrial manufacturing',
-            '🏯': 'japanese castle building landmark historic',
-            '🏰': 'castle building landmark historic medieval',
-            '💈': 'barber pole haircut salon shop',
-            '💒': 'wedding chapel marriage ceremony church',
-            '🕋': 'kaaba building religious islamic mecca',
-            '🕌': 'mosque building religious islamic worship',
-            '🕍': 'synagogue building religious jewish worship',
-            '🗺️': 'world map geography atlas travel global',
-            '🗻': 'mount fuji japan mountain landmark nature',
-            '🗼': 'tokyo tower landmark japan building',
-            '🗽': 'statue of liberty landmark usa freedom',
-            '🗾': 'map of japan geography country asian',
-            '🧭': 'compass navigation direction travel tool',
-            '🧱': 'brick construction building material wall',
-            '🪨': 'rock stone nature boulder mineral',
-            '🪵': 'wood log nature lumber timber material',
-            '🛕': 'hindu temple building religious worship',
-            '🛖': 'hut house shelter primitive dwelling',
-
-            // Activities
-            '⚽': 'soccer ball football sport team game',
-            '⚾': 'baseball sport team game ball bat',
-            '⛳': 'flag in hole golf sport course game',
-            '🎣': 'fishing pole rod sport hook line',
-            '🎤': 'microphone karaoke sing music performance',
-            '🎧': 'headphone music audio listen sound',
-            '🎨': 'artist palette art painting creativity',
-            '🎬': 'clapper board movie film director action',
-            '🎭': 'performing arts theater drama masks',
-            '🎮': 'video game controller gaming play',
-            '🎯': 'direct hit target dart game sport',
-            '🎱': 'pool 8 ball billiards game sport cue',
-            '🎲': 'game die dice gambling play random',
-            '🎷': 'saxophone jazz instrument music brass',
-            '🎸': 'guitar instrument music strings rock',
-            '🎹': 'musical keyboard piano instrument keys',
-            '🎺': 'trumpet brass instrument music fanfare',
-            '🎻': 'violin instrument music strings classical',
-            '🎼': 'musical score notes sheet music',
-            '🎽': 'running shirt athletics sport race',
-            '🎾': 'tennis sport racket ball court game',
-            '🎿': 'skis winter sport snow mountain',
-            '🏀': 'basketball sport team game ball',
-            '🏈': 'american football sport team game ball',
-            '🏉': 'rugby football sport team game ball',
-            '🏏': 'cricket sport team game bat ball',
-            '🏐': 'volleyball sport team game ball net',
-            '🏑': 'field hockey stick sport team game ball',
-            '🏒': 'ice hockey stick sport team game puck',
-            '🏓': 'ping pong table tennis sport game paddle',
-            '🏸': 'badminton sport game racket shuttlecock',
-            '🏹': 'bow and arrow archery sport target shoot',
-            '🤿': 'diving mask snorkel underwater swim sport',
-            '🥁': 'drum percussion instrument music rhythm',
-            '🥅': 'goal net sports hockey soccer score',
-            '🥌': 'curling stone winter sport ice game',
-            '🥍': 'lacrosse sport team game stick ball',
-            '🥎': 'softball sport team game ball bat',
-            '🥏': 'flying disc frisbee sport game outdoor',
-            '🧩': 'puzzle piece jigsaw game entertainment',
-            '🪀': 'yo-yo toy game skill string',
-            '🪁': 'kite flying outdoor toy wind sport',
-            '🪃': 'boomerang sport throw return australian',
-            '🪕': 'banjo instrument music strings folk',
-            '🪗': 'accordion instrument music squeeze box',
-            '🪘': 'long drum percussion instrument music',
-            '🛷': 'sled winter sport snow ride',
-
-            // Weather
-            '☁️': 'cloud',
-            '⛅': 'sun behind cloud',
-            '⛈️': 'cloud with lightning and rain',
-            '🌤️': 'sun behind one cloud',
-            '🌥️': 'sun behind two clouds',
-            '🌦️': 'sun behind three clouds',
-            '🌧️': 'cloud with rain',
-            '🌨️': 'cloud with snow',
-            '🌩️': 'cloud with lightning',
-            '🌪️': 'cloud with tornado',
-            '🌫️': 'cloud with fog',
-            '🌝': 'full moon',
-            '🌑': 'new moon',
-            '🌒': 'waxing crescent moon',
-            '🌓': 'waxing gibbous moon',
-            '🌔': 'full moon',
-            '🌕': 'waning gibbous moon',
-            '🌖': 'waning crescent moon',
-            '🌗': 'last quarter moon',
-            '🌘': 'first quarter moon',
-            '🌙': 'crescent moon',
-            '🌚': 'new moon face',
-            '🌛': 'first quarter moon face',
-            '🌜': 'last quarter moon face',
-            '☀️': 'sun',
-            '🌞': 'sun with face',
-            '⭐': 'star',
-            '🌟': 'shooting star',
-            '🌠': 'milky way',
-            '☄️': 'comet',
-            '🌡️': 'thermometer',
-            '🌬️': 'wind',
-            '🌀': 'cyclone',
-            '🌈': 'rainbow',
-            '🌂': 'umbrella',
-            '☂️': 'umbrella',
-            '☔': 'umbrella with rain',
-            '⛱️': 'umbrella on beach',
-            '⚡': 'high voltage',
-            '❄️': 'snowflake',
-            '☃️': 'snowman',
-            '⛄': 'snowman without snow',
-            '🔥': 'fire',
-            '💧': 'droplet',
-            '🌊': 'wave',
-
-            // Objects
-            '⌚': 'watch timekeeping device',
-            '⌛': 'hourglass timer device',
-            '⌨️': 'keyboard input device',
-            '⏰': 'alarm clock timekeeping device',
-            '⏱️': 'stopwatch timer device',
-            '⏲️': 'timer device',
-            '⏳': 'stopwatch timer device',
-            '☎️': 'telephone handset communication device',
-            '⚒️': 'wrench and hammer tool fixing device',
-            '⚔️': 'shield and sword defensive weapon',
-            '⚖️': 'scale balance weight device',
-            '⚙️': 'gear mechanical device',
-            '⚰️': 'coffin casket burial container',
-            '⚱️': 'hourglass memorial timer',
-            '⛏️': 'pickaxe tool mining device',
-            '⛓️': 'chain link security device',
-            '✂️': 'scissors cutting tool',
-            '✉️': 'envelope letter mail',
-            '✏️': 'pencil writing tool',
-            '✒️': 'pen writing tool',
-            '🎀': 'bow ribbon decoration',
-            '🎁': 'gift wrapped package',
-            '🎈': 'balloon decoration',
-            '🎉': 'party confetti decoration',
-            '🎊': 'party popper decoration',
-            '🎎': 'traditional japanese doll',
-            '🎏': 'origami paper decoration',
-            '🎐': 'envelope letter mail',
-            '🎙️': 'microphone sound amplification device',
-            '🎚️': 'headphones audio listening device',
-            '🎛️': 'speaker sound amplification device',
-            '🎞️': 'video cassette recording device',
-            '🎥': 'video camera recording device',
-            '🏮': 'lantern festival decoration',
-            '🏷️': 'price tag label',
-            '🏺': 'bell gong musical instrument',
-            '💌': 'envelope letter mail',
-            '💎': 'gemstone jewelry accessory',
-            '💡': 'light bulb lighting device',
-            '💣': 'bomb explosive weapon',
-            '💰': 'money currency finance device',
-            '💳': 'credit card finance device',
-            '💴': 'money currency finance device',
-            '💵': 'money currency finance device',
-            '💶': 'money currency finance device',
-            '💷': 'money currency finance device',
-            '💸': 'money currency finance device',
-            '💻': 'computer desktop',
-            '💽': 'computer disk storage device',
-            '💾': 'floppy disk storage device',
-            '💿': 'compact disc storage device',
-            '📀': 'dvd disc storage device',
-            '📁': 'file folder storage',
-            '📂': 'file folder storage',
-            '📃': 'page of paper',
-            '📄': 'page of paper',
-            '📅': 'calendar date',
-            '📆': 'calendar date',
-            '📇': 'file folder storage',
-            '📈': 'chart graph',
-            '📉': 'chart graph',
-            '📊': 'chart graph',
-            '📋': 'clipboard storage container',
-            '📌': 'pushpin sticky note marker',
-            '📍': 'pin sticky note marker',
-            '📎': 'paperclip attachment',
-            '📏': 'ruler measuring tool',
-            '📐': 'ruler measuring tool',
-            '📑': 'page of paper',
-            '📒': 'book book',
-            '📓': 'book book',
-            '📔': 'book book',
-            '📕': 'book book',
-            '📖': 'book book',
-            '📗': 'book book',
-            '📘': 'book book',
-            '📙': 'book book',
-            '📚': 'book book',
-            '📜': 'scroll parchment paper',
-            '📝': 'pencil writing tool',
-            '📞': 'telephone handset communication device',
-            '📟': 'pager pager device',
-            '📠': 'television television device',
-            '📡': 'satellite communication device',
-            '📤': 'envelope letter mail',
-            '📥': 'envelope letter mail',
-            '📦': 'package shipping container',
-            '📧': 'envelope letter mail',
-            '📨': 'envelope letter mail',
-            '📩': 'envelope letter mail',
-            '📪': 'envelope letter mail',
-            '📫': 'envelope letter mail',
-            '📬': 'envelope letter mail',
-            '📭': 'envelope letter mail',
-            '📮': 'envelope letter mail',
-            '📯': 'envelope letter mail',
-            '📰': 'newspaper newspaper',
-            '📱': 'smartphone mobile phone',
-            '📲': 'smartphone mobile phone',
-            '📷': 'camera photo imaging device',
-            '📸': 'camera photo imaging device',
-            '📹': 'video camera recording device',
-            '📺': 'television television device',
-            '📻': 'radio broadcasting device',
-            '📼': 'vhs tape storage device',
-            '📽️': 'video cassette recording device',
-            '📿': 'prayer beads religious accessory',
-            '🔋': 'battery power supply device',
-            '🔌': 'battery power supply device',
-            '🔍': 'magnifying glass search tool',
-            '🔎': 'magnifying glass search tool',
-            '🔏': 'lock security device',
-            '🔐': 'lock security device',
-            '🔑': 'key lock security device',
-            '🔒': 'lock security device',
-            '🔓': 'lock security device',
-            '🔖': 'bookmark page marker',
-            '🔗': 'link page marker',
-            '🔦': 'flashlight flashlight device',
-            '🔧': 'wrench tool fixing device',
-            '🔨': 'hammer tool striking device',
-            '🔩': 'gear mechanical device',
-            '🔫': 'gun firearm weapon',
-            '🔮': 'crystal ball fortune telling device',
-            '🕯️': 'candle light source',
-            '🕰️': 'hourglass timer device',
-            '🕹️': 'joystick game controller',
-            '🖇️': 'paperclip attachment',
-            '🖊️': 'pen writing tool',
-            '🖋️': 'pen writing tool',
-            '🖌️': 'paintbrush painting tool',
-            '🖍️': 'paintbrush painting tool',
-            '🖥️': 'computer monitor screen',
-            '🖨️': 'printer output device',
-            '🖱️': 'computer mouse pointing device',
-            '🖲️': 'touchscreen input device',
-            '🖼️': 'picture frame photo display',
-            '🗂️': 'file folder storage',
-            '🗃️': 'file folder storage',
-            '🗄️': 'file folder storage',
-            '🗑️': 'trash can waste disposal',
-            '🗒️': 'notebook paper',
-            '🗓️': 'calendar paper',
-            '🗜️': 'clamp tool mechanical device',
-            '🗝️': 'lock and key security device',
-            '🗞️': 'file folder storage',
-            '🗡️': 'sword weapon',
-            '🗳️': 'file folder storage',
-            '🧧': 'red envelope money gift',
-            '🧨': 'firecracker explosive weapon',
-            '🧮': 'calculator arithmetic device',
-            '🧯': 'fire extinguisher safety device',
-            '🧰': 'toolbox tool storage device',
-            '🧲': 'magnet magnetic field device',
-            '🧴': 'lotion cosmetic product',
-            '🧷': 'link page marker',
-            '🧸': 'pillow cushion',
-            '🧹': 'broom cleaning tool',
-            '🧺': 'basket storage container',
-            '🧼': 'soap dispenser',
-            '🧽': 'washcloth cleaning tool',
-            '🧾': 'receipt invoice',
-            '🧿': 'magic wand wizard spell casting device',
-            '🪄': 'magic wand wizard witch spell',
-            '🪅': 'piñata party celebration mexican',
-            '🪆': 'nesting dolls russian matryoshka toy',
-            '🪑': 'bed bed',
-            '🪒': 'razor shaving tool',
-            '🪓': 'axe tool chopping device',
-            '🪔': 'candle light source',
-            '🪙': 'coin currency finance device',
-            '🪚': 'saw tool woodworking device',
-            '🪛': 'screwdriver tool fixing device',
-            '🪜': 'lever mechanical device',
-            '🪞': 'mirror reflection device',
-            '🪟': 'curtain window covering',
-            '🪡': 'sewing needle thread craft',
-            '🪢': 'knot rope tied string',
-            '🪣': 'bucket pail container water',
-            '🪤': 'mouse trap rodent catch',
-            '🪥': 'toothbrush dental hygiene tool',
-            '🪦': 'headstone grave cemetery death',
-            '🪧': 'placard sign protest announcement',
-            '🪩': 'mirror ball disco party dance',
-            '🪪': 'identification card id license',
-            '🪫': 'low battery empty power dying',
-            '🪬': 'hamsa amulet protection luck',
-            '🪭': 'wireless speaker audio bluetooth',
-            '🪮': 'folding hand fan cooling breeze',
-            '🪯': 'khanda sikh religion symbol',
-            '🪰': 'fly insect bug pest',
-            '🪱': 'worm animal earth crawler',
-            '🪲': 'beetle insect bug',
-            '🪳': 'cockroach insect bug pest',
-            '🪴': 'potted plant garden indoor nature',
-            '🪷': 'lotus flower buddhism peace',
-            '🪸': 'coral ocean sea marine',
-            '🪹': 'empty nest bird home',
-            '🪺': 'nest with eggs bird home',
-            '🫧': 'bubbles soap water floating',
-            '🫸': 'rightwards hand pushing right',
-            '🚪': 'door door',
-            '🚬': 'cigarette smoking device',
-            '🚰': 'water closet flushing device',
-            '🚽': 'toilet flushing device',
-            '🚿': 'shower shower head',
-            '🛀': 'bathroom bathtub',
-            '🛁': 'bathroom bathtub',
-            '🛋️': 'sofa couch seating',
-            '🛌': 'bed and pillow sleeping arrangement',
-            '🛍️': 'shopping bag retail shopping',
-            '🛎️': 'bell doorbell communication device',
-            '🛏️': 'bed bed',
-            '🛒': 'shopping cart retail shopping',
-            '🛠️': 'toolbox tool storage device',
-            '🛢️': 'oil barrel petroleum product',
-            '🫹': 'leftwards hand pushing left',
-            '🫺': 'palm down hand below under',
-        };
         return (emojiDescriptions[emoji] || '').toLowerCase();
     }
 
@@ -1484,4 +810,369 @@ export class EmojiSelectionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
     }
-} 
+}
+
+// --------------------------
+// -- target position modal --
+// --------------------------
+export class TargetPositionModal extends Modal {
+    constructor(app, plugin, onPositionChange) {
+        super(app);
+        this.plugin = plugin;
+        this.onPositionChange = onPositionChange;
+        this.isDragging = false;
+        
+        // Get current display mode, zoom, postion, and banner height
+        const activeFile = this.app.workspace.getActiveFile();
+        const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+        const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
+            ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
+            : this.plugin.settings.customImageDisplayField;
+
+        const xField = Array.isArray(this.plugin.settings.customXPositionField) 
+            ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
+            : this.plugin.settings.customXPositionField;
+
+        const yField = Array.isArray(this.plugin.settings.customYPositionField) 
+            ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
+            : this.plugin.settings.customYPositionField;
+
+        const heightField = Array.isArray(this.plugin.settings.customBannerHeightField)
+            ? this.plugin.settings.customBannerHeightField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerHeightField;
+
+        this.currentX = frontmatter?.[xField] || this.plugin.settings.xPosition;
+        this.currentY = frontmatter?.[yField] || this.plugin.settings.yPosition;
+        this.currentHeight = frontmatter?.[heightField] || this.plugin.settings.bannerHeight;
+        this.currentDisplay = frontmatter?.[displayField] || this.plugin.settings.imageDisplay;
+        this.currentZoom = 100;
+        
+        // Parse current display value for zoom percentage
+        if (this.currentDisplay && this.currentDisplay.endsWith('%')) {
+            this.currentZoom = parseInt(this.currentDisplay) || 100;
+            this.currentDisplay = 'cover-zoom';
+        }
+    }
+
+    // Helper to update frontmatter with new display value
+    updateDisplayMode(mode, zoom = null) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
+            ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
+            : this.plugin.settings.customImageDisplayField;
+
+        let newValue = mode;
+        if (mode === 'cover-zoom') {
+            newValue = `${zoom}%`;
+        }
+
+        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+            fm[displayField] = newValue;
+        });
+    }
+
+    updateBannerHeight(height) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const heightField = Array.isArray(this.plugin.settings.customBannerHeightField)
+            ? this.plugin.settings.customBannerHeightField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerHeightField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[heightField] = height;
+        });
+    }
+
+    onPositionChange(x, y) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter.bannerTargetX = x;
+            frontmatter.bannerTargetY = y;
+        });
+    }
+
+    onOpen() {
+        const { contentEl, modalEl, bgEl } = this;
+        contentEl.empty();
+        contentEl.addClass('target-position-modal');
+        modalEl.style.opacity = "0.8";
+        bgEl.style.opacity = "0";
+
+        // Create main container with flex layout
+        const mainContainer = contentEl.createDiv({ cls: 'main-container' });
+        mainContainer.style.display = 'flex';
+        mainContainer.style.flexDirection = 'row';
+        mainContainer.style.gap = '20px';
+        mainContainer.style.alignItems = 'stretch';
+
+        // Create left panel for controls
+        const controlPanel = mainContainer.createDiv({ cls: 'control-panel' });
+        controlPanel.style.display = 'flex';
+        controlPanel.style.flexDirection = 'column';
+        controlPanel.style.gap = '10px';
+        controlPanel.style.flex = '0 auto';
+
+        // Display mode dropdown
+        const displaySelect = controlPanel.createEl('select', { cls: 'display-mode-select' });
+        ['cover', 'auto', 'contain', 'cover-zoom'].forEach(mode => {
+            const option = displaySelect.createEl('option', {
+                text: mode.replace('-', ' '),
+                value: mode
+            });
+            if (mode === this.currentDisplay) {
+                option.selected = true;
+            }
+        });
+
+        // Zoom slider container (initially hidden)
+        const zoomContainer = controlPanel.createDiv({ cls: 'zoom-container' });
+        zoomContainer.style.display = this.currentDisplay === 'cover-zoom' ? 'flex' : 'none';
+        zoomContainer.style.flexDirection = 'column';
+        zoomContainer.style.gap = '5px';
+        zoomContainer.style.alignItems = 'center';
+        zoomContainer.style.marginTop = '10px';
+        zoomContainer.style.height = '100%';
+
+        // Zoom value display
+        const zoomValue = zoomContainer.createDiv({ cls: 'zoom-value' });
+        zoomValue.style.fontFamily = 'var(--font-monospace)';
+        zoomValue.style.fontSize = '0.9em';
+        zoomValue.setText(`${this.currentZoom}%`);
+
+        // Zoom slider
+        const zoomSlider = zoomContainer.createEl('input', {
+            type: 'range',
+            cls: 'zoom-slider',
+            attr: {
+                min: '0',
+                max: '500',
+                step: '10',
+                value: this.currentZoom
+            }
+        });
+        zoomSlider.style.flex = '1';
+        zoomSlider.style.writingMode = 'vertical-lr';
+        zoomSlider.style.direction = 'rtl';
+
+        // Event handlers for display mode and zoom
+        displaySelect.addEventListener('change', () => {
+            const mode = displaySelect.value;
+            zoomContainer.style.display = mode === 'cover-zoom' ? 'flex' : 'none';
+            this.updateDisplayMode(mode, mode === 'cover-zoom' ? this.currentZoom : null);
+        });
+
+        zoomSlider.addEventListener('input', () => {
+            this.currentZoom = parseInt(zoomSlider.value);
+            zoomValue.setText(`${this.currentZoom}%`);
+            this.updateDisplayMode('cover-zoom', this.currentZoom);
+        });
+
+        // Height control container
+        const heightContainer = mainContainer.createDiv({ cls: 'height-container' });
+        heightContainer.style.display = 'flex';
+        heightContainer.style.flexDirection = 'column';
+        heightContainer.style.gap = '10px';
+        heightContainer.style.alignItems = 'center';
+        heightContainer.style.minWidth = '60px';
+        heightContainer.style.flex = '0 auto';
+
+        // Height label
+        const heightLabel = heightContainer.createEl('div', { 
+            text: 'Height',
+            cls: 'height-label' 
+        });
+        heightLabel.style.color = 'var(--text-muted)';
+        heightLabel.style.fontSize = '0.9em';
+
+        // Height value display
+        const heightValue = heightContainer.createDiv({ cls: 'height-value' });
+        heightValue.style.fontFamily = 'var(--font-monospace)';
+        heightValue.style.fontSize = '0.9em';
+        heightValue.setText(`${this.currentHeight}px`);
+
+        // Height slider
+        const heightSlider = heightContainer.createEl('input', {
+            type: 'range',
+            cls: 'height-slider',
+            attr: {
+                min: '0',
+                max: '1280',
+                step: '10',
+                value: this.currentHeight
+            }
+        });
+        heightSlider.style.flex = '1';
+        heightSlider.style.writingMode = 'vertical-lr';
+        heightSlider.style.direction = 'rtl';
+
+        heightSlider.addEventListener('input', () => {
+            this.currentHeight = parseInt(heightSlider.value);
+            heightValue.setText(`${this.currentHeight}px`);
+            this.updateBannerHeight(this.currentHeight);
+        });
+
+        // Create target container
+        const targetContainer = mainContainer.createDiv({ cls: 'target-container' });
+        targetContainer.style.display = 'flex';
+        targetContainer.style.flexDirection = 'column';
+        targetContainer.style.gap = '10px';
+        targetContainer.style.flexGrow = '1';
+
+        // Create container for the target area
+        const targetArea = targetContainer.createDiv({ cls: 'target-area' });
+        targetArea.style.width = '300px';
+        targetArea.style.height = '300px';
+        targetArea.style.border = '2px solid var(--background-modifier-border)';
+        targetArea.style.position = 'relative';
+        targetArea.style.backgroundColor = 'var(--background-primary)';
+        targetArea.style.cursor = 'crosshair';
+        targetArea.style.flexGrow = '1';
+
+        // Create crosshair lines
+        const verticalLine = targetArea.createDiv({ cls: 'vertical-line' });
+        const horizontalLine = targetArea.createDiv({ cls: 'horizontal-line' });
+
+        // Position indicator
+        const positionIndicator = targetContainer.createEl('div', { 
+            cls: 'position-indicator'
+        });
+        positionIndicator.style.textAlign = 'center';
+        positionIndicator.style.fontFamily = 'var(--font-monospace)';
+        positionIndicator.style.fontSize = '0.9em';
+        positionIndicator.style.color = 'var(--text-muted)';
+        positionIndicator.style.width = '300px';
+        positionIndicator.setText(`X: ${this.currentX}%, Y: ${this.currentY}%`);
+
+        const updatePositionIndicator = () => {
+            positionIndicator.setText(`X: ${this.currentX}%, Y: ${this.currentY}%`);
+        }
+
+        // Add styles
+        this.addStyle();
+
+        // Update crosshair position
+        const updatePosition = (e) => {
+            const rect = targetArea.getBoundingClientRect();
+            const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+            const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+            
+            verticalLine.style.left = `${x}%`;
+            horizontalLine.style.top = `${y}%`;
+
+            this.currentX = Math.round(x);
+            this.currentY = Math.round(y);
+
+            const xField = Array.isArray(this.plugin.settings.customXPositionField) 
+                ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
+                : this.plugin.settings.customXPositionField;
+
+            const yField = Array.isArray(this.plugin.settings.customYPositionField) 
+                ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
+                : this.plugin.settings.customYPositionField;
+
+            this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+                frontmatter[xField] = this.currentX;
+                frontmatter[yField] = this.currentY;
+            });
+
+            updatePositionIndicator();
+        };
+
+        // Only update position on click
+        targetArea.addEventListener('click', updatePosition);
+
+        // Set initial crosshair position
+        verticalLine.style.left = `${this.currentX}%`;
+        horizontalLine.style.top = `${this.currentY}%`;
+
+        // Reset to defaults button
+        const resetButton = contentEl.createEl('button', {
+            text: 'Reset to Defaults',
+            cls: 'mod-cta reset-button'
+        });
+        resetButton.style.marginTop = '20px';
+        resetButton.style.width = '100%';
+
+        resetButton.addEventListener('click', () => {
+            // Reset display mode
+            displaySelect.value = 'cover';
+            zoomContainer.style.display = 'none';
+            this.currentDisplay = 'cover';
+            this.updateDisplayMode('cover', null);
+
+            // Reset zoom
+            this.currentZoom = 100;
+            zoomSlider.value = this.currentZoom;
+            zoomValue.setText(`${this.currentZoom}%`);
+
+            // Reset height
+            this.currentHeight = this.plugin.settings.bannerHeight;
+            heightSlider.value = this.currentHeight;
+            heightValue.setText(`${this.currentHeight}px`);
+            this.updateBannerHeight(this.currentHeight);
+
+            // Reset position
+            this.currentX = 50;
+            this.currentY = 50;
+            verticalLine.style.left = `${this.currentX}%`;
+            horizontalLine.style.top = `${this.currentY}%`;
+            updatePositionIndicator();
+
+            const xField = Array.isArray(this.plugin.settings.customXPositionField) 
+                ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
+                : this.plugin.settings.customXPositionField;
+
+            const yField = Array.isArray(this.plugin.settings.customYPositionField) 
+                ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
+                : this.plugin.settings.customYPositionField;
+
+            this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+                frontmatter[xField] = this.currentX;
+                frontmatter[yField] = this.currentY;
+            });
+        });
+    }
+
+    addStyle() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .target-position-modal .target-area {
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .target-position-modal .vertical-line {
+                position: absolute;
+                background-color: var(--text-accent);
+                pointer-events: none;
+                width: 1px;
+                height: 100%;
+                left: ${this.currentX}%;
+            }
+            .target-position-modal .horizontal-line {
+                position: absolute;
+                background-color: var(--text-accent);
+                pointer-events: none;
+                width: 100%;
+                height: 1px;
+                top: ${this.currentY}%;
+            }
+            .target-position-modal .position-indicator {
+                text-align: center;
+                margin-top: 10px;
+                font-family: var(--font-monospace);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    onClose() {
+        const style = document.head.querySelector('style:last-child');
+        if (style) {
+            style.remove();
+        }
+    }
+}
