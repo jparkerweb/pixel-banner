@@ -52,7 +52,7 @@
 
 /* Apply title color to both reading and editing mode */
 .pixel-banner div.inline-title,
-.markdown-source-view div.inline-title {
+.pixel-banner .markdown-source-view div.inline-title {
     color: var(--pixel-banner-title-color, var(--inline-title-color));
 }
 
@@ -101,6 +101,7 @@
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher {
     height: var(--pixel-banner-content-start, 0.1px) !important;
 }
+
 
 /* -------------------------- */
 /* -- Settings Page Styles -- */
@@ -375,7 +376,10 @@
   position: relative;
 }
 
-/* Release Notes Modal */
+
+/* ------------------------- */
+/* -- Release Notes Modal -- */
+/* ------------------------- */
 .release-notes-container {
     max-height: 400px;
     overflow-y: auto;
@@ -594,8 +598,8 @@
 .view-image-icon {
     z-index: var(--layer-modal);
     opacity: 0.2;
-    transition: all 0.3s ease-in-out;
-    animation: pixel-banner--icon-fade-in 0.3s ease-in-out;
+    transition: all 0.4s ease-in-out;
+    animation: pixel-banner--icon-fade-in 0.4s ease-in-out;
     width: unset !important;
 }
 .select-image-icon:hover,

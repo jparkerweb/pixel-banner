@@ -825,8 +825,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
             const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
             const oldSelectIcons = container.querySelectorAll('.select-image-icon');
             const oldBannerIconButtons = container.querySelectorAll('.set-banner-icon-button');
+            const oldTargetBtns = container.querySelectorAll('.target-btn');
 
-            [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach(el => el.remove());
+            [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons, ...oldTargetBtns].forEach(el => el.remove());
 
             // Add select image icon for notes without a banner
             if (this.settings.showSelectImageIcon && container) {
@@ -2045,7 +2046,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     let leftOffset = this.settings.bannerGap + 5;
                     // We already created select & view icons above; find their last offset
                     // Actually simpler: Just pick a container query for them & measure
-                    const iconEls = container.querySelectorAll('.select-image-icon, .set-banner-icon-button, .view-image-icon');
+                    const iconEls = container.querySelectorAll('.select-image-icon, .set-banner-icon-button, .view-image-icon, .target-btn');
                     if (iconEls?.length) {
                         leftOffset = 10 + (35 * iconEls.length) + this.settings.bannerGap;
                     }
