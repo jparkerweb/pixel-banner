@@ -3167,7 +3167,7 @@ var TargetPositionModal = class extends import_obsidian7.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Addressed issue with target icon button not being cleaned up when viewing a note without a banner</li>\n<li>Resolved custom inline title colors being applied to notes without banners</li>\n<li>Resolved issue with Pixel Banner plugin preventing notes from being exported to PDF</li>\n</ul>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -3774,7 +3774,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       const oldRefreshIcons = container.querySelectorAll(".refresh-icon");
       const oldSelectIcons = container.querySelectorAll(".select-image-icon");
       const oldBannerIconButtons = container.querySelectorAll(".set-banner-icon-button");
-      [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach((el) => el.remove());
+      const oldTargetBtns = container.querySelectorAll(".target-btn");
+      [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons, ...oldTargetBtns].forEach((el) => el.remove());
       if (this.settings.showSelectImageIcon && container) {
         const existingSelectIcon = container.querySelector(".select-image-icon");
         if (!existingSelectIcon) {
@@ -3883,6 +3884,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     });
   }
   getFolderSpecificImage(filePath) {
+    if (!filePath) return null;
     const folderPath = this.getFolderPath(filePath);
     const sortedFolderImages = [...this.settings.folderImages].sort(
       (a, b) => {
@@ -3928,6 +3930,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     return settings;
   }
   getFolderPath(filePath) {
+    if (!filePath) return "/";
     if (!filePath.includes("/")) {
       return "/";
     }
@@ -4678,7 +4681,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         const canPin = (inputType === "keyword" || inputType === "url") && this.settings.showPinIcon && !isEmbedded;
         if (canPin) {
           let leftOffset = this.settings.bannerGap + 5;
-          const iconEls = container.querySelectorAll(".select-image-icon, .set-banner-icon-button, .view-image-icon");
+          const iconEls = container.querySelectorAll(".select-image-icon, .set-banner-icon-button, .view-image-icon, .target-btn");
           if (iconEls == null ? void 0 : iconEls.length) {
             leftOffset = 10 + 35 * iconEls.length + this.settings.bannerGap;
           }

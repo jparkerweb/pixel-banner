@@ -986,6 +986,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }, 100);
 
     getFolderSpecificImage(filePath) {
+        if (!filePath) return null;
         const folderPath = this.getFolderPath(filePath);
         
         // Sort folder images by path length (descending) to match most specific paths first
@@ -1049,6 +1050,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
     }
 
     getFolderPath(filePath) {
+        if (!filePath) return '/';
         if (!filePath.includes('/')) {
             return '/';
         }

@@ -2,6 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### [v2.21.1] - 2025-01-23
+#### 🐛 Fixed
+- Addressed issue with target icon button not being cleaned up when viewing a note without a banner
+- Resolved custom inline title colors being applied to notes without banners
+- Resolved issue with Pixel Banner plugin preventing notes from being exported to PDF
+
 ### [v2.21.0] - 2025-01-21
 #### ✨ Added
 - New Targeting Modal with controls to set zoom level, height, and position for your banner image
