@@ -2233,6 +2233,43 @@ name: Editor
 id: Editor
 settings:
     - 
+        id: line-emphasis
+        title: Focus indicator
+        title.zh: 焦点指示器
+        type: heading
+        collapsed: ture
+        level: 3
+    - 
+        id: line-hover-indicator-info
+        description: "Display a vertical line indicator before focus line"
+        description.zh: "在焦点行前显示一个竖线指示器"
+        type: info-text
+        markdown: true
+    - 
+        id: line-hover-indicator
+        title: Enable Focus indicator
+        title.zh: 启用 焦点指示器
+        type: class-toggle
+    - 
+        id: focus-indicator-list-level
+        title: indicate list level
+        title.zh: 指示列表层级
+        type: class-toggle
+    - 
+        id: focus-indicator-codeblock-line-number
+        title: indicate codeblock line number
+        title.zh: 指示代码块行号
+        type: class-toggle
+    - 
+		id: hover-indicator-color
+		title: Customize indicator color
+        title.zh: 自定义指示器的颜色
+		type: variable-themed-color
+		opacity: true
+		format: hex
+		default-light: '#'
+		default-dark: '#'
+    - 
         id: border-focus-mode-heading
         title: Focus mode
         title.zh: 专注模式
@@ -2268,33 +2305,6 @@ settings:
         min: 0.05
         max: 1
         step: 0.05
-    - 
-        id: line-emphasis
-        title: Hover line indicator
-        title.zh: 悬停行指示器
-        type: heading
-        collapsed: ture
-        level: 3
-    - 
-        id: line-hover-indicator-info
-        description: "Display a vertical line indicator before hovered line"
-        description.zh: "在鼠标悬停行前显示一个竖线指示器"
-        type: info-text
-        markdown: true
-    - 
-        id: line-hover-indicator
-        title: Enable hover line indicator
-        title.zh: 启用 悬停行指示器
-        type: class-toggle
-    - 
-		id: hover-indicator-color
-		title: Customize indicator color
-        title.zh: 自定义指示器的颜色
-		type: variable-themed-color
-		opacity: true
-		format: hex
-		default-light: '#'
-		default-dark: '#'
     - 
         id: Editor-background-pattern
         title: Editor background pattern
@@ -3824,7 +3834,7 @@ body.activated-file-tab-style-dark .setting-item[data-id=shadow-activated-file-d
 body:not(.table-width-customized) .setting-item[data-id=table-width],
 body.file-icon-remove .setting-item[data-id=colorful-folder],
 body:not(.new-tab-image-customize) .setting-item[data-id=new-tab-image],
-body:not(.line-hover-indicator) .setting-item[data-id=hover-indicator-color],
+body:not(.line-hover-indicator) .setting-item:is([data-id=hover-indicator-color], [data-id=focus-indicator-list-level], [data-id=focus-indicator-codeblock-line-number]),
 body:not(.codeblock-style-customize) .setting-item:is([data-id=code-background-light], [data-id=code-background-dark], [data-id=code-border-light], [data-id=code-border-dark], [data-id=code-normal], [data-id=code-comment], [data-id=code-function], [data-id=code-important], [data-id=code-keyword], [data-id=code-operator], [data-id=code-property], [data-id=code-punctuation], [data-id=code-string], [data-id=code-tag], [data-id=code-value]),
 body:not(.callout-style-customize) .setting-item:is([data-id=callout-border-width], [data-id=callout-border-opacity], [data-id=callout-padding], [data-id=callout-radius], [data-id=callout-title-color], [data-id=callout-title-padding], [data-id=callout-title-padding], [data-id=callout-title-size], [data-id=callout-content-padding], [data-id=callout-content-background], [data-id=callout-content-radius]),
 body:not(.editor-grid-background-pattren) .setting-item:is([data-id=grid-background-pattern-color], [data-id=grid-background-pattern-size]) {
@@ -5696,6 +5706,12 @@ body:not(.is-mobile).theme-dark .workspace-leaf-content[data-type=markdown] .doc
     }
 }
 
+
+/*webviewer*/
+.webviewer-content {
+    border-top: 0px solid var(--divider-color);
+}
+
 /* canvas  */
 body {
     --canvas-dot-pattern: var(--color-base-30);
@@ -6776,8 +6792,8 @@ body {
 .menu,
 .suggestion-container.mod-search-suggestion {
     background-color: var(--workspace-background-translucent);
-    backdrop-filter: blur(12px) saturate(190%) contrast(50%) brightness(130%);
-    -webkit-backdrop-filter: blur(12px) saturate(190%) contrast(50%) brightness(130%);
+    backdrop-filter: blur(16px) saturate(190%) contrast(50%) brightness(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(190%) contrast(50%) brightness(130%);
 }
 
 .theme-dark .modal.mod-canvas-help,
@@ -6788,8 +6804,8 @@ body {
 .theme-dark .menu,
 .theme-dark .suggestion-container.mod-search-suggestion {
     background-color: var(--workspace-background-translucent);
-    backdrop-filter: blur(10px) saturate(190%) contrast(70%) brightness(80%);
-    -webkit-backdrop-filter: blur(10px) saturate(190%) contrast(70%) brightness(80%);
+    backdrop-filter: blur(16px) saturate(190%) contrast(70%) brightness(80%);
+    -webkit-backdrop-filter: blur(16px) saturate(190%) contrast(70%) brightness(80%);
 }
 
 .suggestion-container.mod-search-suggestion .suggestion {
@@ -6861,8 +6877,8 @@ body {
 }
 
 /* justify text */
-body.text-align-justify .markdown-source-view.mod-cm6 .cm-line,
-body.text-align-justify .markdown-preview-view p {
+.text-align-justify .markdown-source-view.mod-cm6 .cm-line:not(.HyperMD-codeblock),
+.text-align-justify .markdown-preview-view p {
     text-align: justify;
     text-justify: auto;
 }
@@ -7609,18 +7625,14 @@ body {
 
 /*general*/
 
-body {
-    --hover-indicator-color: var(--color-accent);
-}
-
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-preview-sizer>div:not([class], :has(.collapse-indicator, .mk-header)) {
+.line-hover-indicator .workspace-leaf-content:is([data-type="markdown"], [data-type="webviewer"]):not(:has(.document-search-container)) .markdown-preview-sizer>div:not(:has(.collapse-indicator, .mk-header)) {
     position: relative;
 }
 
 .line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-source-view .cm-content>div:not(:has(.mk-note-footer)):has(.cm-hmd-list-indent)::after,
 .line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-source-view .cm-content>div:not(.image-embed, .mk-header, :has(.mk-note-footer, .collapse-indicator))::after,
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-preview-sizer>div:is(.el-ul, .el-ol)::after,
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-preview-sizer>div:not([class], :has(.collapse-indicator, .mk-header))::after {
+.line-hover-indicator .workspace-leaf-content:is([data-type="markdown"], [data-type="webviewer"]):not(:has(.document-search-container)) .markdown-preview-sizer>div:is(.el-ul, .el-ol)::after,
+.line-hover-indicator .workspace-leaf-content:is([data-type="markdown"], [data-type="webviewer"]):not(:has(.document-search-container)) .markdown-preview-sizer>div:not(:has(.collapse-indicator, .mk-header))::after {
     content: "";
     position: absolute;
     left: -12px;
@@ -7629,20 +7641,21 @@ body {
     height: 0;
     border-radius: 10px;
     background: var(--hover-indicator-color);
+    --hover-indicator-color: var(--text-faint);
     opacity: 1;
 }
 
 .line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-source-view .cm-content>div:not(:has(.mk-note-footer)):has(.cm-hmd-list-indent):hover::after,
 .line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-source-view .cm-content>div:not(.image-embed, .mk-header, :has(.mk-note-footer, .collapse-indicator)):hover::after,
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-preview-sizer>div:is(.el-ul, .el-ol):hover::after,
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-preview-sizer>div:not([class], :has(.collapse-indicator, .mk-header)):hover::after {
+.line-hover-indicator .workspace-leaf-content:is([data-type="markdown"], [data-type="webviewer"]):not(:has(.document-search-container)) .markdown-preview-sizer>div:is(.el-ul, .el-ol):hover::after,
+.line-hover-indicator .workspace-leaf-content:is([data-type="markdown"], [data-type="webviewer"]):not(:has(.document-search-container)) .markdown-preview-sizer>div:not(:has(.collapse-indicator, .mk-header)):hover::after {
     height: calc(100% - 6px);
 }
 
 /* num */
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line:not(.HyperMD-list-line-1):after,
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock:not(.HyperMD-codeblock-begin):not(.HyperMD-codeblock-end)::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line:not(.HyperMD-list-line-1):after,
+.line-hover-indicator.focus-indicator-codeblock-line-number .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock:not(.HyperMD-codeblock-begin):not(.HyperMD-codeblock-end)::after {
     background: unset !important;
     opacity: 0 !important;
     position: absolute !important;
@@ -7657,62 +7670,85 @@ body {
     color: var(--hover-indicator-color);
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line:not(.HyperMD-list-line-1):hover::after,
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock:not(.HyperMD-codeblock-begin):not(.HyperMD-codeblock-end):hover:after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line:not(.HyperMD-list-line-1):hover::after,
+.line-hover-indicator.focus-indicator-codeblock-line-number .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock:not(.HyperMD-codeblock-begin):not(.HyperMD-codeblock-end):hover:after {
     opacity: 1 !important;
+    --hover-indicator-color: var(--text-faint);
 }
 
 /* code */
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer,
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock-end {
+.line-hover-indicator.focus-indicator-codeblock-line-number .workspace-leaf-content[data-type="markdown"] .cm-contentContainer,
+.line-hover-indicator.focus-indicator-codeblock-line-number .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock-end {
     counter-reset: code-line;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock:not(.HyperMD-codeblock-begin):not(.HyperMD-codeblock-end)::after {
+.line-hover-indicator.focus-indicator-codeblock-line-number .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-codeblock:not(.HyperMD-codeblock-begin):not(.HyperMD-codeblock-end)::after {
     counter-increment: code-line;
     content: counter(code-line) !important;
 }
 
 /* list */
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line:not(.HyperMD-list-line-1):after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line:not(.HyperMD-list-line-1):after {
     content: "";
     text-indent: 0px !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-2::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-2::after {
     content: "2" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-3::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-3::after {
     content: "3" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-4::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-4::after {
     content: "4" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-5::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-5::after {
     content: "5" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-6::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-6::after {
     content: "6" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-7::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-7::after {
     content: "7" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-8::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-8::after {
     content: "8" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-9::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-9::after {
     content: "9" !important;
 }
 
-.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-10::after {
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-line.HyperMD-list-line.HyperMD-list-line-10::after {
     content: "10" !important;
+}
+
+/* active line */
+
+.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-source-view .cm-content>.cm-active:not(:has(.mk-note-footer)):has(.cm-hmd-list-indent)::after,
+.line-hover-indicator .workspace-leaf-content[data-type="markdown"] .markdown-source-view .cm-content>.cm-active:not(.image-embed, .mk-header, :has(.mk-note-footer, .collapse-indicator))::after {
+    content: "";
+    position: absolute;
+    left: -12px;
+    top: 3px;
+    width: 3px;
+    height: calc(100% - 6px);
+    border-radius: 10px;
+    background: var(--hover-indicator-color);
+    --hover-indicator-color: var(--color-accent) !important;
+    opacity: 1;
+}
+
+.line-hover-indicator.focus-indicator-list-level .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-active.HyperMD-list-line:not(.HyperMD-list-line-1)::after,
+.line-hover-indicator.focus-indicator-codeblock-line-number .workspace-leaf-content[data-type="markdown"] .cm-contentContainer .cm-active.HyperMD-codeblock:not(.HyperMD-codeblock-begin):not(.HyperMD-codeblock-end):after {
+    opacity: 1 !important;
+    --hover-indicator-color: var(--color-accent) !important;
 }
 
 /* Cursor */
@@ -8854,43 +8890,47 @@ svg.sidebar-left {
     border-top: 1px solid var(--divider-color);
 }
 
-.is-tablet .workspace-drawer-ribbon {
-    border-right: 1px solid var(--divider-color);
-}
-
-.is-tablet .workspace-drawer {
-    padding-top: 0;
-}
-
 .is-mobile.theme-light .mk-flow-bar button {
     background-color: var(--background-modifier-form-field);
 }
 
+.is-tablet .workspace-drawer .nav-header {
+    border-top: var(--border-width) solid transparent;
+}
+
 /* tablet card layout */
-body.card-layout-pad-open.is-tablet {
+.card-layout-pad-open.is-tablet .workspace-drawer {
+    padding-top: 0;
+}
+
+.card-layout-pad-open.is-tablet .workspace-drawer-ribbon {
+    border-right: 1px solid var(--divider-color);
+}
+
+.card-layout-pad-open.is-tablet {
     --titlebar-background: var(--background-underlying);
     --titlebar-background-focused: var(--background-underlying);
 }
 
-body.card-layout-pad-open.is-tablet,
-body.card-layout-pad-open.is-tablet .app-container,
-body.card-layout-pad-open.is-tablet .workspace,
-body.card-layout-pad-open.is-tablet .horizontal-main-container {
+.card-layout-pad-open.is-tablet,
+.card-layout-pad-open.is-tablet .app-container,
+.card-layout-pad-open.is-tablet .workspace,
+.card-layout-pad-open.is-tablet .horizontal-main-container {
     background-color: var(--background-underlying) !important;
 }
 
-body.card-layout-pad-open.is-tablet .workspace {
+.card-layout-pad-open.is-tablet .workspace {
     gap: 16px;
     padding: 16px;
     padding-bottom: 24px;
     padding-top: 8px;
 }
 
-body.card-layout-pad-open.is-tablet .app-container:has(.mobile-toolbar) .workspace {
+.card-layout-pad-open.is-tablet .app-container:has(.mobile-toolbar) .workspace {
     padding-bottom: 8px;
 }
 
-body.card-layout-pad-open.is-tablet .workspace-drawer {
+.card-layout-pad-open.is-tablet .workspace-drawer {
     background-color: var(--background-primary);
     border-radius: var(--card-border-radius-light, 8px) !important;
     overflow: hidden !important;
@@ -8899,23 +8939,23 @@ body.card-layout-pad-open.is-tablet .workspace-drawer {
     margin-top: 32px;
 }
 
-body.card-layout-pad-open.is-tablet.theme-dark .workspace-drawer {
+.card-layout-pad-open.is-tablet.theme-dark .workspace-drawer {
     border-radius: var(--card-border-radius-dark, 8px) !important;
 }
 
-body.card-layout-pad-open.is-tablet .workspace-split.mod-root {
+.card-layout-pad-open.is-tablet .workspace-split.mod-root {
     border-radius: var(--card-border-radius-light, 8px) !important;
     overflow: hidden !important;
     background-color: var(--background-primary) !important;
     box-shadow: 0px 0px 6px hsla(var(--accent-h), 18%, 80%, 0.4), 0px 0px 2px hsla(var(--accent-h), 18%, 80%, 0.2), 0 0 0 1px var(--background-modifier-border);
 }
 
-body.card-layout-pad-open.is-tablet.theme-dark .workspace-split.mod-root {
+.card-layout-pad-open.is-tablet.theme-dark .workspace-split.mod-root {
     box-shadow: 0px 0px 0px 1px var(--background-modifier-border);
     border-radius: var(--card-border-radius-dark, 8px);
 }
 
-body.card-layout-pad-open.is-tablet .workspace-drawer.is-pinned {
+.card-layout-pad-open.is-tablet .workspace-drawer.is-pinned {
     border-right: none;
     border-left: none;
     border-radius: var(--card-border-radius-light, 8px) !important;
@@ -8923,19 +8963,19 @@ body.card-layout-pad-open.is-tablet .workspace-drawer.is-pinned {
     box-shadow: 0px 0px 6px hsla(var(--accent-h), 18%, 80%, 0.4), 0px 0px 2px hsla(var(--accent-h), 18%, 80%, 0.2), 0 0 0 1px var(--background-modifier-border);
 }
 
-body.card-layout-pad-open.is-tablet.theme-dark .workspace-drawer.is-pinned {
+.card-layout-pad-open.is-tablet.theme-dark .workspace-drawer.is-pinned {
     box-shadow: 0px 0px 0px 1px var(--background-modifier-border);
     border-radius: var(--card-border-radius-dark, 8px) !important;
 }
 
-body.card-layout-pad-open.is-tablet .workspace-drawer-inner {
+.card-layout-pad-open.is-tablet .workspace-drawer-inner {
     padding-top: 8px;
 }
 
 
 /* drawer-phone-full-width */
 
-body.is-phone.drawer-phone-full-width .workspace-drawer {
+.is-phone.drawer-phone-full-width .workspace-drawer {
     width: 100vw;
     border-radius: 0px;
 }
