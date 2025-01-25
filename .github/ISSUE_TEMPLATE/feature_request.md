@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: "\U0001F4A1 ..."
+title: "\U0001F4A1 "
 labels: enhancement
 assignees: ''
 ---
