@@ -1,7 +1,7 @@
 ---
 name: "\U0001F4AC Question"
 about: "Ask a question about the 🚩 Pixel Banner plugin."
-title: "[Question]: "
+title: "❓ "
 labels: ["question"]
 assignees: ""
 ---
