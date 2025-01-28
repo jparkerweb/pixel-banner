@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "5fa59c190215ee51",
+        "id": "39c172ace5c64465",
         "type": "tabs",
         "children": [
           {
-            "id": "805a1a5756343aff",
+            "id": "b23af0e2379cbf86",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "🚩 Pixel-Banner.md",
+                "file": "releases/v2.21.2 - 🎯 Target Practice.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "🚩 Pixel-Banner"
+              "title": "v2.21.2 - 🎯 Target Practice"
             }
           }
         ]
@@ -1287,6 +1287,416 @@
             "id": "cf674f4bc04ad233",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9b4bddd6de4f702a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1dbe06bd96985618",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "00e54017fd780d67",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f541dbd9ef414519",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f1f72fcd7557737e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fd0bdaab40d9ebca",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a4d399c607d0a539",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fd95a6dc2409f0f4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1c54fcc2ae547833",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f9b1bbecc45ff413",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "dbf16ffddade2e66",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "960d3fb9b17ad97c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c403c7196b809883",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "2e59635fef78b628",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "740a5511941253e9",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "13f953bd2a502d6d",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7f4574d93230c997",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6b237aef6bb99864",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4116fe06a022fb24",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b9b293d05c0788b3",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d35e88707c358c04",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4a2b84f39a8499f7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9aadbfcac93dbe0f",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "ac6d5af9f4bcd642",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "dabc1392d293fe5c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "2c52b814944cdce1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "e2f215859d42cb3b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "054d5c040e1522bb",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0728c8ac51f4bbb6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "630b8fb61dc5d129",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9c4099b505d99f4c",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "de69e974d249b11a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b0be0f8c571d96ca",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "db726d9ba4b7a536",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8c5800908236633e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "ba002a163c9898f4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f0acf8f4475df4ba",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0cee3d4ee441f8b8",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5dd1a97ad1bbe912",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9765030e9733d40d",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a9168b47e9474420",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -1294,7 +1704,7 @@
             }
           }
         ],
-        "currentTab": 117
+        "currentTab": 158
       }
     ],
     "direction": "horizontal",
@@ -1311,37 +1721,37 @@
       "cmdr:Open Plugin Settings: Pixel Banner": false
     }
   },
-  "active": "805a1a5756343aff",
+  "active": "b23af0e2379cbf86",
   "lastOpenFiles": [
-    "tests/🧪 test - 7- shuffle time!.md",
+    "🚩 Pixel-Banner.md",
+    "tests/various embedded heights/_embedding-test.md",
+    "tests/simple embedded/consumer.md",
+    "tests/simple embedded/example-embedded.md",
+    "tests/simple embedded",
+    "tests/snippets.md",
+    "Random Shuffle/Disney Lorcana.md",
+    "tests/various embedded heights/banner-height-300.md",
+    "tests/various embedded heights/banner-height-150.md",
+    "tests/various embedded heights/banner-height-50.md",
+    "tests/banner icon 1.md",
+    "tests/banner icon 2.md",
+    "tests/🧪 test - 10 - embed tests.md",
+    "tests/blank.md",
+    "tests/🧪 test - 3 - direct url link.md",
     "tests/🧪 test - 4 - all fields.md",
     "tests/🧪 test - 5 - absolute position.md",
     "tests/🧪 test - 6 - image float right.md",
-    "tests/🧪 test - 8 - render link.md",
+    "tests/🧪 test - 7- shuffle time!.md",
     "tests/🧪 test - 9 - svg banner.md",
-    "tests/🧪 test - 10 - embed tests.md",
-    "🚩 Pixel-Banner.md",
-    "notes/📃 Embedded Note.md",
-    "notes/subfolder/Embedded Note in Subfolder.md",
-    "notes/📜 Embedded Note with Banner.md",
-    "Untitled.md",
-    "tests/snippets.md",
-    "tests/banner icon 2.md",
-    "ntitled.md",
-    "Untitled 1.md",
-    "tests/banner icon 1.md",
-    "releases/v2.21.0 - 🎯 Target Practice.md",
+    "tests/🧪 test - 2 - internal link - unquoted.md",
+    "tests/🧪 test - 1 - internal link.md",
     "releases/v2.20.0 - ⭐ The Icon has Landed.md",
-    "Random Shuffle/Disney Lorcana.md",
-    "Untitled 6.md",
-    "Untitled 5.md",
-    "Untitled 2.md",
-    "Untitled 4.md",
-    "Untitled 3.md",
-    "tests/various embedded heights/banner-height-50.md",
+    "releases/v2.17.0 - 🧦 Sort your Sock Drawer.md",
+    "releases/v2.13.0 - 🖼️ View my Banner.md",
+    "releases/v2.10.0 - 🖌️ Title Color.md",
+    "shuffle-images/bell-hidden-archer.jpg",
     "pixel-banner-images/bullseye.jpg",
     "shuffle-images/daisy-duck-secret-agent.jpg",
-    "shuffle-images/bell-hidden-archer.jpg",
     "pixel-banner-images/code.png",
     "pixel-banner-images/shooting-star.png",
     "pixel-banner-images/artwork.webp",
@@ -1357,7 +1767,6 @@
     "pixel-banner-images/father-and-child (1).jpg.crdownload",
     "50",
     "Random Shuffle",
-    "shuffle-images",
-    "releases"
+    "shuffle-images"
   ]
 }

@@ -1,0 +1,1 @@
+embedded note content
