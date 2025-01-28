@@ -2,6 +2,15 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v2.21.2 - 2025-01-28
+#### 📦 Updated
+- The Targeting Modal is now draggable (can help move it out of the way to see the banner)
+- Updated the padding and height of embedded notes without banners to shrink to their content
+- Improved cache to include banner icons
+
+#### 🐛 Fixed
+- Fixed issue with select image icon being added to embedded notes
+
 ### [v2.21.1] - 2025-01-23
 #### 🐛 Fixed
 - Addressed issue with target icon button not being cleaned up when viewing a note without a banner

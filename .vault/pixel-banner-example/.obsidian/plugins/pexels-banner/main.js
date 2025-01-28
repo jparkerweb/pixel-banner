@@ -2347,6 +2347,10 @@ var ReleaseNotesModal = class extends import_obsidian7.Modal {
     notesContainer.innerHTML = this.releaseNotes;
     contentEl.createEl("div", { cls: "release-notes-spacer" }).style.height = "20px";
     new import_obsidian7.Setting(contentEl).addButton((btn) => btn.setButtonText("Close").onClick(() => this.close()));
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
   }
   onClose() {
     const { contentEl } = this;
@@ -2377,6 +2381,10 @@ var ImageViewModal = class extends import_obsidian7.Modal {
     closeButton.style.marginTop = "10px";
     closeButton.addEventListener("click", () => this.close());
     this.scope.register([], "Escape", () => this.close());
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
   }
   onClose() {
     const { contentEl } = this;
@@ -2520,6 +2528,10 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
     this.paginationContainer.style.marginTop = "1em";
     this.paginationContainer.style.gap = "10px";
     this.updateImageGrid();
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
   }
   updateImageGrid() {
     this.gridContainer.empty();
@@ -2752,6 +2764,10 @@ var FolderSelectionModal = class extends import_obsidian7.FuzzySuggestModal {
     inputEl.value = this.defaultFolder;
     inputEl.select();
     this.updateSuggestions();
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
   }
 };
 var SaveImageModal = class extends import_obsidian7.Modal {
@@ -2787,6 +2803,10 @@ var SaveImageModal = class extends import_obsidian7.Modal {
         new import_obsidian7.Notice("Please enter a file name");
       }
     });
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
   }
   onClose() {
     const { contentEl } = this;
@@ -2820,6 +2840,10 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
       this.updateEmojiGrid();
     });
     this.updateEmojiGrid();
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
   }
   updateEmojiGrid() {
     this.gridContainer.empty();
@@ -3127,6 +3151,27 @@ var TargetPositionModal = class extends import_obsidian7.Modal {
         frontmatter[yField] = this.currentY;
       });
     });
+    let isDragging = false;
+    let offsetX, offsetY;
+    modalEl.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      offsetX = e.clientX - modalEl.getBoundingClientRect().left;
+      offsetY = e.clientY - modalEl.getBoundingClientRect().top;
+      modalEl.style.cursor = "grabbing";
+    });
+    document.addEventListener("mousemove", (e) => {
+      if (isDragging) {
+        modalEl.style.left = `${e.clientX - offsetX}px`;
+        modalEl.style.top = `${e.clientY - offsetY}px`;
+      }
+    });
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+      modalEl.style.cursor = "default";
+    });
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
   }
   addStyle() {
     const style = document.createElement("style");
@@ -3167,7 +3212,7 @@ var TargetPositionModal = class extends import_obsidian7.Modal {
 };
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Addressed issue with target icon button not being cleaned up when viewing a note without a banner</li>\n<li>Resolved custom inline title colors being applied to notes without banners</li>\n<li>Resolved issue with Pixel Banner plugin preventing notes from being exported to PDF</li>\n</ul>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.2</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>The Targeting Modal is now draggable (can help move it out of the way to see the banner)</li>\n<li>Updated the padding and height of embedded notes without banners to shrink to their content</li>\n<li>Improved cache to include banner icons</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with select image icon being added to embedded notes</li>\n</ul>\n<h3>v2.21.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Addressed issue with target icon button not being cleaned up when viewing a note without a banner</li>\n<li>Resolved custom inline title colors being applied to notes without banners</li>\n<li>Resolved issue with Pixel Banner plugin preventing notes from being exported to PDF</li>\n</ul>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
 
 // src/main.js
 function getFrontmatterValue(frontmatter, fieldNames) {
@@ -3209,12 +3254,40 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
     // Enhanced cache management properties
     __publicField(this, "bannerStateCache", /* @__PURE__ */ new Map());
-    // Format: { cacheKey: { state: {...}, timestamp: number, leafId: string } }
+    /* Cache format:
+        cacheKey -> {
+            state: {
+                imageUrl,
+                iconState: {
+                    icon,
+                    size,
+                    xPosition,
+                    opacity,
+                    color,
+                    fontWeight,
+                    backgroundColor,
+                    paddingX,
+                    paddingY,
+                    borderRadius,
+                    verticalOffset,
+                    viewType // 'preview' or 'source'
+                }
+            },
+            timestamp,
+            leafId,
+            isShuffled,
+            frontmatter
+        }
+    */
     __publicField(this, "MAX_CACHE_AGE", 30 * 60 * 1e3);
     // 30 minutes in milliseconds
     __publicField(this, "MAX_CACHE_ENTRIES", 30);
     // Maximum number of entries to keep in cache
     __publicField(this, "SHUFFLE_CACHE_AGE", 5 * 1e3);
+    // 5 seconds in milliseconds for shuffled banners
+    // Add element pool for icon overlays
+    __publicField(this, "iconOverlayPool", []);
+    __publicField(this, "MAX_POOL_SIZE", 10);
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
       if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
@@ -3226,11 +3299,62 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }, 100));
   }
-  // 5 seconds in milliseconds for shuffled banners
+  // Get an overlay from the pool or create a new one
+  getIconOverlay() {
+    if (this.iconOverlayPool.length > 0) {
+      return this.iconOverlayPool.pop();
+    }
+    const overlay = document.createElement("div");
+    overlay.className = "banner-icon-overlay";
+    return overlay;
+  }
+  // Return an overlay to the pool
+  returnIconOverlay(overlay) {
+    if (this.iconOverlayPool.length < this.MAX_POOL_SIZE) {
+      overlay.style.cssText = "";
+      overlay.className = "banner-icon-overlay";
+      overlay.textContent = "";
+      overlay.remove();
+      this.iconOverlayPool.push(overlay);
+    }
+  }
   // Helper method to generate cache key
   generateCacheKey(filePath, leafId, isShuffled = false) {
     const encodedPath = encodeURIComponent(filePath);
     return `${encodedPath}-${leafId}${isShuffled ? "-shuffle" : ""}`;
+  }
+  // Optimized method to compare icon states and determine if update is needed
+  shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
+    if (!existingOverlay || !newIconState) return true;
+    if (!existingOverlay._isPersistentBannerIcon || existingOverlay.dataset.viewType !== viewType || existingOverlay.textContent !== newIconState.icon) {
+      return true;
+    }
+    const computedStyle = window.getComputedStyle(existingOverlay);
+    const styleChecks = {
+      fontSize: `${newIconState.size}px`,
+      left: `${newIconState.xPosition}%`,
+      opacity: `${newIconState.opacity}%`,
+      color: newIconState.color,
+      fontWeight: newIconState.fontWeight,
+      backgroundColor: newIconState.backgroundColor,
+      borderRadius: `${newIconState.borderRadius}px`,
+      marginTop: `${newIconState.verticalOffset}px`
+    };
+    const currentPadding = computedStyle.padding.split(" ");
+    const expectedPadding = `${newIconState.paddingY}px ${newIconState.paddingX}px`;
+    if (currentPadding.join(" ") !== expectedPadding) {
+      return true;
+    }
+    return Object.entries(styleChecks).some(([prop, value]) => {
+      const current = computedStyle[prop];
+      return current !== value && // Handle special cases for colors
+      !(prop.includes("color") && this.normalizeColor(current) === this.normalizeColor(value));
+    });
+  }
+  // Helper to normalize color values for comparison
+  normalizeColor(color) {
+    if (!color || color === "transparent" || color === "none") return "transparent";
+    return color.toLowerCase().replace(/\s+/g, "");
   }
   // Helper method to get all cache entries for a file
   getCacheEntriesForFile(filePath) {
@@ -3244,20 +3368,46 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     for (const [key, entry] of this.bannerStateCache) {
       const maxAge = entry.isShuffled ? this.SHUFFLE_CACHE_AGE : this.MAX_CACHE_AGE;
       if (force || now - entry.timestamp > maxAge) {
-        this.bannerStateCache.delete(key);
+        if (entry.leafId) {
+          const leaf = this.app.workspace.getLeafById(entry.leafId);
+          if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian8.MarkdownView) {
+            const contentEl = leaf.view.contentEl;
+            ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
+              const container = contentEl.querySelector(`.${selector}`);
+              if (container) {
+                const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
+                iconOverlays.forEach((overlay) => overlay.remove());
+              }
+            });
+          }
+        }
         if ((_b = (_a = entry.state) == null ? void 0 : _a.imageUrl) == null ? void 0 : _b.startsWith("blob:")) {
           URL.revokeObjectURL(entry.state.imageUrl);
         }
+        this.bannerStateCache.delete(key);
       }
     }
     if (!force && this.bannerStateCache.size > this.MAX_CACHE_ENTRIES) {
       const entries = Array.from(this.bannerStateCache.entries()).sort(([, a], [, b]) => a.timestamp - b.timestamp);
       while (entries.length > this.MAX_CACHE_ENTRIES) {
         const [key, entry] = entries.shift();
-        this.bannerStateCache.delete(key);
+        if (entry.leafId) {
+          const leaf = this.app.workspace.getLeafById(entry.leafId);
+          if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian8.MarkdownView) {
+            const contentEl = leaf.view.contentEl;
+            ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
+              const container = contentEl.querySelector(`.${selector}`);
+              if (container) {
+                const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
+                iconOverlays.forEach((overlay) => overlay.remove());
+              }
+            });
+          }
+        }
         if ((_d = (_c = entry.state) == null ? void 0 : _c.imageUrl) == null ? void 0 : _d.startsWith("blob:")) {
           URL.revokeObjectURL(entry.state.imageUrl);
         }
+        this.bannerStateCache.delete(key);
       }
     }
   }
@@ -3266,6 +3416,17 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     var _a, _b;
     for (const [key, entry] of this.bannerStateCache) {
       if (key.includes(`-${leafId}`)) {
+        const leaf = this.app.workspace.getLeafById(leafId);
+        if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian8.MarkdownView) {
+          const contentEl = leaf.view.contentEl;
+          ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
+            const container = contentEl.querySelector(`.${selector}`);
+            if (container) {
+              const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
+              iconOverlays.forEach((overlay) => overlay.remove());
+            }
+          });
+        }
         if ((_b = (_a = entry.state) == null ? void 0 : _a.imageUrl) == null ? void 0 : _b.startsWith("blob:")) {
           URL.revokeObjectURL(entry.state.imageUrl);
         }
@@ -3273,6 +3434,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }
   }
+  // --------------------------------------
+  // -- onload method / main entry point --
+  // --------------------------------------
   async onload() {
     await this.loadSettings();
     this.updateEmbeddedTitlesVisibility();
@@ -3568,13 +3732,28 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
       if (shouldUpdateBanner) {
         await this.updateBanner(leaf.view, false, this.UPDATE_MODE.FULL_UPDATE);
+        const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
+        const iconState = bannerIcon ? {
+          icon: bannerIcon,
+          size: getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || this.settings.bannerIconSize,
+          xPosition: getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || this.settings.bannerIconXPosition,
+          opacity: getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || this.settings.bannerIconOpacity,
+          color: getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || this.settings.bannerIconColor,
+          fontWeight: getFrontmatterValue(frontmatter, this.settings.customBannerIconFontWeightField) || this.settings.bannerIconFontWeight,
+          backgroundColor: getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || this.settings.bannerIconBackgroundColor,
+          paddingX: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || this.settings.bannerIconPaddingX,
+          paddingY: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || this.settings.bannerIconPaddingY,
+          borderRadius: getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || this.settings.bannerIconBorderRadius,
+          verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || this.settings.bannerIconVeritalOffset
+        } : null;
         this.bannerStateCache.set(cacheKey, {
           timestamp: currentTime,
           frontmatter: frontmatter ? { ...frontmatter } : null,
           leafId,
           isShuffled,
           state: {
-            imageUrl: this.loadedImages.get(currentPath)
+            imageUrl: this.loadedImages.get(currentPath),
+            iconState
           }
         });
       } else {
@@ -3594,9 +3773,9 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     const previousContentEl = previousLeaf.view.contentEl;
     previousContentEl.classList.remove("pixel-banner");
     ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
-      const container = previousContentEl.querySelector(`.${selector}`);
+      const container = previousContentEl.querySelector(`div.${selector}`);
       if (container) {
-        const previousBanner = container.querySelector(".pixel-banner-image");
+        const previousBanner = container.querySelector(":scope > .pixel-banner-image");
         if (previousBanner) {
           previousBanner.style.backgroundImage = "";
           previousBanner.style.display = "none";
@@ -3608,8 +3787,12 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
             this.loadedImages.delete(previousLeaf.view.file.path);
           }
         }
-        const iconOverlays = container.querySelectorAll(".banner-icon-overlay");
-        iconOverlays.forEach((overlay) => overlay.remove());
+        const iconOverlays = container.querySelectorAll(":scope > .banner-icon-overlay");
+        iconOverlays.forEach((overlay) => {
+          if (!overlay.dataset.persistent) {
+            this.returnIconOverlay(overlay);
+          }
+        });
       }
     });
   }
@@ -3650,7 +3833,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     }
   }
   async updateBanner(view, isContentChange, updateMode = this.UPDATE_MODE.FULL_UPDATE) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
     if (!view || !view.file) {
       return;
     }
@@ -3661,8 +3844,22 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     const contentEl = view.contentEl;
     const isEmbedded = contentEl.classList.contains("internal-embed") && contentEl.classList.contains("markdown-embed");
     const viewContent = contentEl;
-    const allOverlays = viewContent.querySelectorAll(".banner-icon-overlay");
-    allOverlays.forEach((overlay) => overlay.remove());
+    const nonPersistentOverlays = viewContent.querySelectorAll('.banner-icon-overlay:not([data-persistent="true"])');
+    nonPersistentOverlays.forEach((overlay) => overlay.remove());
+    ["markdown-preview-sizer", "cm-sizer"].forEach((container) => {
+      const containerEl = viewContent.querySelector(`.${container}`);
+      if (containerEl) {
+        const bannerImage2 = containerEl.querySelector(":scope > .pixel-banner-image");
+        if (bannerImage2) {
+          const allOverlays = containerEl.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+          allOverlays.forEach((overlay) => {
+            if (overlay.previousElementSibling !== bannerImage2) {
+              overlay.remove();
+            }
+          });
+        }
+      }
+    });
     const existingBanner = contentEl.querySelector(".pixel-banner-image");
     const folderSpecific = this.getFolderSpecificImage(view.file.path);
     let bannerImage = null;
@@ -3692,6 +3889,12 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       if (existingBanner) {
         existingBanner.style.backgroundImage = "";
         existingBanner.style.display = "none";
+      }
+    } else if (isEmbedded && !bannerImage) {
+      const embedRoot = viewContent.closest(".internal-embed.markdown-embed");
+      if (embedRoot) {
+        embedRoot.style.setProperty("--pixel-banner-embed-min-height", "1%");
+        embedRoot.style.setProperty("--pixel-banner-content-start", "0");
       }
     }
     if (isContentChange) {
@@ -3776,7 +3979,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       const oldBannerIconButtons = container.querySelectorAll(".set-banner-icon-button");
       const oldTargetBtns = container.querySelectorAll(".target-btn");
       [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons, ...oldTargetBtns].forEach((el) => el.remove());
-      if (this.settings.showSelectImageIcon && container) {
+      if (!isEmbedded && this.settings.showSelectImageIcon && container) {
         const existingSelectIcon = container.querySelector(".select-image-icon");
         if (!existingSelectIcon) {
           const selectImageIcon = createDiv({ cls: "select-image-icon" });
@@ -3809,43 +4012,81 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
     if (isEmbedded) {
       const embedContainer = contentEl.querySelector(".markdown-preview-sizer") || contentEl.querySelector(".markdown-embed-content") || contentEl;
-      const thisEmbedOverlays = embedContainer.querySelectorAll(":scope > .banner-icon-overlay");
-      thisEmbedOverlays.forEach((overlay) => {
-        overlay.remove();
-      });
+      const thisEmbedOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
+      thisEmbedOverlays.forEach((overlay) => overlay.remove());
     } else {
       ["markdown-preview-view", "markdown-source-view"].forEach((viewType) => {
         const viewContainer = contentEl.querySelector(`.${viewType}`);
         if (viewContainer) {
-          const mainOverlays = viewContainer.querySelectorAll(":scope > .banner-icon-overlay");
-          mainOverlays.forEach((overlay) => {
-            overlay.remove();
-          });
+          const mainOverlays = viewContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
+          mainOverlays.forEach((overlay) => overlay.remove());
         }
       });
     }
     if (bannerIcon && typeof bannerIcon === "string" && bannerIcon.trim()) {
       const cleanIcon = bannerIcon.trim();
-      const createIconOverlay = (banner, viewType) => {
+      const cacheKey = this.generateCacheKey(view.file.path, this.app.workspace.activeLeaf.id);
+      const cachedState = this.bannerStateCache.get(cacheKey);
+      const cachedIconState = (_n = cachedState == null ? void 0 : cachedState.state) == null ? void 0 : _n.iconState;
+      const createOrUpdateIconOverlay = (banner, viewType) => {
+        var _a2, _b2;
         if (!banner) {
           return;
         }
-        const bannerIconOverlay = document.createElement("div");
-        bannerIconOverlay.className = "banner-icon-overlay";
+        const currentIconState = {
+          icon: cleanIcon,
+          size: getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || this.settings.bannerIconSize,
+          xPosition: getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || this.settings.bannerIconXPosition,
+          opacity: getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || this.settings.bannerIconOpacity,
+          color: getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || this.settings.bannerIconColor,
+          fontWeight: getFrontmatterValue(frontmatter, this.settings.customBannerIconFontWeightField) || this.settings.bannerIconFontWeight,
+          backgroundColor: getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || this.settings.bannerIconBackgroundColor,
+          paddingX: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || this.settings.bannerIconPaddingX,
+          paddingY: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || this.settings.bannerIconPaddingY,
+          borderRadius: getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || this.settings.bannerIconBorderRadius,
+          verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || this.settings.bannerIconVeritalOffset,
+          viewType
+        };
+        const existingOverlay = ((_b2 = (_a2 = banner.nextElementSibling) == null ? void 0 : _a2.classList) == null ? void 0 : _b2.contains("banner-icon-overlay")) ? banner.nextElementSibling : null;
+        if (existingOverlay) {
+          if (!this.shouldUpdateIconOverlay(existingOverlay, currentIconState, viewType)) {
+            return existingOverlay;
+          }
+          this.returnIconOverlay(existingOverlay);
+        }
+        const bannerIconOverlay = this.getIconOverlay();
         bannerIconOverlay.dataset.viewType = viewType;
+        bannerIconOverlay.dataset.persistent = "true";
         bannerIconOverlay.textContent = cleanIcon;
         bannerIconOverlay._isPersistentBannerIcon = true;
+        bannerIconOverlay.style.display = "block";
+        bannerIconOverlay.style.fontSize = `${currentIconState.size}px`;
+        bannerIconOverlay.style.left = `${currentIconState.xPosition}%`;
+        bannerIconOverlay.style.opacity = `${currentIconState.opacity}%`;
+        bannerIconOverlay.style.color = currentIconState.color;
+        bannerIconOverlay.style.fontWeight = currentIconState.fontWeight;
+        bannerIconOverlay.style.backgroundColor = currentIconState.backgroundColor;
+        bannerIconOverlay.style.padding = `${currentIconState.paddingY}px ${currentIconState.paddingX}px`;
+        bannerIconOverlay.style.borderRadius = `${currentIconState.borderRadius}px`;
+        bannerIconOverlay.style.marginTop = `${currentIconState.verticalOffset}px`;
         banner.insertAdjacentElement("afterend", bannerIconOverlay);
+        return bannerIconOverlay;
       };
       if (isEmbedded) {
         const embedContainer = contentEl.querySelector(".markdown-preview-sizer") || contentEl.querySelector(".markdown-embed-content") || contentEl;
         const previewBanner = embedContainer.querySelector(":scope > .pixel-banner-image");
-        createIconOverlay(previewBanner, "preview");
+        createOrUpdateIconOverlay(previewBanner, "preview");
       } else {
-        const previewBanner = contentEl.querySelector(".markdown-preview-view .pixel-banner-image");
-        const sourceBanner = contentEl.querySelector(".markdown-source-view .pixel-banner-image");
-        createIconOverlay(previewBanner, "preview");
-        createIconOverlay(sourceBanner, "source");
+        const previewContainer = contentEl.querySelector("div.markdown-preview-sizer");
+        const sourceContainer = contentEl.querySelector("div.cm-sizer");
+        if (previewContainer) {
+          const previewBanner = previewContainer.querySelector(":scope > .pixel-banner-image");
+          if (previewBanner) createOrUpdateIconOverlay(previewBanner, "preview");
+        }
+        if (sourceContainer) {
+          const sourceBanner = sourceContainer.querySelector(":scope > .pixel-banner-image");
+          if (sourceBanner) createOrUpdateIconOverlay(sourceBanner, "source");
+        }
       }
     }
   }
@@ -4334,6 +4575,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         }
       }
     });
+    this.iconOverlayPool = [];
     const styleElTitle = document.getElementById("pixel-banner-embedded-titles");
     if (styleElTitle) styleElTitle.remove();
     const styleElBanner = document.getElementById("pixel-banner-embedded-banners");
@@ -4348,11 +4590,27 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
   applyBannerWidth(el) {
     if (!el) return;
     setTimeout(() => {
+      if (!el.classList.contains("view-content")) {
+        return;
+      }
       const theWidth = el.clientWidth;
       const bannerGap = this.settings.bannerGap;
       el.style.setProperty("--pixel-banner-width", `${theWidth - bannerGap * 2}px`);
       el.style.setProperty("--pixel-banner-banner-gap", `${bannerGap}px`);
     }, 50);
+  }
+  // Update the resize observer setup to only observe the view-content element
+  setupResizeObserver(viewContent) {
+    if (!viewContent.classList.contains("view-content")) {
+      return;
+    }
+    if (!viewContent._resizeObserver) {
+      const debouncedResize = debounce(() => {
+        this.applyBannerWidth(viewContent);
+      }, 100);
+      viewContent._resizeObserver = new ResizeObserver(debouncedResize);
+      viewContent._resizeObserver.observe(viewContent);
+    }
   }
   getFolderSpecificSetting(filePath, settingName) {
     var _a;
@@ -4447,8 +4705,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains("internal-embed") && viewContent.classList.contains("markdown-embed");
-    if (!isEmbedded) {
+    if (!isEmbedded && viewContent.classList.contains("view-content")) {
       viewContent.classList.add("pixel-banner");
+      this.setupResizeObserver(viewContent);
+      this.applyBannerWidth(viewContent);
     }
     let container;
     if (isEmbedded) {
@@ -4463,13 +4723,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       container = isReadingView ? viewContent.querySelector(".markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)") || viewContent.querySelector(".markdown-preview-view") : viewContent.querySelector(".cm-sizer") || viewContent.querySelector(".markdown-source-view");
       if (!container && viewContent.classList.contains("markdown-preview-view")) {
         container = viewContent;
-      }
-      if (!viewContent._resizeObserver) {
-        const debouncedResize = debounce(() => {
-          this.applyBannerWidth(viewContent);
-        }, 100);
-        viewContent._resizeObserver = new ResizeObserver(debouncedResize);
-        viewContent._resizeObserver.observe(viewContent);
       }
     }
     if (!container) {

@@ -78,6 +78,12 @@ export class ReleaseNotesModal extends Modal {
             .addButton(btn => btn
                 .setButtonText('Close')
                 .onClick(() => this.close()));
+
+        // Set initial position of the modal
+        const modalEl = this.modalEl;
+        modalEl.style.position = 'absolute';
+        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 
     onClose() {
@@ -119,6 +125,12 @@ export class ImageViewModal extends Modal {
 
         // Add keyboard listener for Escape key
         this.scope.register([], 'Escape', () => this.close());
+
+        // Set initial position of the modal
+        const modalEl = this.modalEl;
+        modalEl.style.position = 'absolute';
+        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 
     onClose() {
@@ -316,6 +328,12 @@ export class ImageSelectionModal extends Modal {
         
         // Update grid with initial filter
         this.updateImageGrid();
+
+        // Set initial position of the modal
+        const modalEl = this.modalEl;
+        modalEl.style.position = 'absolute';
+        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 
     updateImageGrid() {
@@ -623,6 +641,12 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         inputEl.select();
         // Trigger the search to show matching results
         this.updateSuggestions();
+
+        // Set initial position of the modal
+        const modalEl = this.modalEl;
+        modalEl.style.position = 'absolute';
+        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 }
 
@@ -669,6 +693,12 @@ export class SaveImageModal extends Modal {
                 new Notice('Please enter a file name');
             }
         });
+
+        // Set initial position of the modal
+        const modalEl = this.modalEl;
+        modalEl.style.position = 'absolute';
+        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 
     onClose() {
@@ -715,6 +745,12 @@ export class EmojiSelectionModal extends Modal {
 
         // Initial grid update
         this.updateEmojiGrid();
+
+        // Set initial position of the modal
+        const modalEl = this.modalEl;
+        modalEl.style.position = 'absolute';
+        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 
     updateEmojiGrid() {
@@ -1136,6 +1172,34 @@ export class TargetPositionModal extends Modal {
                 frontmatter[yField] = this.currentY;
             });
         });
+
+        // Add drag-and-drop functionality
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        modalEl.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - modalEl.getBoundingClientRect().left;
+            offsetY = e.clientY - modalEl.getBoundingClientRect().top;
+            modalEl.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                modalEl.style.left = `${e.clientX - offsetX}px`;
+                modalEl.style.top = `${e.clientY - offsetY}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            modalEl.style.cursor = 'default';
+        });
+
+        // Set initial position of the modal
+        modalEl.style.position = 'absolute';
+        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 
     addStyle() {

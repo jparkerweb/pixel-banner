@@ -49,16 +49,115 @@ module.exports = class PixelBannerPlugin extends Plugin {
     lastFrontmatter = new Map();
     
     // Enhanced cache management properties
-    bannerStateCache = new Map(); // Format: { cacheKey: { state: {...}, timestamp: number, leafId: string } }
+    bannerStateCache = new Map(); /* Cache format:
+        cacheKey -> {
+            state: {
+                imageUrl,
+                iconState: {
+                    icon,
+                    size,
+                    xPosition,
+                    opacity,
+                    color,
+                    fontWeight,
+                    backgroundColor,
+                    paddingX,
+                    paddingY,
+                    borderRadius,
+                    verticalOffset,
+                    viewType // 'preview' or 'source'
+                }
+            },
+            timestamp,
+            leafId,
+            isShuffled,
+            frontmatter
+        }
+    */
     MAX_CACHE_AGE = 30 * 60 * 1000; // 30 minutes in milliseconds
     MAX_CACHE_ENTRIES = 30; // Maximum number of entries to keep in cache
     SHUFFLE_CACHE_AGE = 5 * 1000; // 5 seconds in milliseconds for shuffled banners
+
+    // Add element pool for icon overlays
+    iconOverlayPool = [];
+    MAX_POOL_SIZE = 10;
+
+    // Get an overlay from the pool or create a new one
+    getIconOverlay() {
+        if (this.iconOverlayPool.length > 0) {
+            return this.iconOverlayPool.pop();
+        }
+        const overlay = document.createElement('div');
+        overlay.className = 'banner-icon-overlay';
+        return overlay;
+    }
+
+    // Return an overlay to the pool
+    returnIconOverlay(overlay) {
+        if (this.iconOverlayPool.length < this.MAX_POOL_SIZE) {
+            // Reset the overlay
+            overlay.style.cssText = '';
+            overlay.className = 'banner-icon-overlay';
+            overlay.textContent = '';
+            overlay.remove(); // Remove from DOM
+            this.iconOverlayPool.push(overlay);
+        }
+    }
 
     // Helper method to generate cache key
     generateCacheKey(filePath, leafId, isShuffled = false) {
         // Ensure filePath is properly encoded to handle special characters and numbers
         const encodedPath = encodeURIComponent(filePath);
         return `${encodedPath}-${leafId}${isShuffled ? '-shuffle' : ''}`;
+    }
+
+    // Optimized method to compare icon states and determine if update is needed
+    shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
+        if (!existingOverlay || !newIconState) return true;
+        
+        // Quick checks first
+        if (!existingOverlay._isPersistentBannerIcon ||
+            existingOverlay.dataset.viewType !== viewType ||
+            existingOverlay.textContent !== newIconState.icon) {
+            return true;
+        }
+
+        // Cache computed style
+        const computedStyle = window.getComputedStyle(existingOverlay);
+        
+        // Define style checks with expected values
+        const styleChecks = {
+            fontSize: `${newIconState.size}px`,
+            left: `${newIconState.xPosition}%`,
+            opacity: `${newIconState.opacity}%`,
+            color: newIconState.color,
+            fontWeight: newIconState.fontWeight,
+            backgroundColor: newIconState.backgroundColor,
+            borderRadius: `${newIconState.borderRadius}px`,
+            marginTop: `${newIconState.verticalOffset}px`
+        };
+
+        // Check padding separately to handle both X and Y
+        const currentPadding = computedStyle.padding.split(' ');
+        const expectedPadding = `${newIconState.paddingY}px ${newIconState.paddingX}px`;
+        if (currentPadding.join(' ') !== expectedPadding) {
+            return true;
+        }
+
+        // Check all other styles
+        return Object.entries(styleChecks).some(([prop, value]) => {
+            const current = computedStyle[prop];
+            return current !== value && 
+                   // Handle special cases for colors
+                   !(prop.includes('color') && this.normalizeColor(current) === this.normalizeColor(value));
+        });
+    }
+
+    // Helper to normalize color values for comparison
+    normalizeColor(color) {
+        if (!color || color === 'transparent' || color === 'none') return 'transparent';
+        // Convert rgb/rgba to lowercase and remove spaces
+        return color.toLowerCase().replace(/\s+/g, '');
     }
 
     // Helper method to get all cache entries for a file
@@ -77,11 +176,26 @@ module.exports = class PixelBannerPlugin extends Plugin {
             // Use shorter timeout for shuffle images
             const maxAge = entry.isShuffled ? this.SHUFFLE_CACHE_AGE : this.MAX_CACHE_AGE;
             if (force || now - entry.timestamp > maxAge) {
-                this.bannerStateCache.delete(key);
-                // Also cleanup associated resources
+                // Clean up any persistent icon overlays for this entry
+                if (entry.leafId) {
+                    const leaf = this.app.workspace.getLeafById(entry.leafId);
+                    if (leaf?.view instanceof MarkdownView) {
+                        const contentEl = leaf.view.contentEl;
+                        ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
+                            const container = contentEl.querySelector(`.${selector}`);
+                            if (container) {
+                                const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
+                                iconOverlays.forEach(overlay => overlay.remove());
+                            }
+                        });
+                    }
+                }
+
+                // Clean up blob URLs
                 if (entry.state?.imageUrl?.startsWith('blob:')) {
                     URL.revokeObjectURL(entry.state.imageUrl);
                 }
+                this.bannerStateCache.delete(key);
             }
         }
         
@@ -94,11 +208,26 @@ module.exports = class PixelBannerPlugin extends Plugin {
             // Remove oldest entries until we're at max size
             while (entries.length > this.MAX_CACHE_ENTRIES) {
                 const [key, entry] = entries.shift();
-                this.bannerStateCache.delete(key);
-                // Cleanup associated resources
+                // Clean up any persistent icon overlays for this entry
+                if (entry.leafId) {
+                    const leaf = this.app.workspace.getLeafById(entry.leafId);
+                    if (leaf?.view instanceof MarkdownView) {
+                        const contentEl = leaf.view.contentEl;
+                        ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
+                            const container = contentEl.querySelector(`.${selector}`);
+                            if (container) {
+                                const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
+                                iconOverlays.forEach(overlay => overlay.remove());
+                            }
+                        });
+                    }
+                }
+
+                // Clean up blob URLs
                 if (entry.state?.imageUrl?.startsWith('blob:')) {
                     URL.revokeObjectURL(entry.state.imageUrl);
                 }
+                this.bannerStateCache.delete(key);
             }
         }
     }
@@ -107,6 +236,20 @@ module.exports = class PixelBannerPlugin extends Plugin {
     invalidateLeafCache(leafId) {
         for (const [key, entry] of this.bannerStateCache) {
             if (key.includes(`-${leafId}`)) {
+                // Clean up any persistent icon overlays
+                const leaf = this.app.workspace.getLeafById(leafId);
+                if (leaf?.view instanceof MarkdownView) {
+                    const contentEl = leaf.view.contentEl;
+                    ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
+                        const container = contentEl.querySelector(`.${selector}`);
+                        if (container) {
+                            const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
+                            iconOverlays.forEach(overlay => overlay.remove());
+                        }
+                    });
+                }
+
+                // Clean up blob URLs
                 if (entry.state?.imageUrl?.startsWith('blob:')) {
                     URL.revokeObjectURL(entry.state.imageUrl);
                 }
@@ -115,6 +258,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
         }
     }
 
+    // --------------------------------------
+    // -- onload method / main entry point --
+    // --------------------------------------
     async onload() {
         await this.loadSettings();
         
@@ -516,6 +662,22 @@ module.exports = class PixelBannerPlugin extends Plugin {
             if (shouldUpdateBanner) {
                 await this.updateBanner(leaf.view, false, this.UPDATE_MODE.FULL_UPDATE);
                 
+                // Get icon state
+                const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
+                const iconState = bannerIcon ? {
+                    icon: bannerIcon,
+                    size: getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || this.settings.bannerIconSize,
+                    xPosition: getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || this.settings.bannerIconXPosition,
+                    opacity: getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || this.settings.bannerIconOpacity,
+                    color: getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || this.settings.bannerIconColor,
+                    fontWeight: getFrontmatterValue(frontmatter, this.settings.customBannerIconFontWeightField) || this.settings.bannerIconFontWeight,
+                    backgroundColor: getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || this.settings.bannerIconBackgroundColor,
+                    paddingX: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || this.settings.bannerIconPaddingX,
+                    paddingY: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || this.settings.bannerIconPaddingY,
+                    borderRadius: getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || this.settings.bannerIconBorderRadius,
+                    verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || this.settings.bannerIconVeritalOffset
+                } : null;
+
                 // Cache the new state
                 this.bannerStateCache.set(cacheKey, {
                     timestamp: currentTime,
@@ -524,6 +686,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     isShuffled,
                     state: {
                         imageUrl: this.loadedImages.get(currentPath),
+                        iconState
                     }
                 });
             } else {
@@ -552,9 +715,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
         
         // Clean up banner in both edit and preview modes
         ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
-            const container = previousContentEl.querySelector(`.${selector}`);
+            const container = previousContentEl.querySelector(`div.${selector}`);
             if (container) {
-                const previousBanner = container.querySelector('.pixel-banner-image');
+                const previousBanner = container.querySelector(':scope > .pixel-banner-image');
                 if (previousBanner) {
                     previousBanner.style.backgroundImage = '';
                     previousBanner.style.display = 'none';
@@ -569,9 +732,13 @@ module.exports = class PixelBannerPlugin extends Plugin {
                     }
                 }
 
-                // Clean up banner icon overlays
-                const iconOverlays = container.querySelectorAll('.banner-icon-overlay');
-                iconOverlays.forEach(overlay => overlay.remove());
+                // Clean up banner icon overlays - but only non-persistent ones
+                const iconOverlays = container.querySelectorAll(':scope > .banner-icon-overlay');
+                iconOverlays.forEach(overlay => {
+                    if (!overlay.dataset.persistent) {
+                        this.returnIconOverlay(overlay);
+                    }
+                });
             }
         });
     }
@@ -648,9 +815,26 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const isEmbedded = contentEl.classList.contains('internal-embed') && contentEl.classList.contains('markdown-embed');
         const viewContent = contentEl;  // Define viewContent here
 
-        // Clean up ALL existing overlays first
-        const allOverlays = viewContent.querySelectorAll('.banner-icon-overlay');
-        allOverlays.forEach(overlay => overlay.remove());
+        // Only clean up non-persistent overlays
+        const nonPersistentOverlays = viewContent.querySelectorAll('.banner-icon-overlay:not([data-persistent="true"])');
+        nonPersistentOverlays.forEach(overlay => overlay.remove());
+
+        // Clean up any duplicate persistent overlays (keep only the one right after banner)
+        ['markdown-preview-sizer', 'cm-sizer'].forEach(container => {
+            const containerEl = viewContent.querySelector(`.${container}`);
+            if (containerEl) {
+                const bannerImage = containerEl.querySelector(':scope > .pixel-banner-image');
+                if (bannerImage) {
+                    const allOverlays = containerEl.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+                    allOverlays.forEach(overlay => {
+                        // Only keep the overlay if it's immediately after the banner
+                        if (overlay.previousElementSibling !== bannerImage) {
+                            overlay.remove();
+                        }
+                    });
+                }
+            }
+        });
 
         // Get existing banner before trying to use it
         const existingBanner = contentEl.querySelector('.pixel-banner-image');
@@ -700,6 +884,13 @@ module.exports = class PixelBannerPlugin extends Plugin {
             if (existingBanner) {
                 existingBanner.style.backgroundImage = '';
                 existingBanner.style.display = 'none';
+            }
+        } else if (isEmbedded && !bannerImage) {
+            // Set default values for embedded notes without banners
+            const embedRoot = viewContent.closest('.internal-embed.markdown-embed');
+            if (embedRoot) {
+                embedRoot.style.setProperty('--pixel-banner-embed-min-height', '1%');
+                embedRoot.style.setProperty('--pixel-banner-content-start', '0');
             }
         }
 
@@ -829,8 +1020,8 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
             [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons, ...oldTargetBtns].forEach(el => el.remove());
 
-            // Add select image icon for notes without a banner
-            if (this.settings.showSelectImageIcon && container) {
+            // Only add select image icon if not embedded
+            if (!isEmbedded && this.settings.showSelectImageIcon && container) {
                 const existingSelectIcon = container.querySelector('.select-image-icon');
                 if (!existingSelectIcon) {
                     const selectImageIcon = createDiv({ cls: 'select-image-icon' });
@@ -872,19 +1063,15 @@ module.exports = class PixelBannerPlugin extends Plugin {
             const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
                                   contentEl.querySelector('.markdown-embed-content') || 
                                   contentEl;
-            const thisEmbedOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay');
-            thisEmbedOverlays.forEach(overlay => {
-                overlay.remove();
-            });
+            const thisEmbedOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
+            thisEmbedOverlays.forEach(overlay => overlay.remove());
         } else {
             // For main notes, clean up overlays in both source and preview views
             ['markdown-preview-view', 'markdown-source-view'].forEach(viewType => {
                 const viewContainer = contentEl.querySelector(`.${viewType}`);
                 if (viewContainer) {
-                    const mainOverlays = viewContainer.querySelectorAll(':scope > .banner-icon-overlay');
-                    mainOverlays.forEach(overlay => {
-                        overlay.remove();
-                    });
+                    const mainOverlays = viewContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
+                    mainOverlays.forEach(overlay => overlay.remove());
                 }
             });
         }
@@ -893,18 +1080,68 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) {
             const cleanIcon = bannerIcon.trim();
             
-            // Function to create icon overlay
-            const createIconOverlay = (banner, viewType) => {
+            // Check cache first
+            const cacheKey = this.generateCacheKey(view.file.path, this.app.workspace.activeLeaf.id);
+            const cachedState = this.bannerStateCache.get(cacheKey);
+            const cachedIconState = cachedState?.state?.iconState;
+
+            // Function to create or update icon overlay
+            const createOrUpdateIconOverlay = (banner, viewType) => {
                 if (!banner) {
                     return;
                 }
                 
-                const bannerIconOverlay = document.createElement('div');
-                bannerIconOverlay.className = 'banner-icon-overlay';
+                // Get current icon state
+                const currentIconState = {
+                    icon: cleanIcon,
+                    size: getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || this.settings.bannerIconSize,
+                    xPosition: getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || this.settings.bannerIconXPosition,
+                    opacity: getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || this.settings.bannerIconOpacity,
+                    color: getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || this.settings.bannerIconColor,
+                    fontWeight: getFrontmatterValue(frontmatter, this.settings.customBannerIconFontWeightField) || this.settings.bannerIconFontWeight,
+                    backgroundColor: getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || this.settings.bannerIconBackgroundColor,
+                    paddingX: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || this.settings.bannerIconPaddingX,
+                    paddingY: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || this.settings.bannerIconPaddingY,
+                    borderRadius: getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || this.settings.bannerIconBorderRadius,
+                    verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || this.settings.bannerIconVeritalOffset,
+                    viewType
+                };
+                
+                // Check if we already have a persistent icon overlay
+                const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ? 
+                    banner.nextElementSibling : null;
+                
+                if (existingOverlay) {
+                    // Only update if necessary
+                    if (!this.shouldUpdateIconOverlay(existingOverlay, currentIconState, viewType)) {
+                        return existingOverlay;
+                    }
+                    // Return the old overlay to the pool if we're going to update
+                    this.returnIconOverlay(existingOverlay);
+                }
+                
+                // Get a new or pooled overlay
+                const bannerIconOverlay = this.getIconOverlay();
+                
                 bannerIconOverlay.dataset.viewType = viewType;
+                bannerIconOverlay.dataset.persistent = 'true';
                 bannerIconOverlay.textContent = cleanIcon;
                 bannerIconOverlay._isPersistentBannerIcon = true;
+                bannerIconOverlay.style.display = 'block'; // Ensure visibility
+
+                // Apply styles
+                bannerIconOverlay.style.fontSize = `${currentIconState.size}px`;
+                bannerIconOverlay.style.left = `${currentIconState.xPosition}%`;
+                bannerIconOverlay.style.opacity = `${currentIconState.opacity}%`;
+                bannerIconOverlay.style.color = currentIconState.color;
+                bannerIconOverlay.style.fontWeight = currentIconState.fontWeight;
+                bannerIconOverlay.style.backgroundColor = currentIconState.backgroundColor;
+                bannerIconOverlay.style.padding = `${currentIconState.paddingY}px ${currentIconState.paddingX}px`;
+                bannerIconOverlay.style.borderRadius = `${currentIconState.borderRadius}px`;
+                bannerIconOverlay.style.marginTop = `${currentIconState.verticalOffset}px`;
+
                 banner.insertAdjacentElement('afterend', bannerIconOverlay);
+                return bannerIconOverlay;
             };
 
             // For embedded notes, only apply to preview view
@@ -913,14 +1150,21 @@ module.exports = class PixelBannerPlugin extends Plugin {
                                      contentEl.querySelector('.markdown-embed-content') || 
                                      contentEl;
                 const previewBanner = embedContainer.querySelector(':scope > .pixel-banner-image');
-                createIconOverlay(previewBanner, 'preview');
+                createOrUpdateIconOverlay(previewBanner, 'preview');
             } else {
                 // For main notes, apply to both views
-                const previewBanner = contentEl.querySelector('.markdown-preview-view .pixel-banner-image');
-                const sourceBanner = contentEl.querySelector('.markdown-source-view .pixel-banner-image');
+                const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
+                const sourceContainer = contentEl.querySelector('div.cm-sizer');
                 
-                createIconOverlay(previewBanner, 'preview');
-                createIconOverlay(sourceBanner, 'source');
+                if (previewContainer) {
+                    const previewBanner = previewContainer.querySelector(':scope > .pixel-banner-image');
+                    if (previewBanner) createOrUpdateIconOverlay(previewBanner, 'preview');
+                }
+                
+                if (sourceContainer) {
+                    const sourceBanner = sourceContainer.querySelector(':scope > .pixel-banner-image');
+                    if (sourceBanner) createOrUpdateIconOverlay(sourceBanner, 'source');
+                }
             }
         }
     }
@@ -1548,6 +1792,9 @@ module.exports = class PixelBannerPlugin extends Plugin {
             }
         });
         
+        // Clear the icon overlay pool
+        this.iconOverlayPool = [];
+        
         const styleElTitle = document.getElementById('pixel-banner-embedded-titles');
         if (styleElTitle) styleElTitle.remove();
         const styleElBanner = document.getElementById('pixel-banner-embedded-banners');
@@ -1565,11 +1812,34 @@ module.exports = class PixelBannerPlugin extends Plugin {
         if (!el) return;
 
         setTimeout(() => {
+            // Only proceed if this is the view-content element
+            if (!el.classList.contains('view-content')) {
+                return;
+            }
+
             const theWidth = el.clientWidth;
             const bannerGap = this.settings.bannerGap;
+            
+            // Set the variables only once at the root level
             el.style.setProperty('--pixel-banner-width', `${theWidth - (bannerGap * 2)}px`);
             el.style.setProperty('--pixel-banner-banner-gap', `${bannerGap}px`);
         }, 50);
+    }
+
+    // Update the resize observer setup to only observe the view-content element
+    setupResizeObserver(viewContent) {
+        if (!viewContent.classList.contains('view-content')) {
+            return;
+        }
+
+        if (!viewContent._resizeObserver) {
+            const debouncedResize = debounce(() => {
+                this.applyBannerWidth(viewContent);
+            }, 100);
+
+            viewContent._resizeObserver = new ResizeObserver(debouncedResize);
+            viewContent._resizeObserver.observe(viewContent);
+        }
     }
 
     getFolderSpecificSetting(filePath, settingName) {
@@ -1708,9 +1978,13 @@ module.exports = class PixelBannerPlugin extends Plugin {
         const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
         const viewContent = el;
         const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
-
-        if (!isEmbedded) {
+        
+        // Only add pixel-banner class to div.view-content
+        if (!isEmbedded && viewContent.classList.contains('view-content')) {
             viewContent.classList.add('pixel-banner');
+            // Setup resize observer and initial width
+            this.setupResizeObserver(viewContent);
+            this.applyBannerWidth(viewContent);
         }
 
         let container;
@@ -1731,16 +2005,6 @@ module.exports = class PixelBannerPlugin extends Plugin {
 
             if (!container && viewContent.classList.contains('markdown-preview-view')) {
                 container = viewContent;
-            }
-
-            // Add resize observer if not already added
-            if (!viewContent._resizeObserver) {
-                const debouncedResize = debounce(() => {
-                    this.applyBannerWidth(viewContent);
-                }, 100);
-
-                viewContent._resizeObserver = new ResizeObserver(debouncedResize);
-                viewContent._resizeObserver.observe(viewContent);
             }
         }
 
