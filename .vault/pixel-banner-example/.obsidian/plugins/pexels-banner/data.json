@@ -1,6 +1,6 @@
 {
   "pixelBannerPlusEmail": "jparkerweb@gmail.com",
-  "pixelBannerPlusApiKey": "83abb7f2-fdae-4a09-b133-c7d17efb5572",
+  "pixelBannerPlusApiKey": "e90b51e8-e37b-4e3e-8f47-70270c8e04c0",
   "apiProvider": "all",
   "pexelsApiKey": "RoKgyYgLEu0BEzqw5Z4LMnknOquciriNYvtfEe2yHh0sbVLG422J58qq",
   "pixabayApiKey": "",
@@ -143,7 +143,7 @@
       "shuffleFolder": ""
     }
   ],
-  "contentStartPosition": 150,
+  "contentStartPosition": 275,
   "imageDisplay": "cover",
   "imageRepeat": false,
   "bannerHeight": 350,

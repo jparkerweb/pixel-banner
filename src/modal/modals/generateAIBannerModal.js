@@ -1,7 +1,7 @@
-import { Modal, Notice } from 'obsidian';
+import { Modal, Notice, requestUrl } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
-
+import { DownloadHistory } from '../../utils/downloadHistory';
 
 // --------------------------
 // -- Generate Banner Modal --
@@ -15,19 +15,21 @@ export class GenerateAIBannerModal extends Modal {
         this.prompt = '';
         this.imageContainer = null;
         this.modalEl.addClass('pixel-banner-ai-modal');
+        this.downloadHistory = new DownloadHistory();
     }
 
     async generateImage() {
         if (!this.imageContainer) return;
         
-        // Show loading spinner
+        // Show loading dots
         this.imageContainer.empty();
         const loadingContainer = this.imageContainer.createDiv({ cls: 'pixel-banner-loading' });
         loadingContainer.createDiv({ cls: 'dot-pulse' });
         
         try {
+            const generateUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE, PIXEL_BANNER_PLUS.API_URL).toString();
             const response = await requestUrl({
-                url: `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE}`,
+                url: generateUrl,
                 method: 'POST',
                 headers: {
                     'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
@@ -56,7 +58,8 @@ export class GenerateAIBannerModal extends Modal {
                 const img = imgWrapper.createEl('img', {
                     cls: 'pixel-banner-generated-image',
                     attr: {
-                        src: `data:image/png;base64,${response.json.image}`
+                        src: `data:image/png;base64,${response.json.image}`,
+                        'imageId': response.json.imageId
                     }
                 });
 
@@ -64,10 +67,11 @@ export class GenerateAIBannerModal extends Modal {
                 const controls = this.imageContainer.createDiv({ cls: 'pixel-banner-image-controls' });
                 const useAsButton = controls.createEl('button', {
                     cls: 'mod-cta',
-                    text: 'Use as Banner'
+                    text: 'Download and Use as Banner'
                 });
                 useAsButton.addEventListener('click', async () => {
                     const imageUrl = `data:image/png;base64,${response.json.image}`;
+                    await this.handleImageClick(img);
                     await handlePinIconClick(imageUrl, this.plugin);
                     this.close();
                 });
@@ -82,7 +86,77 @@ export class GenerateAIBannerModal extends Modal {
         }
     }
 
-    onOpen() {
+    async handleImageClick(img) {
+        const imageId = img.getAttribute('imageid');
+        if (this.downloadHistory.hasImage(imageId)) {
+            const confirmed = await new Promise(resolve => {
+                const modal = new Modal(this.app);
+                modal.contentEl.createEl('h2', { text: 'Image Already Downloaded' });
+                modal.contentEl.createEl('p', { text: 'You have already downloaded this image. Do you want to download it again?' });
+                
+                const buttonContainer = modal.contentEl.createDiv();
+                buttonContainer.style.display = 'flex';
+                buttonContainer.style.justifyContent = 'flex-end';
+                buttonContainer.style.gap = '10px';
+                
+                const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+                const confirmButton = buttonContainer.createEl('button', { text: 'Download Again', cls: 'mod-cta' });
+                
+                cancelButton.onclick = () => {
+                    modal.close();
+                    resolve(false);
+                };
+                confirmButton.onclick = () => {
+                    modal.close();
+                    resolve(true);
+                };
+                modal.open();
+            });
+            
+            if (!confirmed) return;
+        }
+        
+        try {
+            await handlePinIconClick(img.src, this.plugin);
+            this.downloadHistory.addImage(imageId);
+            this.close();
+        } catch (error) {
+            console.error('Failed to download image:', error);
+            new Notice('Failed to download image');
+        }
+    }
+
+    async checkDownloadHistory(img) {
+        const imageId = img.getAttribute('imageid');
+        if (this.downloadHistory.hasImage(imageId)) {
+            return new Promise(resolve => {
+                const modal = new Modal(this.app);
+                modal.contentEl.createEl('h2', { text: 'Image Already Downloaded' });
+                modal.contentEl.createEl('p', { text: 'You have already downloaded this image. Do you want to download it again?' });
+                
+                const buttonContainer = modal.contentEl.createDiv();
+                buttonContainer.style.display = 'flex';
+                buttonContainer.style.justifyContent = 'flex-end';
+                buttonContainer.style.gap = '10px';
+                
+                const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+                const confirmButton = buttonContainer.createEl('button', { text: 'Download Again', cls: 'mod-cta' });
+                
+                cancelButton.onclick = () => {
+                    modal.close();
+                    resolve(false);
+                };
+                confirmButton.onclick = () => {
+                    modal.close();
+                    resolve(true);
+                };
+                modal.open();
+            });
+        }
+        return true;
+    }
+
+    async onOpen() {
         const { contentEl } = this;
         contentEl.empty();
         
@@ -162,6 +236,61 @@ export class GenerateAIBannerModal extends Modal {
 
         // Image container
         this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-image-container' });
+
+        // History container
+        contentEl.createEl('h5', {
+            text: 'Recently Generated',
+            attr: {
+                'style': 'margin-bottom: -20px;'
+            }
+        });
+        const historyContainer = contentEl.createDiv({ cls: 'pixel-banner-history-container' });
+        
+        try {
+            const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + '?limit=10';
+            console.log('Fetching history from:', historyUrl);
+            
+            const response = await requestUrl({
+                url: historyUrl,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.status === 200 && response.json.images) {
+                response.json.images.forEach(imageData => {
+                    const imgWrapper = historyContainer.createDiv({ cls: 'pixel-banner-history-image-wrapper' });
+                    const img = imgWrapper.createEl('img', {
+                        cls: 'pixel-banner-history-image',
+                        attr: {
+                            src: imageData.base64Image,
+                            'imageId': imageData.imageId
+                        }
+                    });
+
+                    // Add prompt as tooltip
+                    imgWrapper.setAttribute('aria-label', imageData.prompt);
+                    imgWrapper.addClass('has-tooltip');
+
+                    // Add click handler to use this image
+                    imgWrapper.addEventListener('click', async () => {
+                        const shouldDownload = await this.checkDownloadHistory(img);
+                        if (!shouldDownload) return;
+                        
+                        await handlePinIconClick(imageData.base64Image, this.plugin);
+                        this.downloadHistory.addImage(img.getAttribute('imageid'));
+                        this.close();
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch history:', error);
+            const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });
+            errorDiv.setText('Failed to load history. Please try again later.');
+        }
     }
 
     onClose() {

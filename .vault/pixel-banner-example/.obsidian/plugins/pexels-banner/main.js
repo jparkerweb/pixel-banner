@@ -1585,7 +1585,7 @@ var DEFAULT_SETTINGS = {
   customBannerIconBorderRadiusField: ["icon-border-radius"],
   customBannerIconVeritalOffsetField: ["icon-y"],
   folderImages: [],
-  contentStartPosition: 150,
+  contentStartPosition: 275,
   imageDisplay: "cover",
   imageRepeat: false,
   bannerHeight: 350,
@@ -1693,11 +1693,12 @@ function debounce(func, wait) {
 
 // src/resources/constants.js
 var PIXEL_BANNER_PLUS = {
-  API_URL: "https://pixel-banner.online/",
-  // API_URL: 'http://localhost:3000/',
+  // API_URL: 'https://api.pixel-banner.online/',
+  API_URL: "http://localhost:3000/",
   ENDPOINTS: {
     VERIFY: "verify",
-    GENERATE: "generate"
+    GENERATE: "generate",
+    HISTORY: "history"
   }
 };
 
@@ -1829,7 +1830,11 @@ var FolderSelectionModal = class extends import_obsidian9.FuzzySuggestModal {
     this.titleEl.setText("Choose Folder to save Banner Image");
   }
   getItems() {
-    return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path)];
+    const folderPaths = this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path);
+    if (!folderPaths.includes(this.defaultFolder)) {
+      folderPaths.unshift(this.defaultFolder);
+    }
+    return folderPaths;
   }
   getItemText(item) {
     return item;
@@ -2061,6 +2066,33 @@ async function waitForFileRename(file, plugin) {
   });
 }
 
+// src/utils/downloadHistory.js
+var DownloadHistory = class {
+  constructor() {
+    this.maxHistory = 50;
+    this.loadHistory();
+  }
+  loadHistory() {
+    const saved = localStorage.getItem("pixel-banner-download-history");
+    this.history = saved ? JSON.parse(saved) : [];
+  }
+  saveHistory() {
+    localStorage.setItem("pixel-banner-download-history", JSON.stringify(this.history));
+  }
+  addImage(imageId) {
+    if (!this.history.includes(imageId)) {
+      this.history.unshift(imageId);
+      if (this.history.length > this.maxHistory) {
+        this.history.pop();
+      }
+    }
+    this.saveHistory();
+  }
+  hasImage(imageId) {
+    return this.history.includes(imageId);
+  }
+};
+
 // src/modal/modals/generateAIBannerModal.js
 var GenerateAIBannerModal = class extends import_obsidian12.Modal {
   constructor(app, plugin) {
@@ -2071,6 +2103,7 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     this.prompt = "";
     this.imageContainer = null;
     this.modalEl.addClass("pixel-banner-ai-modal");
+    this.downloadHistory = new DownloadHistory();
   }
   async generateImage() {
     if (!this.imageContainer) return;
@@ -2078,8 +2111,9 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     const loadingContainer = this.imageContainer.createDiv({ cls: "pixel-banner-loading" });
     loadingContainer.createDiv({ cls: "dot-pulse" });
     try {
-      const response = await requestUrl({
-        url: `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE}`,
+      const generateUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE, PIXEL_BANNER_PLUS.API_URL).toString();
+      const response = await (0, import_obsidian12.requestUrl)({
+        url: generateUrl,
         method: "POST",
         headers: {
           "X-User-Email": this.plugin.settings.pixelBannerPlusEmail,
@@ -2102,16 +2136,18 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
         const img = imgWrapper.createEl("img", {
           cls: "pixel-banner-generated-image",
           attr: {
-            src: `data:image/png;base64,${response.json.image}`
+            src: `data:image/png;base64,${response.json.image}`,
+            "imageId": response.json.imageId
           }
         });
         const controls = this.imageContainer.createDiv({ cls: "pixel-banner-image-controls" });
         const useAsButton = controls.createEl("button", {
           cls: "mod-cta",
-          text: "Use as Banner"
+          text: "Download and Use as Banner"
         });
         useAsButton.addEventListener("click", async () => {
           const imageUrl = `data:image/png;base64,${response.json.image}`;
+          await this.handleImageClick(img);
           await handlePinIconClick(imageUrl, this.plugin);
           this.close();
         });
@@ -2125,7 +2161,67 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
       errorDiv.setText("Failed to generate image. Please try again.");
     }
   }
-  onOpen() {
+  async handleImageClick(img) {
+    const imageId = img.getAttribute("imageid");
+    if (this.downloadHistory.hasImage(imageId)) {
+      const confirmed = await new Promise((resolve) => {
+        const modal = new import_obsidian12.Modal(this.app);
+        modal.contentEl.createEl("h2", { text: "Image Already Downloaded" });
+        modal.contentEl.createEl("p", { text: "You have already downloaded this image. Do you want to download it again?" });
+        const buttonContainer = modal.contentEl.createDiv();
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.justifyContent = "flex-end";
+        buttonContainer.style.gap = "10px";
+        const cancelButton = buttonContainer.createEl("button", { text: "Cancel" });
+        const confirmButton = buttonContainer.createEl("button", { text: "Download Again", cls: "mod-cta" });
+        cancelButton.onclick = () => {
+          modal.close();
+          resolve(false);
+        };
+        confirmButton.onclick = () => {
+          modal.close();
+          resolve(true);
+        };
+        modal.open();
+      });
+      if (!confirmed) return;
+    }
+    try {
+      await handlePinIconClick(img.src, this.plugin);
+      this.downloadHistory.addImage(imageId);
+      this.close();
+    } catch (error) {
+      console.error("Failed to download image:", error);
+      new import_obsidian12.Notice("Failed to download image");
+    }
+  }
+  async checkDownloadHistory(img) {
+    const imageId = img.getAttribute("imageid");
+    if (this.downloadHistory.hasImage(imageId)) {
+      return new Promise((resolve) => {
+        const modal = new import_obsidian12.Modal(this.app);
+        modal.contentEl.createEl("h2", { text: "Image Already Downloaded" });
+        modal.contentEl.createEl("p", { text: "You have already downloaded this image. Do you want to download it again?" });
+        const buttonContainer = modal.contentEl.createDiv();
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.justifyContent = "flex-end";
+        buttonContainer.style.gap = "10px";
+        const cancelButton = buttonContainer.createEl("button", { text: "Cancel" });
+        const confirmButton = buttonContainer.createEl("button", { text: "Download Again", cls: "mod-cta" });
+        cancelButton.onclick = () => {
+          modal.close();
+          resolve(false);
+        };
+        confirmButton.onclick = () => {
+          modal.close();
+          resolve(true);
+        };
+        modal.open();
+      });
+    }
+    return true;
+  }
+  async onOpen() {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h2", { text: "\u2728 Generate Banner with AI" });
@@ -2188,6 +2284,51 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
       await this.generateImage();
     });
     this.imageContainer = contentEl.createDiv({ cls: "pixel-banner-image-container" });
+    contentEl.createEl("h5", {
+      text: "Recently Generated",
+      attr: {
+        "style": "margin-bottom: -20px;"
+      }
+    });
+    const historyContainer = contentEl.createDiv({ cls: "pixel-banner-history-container" });
+    try {
+      const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + "?limit=10";
+      console.log("Fetching history from:", historyUrl);
+      const response = await (0, import_obsidian12.requestUrl)({
+        url: historyUrl,
+        method: "GET",
+        headers: {
+          "X-User-Email": this.plugin.settings.pixelBannerPlusEmail,
+          "X-API-Key": this.plugin.settings.pixelBannerPlusApiKey,
+          "Accept": "application/json"
+        }
+      });
+      if (response.status === 200 && response.json.images) {
+        response.json.images.forEach((imageData) => {
+          const imgWrapper = historyContainer.createDiv({ cls: "pixel-banner-history-image-wrapper" });
+          const img = imgWrapper.createEl("img", {
+            cls: "pixel-banner-history-image",
+            attr: {
+              src: imageData.base64Image,
+              "imageId": imageData.imageId
+            }
+          });
+          imgWrapper.setAttribute("aria-label", imageData.prompt);
+          imgWrapper.addClass("has-tooltip");
+          imgWrapper.addEventListener("click", async () => {
+            const shouldDownload = await this.checkDownloadHistory(img);
+            if (!shouldDownload) return;
+            await handlePinIconClick(imageData.base64Image, this.plugin);
+            this.downloadHistory.addImage(img.getAttribute("imageid"));
+            this.close();
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+      const errorDiv = historyContainer.createDiv({ cls: "pixel-banner-error" });
+      errorDiv.setText("Failed to load history. Please try again later.");
+    }
   }
   onClose() {
     const { contentEl } = this;

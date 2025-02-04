@@ -18,9 +18,17 @@ export class FolderSelectionModal extends FuzzySuggestModal {
     }
 
     getItems() {
-        return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles()
+        // Get all folder paths including the default folder
+        const folderPaths = this.app.vault.getAllLoadedFiles()
             .filter(file => file.children)
-            .map(folder => folder.path)];
+            .map(folder => folder.path);
+        
+        // Add default folder if it's not already in the list
+        if (!folderPaths.includes(this.defaultFolder)) {
+            folderPaths.unshift(this.defaultFolder);
+        }
+        
+        return folderPaths;
     }
 
     getItemText(item) {

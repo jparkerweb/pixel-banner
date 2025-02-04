@@ -1047,3 +1047,74 @@
 .pixel-banner-generate-btn-container button {
     min-width: 150px;
 }
+
+/* History container styles */
+.pixel-banner-history-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    border-top: 1px solid var(--background-modifier-border);
+    place-items: start center; /* Ensures the grid is centered while items align naturally */
+}
+
+/* Image wrapper with masonry alignment */
+.pixel-banner-history-image-wrapper {
+    position: relative;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+    display: flex;
+    justify-content: center; /* Centers image inside the wrapper */
+    align-items: center;
+    max-width: 200px;
+    max-height: 200px;
+}
+
+/* Hover effect */
+.pixel-banner-history-image-wrapper:hover {
+    transform: scale(1.05);
+}
+
+/* Ensuring images keep aspect ratio */
+.pixel-banner-history-image {
+    width: 100%;
+    height: auto; /* Maintain height for masonry */
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Tooltip styles */
+.pixel-banner-history-image-wrapper.has-tooltip {
+    position: relative;
+}
+
+/* Tooltip on hover */
+.pixel-banner-history-image-wrapper.has-tooltip:hover::after {
+    content: attr(aria-label);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: var(--shadow-s);
+    margin-bottom: 4px;
+}
+
+/* Error message styling */
+.pixel-banner-history-container .pixel-banner-error {
+    color: var(--text-error);
+    font-size: 12px;
+    text-align: center;
+    padding: 8px;
+}
