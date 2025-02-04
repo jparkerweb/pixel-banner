@@ -42,7 +42,7 @@ const DEFAULT_SETTINGS = {
     customBannerIconBorderRadiusField: ['icon-border-radius'],
     customBannerIconVeritalOffsetField: ['icon-y'],
     folderImages: [],
-    contentStartPosition: 150,
+    contentStartPosition: 275,
     imageDisplay: 'cover',
     imageRepeat: false,
     bannerHeight: 350,
