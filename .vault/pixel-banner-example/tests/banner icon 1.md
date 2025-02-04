@@ -1,7 +1,7 @@
 ---
 banner: "[[father-and-child.jpg]]"
 icon: 💀 Emoji Time 🏮
-icon-x: "80"
+icon-x: "70"
 content-start: 400
 icon-color: papayawhip
 icon-size: "34"

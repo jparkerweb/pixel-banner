@@ -1,5 +1,5 @@
 import { Setting } from 'obsidian';
-import { DEFAULT_SETTINGS } from './settings';
+import { DEFAULT_SETTINGS } from '../settings';
 
 // Helper functions
 function arrayToString(arr) {

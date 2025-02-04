@@ -4,16 +4,42 @@ if you want to view the source, please visit the github repository of this plugi
 */
 
 var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/main.js
-var import_obsidian8 = require("obsidian");
+var main_exports = {};
+__export(main_exports, {
+  default: () => main_default
+});
+module.exports = __toCommonJS(main_exports);
 
-// src/settings.js
+// src/core/pixelBannerPluginClass.js
+var import_obsidian16 = require("obsidian");
+
+// virtual-module:virtual:release-notes
+var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.2</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>The Targeting Modal is now draggable (can help move it out of the way to see the banner)</li>\n<li>Updated the padding and height of embedded notes without banners to shrink to their content</li>\n<li>Improved cache to include banner icons</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with select image icon being added to embedded notes</li>\n</ul>\n<h3>v2.21.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Addressed issue with target icon button not being cleaned up when viewing a note without a banner</li>\n<li>Resolved custom inline title colors being applied to notes without banners</li>\n<li>Resolved issue with Pixel Banner plugin preventing notes from being exported to PDF</li>\n</ul>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
+
+// src/settings/settings.js
 var import_obsidian6 = require("obsidian");
 
-// src/settingsTabExample.js
+// src/settings/tabs/settingsTabExample.js
 var import_obsidian = require("obsidian");
 var getRandomFieldName = (fieldNames) => {
   const names = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
@@ -88,7 +114,7 @@ ${getRandomFieldName(plugin.settings.customTitleColorField)}: #ff00ff
   });
 }
 
-// src/settingsTabAPISettings.js
+// src/settings/tabs/settingsTabAPISettings.js
 var import_obsidian2 = require("obsidian");
 async function testPexelsApi(apiKey) {
   try {
@@ -100,8 +126,8 @@ async function testPexelsApi(apiKey) {
     if (!response.ok) {
       throw new Error("\u274C Invalid Pexels API key");
     }
-    const data = await response.json();
-    return data.photos;
+    const data2 = await response.json();
+    return data2.photos;
   } catch (error) {
     return false;
   }
@@ -109,9 +135,9 @@ async function testPexelsApi(apiKey) {
 async function testPixabayApi(apiKey) {
   try {
     const response = await fetch(`https://pixabay.com/api/?key=${apiKey}&q=test&per_page=3`);
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error);
+    const data2 = await response.json();
+    if (data2.error) {
+      throw new Error(data2.error);
     }
     return true;
   } catch (error) {
@@ -121,8 +147,8 @@ async function testPixabayApi(apiKey) {
 async function testFlickrApi(apiKey) {
   try {
     const response = await fetch(`https://www.flickr.com/services/rest/?method=flickr.test.echo&api_key=${apiKey}&format=json&nojsoncallback=1`);
-    const data = await response.json();
-    return data.stat === "ok";
+    const data2 = await response.json();
+    return data2.stat === "ok";
   } catch (error) {
     return false;
   }
@@ -310,7 +336,7 @@ function createAPISettings(containerEl, plugin) {
   defaultKeywordsSetting.settingEl.style.flexDirection = "column";
 }
 
-// src/settingsTabFolderImages.js
+// src/settings/tabs/settingsTabFolderImages.js
 var import_obsidian3 = require("obsidian");
 function createFolderSettings(containerEl, plugin) {
   const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
@@ -767,7 +793,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
   }
 };
 
-// src/settingsTabCustomFieldNames.js
+// src/settings/tabs/settingsTabCustomFieldNames.js
 var import_obsidian4 = require("obsidian");
 function arrayToString(arr) {
   return Array.isArray(arr) ? arr.join(", ") : arr;
@@ -983,10 +1009,57 @@ function createCustomFieldsSettings(containerEl, plugin) {
   });
 }
 
-// src/settingsTabGeneral.js
+// src/settings/tabs/settingsTabGeneral.js
 var import_obsidian5 = require("obsidian");
 function createGeneralSettings(containerEl, plugin) {
-  const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
+  const calloutElPixelBannerPlus = containerEl.createEl("div", { cls: "tab-callout margin-bottom-0" });
+  calloutElPixelBannerPlus.createEl("div", { text: "\u2728 Pixel Banner Plus \u2728" });
+  calloutElPixelBannerPlus.createEl("div", { text: "An optional premium feature made available to supporters via Ko-Fi. Users are able to generate beatiful high quality banners using GenAI." });
+  const pixelBannerPlusSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
+  new import_obsidian5.Setting(pixelBannerPlusSettingsGroup).setName("Pixel Banner Plus Email Address").setDesc("Your email address for Pixel Banner Plus authentication").addText(
+    (text) => text.setPlaceholder("Enter your email address").setValue(plugin.settings.pixelBannerPlusEmail).onChange(async (value) => {
+      plugin.settings.pixelBannerPlusEmail = value;
+      await plugin.saveSettings();
+      if (!value) {
+        plugin.pixelBannerPlusEnabled = false;
+      }
+    }).inputEl.style = "width: 100%; max-width: 275px;"
+  );
+  new import_obsidian5.Setting(pixelBannerPlusSettingsGroup).setName("Pixel Banner Plus API Key").setDesc("Your API key for Pixel Banner Plus authentication").addText(
+    (text) => text.setPlaceholder("Enter your API key").setValue(plugin.settings.pixelBannerPlusApiKey).onChange(async (value) => {
+      plugin.settings.pixelBannerPlusApiKey = value;
+      await plugin.saveSettings();
+      if (!value) {
+        plugin.pixelBannerPlusEnabled = false;
+      }
+    }).inputEl.style = "width: 100%; max-width: 275px;"
+  );
+  new import_obsidian5.Setting(pixelBannerPlusSettingsGroup).setName("Test Connection").setDesc("Verify your Pixel Banner Plus credentials").addButton((button) => button.setButtonText("Test Pixel Banner Plus API Key").onClick(async () => {
+    const email = plugin.settings.pixelBannerPlusEmail;
+    const apiKey = plugin.settings.pixelBannerPlusApiKey;
+    if (!email || !apiKey) {
+      new Notice("Please enter both email and API key");
+      return;
+    }
+    button.setButtonText("Testing...");
+    button.setDisabled(true);
+    try {
+      const data2 = await plugin.verifyPixelBannerPlusCredentials();
+      if (data2) {
+        new Notice(`\u2705 Pixel Banner Plus connection successful
+\u{1FA99} Banner Tokens Remaining: ${data2.banner_tokens}`);
+      } else {
+        new Notice("\u274C Invalid credentials");
+        plugin.pixelBannerPlusEnabled = false;
+      }
+    } catch (error) {
+      new Notice("\u274C Connection failed. Please check the service URL.");
+      plugin.pixelBannerPlusEnabled = false;
+    }
+    button.setButtonText("Test Pixel Banner Plus API Key");
+    button.setDisabled(false);
+  }));
+  const calloutEl = containerEl.createEl("div", { cls: "tab-callout margin-top-40 margin-bottom-0" });
   calloutEl.createEl("div", { text: "Configure default settings for all notes. These can be overridden per folder or per note." });
   new import_obsidian5.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
     (slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
@@ -1474,8 +1547,10 @@ function createGeneralSettings(containerEl, plugin) {
   }));
 }
 
-// src/settings.js
+// src/settings/settings.js
 var DEFAULT_SETTINGS = {
+  pixelBannerPlusEmail: "",
+  pixelBannerPlusApiKey: "",
   apiProvider: "all",
   pexelsApiKey: "",
   pixabayApiKey: "",
@@ -1546,8 +1621,8 @@ var DEFAULT_SETTINGS = {
   bannerIconVeritalOffset: "0"
 };
 var FolderSuggestModal2 = class extends import_obsidian6.FuzzySuggestModal {
-  constructor(app2, onChoose) {
-    super(app2);
+  constructor(app, onChoose) {
+    super(app);
     this.onChoose = onChoose;
   }
   getItems() {
@@ -1561,8 +1636,8 @@ var FolderSuggestModal2 = class extends import_obsidian6.FuzzySuggestModal {
   }
 };
 var PixelBannerSettingTab = class extends import_obsidian6.PluginSettingTab {
-  constructor(app2, plugin) {
-    super(app2, plugin);
+  constructor(app, plugin) {
+    super(app, plugin);
     this.plugin = plugin;
   }
   display() {
@@ -1616,679 +1691,21 @@ function debounce(func, wait) {
   };
 }
 
-// src/modals.js
-var import_obsidian7 = require("obsidian");
-
-// src/emojis.js
-var emojiList = [
-  { category: "Smileys & Emotion", emojis: ["\u{1F600}", "\u{1F603}", "\u{1F604}", "\u{1F601}", "\u{1F605}", "\u{1F602}", "\u{1F923}", "\u{1F60A}", "\u{1F607}", "\u{1F642}", "\u{1F643}", "\u{1F609}", "\u{1F60C}", "\u{1F60D}", "\u{1F970}", "\u{1F618}", "\u{1F617}", "\u{1F619}", "\u{1F61A}", "\u{1F60B}", "\u{1F61B}", "\u{1F61D}", "\u{1F61C}", "\u{1F92A}", "\u{1F928}", "\u{1F9D0}", "\u{1F913}", "\u{1F60E}", "\u{1F929}", "\u{1F973}", "\u{1F60F}", "\u{1F612}", "\u{1F61E}", "\u{1F614}", "\u{1F61F}", "\u{1F615}", "\u{1F641}", "\u2639\uFE0F", "\u{1F623}", "\u{1F616}", "\u{1F62B}", "\u{1F629}", "\u{1F97A}", "\u{1F622}", "\u{1F62D}", "\u{1F624}", "\u{1F620}", "\u{1F621}", "\u{1F92C}", "\u{1F92F}", "\u{1F633}", "\u{1F975}", "\u{1F976}", "\u{1F631}", "\u{1F628}", "\u{1F630}", "\u{1F625}", "\u{1F613}", "\u{1F917}", "\u{1F914}", "\u{1F92D}", "\u{1F92B}", "\u{1F925}", "\u{1F636}", "\u{1F610}", "\u{1F611}", "\u{1F62C}", "\u{1F644}", "\u{1F62F}", "\u{1F626}", "\u{1F627}", "\u{1F62E}", "\u{1F632}", "\u{1F971}", "\u{1F634}", "\u{1F924}", "\u{1F62A}", "\u{1F635}", "\u{1F910}", "\u{1F974}", "\u{1F922}", "\u{1F92E}", "\u{1F927}", "\u{1F637}", "\u{1F912}", "\u{1F915}"] },
-  { category: "People & Body", emojis: ["\u{1F44B}", "\u{1F91A}", "\u{1F590}\uFE0F", "\u270B", "\u{1F596}", "\u{1F44C}", "\u{1F90C}", "\u{1F90F}", "\u270C\uFE0F", "\u{1F91E}", "\u{1F91F}", "\u{1F918}", "\u{1F919}", "\u{1F448}", "\u{1F449}", "\u{1F446}", "\u{1F595}", "\u{1F447}", "\u261D\uFE0F", "\u{1F44D}", "\u{1F44E}", "\u270A", "\u{1F44A}", "\u{1F91B}", "\u{1F91C}", "\u{1F44F}", "\u{1F64C}", "\u{1F450}", "\u{1F932}", "\u{1F91D}", "\u{1F64F}", "\u270D\uFE0F", "\u{1F485}", "\u{1F933}", "\u{1F4AA}", "\u{1F9BE}", "\u{1F9BF}", "\u{1F9B5}", "\u{1F9B6}", "\u{1F442}", "\u{1F9BB}", "\u{1F443}", "\u{1F9E0}", "\u{1FAC0}", "\u{1FAC1}", "\u{1F9B7}", "\u{1F9B4}", "\u{1F440}", "\u{1F441}\uFE0F", "\u{1F445}", "\u{1F444}", "\u{1F48B}", "\u{1FA78}", "\u{1F476}", "\u{1F467}", "\u{1F9D2}", "\u{1F466}", "\u{1F469}", "\u{1F9D1}", "\u{1F468}", "\u{1F469}\u200D\u{1F9B1}", "\u{1F9D1}\u200D\u{1F9B1}", "\u{1F468}\u200D\u{1F9B1}", "\u{1F469}\u200D\u{1F9B0}", "\u{1F9D1}\u200D\u{1F9B0}", "\u{1F468}\u200D\u{1F9B0}", "\u{1F471}\u200D\u2640\uFE0F", "\u{1F471}", "\u{1F471}\u200D\u2642\uFE0F", "\u{1F469}\u200D\u{1F9B3}", "\u{1F9D1}\u200D\u{1F9B3}", "\u{1F468}\u200D\u{1F9B3}", "\u{1F469}\u200D\u{1F9B2}", "\u{1F9D1}\u200D\u{1F9B2}", "\u{1F468}\u200D\u{1F9B2}", "\u{1F9D4}", "\u{1F475}", "\u{1F9D3}", "\u{1F474}"] },
-  { category: "Animals & Nature", emojis: ["\u{1F436}", "\u{1F431}", "\u{1F42D}", "\u{1F439}", "\u{1F430}", "\u{1F98A}", "\u{1F43B}", "\u{1F43C}", "\u{1F428}", "\u{1F42F}", "\u{1F981}", "\u{1F42E}", "\u{1F437}", "\u{1F438}", "\u{1F435}", "\u{1F414}", "\u{1F427}", "\u{1F426}", "\u{1F424}", "\u{1F986}", "\u{1F985}", "\u{1F989}", "\u{1F987}", "\u{1F43A}", "\u{1F417}", "\u{1F434}", "\u{1F984}", "\u{1F41D}", "\u{1FAB1}", "\u{1F41B}", "\u{1F98B}", "\u{1F40C}", "\u{1F41E}", "\u{1F41C}", "\u{1FAB0}", "\u{1FAB2}", "\u{1FAB3}", "\u{1F99F}", "\u{1F997}", "\u{1F577}\uFE0F", "\u{1F578}\uFE0F", "\u{1F982}", "\u{1F422}", "\u{1F40D}", "\u{1F98E}", "\u{1F996}", "\u{1F995}", "\u{1F419}", "\u{1F991}", "\u{1F990}", "\u{1F99E}", "\u{1F980}", "\u{1F421}", "\u{1F420}", "\u{1F41F}", "\u{1F42C}", "\u{1F433}", "\u{1F40B}", "\u{1F988}", "\u{1F40A}", "\u{1F405}", "\u{1F406}", "\u{1F993}", "\u{1F98D}", "\u{1F9A7}", "\u{1F9A3}", "\u{1F418}", "\u{1F99B}", "\u{1F98F}", "\u{1F42A}", "\u{1F42B}", "\u{1F992}", "\u{1F998}", "\u{1F9AC}", "\u{1F403}", "\u{1F402}", "\u{1F404}", "\u{1F40E}", "\u{1F416}", "\u{1F40F}", "\u{1F411}", "\u{1F999}", "\u{1F410}", "\u{1F98C}", "\u{1F415}", "\u{1F429}", "\u{1F9AE}", "\u{1F415}\u200D\u{1F9BA}", "\u{1F408}", "\u{1F408}\u200D\u2B1B", "\u{1FAB6}", "\u{1F413}", "\u{1F983}", "\u{1F9A4}", "\u{1F99A}", "\u{1F99C}", "\u{1F9A2}", "\u{1F9A9}", "\u{1F54A}\uFE0F", "\u{1F407}", "\u{1F99D}", "\u{1F9A8}", "\u{1F9A1}", "\u{1F9AB}", "\u{1F9A6}", "\u{1F9A5}", "\u{1F401}", "\u{1F400}", "\u{1F43F}\uFE0F", "\u{1F9EF}", "\u{1F994}"] },
-  { category: "Food & Drink", emojis: ["\u{1F34E}", "\u{1F350}", "\u{1F34A}", "\u{1F34B}", "\u{1F34C}", "\u{1F349}", "\u{1F347}", "\u{1F353}", "\u{1FAD0}", "\u{1F348}", "\u{1F352}", "\u{1F351}", "\u{1F96D}", "\u{1F34D}", "\u{1F965}", "\u{1F95D}", "\u{1F345}", "\u{1F346}", "\u{1F951}", "\u{1F966}", "\u{1F96C}", "\u{1F952}", "\u{1F336}\uFE0F", "\u{1FAD1}", "\u{1F955}", "\u{1F9C4}", "\u{1F9C5}", "\u{1F954}", "\u{1F360}", "\u{1F950}", "\u{1F96F}", "\u{1F35E}", "\u{1F956}", "\u{1F968}", "\u{1F9C0}", "\u{1F95A}", "\u{1F373}", "\u{1F9C8}", "\u{1F95E}", "\u{1F9C7}", "\u{1F953}", "\u{1F969}", "\u{1F357}", "\u{1F356}", "\u{1F9B4}", "\u{1F32D}", "\u{1F354}", "\u{1F35F}", "\u{1F355}", "\u{1FAD3}", "\u{1F96A}", "\u{1F959}", "\u{1F9C6}", "\u{1F32E}", "\u{1F32F}", "\u{1FAD4}", "\u{1F957}", "\u{1F958}", "\u{1FAD5}", "\u{1F96B}", "\u{1F35D}", "\u{1F35C}", "\u{1F372}", "\u{1F35B}", "\u{1F363}", "\u{1F371}", "\u{1F95F}", "\u{1F9AA}", "\u{1F364}", "\u{1F359}", "\u{1F35A}", "\u{1F358}", "\u{1F365}", "\u{1F960}", "\u{1F96E}", "\u{1F362}", "\u{1F361}", "\u{1F367}", "\u{1F368}", "\u{1F366}", "\u{1F967}", "\u{1F9C1}", "\u{1F370}", "\u{1F382}", "\u{1F36E}", "\u{1F36D}", "\u{1F36C}", "\u{1F36B}", "\u{1F37F}", "\u{1F369}", "\u{1F36A}", "\u{1F330}", "\u{1F95C}", "\u{1F36F}", "\u{1F95B}", "\u{1F37C}", "\u{1FAD6}", "\u2615", "\u{1F375}", "\u{1F9C3}", "\u{1F964}", "\u{1F9CB}", "\u{1F376}", "\u{1F37A}", "\u{1F37B}", "\u{1F942}", "\u{1F377}", "\u{1F943}", "\u{1F378}", "\u{1F379}", "\u{1F9C9}", "\u{1F37E}", "\u{1F9CA}", "\u{1F944}", "\u{1F374}", "\u{1F37D}\uFE0F", "\u{1F962}", "\u{1F9C2}"] },
-  { category: "Travel & Places", emojis: ["\u{1F30D}", "\u{1F30E}", "\u{1F30F}", "\u{1F310}", "\u{1F5FA}\uFE0F", "\u{1F5FE}", "\u{1F9ED}", "\u{1F3D4}\uFE0F", "\u26F0\uFE0F", "\u{1F30B}", "\u{1F5FB}", "\u{1F3D5}\uFE0F", "\u{1F3D6}\uFE0F", "\u{1F3DC}\uFE0F", "\u{1F3DD}\uFE0F", "\u{1F3DE}\uFE0F", "\u{1F3DF}\uFE0F", "\u{1F3DB}\uFE0F", "\u{1F3D7}\uFE0F", "\u{1F9F1}", "\u{1FAA8}", "\u{1FAB5}", "\u{1F6D6}", "\u{1F3D8}\uFE0F", "\u{1F3DA}\uFE0F", "\u{1F3E0}", "\u{1F3E1}", "\u{1F3E2}", "\u{1F3E3}", "\u{1F3E4}", "\u{1F3E5}", "\u{1F3E6}", "\u{1F3E8}", "\u{1F3E9}", "\u{1F3EA}", "\u{1F3EB}", "\u{1F3EC}", "\u{1F3ED}", "\u{1F3EF}", "\u{1F3F0}", "\u{1F492}", "\u{1F5FC}", "\u{1F5FD}", "\u26EA", "\u{1F54C}", "\u{1F6D5}", "\u{1F54D}", "\u26E9\uFE0F", "\u{1F54B}", "\u26F2", "\u26FA", "\u{1F301}", "\u{1F303}", "\u{1F3D9}\uFE0F", "\u{1F304}", "\u{1F305}", "\u{1F306}", "\u{1F307}", "\u{1F309}", "\u2668\uFE0F", "\u{1F3A0}", "\u{1F3A1}", "\u{1F3A2}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
-  { category: "Activities", emojis: ["\u26BD", "\u{1F3C0}", "\u{1F3C8}", "\u26BE", "\u{1F94E}", "\u{1F3BE}", "\u{1F3D0}", "\u{1F3C9}", "\u{1F94F}", "\u{1F3B1}", "\u{1FA80}", "\u{1F3D3}", "\u{1F3F8}", "\u{1F3D2}", "\u{1F3D1}", "\u{1F94D}", "\u{1F3CF}", "\u{1FA83}", "\u{1F945}", "\u26F3", "\u{1FA81}", "\u{1F3A3}", "\u{1F93F}", "\u{1F3BD}", "\u{1F3BF}", "\u{1F6F7}", "\u{1F94C}", "\u{1F3AF}", "\u{1FA80}", "\u{1FA81}", "\u{1F3B1}", "\u{1F3AE}", "\u{1F3B2}", "\u{1F9E9}", "\u{1F3AD}", "\u{1F3A8}", "\u{1F3AA}", "\u{1F3A4}", "\u{1F3A7}", "\u{1F3BC}", "\u{1F3B9}", "\u{1F941}", "\u{1FA98}", "\u{1F3B7}", "\u{1F3BA}", "\u{1FA97}", "\u{1F3B8}", "\u{1FA95}", "\u{1F3BB}", "\u{1F3AC}", "\u{1F3F9}"] },
-  { category: "Objects", emojis: ["\u231A", "\u{1F4F1}", "\u{1F4F2}", "\u{1F4BB}", "\u2328\uFE0F", "\u{1F5A5}\uFE0F", "\u{1F5A8}\uFE0F", "\u{1F5B1}\uFE0F", "\u{1F5B2}\uFE0F", "\u{1F579}\uFE0F", "\u{1F5DC}\uFE0F", "\u{1F4BD}", "\u{1F4BE}", "\u{1F4BF}", "\u{1F4C0}", "\u{1F4FC}", "\u{1F4F7}", "\u{1F4F8}", "\u{1F4F9}", "\u{1F3A5}", "\u{1F4FD}\uFE0F", "\u{1F39E}\uFE0F", "\u{1F4DE}", "\u260E\uFE0F", "\u{1F4DF}", "\u{1F4E0}", "\u{1F4FA}", "\u{1F4FB}", "\u{1F399}\uFE0F", "\u{1F39A}\uFE0F", "\u{1F39B}\uFE0F", "\u{1F9ED}", "\u23F1\uFE0F", "\u23F2\uFE0F", "\u23F0", "\u{1F570}\uFE0F", "\u231B", "\u23F3", "\u{1F4E1}", "\u{1F50B}", "\u{1F50C}", "\u{1F4A1}", "\u{1F526}", "\u{1F56F}\uFE0F", "\u{1FA94}", "\u{1F9EF}", "\u{1F6E2}\uFE0F", "\u{1F4B8}", "\u{1F4B5}", "\u{1F4B4}", "\u{1F4B6}", "\u{1F4B7}", "\u{1FA99}", "\u{1F4B0}", "\u{1F4B3}", "\u{1F48E}", "\u2696\uFE0F", "\u{1F9F0}", "\u{1FA9B}", "\u{1F527}", "\u{1F528}", "\u2692\uFE0F", "\u{1F6E0}\uFE0F", "\u26CF\uFE0F", "\u{1FA9A}", "\u{1F529}", "\u2699\uFE0F", "\u{1FA9C}", "\u{1F9F1}", "\u26D3\uFE0F", "\u{1F9F2}", "\u{1F52B}", "\u{1F4A3}", "\u{1F9E8}", "\u{1FA93}", "\u{1F52A}", "\u{1F5E1}\uFE0F", "\u2694\uFE0F", "\u{1F6E1}\uFE0F", "\u{1F6AC}", "\u26B0\uFE0F", "\u{1FAA6}", "\u26B1\uFE0F", "\u{1F3FA}", "\u{1F52E}", "\u{1F4FF}", "\u{1F9FF}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
-  { category: "Weather", emojis: ["\u2601\uFE0F", "\u26C5", "\u26C8\uFE0F", "\u{1F324}\uFE0F", "\u{1F325}\uFE0F", "\u{1F326}\uFE0F", "\u{1F327}\uFE0F", "\u{1F328}\uFE0F", "\u{1F329}\uFE0F", "\u{1F32A}\uFE0F", "\u{1F32B}\uFE0F", "\u{1F31D}", "\u{1F311}", "\u{1F312}", "\u{1F313}", "\u{1F314}", "\u{1F315}", "\u{1F316}", "\u{1F317}", "\u{1F318}", "\u{1F319}", "\u{1F31A}", "\u{1F31B}", "\u{1F31C}", "\u2600\uFE0F", "\u{1F31E}", "\u2B50", "\u{1F31F}", "\u{1F320}", "\u2604\uFE0F", "\u{1F321}\uFE0F", "\u{1F32C}\uFE0F", "\u{1F300}", "\u{1F308}", "\u{1F302}", "\u2602\uFE0F", "\u2614", "\u26F1\uFE0F", "\u26A1", "\u2744\uFE0F", "\u2603\uFE0F", "\u26C4", "\u{1F525}", "\u{1F4A7}", "\u{1F30A}"] },
-  { category: "Symbols", emojis: ["\u2764\uFE0F", "\u{1F9E1}", "\u{1F49B}", "\u{1F49A}", "\u{1F499}", "\u{1F49C}", "\u{1F5A4}", "\u{1F90D}", "\u{1F90E}", "\u{1F494}", "\u2763\uFE0F", "\u{1F495}", "\u{1F49E}", "\u{1F493}", "\u{1F497}", "\u{1F496}", "\u{1F498}", "\u{1F49D}", "\u{1F49F}", "\u262E\uFE0F", "\u271D\uFE0F", "\u262A\uFE0F", "\u{1F549}\uFE0F", "\u2638\uFE0F", "\u2721\uFE0F", "\u{1F52F}", "\u{1F54E}", "\u262F\uFE0F", "\u2626\uFE0F", "\u{1F6D0}", "\u26CE", "\u2648", "\u2649", "\u264A", "\u264B", "\u264C", "\u264D", "\u264E", "\u264F", "\u2650", "\u2651", "\u2652", "\u2653", "\u{1F194}", "\u269B\uFE0F", "\u{1F251}", "\u2622\uFE0F", "\u2623\uFE0F", "\u{1F4F4}", "\u{1F4F3}", "\u{1F236}", "\u{1F21A}", "\u{1F238}", "\u{1F23A}", "\u{1F237}\uFE0F", "\u2734\uFE0F", "\u{1F19A}", "\u{1F4AE}", "\u{1F250}", "\u3299\uFE0F", "\u3297\uFE0F", "\u{1F234}", "\u{1F235}", "\u{1F239}", "\u{1F232}", "\u{1F170}\uFE0F", "\u{1F171}\uFE0F", "\u{1F18E}", "\u{1F191}", "\u{1F17E}\uFE0F", "\u{1F198}", "\u274C", "\u2B55", "\u{1F6D1}", "\u26D4", "\u{1F4DB}", "\u{1F6AB}", "\u{1F4AF}", "\u{1F4A2}", "\u2668\uFE0F", "\u{1F6B7}", "\u{1F6AF}", "\u{1F6B3}", "\u{1F6B1}", "\u{1F51E}", "\u{1F4F5}", "\u{1F6AD}", "\u2757", "\u2755", "\u2753", "\u2754", "\u203C\uFE0F", "\u2049\uFE0F", "\u{1F505}", "\u{1F506}", "\u303D\uFE0F", "\u26A0\uFE0F", "\u{1F6B8}", "\u{1F531}", "\u269C\uFE0F", "\u{1F530}", "\u267B\uFE0F", "\u2705", "\u{1F22F}", "\u{1F4B9}", "\u2747\uFE0F", "\u2733\uFE0F", "\u274E", "\u{1F310}", "\u{1F4A0}", "\u24C2\uFE0F", "\u{1F300}", "\u{1F4A4}", "\u{1F3E7}", "\u{1F6BE}", "\u267F", "\u{1F17F}\uFE0F", "\u{1F6D7}", "\u{1F233}", "\u{1F202}\uFE0F", "\u{1F6C2}", "\u{1F6C3}", "\u{1F6C4}", "\u{1F6C5}", "\u{1F6B9}", "\u{1F6BA}", "\u{1F6BC}", "\u26A7", "\u{1F6BB}", "\u{1F6AE}", "\u{1F3A6}", "\u{1F4F6}", "\u{1F201}", "\u{1F523}", "\u2139\uFE0F", "\u{1F524}", "\u{1F521}", "\u{1F520}", "\u{1F196}", "\u{1F197}", "\u{1F199}", "\u{1F192}", "\u{1F195}", "\u{1F193}", "0\uFE0F\u20E3", "1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}", "\u{1F522}", "#\uFE0F\u20E3", "*\uFE0F\u20E3", "\u23CF\uFE0F", "\u25B6\uFE0F", "\u23F8\uFE0F", "\u23EF\uFE0F", "\u23F9\uFE0F", "\u23FA\uFE0F", "\u23ED\uFE0F", "\u23EE\uFE0F", "\u23E9", "\u23EA", "\u23EB", "\u23EC", "\u25C0\uFE0F", "\u{1F53C}", "\u{1F53D}", "\u27A1\uFE0F", "\u2B05\uFE0F", "\u2B06\uFE0F", "\u2B07\uFE0F", "\u2197\uFE0F", "\u2198\uFE0F", "\u2199\uFE0F", "\u2196\uFE0F", "\u2195\uFE0F", "\u2194\uFE0F", "\u21AA\uFE0F", "\u21A9\uFE0F", "\u2934\uFE0F", "\u2935\uFE0F", "\u{1F500}", "\u{1F501}", "\u{1F502}", "\u{1F504}", "\u{1F503}", "\u{1F3B5}", "\u{1F3B6}", "\u2795", "\u2796", "\u2797", "\u2716\uFE0F", "\u267E\uFE0F", "\u{1F4B2}", "\u{1F4B1}", "\u2122\uFE0F", "\xA9\uFE0F", "\xAE\uFE0F", "\u3030\uFE0F", "\u27B0", "\u27BF", "\u{1F51A}", "\u{1F519}", "\u{1F51B}", "\u{1F51D}", "\u{1F51C}", "\u2714\uFE0F", "\u2611\uFE0F", "\u{1F518}", "\u{1F534}", "\u{1F7E0}", "\u{1F7E1}", "\u{1F7E2}", "\u{1F535}", "\u{1F7E3}", "\u26AB", "\u26AA", "\u{1F7E4}", "\u{1F53A}", "\u{1F53B}", "\u{1F538}", "\u{1F539}", "\u{1F536}", "\u{1F537}", "\u{1F533}", "\u{1F532}", "\u25AA\uFE0F", "\u25AB\uFE0F", "\u25FE", "\u25FD", "\u25FC\uFE0F", "\u25FB\uFE0F", "\u{1F7E5}", "\u{1F7E7}", "\u{1F7E8}", "\u{1F7E9}", "\u{1F7E6}", "\u{1F7EA}", "\u2B1B", "\u2B1C", "\u{1F7EB}", "\u{1F508}", "\u{1F507}", "\u{1F509}", "\u{1F50A}", "\u{1F514}", "\u{1F515}", "\u{1F4E3}", "\u{1F4E2}", "\u{1F441}\uFE0F\u200D\u{1F5E8}\uFE0F", "\u{1F4AC}", "\u{1F4AD}", "\u{1F5EF}\uFE0F", "\u2660\uFE0F", "\u2663\uFE0F", "\u2665\uFE0F", "\u2666\uFE0F", "\u{1F0CF}", "\u{1F3B4}", "\u{1F004}"] },
-  { category: "Flags", emojis: ["\u{1F3F3}\uFE0F", "\u{1F3F4}", "\u{1F3C1}", "\u{1F6A9}", "\u{1F3F3}\uFE0F\u200D\u{1F308}", "\u{1F3F3}\uFE0F\u200D\u26A7\uFE0F", "\u{1F3F4}\u200D\u2620\uFE0F", "\u{1F1E6}\u{1F1EB}", "\u{1F1E6}\u{1F1FD}", "\u{1F1E6}\u{1F1F1}", "\u{1F1E9}\u{1F1FF}", "\u{1F1E6}\u{1F1F8}", "\u{1F1E6}\u{1F1E9}", "\u{1F1E6}\u{1F1F4}", "\u{1F1E6}\u{1F1EE}", "\u{1F1E6}\u{1F1F6}", "\u{1F1E6}\u{1F1EC}", "\u{1F1E6}\u{1F1F7}", "\u{1F1E6}\u{1F1F2}", "\u{1F1E6}\u{1F1FC}", "\u{1F1E6}\u{1F1FA}", "\u{1F1E6}\u{1F1F9}", "\u{1F1E6}\u{1F1FF}", "\u{1F1E7}\u{1F1F8}", "\u{1F1E7}\u{1F1ED}", "\u{1F1E7}\u{1F1E9}", "\u{1F1E7}\u{1F1E7}", "\u{1F1E7}\u{1F1FE}", "\u{1F1E7}\u{1F1EA}", "\u{1F1E7}\u{1F1FF}", "\u{1F1E7}\u{1F1EF}", "\u{1F1E7}\u{1F1F2}", "\u{1F1E7}\u{1F1F9}", "\u{1F1E7}\u{1F1F4}", "\u{1F1E7}\u{1F1E6}", "\u{1F1E7}\u{1F1FC}", "\u{1F1E7}\u{1F1F7}", "\u{1F1EE}\u{1F1F4}", "\u{1F1FB}\u{1F1EC}", "\u{1F1E7}\u{1F1F3}", "\u{1F1E7}\u{1F1EC}", "\u{1F1E7}\u{1F1EB}", "\u{1F1E7}\u{1F1EE}", "\u{1F1F0}\u{1F1ED}", "\u{1F1E8}\u{1F1F2}", "\u{1F1E8}\u{1F1E6}", "\u{1F1EE}\u{1F1E8}", "\u{1F1E8}\u{1F1FB}", "\u{1F1E7}\u{1F1F6}", "\u{1F1F0}\u{1F1FE}", "\u{1F1E8}\u{1F1EB}", "\u{1F1F9}\u{1F1E9}", "\u{1F1E8}\u{1F1F1}", "\u{1F1E8}\u{1F1F3}", "\u{1F1E8}\u{1F1FD}", "\u{1F1E8}\u{1F1E8}", "\u{1F1E8}\u{1F1F4}", "\u{1F1F0}\u{1F1F2}", "\u{1F1E8}\u{1F1EC}", "\u{1F1E8}\u{1F1E9}", "\u{1F1E8}\u{1F1F0}", "\u{1F1E8}\u{1F1F7}", "\u{1F1E8}\u{1F1EE}", "\u{1F1ED}\u{1F1F7}", "\u{1F1E8}\u{1F1FA}", "\u{1F1E8}\u{1F1FC}", "\u{1F1E8}\u{1F1FE}", "\u{1F1E8}\u{1F1FF}", "\u{1F1E9}\u{1F1F0}", "\u{1F1E9}\u{1F1EF}", "\u{1F1E9}\u{1F1F2}", "\u{1F1E9}\u{1F1F4}", "\u{1F1EA}\u{1F1E8}", "\u{1F1EA}\u{1F1EC}", "\u{1F1F8}\u{1F1FB}", "\u{1F1EC}\u{1F1F6}", "\u{1F1EA}\u{1F1F7}", "\u{1F1EA}\u{1F1EA}", "\u{1F1EA}\u{1F1F9}", "\u{1F1EA}\u{1F1FA}", "\u{1F1EB}\u{1F1F0}", "\u{1F1EB}\u{1F1F4}", "\u{1F1EB}\u{1F1EF}", "\u{1F1EB}\u{1F1EE}", "\u{1F1EB}\u{1F1F7}", "\u{1F1EC}\u{1F1EB}", "\u{1F1F5}\u{1F1EB}", "\u{1F1F9}\u{1F1EB}", "\u{1F1EC}\u{1F1E6}", "\u{1F1EC}\u{1F1F2}", "\u{1F1EC}\u{1F1EA}", "\u{1F1E9}\u{1F1EA}", "\u{1F1EC}\u{1F1ED}", "\u{1F1EC}\u{1F1EE}", "\u{1F1EC}\u{1F1F7}", "\u{1F1EC}\u{1F1F1}", "\u{1F1EC}\u{1F1E9}", "\u{1F1EC}\u{1F1F5}", "\u{1F1EC}\u{1F1FA}", "\u{1F1EC}\u{1F1F9}", "\u{1F1EC}\u{1F1EC}", "\u{1F1EC}\u{1F1F3}", "\u{1F1EC}\u{1F1FC}", "\u{1F1EC}\u{1F1FE}", "\u{1F1ED}\u{1F1F9}", "\u{1F1ED}\u{1F1F3}", "\u{1F1ED}\u{1F1F0}", "\u{1F1ED}\u{1F1FA}", "\u{1F1EE}\u{1F1F8}", "\u{1F1EE}\u{1F1F3}", "\u{1F1EE}\u{1F1E9}", "\u{1F1EE}\u{1F1F7}", "\u{1F1EE}\u{1F1F6}", "\u{1F1EE}\u{1F1EA}", "\u{1F1EE}\u{1F1F2}", "\u{1F1EE}\u{1F1F1}", "\u{1F1EE}\u{1F1F9}", "\u{1F1EF}\u{1F1F2}", "\u{1F1EF}\u{1F1F5}", "\u{1F38C}", "\u{1F1EF}\u{1F1EA}", "\u{1F1EF}\u{1F1F4}", "\u{1F1F0}\u{1F1FF}", "\u{1F1F0}\u{1F1EA}", "\u{1F1F0}\u{1F1EE}", "\u{1F1FD}\u{1F1F0}", "\u{1F1F0}\u{1F1FC}", "\u{1F1F0}\u{1F1EC}", "\u{1F1F1}\u{1F1E6}", "\u{1F1F1}\u{1F1FB}", "\u{1F1F1}\u{1F1E7}", "\u{1F1F1}\u{1F1F8}", "\u{1F1F1}\u{1F1F7}", "\u{1F1F1}\u{1F1FE}", "\u{1F1F1}\u{1F1EE}", "\u{1F1F1}\u{1F1F9}", "\u{1F1F1}\u{1F1FA}", "\u{1F1F2}\u{1F1F4}", "\u{1F1F2}\u{1F1F0}", "\u{1F1F2}\u{1F1EC}", "\u{1F1F2}\u{1F1FC}", "\u{1F1F2}\u{1F1FE}", "\u{1F1F2}\u{1F1FB}", "\u{1F1F2}\u{1F1F1}", "\u{1F1F2}\u{1F1F9}", "\u{1F1F2}\u{1F1ED}", "\u{1F1F2}\u{1F1F6}", "\u{1F1F2}\u{1F1F7}", "\u{1F1FE}\u{1F1F9}", "\u{1F1F2}\u{1F1FD}", "\u{1F1EB}\u{1F1F2}", "\u{1F1F2}\u{1F1E9}", "\u{1F1F2}\u{1F1E8}", "\u{1F1F2}\u{1F1F3}", "\u{1F1F2}\u{1F1EA}", "\u{1F1F2}\u{1F1F8}", "\u{1F1F2}\u{1F1E6}", "\u{1F1F2}\u{1F1FF}", "\u{1F1F2}\u{1F1F2}", "\u{1F1F3}\u{1F1E6}", "\u{1F1F3}\u{1F1F7}", "\u{1F1F3}\u{1F1F5}", "\u{1F1F3}\u{1F1F1}", "\u{1F1F3}\u{1F1E8}", "\u{1F1F3}\u{1F1FF}", "\u{1F1F3}\u{1F1EE}", "\u{1F1F3}\u{1F1EA}", "\u{1F1F3}\u{1F1EC}", "\u{1F1F3}\u{1F1FA}", "\u{1F1F3}\u{1F1EB}", "\u{1F1F0}\u{1F1F5}", "\u{1F1F2}\u{1F1F5}", "\u{1F1F3}\u{1F1F4}", "\u{1F1F4}\u{1F1F2}", "\u{1F1F5}\u{1F1F0}", "\u{1F1F5}\u{1F1FC}", "\u{1F1F5}\u{1F1F8}", "\u{1F1F5}\u{1F1E6}", "\u{1F1F5}\u{1F1EC}", "\u{1F1F5}\u{1F1FE}", "\u{1F1F5}\u{1F1EA}", "\u{1F1F5}\u{1F1ED}", "\u{1F1F5}\u{1F1F3}", "\u{1F1F5}\u{1F1F1}", "\u{1F1F5}\u{1F1F9}", "\u{1F1F5}\u{1F1F7}", "\u{1F1F6}\u{1F1E6}", "\u{1F1F7}\u{1F1EA}", "\u{1F1F7}\u{1F1F4}", "\u{1F1F7}\u{1F1FA}", "\u{1F1F7}\u{1F1FC}", "\u{1F1FC}\u{1F1F8}", "\u{1F1F8}\u{1F1F2}", "\u{1F1F8}\u{1F1E6}", "\u{1F1F8}\u{1F1F3}", "\u{1F1F7}\u{1F1F8}", "\u{1F1F8}\u{1F1E8}", "\u{1F1F8}\u{1F1F1}", "\u{1F1F8}\u{1F1EC}", "\u{1F1F8}\u{1F1FD}", "\u{1F1F8}\u{1F1F0}", "\u{1F1F8}\u{1F1EE}", "\u{1F1EC}\u{1F1F8}", "\u{1F1F8}\u{1F1E7}", "\u{1F1F8}\u{1F1F4}", "\u{1F1FF}\u{1F1E6}", "\u{1F1F0}\u{1F1F7}", "\u{1F1F8}\u{1F1F8}", "\u{1F1EA}\u{1F1F8}", "\u{1F1F1}\u{1F1F0}", "\u{1F1E7}\u{1F1F1}", "\u{1F1F8}\u{1F1ED}", "\u{1F1F0}\u{1F1F3}", "\u{1F1F1}\u{1F1E8}", "\u{1F1F5}\u{1F1F2}", "\u{1F1FB}\u{1F1E8}", "\u{1F1F8}\u{1F1E9}", "\u{1F1F8}\u{1F1F7}", "\u{1F1F8}\u{1F1FF}", "\u{1F1F8}\u{1F1EA}", "\u{1F1E8}\u{1F1ED}", "\u{1F1F8}\u{1F1FE}", "\u{1F1F9}\u{1F1FC}", "\u{1F1F9}\u{1F1EF}", "\u{1F1F9}\u{1F1FF}", "\u{1F1F9}\u{1F1ED}", "\u{1F1F9}\u{1F1F1}", "\u{1F1F9}\u{1F1EC}", "\u{1F1F9}\u{1F1F0}", "\u{1F1F9}\u{1F1F4}", "\u{1F1F9}\u{1F1F9}", "\u{1F1F9}\u{1F1F3}", "\u{1F1F9}\u{1F1F7}", "\u{1F1F9}\u{1F1F2}", "\u{1F1F9}\u{1F1E8}", "\u{1F1F9}\u{1F1FB}", "\u{1F1FB}\u{1F1EE}", "\u{1F1FA}\u{1F1EC}", "\u{1F1FA}\u{1F1E6}", "\u{1F1E6}\u{1F1EA}", "\u{1F1EC}\u{1F1E7}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}", "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}", "\u{1F1FA}\u{1F1F3}", "\u{1F1FA}\u{1F1F8}", "\u{1F1FA}\u{1F1FE}", "\u{1F1FA}\u{1F1FF}", "\u{1F1FB}\u{1F1FA}", "\u{1F1FB}\u{1F1E6}", "\u{1F1FB}\u{1F1EA}", "\u{1F1FB}\u{1F1F3}", "\u{1F1FC}\u{1F1EB}", "\u{1F1EA}\u{1F1ED}", "\u{1F1FE}\u{1F1EA}", "\u{1F1FF}\u{1F1F2}", "\u{1F1FF}\u{1F1FC}"] }
-];
-var emojiDescriptions = {
-  // Smileys & Emotion
-  "\u2639\uFE0F": "frowning face sad unhappy upset",
-  "\u{1F910}": "zipper-mouth face quiet silence secret mute",
-  "\u{1F912}": "face with thermometer sick ill fever temperature",
-  "\u{1F913}": "nerd face glasses smart geek studious",
-  "\u{1F914}": "thinking face thoughtful curious pondering",
-  "\u{1F915}": "face with head-bandage injury hurt bandaged",
-  "\u{1F917}": "hugging face hug comfort happy",
-  "\u{1F922}": "nauseated face sick vomit gross disgusted",
-  "\u{1F923}": "rolling on the floor laughing happy cry rofl lol",
-  "\u{1F924}": "drooling face food hungry desire want",
-  "\u{1F925}": "lying face liar nose growing pinocchio",
-  "\u{1F927}": "sneezing face sick cold allergy achoo",
-  "\u{1F928}": "face with raised eyebrow skeptical suspicious doubt",
-  "\u{1F929}": "star-struck excited amazed starry-eyed",
-  "\u{1F92A}": "zany face crazy silly wild goofy",
-  "\u{1F92B}": "shushing face quiet silence secret",
-  "\u{1F92C}": "face with symbols on mouth swearing angry cursing",
-  "\u{1F92D}": "face with hand over mouth giggling surprise",
-  "\u{1F92E}": "face vomiting sick throw up gross ill",
-  "\u{1F92F}": "exploding head mind blown shocked amazed",
-  "\u{1F970}": "smiling face with hearts love heart adore affection",
-  "\u{1F971}": "yawning face sleepy tired bored",
-  "\u{1F973}": "partying face celebration party festive",
-  "\u{1F974}": "woozy face drunk dizzy tipsy disoriented",
-  "\u{1F975}": "hot face heat sweating overheated",
-  "\u{1F976}": "cold face freezing ice frozen",
-  "\u{1F97A}": "pleading face begging puppy eyes",
-  "\u{1F9D0}": "face with monocle smart sophisticated examine",
-  "\u{1F600}": "grinning face smile happy joyful",
-  "\u{1F601}": "beaming face with smiling eyes grin happy proud",
-  "\u{1F602}": "face with tears of joy laughing crying happy lol",
-  "\u{1F603}": "grinning face with big eyes smile happy excited",
-  "\u{1F604}": "grinning face with smiling eyes happy joy laugh",
-  "\u{1F605}": "grinning face with sweat happy relief nervous",
-  "\u{1F607}": "smiling face with halo angel innocent blessed",
-  "\u{1F609}": "winking face flirt playful joke",
-  "\u{1F60A}": "smiling face with smiling eyes happy sweet shy",
-  "\u{1F60B}": "face savoring food yummy delicious tasty",
-  "\u{1F60C}": "relieved face calm relaxed content",
-  "\u{1F60D}": "smiling face with heart-eyes love heart adore",
-  "\u{1F60E}": "smiling face with sunglasses cool confident",
-  "\u{1F60F}": "smirking face flirt smug suggestive",
-  "\u{1F610}": "neutral face expressionless blank meh",
-  "\u{1F611}": "expressionless face blank unimpressed",
-  "\u{1F612}": "unamused face unhappy annoyed unimpressed",
-  "\u{1F613}": "downcast face with sweat tired stressed",
-  "\u{1F614}": "pensive face sad thoughtful reflective",
-  "\u{1F615}": "confused face puzzled unsure",
-  "\u{1F616}": "confounded face confused frustrated",
-  "\u{1F617}": "kissing face love affection",
-  "\u{1F618}": "face blowing a kiss love heart flirt",
-  "\u{1F619}": "kissing face with smiling eyes love happy",
-  "\u{1F61A}": "kissing face with closed eyes love shy",
-  "\u{1F61B}": "face with tongue playful silly taste",
-  "\u{1F61C}": "winking face with tongue playful silly joke",
-  "\u{1F61D}": "squinting face with tongue playful silly ecstatic",
-  "\u{1F61E}": "disappointed face sad unhappy dejected",
-  "\u{1F61F}": "worried face concerned anxious nervous",
-  "\u{1F620}": "angry face mad furious",
-  "\u{1F621}": "pouting face angry rage mad",
-  "\u{1F622}": "crying face sad tear unhappy",
-  "\u{1F623}": "persevering face struggling frustrated",
-  "\u{1F624}": "face with steam from nose angry frustrated proud",
-  "\u{1F625}": "sad but relieved face disappointed relieved",
-  "\u{1F626}": "frowning face with open mouth shock horror",
-  "\u{1F627}": "anguished face shocked scared distressed",
-  "\u{1F628}": "fearful face scared worried shocked",
-  "\u{1F629}": "weary face tired frustrated exhausted",
-  "\u{1F62A}": "sleepy face tired drowsy rest",
-  "\u{1F62B}": "tired face exhausted weary",
-  "\u{1F62C}": "grimacing face awkward nervous uncomfortable",
-  "\u{1F62D}": "loudly crying face sad sobbing upset",
-  "\u{1F62E}": "face with open mouth surprise shock wow gasp",
-  "\u{1F62F}": "hushed face surprised shocked stunned",
-  "\u{1F630}": "anxious face with sweat nervous worried",
-  "\u{1F631}": "face screaming in fear scared shocked",
-  "\u{1F632}": "astonished face shocked surprised amazed wow",
-  "\u{1F633}": "flushed face blushing embarrassed surprised",
-  "\u{1F634}": "sleeping face sleep zzz tired rest",
-  "\u{1F635}": "dizzy face spiral confused disoriented",
-  "\u{1F636}": "face without mouth speechless silent blank",
-  "\u{1F637}": "face with medical mask sick ill covid virus",
-  "\u{1F641}": "slightly frowning face sad disappointed",
-  "\u{1F642}": "slightly smiling face happy content",
-  "\u{1F643}": "upside-down face silly playful ironic",
-  "\u{1F644}": "face with rolling eyes exasperated annoyed",
-  // People & Body
-  "\u261D\uFE0F": "index pointing up direction gesture",
-  "\u270A": "raised fist power solidarity strength",
-  "\u270B": "raised hand stop high five palm",
-  "\u270C\uFE0F": "victory hand peace victory yeah",
-  "\u270D\uFE0F": "writing hand write note signature",
-  "\u{1F440}": "eyes look see watch",
-  "\u{1F441}\uFE0F": "eye look see watch",
-  "\u{1F442}": "ear hear listen sound",
-  "\u{1F443}": "nose smell sniff",
-  "\u{1F444}": "mouth lips kiss speak",
-  "\u{1F445}": "tongue taste lick",
-  "\u{1F446}": "backhand index pointing up direction gesture",
-  "\u{1F447}": "backhand index pointing down direction gesture",
-  "\u{1F448}": "backhand index pointing left direction gesture",
-  "\u{1F449}": "backhand index pointing right direction gesture",
-  "\u{1F44A}": "oncoming fist punch bro fist bump",
-  "\u{1F44B}": "waving hand hello goodbye wave greeting",
-  "\u{1F44C}": "ok hand perfect agree approval",
-  "\u{1F44D}": "thumbs up approve like yes good",
-  "\u{1F44E}": "thumbs down disapprove dislike no bad",
-  "\u{1F44F}": "clapping hands praise applause congratulations bravo",
-  "\u{1F450}": "open hands hug welcome",
-  "\u{1F466}": "boy child young male kid",
-  "\u{1F467}": "girl child young female kid",
-  "\u{1F468}": "man male adult person gender",
-  "\u{1F468}\u200D\u{1F9B0}": "man red hair male person ginger hairstyle",
-  "\u{1F468}\u200D\u{1F9B1}": "man curly hair male person hairstyle",
-  "\u{1F468}\u200D\u{1F9B2}": "man bald male person no hair",
-  "\u{1F468}\u200D\u{1F9B3}": "man white hair male person hairstyle",
-  "\u{1F469}": "woman female adult person gender",
-  "\u{1F469}\u200D\u{1F9B0}": "woman red hair female person ginger hairstyle",
-  "\u{1F469}\u200D\u{1F9B1}": "woman curly hair female person hairstyle",
-  "\u{1F469}\u200D\u{1F9B2}": "woman bald female person no hair",
-  "\u{1F469}\u200D\u{1F9B3}": "woman white hair female person hairstyle",
-  "\u{1F471}": "person blonde hair human hairstyle",
-  "\u{1F471}\u200D\u2640\uFE0F": "woman blonde hair female person hairstyle",
-  "\u{1F471}\u200D\u2642\uFE0F": "man blonde hair male person hairstyle",
-  "\u{1F474}": "old man elderly male person senior",
-  "\u{1F475}": "old woman elderly female person senior",
-  "\u{1F476}": "baby child infant young newborn",
-  "\u{1F485}": "nail polish beauty manicure cosmetics",
-  "\u{1F48B}": "kiss mark lips love romance",
-  "\u{1F4AA}": "flexed biceps strong muscle flex",
-  "\u{1F590}\uFE0F": "hand with fingers splayed stop halt palm",
-  "\u{1F595}": "middle finger rude offensive gesture",
-  "\u{1F596}": "vulcan salute star trek spock prosper",
-  "\u{1F90C}": "pinched fingers italian what gesture",
-  "\u{1F90F}": "pinching hand small tiny little",
-  "\u{1F918}": "sign of the horns rock metal music",
-  "\u{1F919}": "call me hand phone hang loose",
-  "\u{1F91A}": "raised back of hand stop halt",
-  "\u{1F91B}": "left-facing fist bump greeting",
-  "\u{1F91C}": "right-facing fist bump greeting",
-  "\u{1F91D}": "handshake deal agreement partnership",
-  "\u{1F91E}": "crossed fingers luck hopeful wish",
-  "\u{1F91F}": "love-you gesture rock love sign",
-  "\u{1F932}": "palms up together pray beg",
-  "\u{1F933}": "selfie camera phone photo",
-  "\u{1F9B4}": "bone skeleton body structure",
-  "\u{1F9B5}": "leg kick foot limb",
-  "\u{1F9B6}": "foot toe kick limb",
-  "\u{1F9B7}": "tooth teeth dental",
-  "\u{1F9BB}": "ear with hearing aid accessibility deaf",
-  "\u{1F9BE}": "mechanical arm robot prosthetic",
-  "\u{1F9BF}": "mechanical leg robot prosthetic",
-  "\u{1F9D1}": "person adult gender-neutral human",
-  "\u{1F9D1}\u200D\u{1F9B0}": "person red hair human ginger hairstyle",
-  "\u{1F9D1}\u200D\u{1F9B1}": "person curly hair human hairstyle",
-  "\u{1F9D1}\u200D\u{1F9B2}": "person bald human no hair",
-  "\u{1F9D1}\u200D\u{1F9B3}": "person white hair human hairstyle",
-  "\u{1F9D2}": "child young kid gender-neutral youth",
-  "\u{1F9D3}": "older person elderly human senior",
-  "\u{1F9D4}": "person beard facial hair face",
-  "\u{1F9E0}": "brain mind intellect thinking",
-  "\u{1FA78}": "drop of blood injury period medical",
-  "\u{1FAC0}": "anatomical heart organ cardiac",
-  "\u{1FAC1}": "lungs breathing organ respiratory",
-  "\u{1F64C}": "raising hands celebration praise hooray",
-  "\u{1F64F}": "folded hands please thank you pray hope",
-  // Food & Drink
-  "\u2615": "hot beverage coffee tea drink",
-  "\u{1F330}": "chestnut food nut seed",
-  "\u{1F358}": "rice cracker japanese food snack",
-  "\u{1F359}": "rice ball japanese food onigiri",
-  "\u{1F35A}": "cooked rice food asian grain",
-  "\u{1F35B}": "curry rice food indian spicy",
-  "\u{1F35C}": "steaming bowl noodles ramen soup",
-  "\u{1F361}": "dango japanese food dessert sweet",
-  "\u{1F362}": "oden japanese food skewer",
-  "\u{1F363}": "sushi japanese food fish rice",
-  "\u{1F364}": "fried shrimp seafood tempura",
-  "\u{1F365}": "fish cake japanese food naruto",
-  "\u{1F366}": "soft ice cream dessert cold sweet",
-  "\u{1F367}": "shaved ice dessert cold sweet",
-  "\u{1F368}": "ice cream dessert cold sweet",
-  "\u{1F369}": "doughnut sweet dessert breakfast",
-  "\u{1F36A}": "cookie sweet dessert biscuit",
-  "\u{1F36B}": "chocolate bar candy sweet dessert",
-  "\u{1F36C}": "candy sweet dessert sugar",
-  "\u{1F36D}": "lollipop candy sweet dessert",
-  "\u{1F36E}": "custard dessert sweet pudding",
-  "\u{1F36F}": "honey pot sweet bee food",
-  "\u{1F370}": "shortcake dessert sweet slice",
-  "\u{1F371}": "bento box japanese food lunch",
-  "\u{1F372}": "pot of food stew soup cooking",
-  "\u{1F374}": "fork and knife cutlery silverware",
-  "\u{1F375}": "teacup without handle green tea drink",
-  "\u{1F376}": "sake japanese drink alcohol rice wine",
-  "\u{1F377}": "wine glass drink alcohol beverage",
-  "\u{1F378}": "cocktail glass drink alcohol martini",
-  "\u{1F379}": "tropical drink alcohol beverage cocktail",
-  "\u{1F37A}": "beer mug drink alcohol beverage",
-  "\u{1F37B}": "clinking beer mugs drink alcohol cheers",
-  "\u{1F37C}": "baby bottle milk drink infant",
-  "\u{1F37D}\uFE0F": "fork knife plate cutlery dining",
-  "\u{1F37E}": "bottle with popping cork celebration drink",
-  "\u{1F37F}": "popcorn movie snack corn",
-  "\u{1F382}": "birthday cake celebration dessert",
-  "\u{1F942}": "clinking glasses drink alcohol champagne",
-  "\u{1F943}": "tumbler glass drink alcohol whiskey",
-  "\u{1F944}": "spoon cutlery silverware utensil",
-  "\u{1F957}": "green salad healthy food vegetables",
-  "\u{1F95B}": "glass of milk drink dairy beverage",
-  "\u{1F95C}": "peanuts food nuts legumes",
-  "\u{1F95F}": "dumpling food asian chinese",
-  "\u{1F960}": "fortune cookie chinese food prediction",
-  "\u{1F962}": "chopsticks utensils asian eating",
-  "\u{1F964}": "cup with straw drink beverage soda",
-  "\u{1F967}": "pie dessert food baked",
-  "\u{1F96E}": "moon cake chinese food festival",
-  "\u{1F9AA}": "oyster seafood shellfish pearl",
-  "\u{1F9C1}": "cupcake dessert sweet cake",
-  "\u{1F9C3}": "beverage box juice drink straw",
-  "\u{1F9C9}": "mate drink beverage tea south american",
-  "\u{1F9CA}": "ice cube cold frozen water",
-  "\u{1F9CB}": "bubble tea drink boba taiwanese",
-  "\u{1FAD0}": "blueberries fruit food berries",
-  "\u{1FAD1}": "bell pepper vegetable food",
-  "\u{1FAD2}": "olive fruit food mediterranean",
-  "\u{1FAD3}": "flatbread food pita naan",
-  "\u{1FAD4}": "tamale food mexican wrapped",
-  "\u{1FAD5}": "fondue food cheese melted",
-  "\u{1FAD6}": "teapot drink hot beverage",
-  // Animals & Nature
-  "\u{1F405}": "tiger cat wild animal dangerous",
-  "\u{1F406}": "leopard cat wild animal spots",
-  "\u{1F408}\u200D\u2B1B": "black cat feline animal pet",
-  "\u{1F40A}": "crocodile alligator reptile dangerous",
-  "\u{1F40B}": "whale sea creature marine mammal",
-  "\u{1F415}\u200D\u{1F9BA}": "service dog assistance animal",
-  "\u{1F419}": "octopus sea creature tentacles",
-  "\u{1F41F}": "fish sea creature swimming",
-  "\u{1F420}": "tropical fish sea creature aquarium",
-  "\u{1F421}": "blowfish pufferfish sea creature",
-  "\u{1F42C}": "dolphin sea creature marine mammal",
-  "\u{1F433}": "spouting whale sea creature marine mammal",
-  "\u{1F43F}\uFE0F": "chipmunk animal squirrel",
-  "\u{1F577}\uFE0F": "spider arachnid bug insect",
-  "\u{1F578}\uFE0F": "spider web cobweb arachnid",
-  "\u{1F982}": "scorpion arachnid dangerous",
-  "\u{1F980}": "crab seafood shellfish",
-  "\u{1F988}": "shark sea creature dangerous fish",
-  "\u{1F98D}": "gorilla ape primate monkey",
-  "\u{1F990}": "shrimp seafood shellfish",
-  "\u{1F991}": "squid sea creature tentacles",
-  "\u{1F993}": "zebra stripes wild animal",
-  "\u{1F994}": "hedgehog animal spiky cute",
-  "\u{1F995}": "sauropod dinosaur extinct long-neck",
-  "\u{1F996}": "tyrannosaurus rex dinosaur extinct",
-  "\u{1F997}": "cricket insect chirping bug",
-  "\u{1F99E}": "lobster seafood shellfish",
-  "\u{1F9A1}": "badger animal woodland",
-  "\u{1F9A3}": "mammoth extinct animal prehistoric",
-  "\u{1F9A4}": "dodo extinct bird animal",
-  "\u{1F9A5}": "sloth slow animal lazy",
-  "\u{1F9A6}": "otter swimming animal water",
-  "\u{1F9A7}": "orangutan ape primate monkey",
-  "\u{1F9A8}": "skunk animal smelly spray",
-  "\u{1F9A9}": "flamingo pink bird animal",
-  "\u{1F9AB}": "beaver animal dam builder",
-  "\u{1F9AC}": "bison buffalo animal wild",
-  "\u{1F9AE}": "guide dog service animal assistance",
-  "\u{1FAB6}": "feather bird plume light",
-  // Travel & Places
-  "\u2668\uFE0F": "hot springs steam bath spa onsen",
-  "\u26E9\uFE0F": "shinto shrine building religious japanese",
-  "\u26EA": "church building religious christian worship",
-  "\u26F0\uFE0F": "mountain nature landscape peak hill",
-  "\u26F2": "fountain water decoration park plaza",
-  "\u26FA": "tent camping outdoors shelter vacation",
-  "\u{1F301}": "foggy city weather mist urban",
-  "\u{1F303}": "night with stars city evening urban",
-  "\u{1F304}": "sunrise over mountains morning dawn nature",
-  "\u{1F305}": "sunrise morning dawn sun nature",
-  "\u{1F306}": "cityscape at dusk evening urban sunset",
-  "\u{1F307}": "sunset over buildings evening urban",
-  "\u{1F309}": "bridge at night city urban evening",
-  "\u{1F30B}": "volcano mountain eruption nature disaster",
-  "\u{1F30D}": "globe showing europe africa earth world planet",
-  "\u{1F30E}": "globe showing americas earth world planet",
-  "\u{1F30F}": "globe showing asia australia earth world planet",
-  "\u{1F310}": "globe with meridians earth world planet network",
-  "\u{1F3A0}": "carousel horse amusement park ride",
-  "\u{1F3A1}": "ferris wheel amusement park ride fair",
-  "\u{1F3A2}": "roller coaster amusement park ride thrill",
-  "\u{1F3AA}": "circus tent entertainment show performance",
-  "\u{1F3D4}\uFE0F": "snow capped mountain peak nature landscape",
-  "\u{1F3D5}\uFE0F": "camping tent outdoors nature vacation",
-  "\u{1F3D6}\uFE0F": "beach with umbrella vacation summer sand sea",
-  "\u{1F3D7}\uFE0F": "building construction site development crane",
-  "\u{1F3D8}\uFE0F": "houses buildings residential neighborhood",
-  "\u{1F3D9}\uFE0F": "cityscape urban buildings skyline",
-  "\u{1F3DA}\uFE0F": "derelict house abandoned building old",
-  "\u{1F3DB}\uFE0F": "classical building architecture historic landmark",
-  "\u{1F3DC}\uFE0F": "desert hot dry sand nature landscape",
-  "\u{1F3DD}\uFE0F": "desert island beach vacation tropical",
-  "\u{1F3DE}\uFE0F": "national park nature landscape scenic",
-  "\u{1F3DF}\uFE0F": "stadium sports arena event venue",
-  "\u{1F3E0}": "house building home residential dwelling",
-  "\u{1F3E1}": "house with garden home yard residential",
-  "\u{1F3E2}": "office building business work corporate",
-  "\u{1F3E3}": "japanese post office building mail service",
-  "\u{1F3E4}": "post office building mail service",
-  "\u{1F3E5}": "hospital building medical healthcare emergency",
-  "\u{1F3E6}": "bank building money finance business",
-  "\u{1F3E8}": "hotel building lodging accommodation travel",
-  "\u{1F3E9}": "love hotel building romance accommodation",
-  "\u{1F3EA}": "convenience store building shop retail",
-  "\u{1F3EB}": "school building education learning",
-  "\u{1F3EC}": "department store building shopping retail",
-  "\u{1F3ED}": "factory building industrial manufacturing",
-  "\u{1F3EF}": "japanese castle building landmark historic",
-  "\u{1F3F0}": "castle building landmark historic medieval",
-  "\u{1F488}": "barber pole haircut salon shop",
-  "\u{1F492}": "wedding chapel marriage ceremony church",
-  "\u{1F54B}": "kaaba building religious islamic mecca",
-  "\u{1F54C}": "mosque building religious islamic worship",
-  "\u{1F54D}": "synagogue building religious jewish worship",
-  "\u{1F5FA}\uFE0F": "world map geography atlas travel global",
-  "\u{1F5FB}": "mount fuji japan mountain landmark nature",
-  "\u{1F5FC}": "tokyo tower landmark japan building",
-  "\u{1F5FD}": "statue of liberty landmark usa freedom",
-  "\u{1F5FE}": "map of japan geography country asian",
-  "\u{1F9ED}": "compass navigation direction travel tool",
-  "\u{1F9F1}": "brick construction building material wall",
-  "\u{1FAA8}": "rock stone nature boulder mineral",
-  "\u{1FAB5}": "wood log nature lumber timber material",
-  "\u{1F6D5}": "hindu temple building religious worship",
-  "\u{1F6D6}": "hut house shelter primitive dwelling",
-  // Activities
-  "\u26BD": "soccer ball football sport team game",
-  "\u26BE": "baseball sport team game ball bat",
-  "\u26F3": "flag in hole golf sport course game",
-  "\u{1F3A3}": "fishing pole rod sport hook line",
-  "\u{1F3A4}": "microphone karaoke sing music performance",
-  "\u{1F3A7}": "headphone music audio listen sound",
-  "\u{1F3A8}": "artist palette art painting creativity",
-  "\u{1F3AC}": "clapper board movie film director action",
-  "\u{1F3AD}": "performing arts theater drama masks",
-  "\u{1F3AE}": "video game controller gaming play",
-  "\u{1F3AF}": "direct hit target dart game sport",
-  "\u{1F3B1}": "pool 8 ball billiards game sport cue",
-  "\u{1F3B2}": "game die dice gambling play random",
-  "\u{1F3B7}": "saxophone jazz instrument music brass",
-  "\u{1F3B8}": "guitar instrument music strings rock",
-  "\u{1F3B9}": "musical keyboard piano instrument keys",
-  "\u{1F3BA}": "trumpet brass instrument music fanfare",
-  "\u{1F3BB}": "violin instrument music strings classical",
-  "\u{1F3BC}": "musical score notes sheet music",
-  "\u{1F3BD}": "running shirt athletics sport race",
-  "\u{1F3BE}": "tennis sport racket ball court game",
-  "\u{1F3BF}": "skis winter sport snow mountain",
-  "\u{1F3C0}": "basketball sport team game ball",
-  "\u{1F3C8}": "american football sport team game ball",
-  "\u{1F3C9}": "rugby football sport team game ball",
-  "\u{1F3CF}": "cricket sport team game bat ball",
-  "\u{1F3D0}": "volleyball sport team game ball net",
-  "\u{1F3D1}": "field hockey stick sport team game ball",
-  "\u{1F3D2}": "ice hockey stick sport team game puck",
-  "\u{1F3D3}": "ping pong table tennis sport game paddle",
-  "\u{1F3F8}": "badminton sport game racket shuttlecock",
-  "\u{1F3F9}": "bow and arrow archery sport target shoot",
-  "\u{1F93F}": "diving mask snorkel underwater swim sport",
-  "\u{1F941}": "drum percussion instrument music rhythm",
-  "\u{1F945}": "goal net sports hockey soccer score",
-  "\u{1F94C}": "curling stone winter sport ice game",
-  "\u{1F94D}": "lacrosse sport team game stick ball",
-  "\u{1F94E}": "softball sport team game ball bat",
-  "\u{1F94F}": "flying disc frisbee sport game outdoor",
-  "\u{1F9E9}": "puzzle piece jigsaw game entertainment",
-  "\u{1FA80}": "yo-yo toy game skill string",
-  "\u{1FA81}": "kite flying outdoor toy wind sport",
-  "\u{1FA83}": "boomerang sport throw return australian",
-  "\u{1FA95}": "banjo instrument music strings folk",
-  "\u{1FA97}": "accordion instrument music squeeze box",
-  "\u{1FA98}": "long drum percussion instrument music",
-  "\u{1F6F7}": "sled winter sport snow ride",
-  // Weather
-  "\u2601\uFE0F": "cloud",
-  "\u26C5": "sun behind cloud",
-  "\u26C8\uFE0F": "cloud with lightning and rain",
-  "\u{1F324}\uFE0F": "sun behind one cloud",
-  "\u{1F325}\uFE0F": "sun behind two clouds",
-  "\u{1F326}\uFE0F": "sun behind three clouds",
-  "\u{1F327}\uFE0F": "cloud with rain",
-  "\u{1F328}\uFE0F": "cloud with snow",
-  "\u{1F329}\uFE0F": "cloud with lightning",
-  "\u{1F32A}\uFE0F": "cloud with tornado",
-  "\u{1F32B}\uFE0F": "cloud with fog",
-  "\u{1F31D}": "full moon",
-  "\u{1F311}": "new moon",
-  "\u{1F312}": "waxing crescent moon",
-  "\u{1F313}": "waxing gibbous moon",
-  "\u{1F314}": "full moon",
-  "\u{1F315}": "waning gibbous moon",
-  "\u{1F316}": "waning crescent moon",
-  "\u{1F317}": "last quarter moon",
-  "\u{1F318}": "first quarter moon",
-  "\u{1F319}": "crescent moon",
-  "\u{1F31A}": "new moon face",
-  "\u{1F31B}": "first quarter moon face",
-  "\u{1F31C}": "last quarter moon face",
-  "\u2600\uFE0F": "sun",
-  "\u{1F31E}": "sun with face",
-  "\u2B50": "star",
-  "\u{1F31F}": "shooting star",
-  "\u{1F320}": "milky way",
-  "\u2604\uFE0F": "comet",
-  "\u{1F321}\uFE0F": "thermometer",
-  "\u{1F32C}\uFE0F": "wind",
-  "\u{1F300}": "cyclone",
-  "\u{1F308}": "rainbow",
-  "\u{1F302}": "umbrella",
-  "\u2602\uFE0F": "umbrella",
-  "\u2614": "umbrella with rain",
-  "\u26F1\uFE0F": "umbrella on beach",
-  "\u26A1": "high voltage",
-  "\u2744\uFE0F": "snowflake",
-  "\u2603\uFE0F": "snowman",
-  "\u26C4": "snowman without snow",
-  "\u{1F525}": "fire",
-  "\u{1F4A7}": "droplet",
-  "\u{1F30A}": "wave",
-  // Objects
-  "\u231A": "watch timekeeping device",
-  "\u231B": "hourglass timer device",
-  "\u2328\uFE0F": "keyboard input device",
-  "\u23F0": "alarm clock timekeeping device",
-  "\u23F1\uFE0F": "stopwatch timer device",
-  "\u23F2\uFE0F": "timer device",
-  "\u23F3": "stopwatch timer device",
-  "\u260E\uFE0F": "telephone handset communication device",
-  "\u2692\uFE0F": "wrench and hammer tool fixing device",
-  "\u2694\uFE0F": "shield and sword defensive weapon",
-  "\u2696\uFE0F": "scale balance weight device",
-  "\u2699\uFE0F": "gear mechanical device",
-  "\u26B0\uFE0F": "coffin casket burial container",
-  "\u26B1\uFE0F": "hourglass memorial timer",
-  "\u26CF\uFE0F": "pickaxe tool mining device",
-  "\u26D3\uFE0F": "chain link security device",
-  "\u2702\uFE0F": "scissors cutting tool",
-  "\u2709\uFE0F": "envelope letter mail",
-  "\u270F\uFE0F": "pencil writing tool",
-  "\u2712\uFE0F": "pen writing tool",
-  "\u{1F380}": "bow ribbon decoration",
-  "\u{1F381}": "gift wrapped package",
-  "\u{1F388}": "balloon decoration",
-  "\u{1F389}": "party confetti decoration",
-  "\u{1F38A}": "party popper decoration",
-  "\u{1F38E}": "traditional japanese doll",
-  "\u{1F38F}": "origami paper decoration",
-  "\u{1F390}": "envelope letter mail",
-  "\u{1F399}\uFE0F": "microphone sound amplification device",
-  "\u{1F39A}\uFE0F": "headphones audio listening device",
-  "\u{1F39B}\uFE0F": "speaker sound amplification device",
-  "\u{1F39E}\uFE0F": "video cassette recording device",
-  "\u{1F3A5}": "video camera recording device",
-  "\u{1F3EE}": "lantern festival decoration",
-  "\u{1F3F7}\uFE0F": "price tag label",
-  "\u{1F3FA}": "bell gong musical instrument",
-  "\u{1F48C}": "envelope letter mail",
-  "\u{1F48E}": "gemstone jewelry accessory",
-  "\u{1F4A1}": "light bulb lighting device",
-  "\u{1F4A3}": "bomb explosive weapon",
-  "\u{1F4B0}": "money currency finance device",
-  "\u{1F4B3}": "credit card finance device",
-  "\u{1F4B4}": "money currency finance device",
-  "\u{1F4B5}": "money currency finance device",
-  "\u{1F4B6}": "money currency finance device",
-  "\u{1F4B7}": "money currency finance device",
-  "\u{1F4B8}": "money currency finance device",
-  "\u{1F4BB}": "computer desktop",
-  "\u{1F4BD}": "computer disk storage device",
-  "\u{1F4BE}": "floppy disk storage device",
-  "\u{1F4BF}": "compact disc storage device",
-  "\u{1F4C0}": "dvd disc storage device",
-  "\u{1F4C1}": "file folder storage",
-  "\u{1F4C2}": "file folder storage",
-  "\u{1F4C3}": "page of paper",
-  "\u{1F4C4}": "page of paper",
-  "\u{1F4C5}": "calendar date",
-  "\u{1F4C6}": "calendar date",
-  "\u{1F4C7}": "file folder storage",
-  "\u{1F4C8}": "chart graph",
-  "\u{1F4C9}": "chart graph",
-  "\u{1F4CA}": "chart graph",
-  "\u{1F4CB}": "clipboard storage container",
-  "\u{1F4CC}": "pushpin sticky note marker",
-  "\u{1F4CD}": "pin sticky note marker",
-  "\u{1F4CE}": "paperclip attachment",
-  "\u{1F4CF}": "ruler measuring tool",
-  "\u{1F4D0}": "ruler measuring tool",
-  "\u{1F4D1}": "page of paper",
-  "\u{1F4D2}": "book book",
-  "\u{1F4D3}": "book book",
-  "\u{1F4D4}": "book book",
-  "\u{1F4D5}": "book book",
-  "\u{1F4D6}": "book book",
-  "\u{1F4D7}": "book book",
-  "\u{1F4D8}": "book book",
-  "\u{1F4D9}": "book book",
-  "\u{1F4DA}": "book book",
-  "\u{1F4DC}": "scroll parchment paper",
-  "\u{1F4DD}": "pencil writing tool",
-  "\u{1F4DE}": "telephone handset communication device",
-  "\u{1F4DF}": "pager pager device",
-  "\u{1F4E0}": "television television device",
-  "\u{1F4E1}": "satellite communication device",
-  "\u{1F4E4}": "envelope letter mail",
-  "\u{1F4E5}": "envelope letter mail",
-  "\u{1F4E6}": "package shipping container",
-  "\u{1F4E7}": "envelope letter mail",
-  "\u{1F4E8}": "envelope letter mail",
-  "\u{1F4E9}": "envelope letter mail",
-  "\u{1F4EA}": "envelope letter mail",
-  "\u{1F4EB}": "envelope letter mail",
-  "\u{1F4EC}": "envelope letter mail",
-  "\u{1F4ED}": "envelope letter mail",
-  "\u{1F4EE}": "envelope letter mail",
-  "\u{1F4EF}": "envelope letter mail",
-  "\u{1F4F0}": "newspaper newspaper",
-  "\u{1F4F1}": "smartphone mobile phone",
-  "\u{1F4F2}": "smartphone mobile phone",
-  "\u{1F4F7}": "camera photo imaging device",
-  "\u{1F4F8}": "camera photo imaging device",
-  "\u{1F4F9}": "video camera recording device",
-  "\u{1F4FA}": "television television device",
-  "\u{1F4FB}": "radio broadcasting device",
-  "\u{1F4FC}": "vhs tape storage device",
-  "\u{1F4FD}\uFE0F": "video cassette recording device",
-  "\u{1F4FF}": "prayer beads religious accessory",
-  "\u{1F50B}": "battery power supply device",
-  "\u{1F50C}": "battery power supply device",
-  "\u{1F50D}": "magnifying glass search tool",
-  "\u{1F50E}": "magnifying glass search tool",
-  "\u{1F50F}": "lock security device",
-  "\u{1F510}": "lock security device",
-  "\u{1F511}": "key lock security device",
-  "\u{1F512}": "lock security device",
-  "\u{1F513}": "lock security device",
-  "\u{1F516}": "bookmark page marker",
-  "\u{1F517}": "link page marker",
-  "\u{1F526}": "flashlight flashlight device",
-  "\u{1F527}": "wrench tool fixing device",
-  "\u{1F528}": "hammer tool striking device",
-  "\u{1F529}": "gear mechanical device",
-  "\u{1F52B}": "gun firearm weapon",
-  "\u{1F52E}": "crystal ball fortune telling device",
-  "\u{1F56F}\uFE0F": "candle light source",
-  "\u{1F570}\uFE0F": "hourglass timer device",
-  "\u{1F579}\uFE0F": "joystick game controller",
-  "\u{1F587}\uFE0F": "paperclip attachment",
-  "\u{1F58A}\uFE0F": "pen writing tool",
-  "\u{1F58B}\uFE0F": "pen writing tool",
-  "\u{1F58C}\uFE0F": "paintbrush painting tool",
-  "\u{1F58D}\uFE0F": "paintbrush painting tool",
-  "\u{1F5A5}\uFE0F": "computer monitor screen",
-  "\u{1F5A8}\uFE0F": "printer output device",
-  "\u{1F5B1}\uFE0F": "computer mouse pointing device",
-  "\u{1F5B2}\uFE0F": "touchscreen input device",
-  "\u{1F5BC}\uFE0F": "picture frame photo display",
-  "\u{1F5C2}\uFE0F": "file folder storage",
-  "\u{1F5C3}\uFE0F": "file folder storage",
-  "\u{1F5C4}\uFE0F": "file folder storage",
-  "\u{1F5D1}\uFE0F": "trash can waste disposal",
-  "\u{1F5D2}\uFE0F": "notebook paper",
-  "\u{1F5D3}\uFE0F": "calendar paper",
-  "\u{1F5DC}\uFE0F": "clamp tool mechanical device",
-  "\u{1F5DD}\uFE0F": "lock and key security device",
-  "\u{1F5DE}\uFE0F": "file folder storage",
-  "\u{1F5E1}\uFE0F": "sword weapon",
-  "\u{1F5F3}\uFE0F": "file folder storage",
-  "\u{1F9E7}": "red envelope money gift",
-  "\u{1F9E8}": "firecracker explosive weapon",
-  "\u{1F9EE}": "calculator arithmetic device",
-  "\u{1F9EF}": "fire extinguisher safety device",
-  "\u{1F9F0}": "toolbox tool storage device",
-  "\u{1F9F2}": "magnet magnetic field device",
-  "\u{1F9F4}": "lotion cosmetic product",
-  "\u{1F9F7}": "link page marker",
-  "\u{1F9F8}": "pillow cushion",
-  "\u{1F9F9}": "broom cleaning tool",
-  "\u{1F9FA}": "basket storage container",
-  "\u{1F9FC}": "soap dispenser",
-  "\u{1F9FD}": "washcloth cleaning tool",
-  "\u{1F9FE}": "receipt invoice",
-  "\u{1F9FF}": "magic wand wizard spell casting device",
-  "\u{1FA84}": "magic wand wizard witch spell",
-  "\u{1FA85}": "pi\xF1ata party celebration mexican",
-  "\u{1FA86}": "nesting dolls russian matryoshka toy",
-  "\u{1FA91}": "bed bed",
-  "\u{1FA92}": "razor shaving tool",
-  "\u{1FA93}": "axe tool chopping device",
-  "\u{1FA94}": "candle light source",
-  "\u{1FA99}": "coin currency finance device",
-  "\u{1FA9A}": "saw tool woodworking device",
-  "\u{1FA9B}": "screwdriver tool fixing device",
-  "\u{1FA9C}": "lever mechanical device",
-  "\u{1FA9E}": "mirror reflection device",
-  "\u{1FA9F}": "curtain window covering",
-  "\u{1FAA1}": "sewing needle thread craft",
-  "\u{1FAA2}": "knot rope tied string",
-  "\u{1FAA3}": "bucket pail container water",
-  "\u{1FAA4}": "mouse trap rodent catch",
-  "\u{1FAA5}": "toothbrush dental hygiene tool",
-  "\u{1FAA6}": "headstone grave cemetery death",
-  "\u{1FAA7}": "placard sign protest announcement",
-  "\u{1FAA9}": "mirror ball disco party dance",
-  "\u{1FAAA}": "identification card id license",
-  "\u{1FAAB}": "low battery empty power dying",
-  "\u{1FAAC}": "hamsa amulet protection luck",
-  "\u{1FAAD}": "wireless speaker audio bluetooth",
-  "\u{1FAAE}": "folding hand fan cooling breeze",
-  "\u{1FAAF}": "khanda sikh religion symbol",
-  "\u{1FAB0}": "fly insect bug pest",
-  "\u{1FAB1}": "worm animal earth crawler",
-  "\u{1FAB2}": "beetle insect bug",
-  "\u{1FAB3}": "cockroach insect bug pest",
-  "\u{1FAB4}": "potted plant garden indoor nature",
-  "\u{1FAB7}": "lotus flower buddhism peace",
-  "\u{1FAB8}": "coral ocean sea marine",
-  "\u{1FAB9}": "empty nest bird home",
-  "\u{1FABA}": "nest with eggs bird home",
-  "\u{1FAE7}": "bubbles soap water floating",
-  "\u{1FAF8}": "rightwards hand pushing right",
-  "\u{1F6AA}": "door door",
-  "\u{1F6AC}": "cigarette smoking device",
-  "\u{1F6B0}": "water closet flushing device",
-  "\u{1F6BD}": "toilet flushing device",
-  "\u{1F6BF}": "shower shower head",
-  "\u{1F6C0}": "bathroom bathtub",
-  "\u{1F6C1}": "bathroom bathtub",
-  "\u{1F6CB}\uFE0F": "sofa couch seating",
-  "\u{1F6CC}": "bed and pillow sleeping arrangement",
-  "\u{1F6CD}\uFE0F": "shopping bag retail shopping",
-  "\u{1F6CE}\uFE0F": "bell doorbell communication device",
-  "\u{1F6CF}\uFE0F": "bed bed",
-  "\u{1F6D2}": "shopping cart retail shopping",
-  "\u{1F6E0}\uFE0F": "toolbox tool storage device",
-  "\u{1F6E2}\uFE0F": "oil barrel petroleum product",
-  "\u{1FAF9}": "leftwards hand pushing left",
-  "\u{1FAFA}": "palm down hand below under"
+// src/resources/constants.js
+var PIXEL_BANNER_PLUS = {
+  API_URL: "https://pixel-banner.online/",
+  // API_URL: 'http://localhost:3000/',
+  ENDPOINTS: {
+    VERIFY: "verify",
+    GENERATE: "generate"
+  }
 };
 
-// src/modals.js
+// src/modal/modals/releaseNotesModal.js
+var import_obsidian7 = require("obsidian");
 var ReleaseNotesModal = class extends import_obsidian7.Modal {
-  constructor(app2, version, releaseNotes2) {
-    super(app2);
+  constructor(app, version, releaseNotes2) {
+    super(app);
     this.version = version;
     this.releaseNotes = releaseNotes2;
   }
@@ -2357,9 +1774,12 @@ var ReleaseNotesModal = class extends import_obsidian7.Modal {
     contentEl.empty();
   }
 };
-var ImageViewModal = class extends import_obsidian7.Modal {
-  constructor(app2, imageUrl) {
-    super(app2);
+
+// src/modal/modals/imageViewModal.js
+var import_obsidian8 = require("obsidian");
+var ImageViewModal = class extends import_obsidian8.Modal {
+  constructor(app, imageUrl) {
+    super(app);
     this.imageUrl = imageUrl;
   }
   onOpen() {
@@ -2391,9 +1811,394 @@ var ImageViewModal = class extends import_obsidian7.Modal {
     contentEl.empty();
   }
 };
-var ImageSelectionModal = class extends import_obsidian7.Modal {
-  constructor(app2, plugin, onChoose, defaultPath = "") {
-    super(app2);
+
+// src/modal/modals/imageSelectionModal.js
+var import_obsidian13 = require("obsidian");
+
+// src/modal/modals/generateAIBannerModal.js
+var import_obsidian12 = require("obsidian");
+
+// src/modal/modals/folderSelectionModal.js
+var import_obsidian9 = require("obsidian");
+var FolderSelectionModal = class extends import_obsidian9.FuzzySuggestModal {
+  constructor(app, defaultFolder, onChoose) {
+    super(app);
+    this.defaultFolder = defaultFolder;
+    this.onChoose = onChoose;
+    this.setPlaceholder("Select or type folder path to save Banner Image");
+    this.titleEl.setText("Choose Folder to save Banner Image");
+  }
+  getItems() {
+    return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path)];
+  }
+  getItemText(item) {
+    return item;
+  }
+  onChooseItem(item) {
+    this.onChoose(item);
+  }
+  onOpen() {
+    super.onOpen();
+    const inputEl = this.inputEl;
+    inputEl.value = this.defaultFolder;
+    inputEl.select();
+    this.updateSuggestions();
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
+  }
+};
+
+// src/modal/modals/saveImageModal.js
+var import_obsidian10 = require("obsidian");
+var SaveImageModal = class extends import_obsidian10.Modal {
+  constructor(app, suggestedName, onSubmit) {
+    super(app);
+    this.suggestedName = suggestedName;
+    this.onSubmit = onSubmit;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: "Save Image" });
+    contentEl.createEl("p", { text: "Enter a name for the image file." });
+    const fileNameSetting = new import_obsidian10.Setting(contentEl).setName("File name").addText((text) => text.setValue(this.suggestedName).onChange((value) => {
+      this.suggestedName = value;
+    }));
+    const buttonContainer = contentEl.createDiv();
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.justifyContent = "flex-end";
+    buttonContainer.style.gap = "8px";
+    buttonContainer.style.marginTop = "1em";
+    const cancelButton = buttonContainer.createEl("button", { text: "Cancel" });
+    const saveButton = buttonContainer.createEl("button", {
+      text: "Save",
+      cls: "mod-cta"
+    });
+    cancelButton.addEventListener("click", () => this.close());
+    saveButton.addEventListener("click", () => {
+      if (this.suggestedName) {
+        this.onSubmit(this.suggestedName);
+        this.close();
+      } else {
+        new import_obsidian10.Notice("Please enter a file name");
+      }
+    });
+    const modalEl = this.modalEl;
+    modalEl.style.position = "absolute";
+    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
+    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+
+// src/utils/frontmatterUtils.js
+var import_obsidian11 = require("obsidian");
+function getFrontmatterValue(frontmatter, fieldNames) {
+  if (!frontmatter || !fieldNames) return null;
+  const fields = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
+  for (const field of fields) {
+    if (frontmatter.hasOwnProperty(field)) {
+      const value = frontmatter[field];
+      if (typeof value === "string" && (value.toLowerCase() === "true" || value.toLowerCase() === "false")) {
+        return value.toLowerCase() === "true";
+      }
+      return value;
+    }
+  }
+  return null;
+}
+async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
+  const activeFile = plugin.app.workspace.getActiveFile();
+  if (!activeFile) return;
+  let imageReference = imagePath;
+  if (plugin.settings.useShortPath) {
+    const imageFile = plugin.app.vault.getAbstractFileByPath(imagePath);
+    if (imageFile) {
+      const allFiles = plugin.app.vault.getFiles();
+      const matchingFiles = allFiles.filter((f) => f.name === imageFile.name);
+      imageReference = matchingFiles.length === 1 ? imageFile.name : imageFile.path;
+    }
+  }
+  let fileContent = await plugin.app.vault.read(activeFile);
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+  const hasFrontmatter = frontmatterRegex.test(fileContent);
+  const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0 ? plugin.settings.customBannerField[0] : "banner");
+  fileContent = fileContent.replace(/^\s+/, "");
+  let updatedContent;
+  if (hasFrontmatter) {
+    updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+      let cleanedFrontmatter = frontmatter.trim();
+      plugin.settings.customBannerField.forEach((field) => {
+        const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, "g");
+        cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
+      });
+      cleanedFrontmatter = cleanedFrontmatter.trim();
+      const newFrontmatter = `${bannerField}: "[[${imageReference}]]"${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
+      return `---
+${newFrontmatter}
+---`;
+    });
+  } else {
+    const cleanContent = fileContent.replace(/^\s+/, "");
+    updatedContent = `---
+${bannerField}: "[[${imageReference}]]"
+---
+
+${cleanContent}`;
+  }
+  updatedContent = updatedContent.replace(/^\s+/, "");
+  if (updatedContent !== fileContent) {
+    await plugin.app.vault.modify(activeFile, updatedContent);
+    if (plugin.settings.useShortPath && imageReference === imagePath) {
+      new import_obsidian11.Notice("Banner image pinned (full path used due to duplicate filenames)");
+    } else {
+      new import_obsidian11.Notice("Banner image pinned");
+    }
+  }
+}
+
+// src/utils/handlePinIconClick.js
+async function handlePinIconClick(imageUrl, plugin, usedField = null) {
+  const imageBlob = await fetchImage(imageUrl);
+  const { file } = await saveImageLocally(imageBlob, plugin);
+  const finalPath = await waitForFileRename(file, plugin);
+  if (!finalPath) {
+    console.error("\u274C Failed to resolve valid file path");
+    new Notice("Failed to save image - file not found");
+    return;
+  }
+  await updateNoteFrontmatter(finalPath, plugin, usedField);
+  hidePinIcon();
+}
+async function fetchImage(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Image download failed");
+  return await response.arrayBuffer();
+}
+async function saveImageLocally(arrayBuffer, plugin) {
+  const vault = plugin.app.vault;
+  const defaultFolderPath = plugin.settings.pinnedImageFolder;
+  const folderPath = await new Promise((resolve) => {
+    const modal = new FolderSelectionModal(plugin.app, defaultFolderPath, (result) => {
+      resolve(result);
+    });
+    modal.open();
+  });
+  if (!folderPath) {
+    throw new Error("No folder selected");
+  }
+  if (!await vault.adapter.exists(folderPath)) {
+    await vault.createFolder(folderPath);
+  }
+  const suggestedName = "pixel-banner-image";
+  const userInput = await new Promise((resolve) => {
+    const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
+      resolve(result);
+    });
+    modal.open();
+  });
+  if (!userInput) {
+    throw new Error("No filename provided");
+  }
+  let baseName = userInput.replace(/[^a-zA-Z0-9-_ ]/g, "").trim();
+  if (!baseName) baseName = "banner";
+  if (!baseName.toLowerCase().endsWith(".png")) baseName += ".png";
+  let fileName = baseName;
+  let counter = 1;
+  while (await vault.adapter.exists(`${folderPath}/${fileName}`)) {
+    const nameWithoutExt = baseName.slice(0, -4);
+    fileName = `${nameWithoutExt}-${counter}.png`;
+    counter++;
+  }
+  const filePath = `${folderPath}/${fileName}`;
+  const savedFile = await vault.createBinary(filePath, arrayBuffer);
+  return {
+    initialPath: filePath,
+    file: savedFile
+  };
+}
+function hidePinIcon() {
+  const pinIcon = document.querySelector(".pin-icon");
+  if (pinIcon) pinIcon.style.display = "none";
+}
+async function waitForFileRename(file, plugin) {
+  return new Promise((resolve) => {
+    const initialPath = file.path;
+    let timeoutId;
+    let renamedPath = null;
+    const validatePath = async (path) => {
+      if (!path) return false;
+      return await plugin.app.vault.adapter.exists(path);
+    };
+    const handleRename = async (theFile) => {
+      if (theFile == null ? void 0 : theFile.path) {
+        renamedPath = theFile == null ? void 0 : theFile.path;
+      }
+    };
+    const cleanup = () => {
+      plugin.app.vault.off("rename", handleRename);
+    };
+    plugin.app.vault.on("rename", handleRename);
+    timeoutId = setTimeout(async () => {
+      cleanup();
+      if (renamedPath) {
+        const exists = await validatePath(renamedPath);
+        if (exists) {
+          return resolve(renamedPath);
+        }
+      }
+      const initialExists = await validatePath(initialPath);
+      if (initialExists) {
+        return resolve(initialPath);
+      }
+      resolve(null);
+    }, 1500);
+  });
+}
+
+// src/modal/modals/generateAIBannerModal.js
+var GenerateAIBannerModal = class extends import_obsidian12.Modal {
+  constructor(app, plugin) {
+    super(app);
+    this.plugin = plugin;
+    this.width = 1440;
+    this.height = 480;
+    this.prompt = "";
+    this.imageContainer = null;
+    this.modalEl.addClass("pixel-banner-ai-modal");
+  }
+  async generateImage() {
+    if (!this.imageContainer) return;
+    this.imageContainer.empty();
+    const loadingContainer = this.imageContainer.createDiv({ cls: "pixel-banner-loading" });
+    loadingContainer.createDiv({ cls: "dot-pulse" });
+    try {
+      const response = await requestUrl({
+        url: `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE}`,
+        method: "POST",
+        headers: {
+          "X-User-Email": this.plugin.settings.pixelBannerPlusEmail,
+          "X-API-Key": this.plugin.settings.pixelBannerPlusApiKey,
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: this.prompt,
+          width: this.width,
+          height: this.height
+        })
+      });
+      if (response.status === 200 && response.json.image) {
+        this.plugin.pixelBannerPlusBannerTokens = response.json.balance;
+        const pixelBannerPlusBalanceEl = document.querySelector(".modal.pixel-banner-ai-modal .pixel-banner-plus-token-balance");
+        pixelBannerPlusBalanceEl.innerText = `\u{1FA99} Remaining Banner Tokens: ${this.plugin.pixelBannerPlusBannerTokens}`;
+        this.imageContainer.empty();
+        const imgWrapper = this.imageContainer.createDiv({ cls: "pixel-banner-generated-image-wrapper" });
+        const img = imgWrapper.createEl("img", {
+          cls: "pixel-banner-generated-image",
+          attr: {
+            src: `data:image/png;base64,${response.json.image}`
+          }
+        });
+        const controls = this.imageContainer.createDiv({ cls: "pixel-banner-image-controls" });
+        const useAsButton = controls.createEl("button", {
+          cls: "mod-cta",
+          text: "Use as Banner"
+        });
+        useAsButton.addEventListener("click", async () => {
+          const imageUrl = `data:image/png;base64,${response.json.image}`;
+          await handlePinIconClick(imageUrl, this.plugin);
+          this.close();
+        });
+      } else {
+        throw new Error("Failed to generate image");
+      }
+    } catch (error) {
+      console.error("Failed to generate image:", error);
+      this.imageContainer.empty();
+      const errorDiv = this.imageContainer.createDiv({ cls: "pixel-banner-error" });
+      errorDiv.setText("Failed to generate image. Please try again.");
+    }
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h2", { text: "\u2728 Generate Banner with AI" });
+    const promptContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-ai-control-row" });
+    const promptInfo = promptContainer.createDiv({ cls: "setting-item-info" });
+    promptInfo.createDiv({ cls: "setting-item-name", text: "Prompt" });
+    const promptControl = promptContainer.createDiv({ cls: "setting-item-control" });
+    const promptInput = promptControl.createEl("input", {
+      type: "text",
+      cls: "full-width-input"
+    });
+    promptInput.value = this.prompt;
+    promptInput.addEventListener("input", (e) => {
+      this.prompt = e.target.value;
+    });
+    const widthContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-ai-control-row" });
+    const widthInfo = widthContainer.createDiv({ cls: "setting-item-info" });
+    widthInfo.createDiv({ cls: "setting-item-name", text: "Width" });
+    widthInfo.createDiv({ cls: "setting-item-description", text: this.width });
+    const widthControl = widthContainer.createDiv({ cls: "setting-item-control" });
+    const widthSlider = widthControl.createEl("input", { type: "range" });
+    widthSlider.setAttrs({
+      min: 256,
+      max: 1440,
+      step: 32,
+      value: this.width
+    });
+    widthSlider.addEventListener("input", (e) => {
+      this.width = parseInt(e.target.value);
+      widthInfo.querySelector(".setting-item-description").textContent = this.width;
+    });
+    const heightContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-ai-control-row" });
+    const heightInfo = heightContainer.createDiv({ cls: "setting-item-info" });
+    heightInfo.createDiv({ cls: "setting-item-name", text: "Height" });
+    heightInfo.createDiv({ cls: "setting-item-description", text: this.height });
+    const heightControl = heightContainer.createDiv({ cls: "setting-item-control" });
+    const heightSlider = heightControl.createEl("input", { type: "range" });
+    heightSlider.setAttrs({
+      min: 256,
+      max: 1440,
+      step: 32,
+      value: this.height
+    });
+    heightSlider.addEventListener("input", (e) => {
+      this.height = parseInt(e.target.value);
+      heightInfo.querySelector(".setting-item-description").textContent = this.height;
+    });
+    const buttonContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-generate-btn-container pixel-banner-ai-control-row" });
+    const tokenBalance = buttonContainer.createDiv({ cls: "pixel-banner-plus-token-balance" });
+    tokenBalance.setText(`\u{1FA99} Remaining Banner Tokens: ${this.plugin.pixelBannerPlusBannerTokens}`);
+    const generateButton = buttonContainer.createEl("button", {
+      cls: "mod-cta",
+      text: "Generate Image"
+    });
+    generateButton.addEventListener("click", async () => {
+      if (!this.prompt) {
+        new import_obsidian12.Notice("Please enter a prompt");
+        return;
+      }
+      await this.generateImage();
+    });
+    this.imageContainer = contentEl.createDiv({ cls: "pixel-banner-image-container" });
+  }
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+};
+
+// src/modal/modals/imageSelectionModal.js
+var ImageSelectionModal = class extends import_obsidian13.Modal {
+  constructor(app, plugin, onChoose, defaultPath = "") {
+    super(app);
     this.plugin = plugin;
     this.onChoose = onChoose;
     this.defaultPath = defaultPath;
@@ -2435,8 +2240,18 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
       text: "Clear"
     });
     const controlsRow = searchContainer.createDiv({ cls: "controls-row" });
+    const pixelBannerPlusGenAIButton = controlsRow.createEl("button");
+    const sparkleSpan = pixelBannerPlusGenAIButton.createSpan({ cls: "twinkle-animation", text: "\u2728 " });
+    pixelBannerPlusGenAIButton.createSpan({ cls: "margin-left-5", text: "Generate with AI" });
+    pixelBannerPlusGenAIButton.addEventListener("click", () => {
+      this.close();
+      new GenerateAIBannerModal(this.app, this.plugin).open();
+    });
     const uploadButton = controlsRow.createEl("button", {
-      text: "\u{1F4E4} Upload External Image"
+      text: "\u{1F4E4} Upload"
+    });
+    uploadButton.addEventListener("click", () => {
+      fileInput.click();
     });
     const toggleContainer = controlsRow.createDiv({
       cls: "pixel-banner-path-toggle",
@@ -2450,7 +2265,7 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
         style: "font-size: 12px; color: var(--text-muted);"
       }
     });
-    const toggle = new import_obsidian7.Setting(toggleContainer).addToggle((cb) => {
+    const toggle = new import_obsidian13.Setting(toggleContainer).addToggle((cb) => {
       cb.setValue(this.plugin.settings.useShortPath).onChange(async (value) => {
         this.plugin.settings.useShortPath = value;
         await this.plugin.saveSettings();
@@ -2467,9 +2282,6 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
         style: "display: none;"
       }
     });
-    uploadButton.addEventListener("click", () => {
-      fileInput.click();
-    });
     fileInput.addEventListener("change", async (event) => {
       const file = event.target.files[0];
       if (file) {
@@ -2483,7 +2295,7 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
             }).open();
           });
           if (!folderPath) {
-            new import_obsidian7.Notice("No folder selected");
+            new import_obsidian13.Notice("No folder selected");
             return;
           }
           if (!await this.app.vault.adapter.exists(folderPath)) {
@@ -2496,7 +2308,7 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
             }).open();
           });
           if (!fileName) {
-            new import_obsidian7.Notice("No file name provided");
+            new import_obsidian13.Notice("No file name provided");
             return;
           }
           try {
@@ -2505,7 +2317,7 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
             this.onChoose(newFile);
             this.close();
           } catch (error) {
-            new import_obsidian7.Notice("Failed to save image: " + error.message);
+            new import_obsidian13.Notice("Failed to save image: " + error.message);
           }
         };
         reader.readAsArrayBuffer(file);
@@ -2741,81 +2553,667 @@ var ImageSelectionModal = class extends import_obsidian7.Modal {
     contentEl.empty();
   }
 };
-var FolderSelectionModal = class extends import_obsidian7.FuzzySuggestModal {
-  constructor(app2, defaultFolder, onChoose) {
-    super(app2);
-    this.defaultFolder = defaultFolder;
-    this.onChoose = onChoose;
-    this.setPlaceholder("Select or type folder path to save Banner Image");
-    this.titleEl.setText("Choose Folder to save Banner Image");
-  }
-  getItems() {
-    return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path)];
-  }
-  getItemText(item) {
-    return item;
-  }
-  onChooseItem(item) {
-    this.onChoose(item);
-  }
-  onOpen() {
-    super.onOpen();
-    const inputEl = this.inputEl;
-    inputEl.value = this.defaultFolder;
-    inputEl.select();
-    this.updateSuggestions();
-    const modalEl = this.modalEl;
-    modalEl.style.position = "absolute";
-    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
-    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
-  }
+
+// src/modal/modals/emojiSelectionModal.js
+var import_obsidian14 = require("obsidian");
+
+// src/resources/emojis.js
+var emojiList = [
+  { category: "Smileys & Emotion", emojis: ["\u{1F600}", "\u{1F603}", "\u{1F604}", "\u{1F601}", "\u{1F605}", "\u{1F602}", "\u{1F923}", "\u{1F60A}", "\u{1F607}", "\u{1F642}", "\u{1F643}", "\u{1F609}", "\u{1F60C}", "\u{1F60D}", "\u{1F970}", "\u{1F618}", "\u{1F617}", "\u{1F619}", "\u{1F61A}", "\u{1F60B}", "\u{1F61B}", "\u{1F61D}", "\u{1F61C}", "\u{1F92A}", "\u{1F928}", "\u{1F9D0}", "\u{1F913}", "\u{1F60E}", "\u{1F929}", "\u{1F973}", "\u{1F60F}", "\u{1F612}", "\u{1F61E}", "\u{1F614}", "\u{1F61F}", "\u{1F615}", "\u{1F641}", "\u2639\uFE0F", "\u{1F623}", "\u{1F616}", "\u{1F62B}", "\u{1F629}", "\u{1F97A}", "\u{1F622}", "\u{1F62D}", "\u{1F624}", "\u{1F620}", "\u{1F621}", "\u{1F92C}", "\u{1F92F}", "\u{1F633}", "\u{1F975}", "\u{1F976}", "\u{1F631}", "\u{1F628}", "\u{1F630}", "\u{1F625}", "\u{1F613}", "\u{1F917}", "\u{1F914}", "\u{1F92D}", "\u{1F92B}", "\u{1F925}", "\u{1F636}", "\u{1F610}", "\u{1F611}", "\u{1F62C}", "\u{1F644}", "\u{1F62F}", "\u{1F626}", "\u{1F627}", "\u{1F62E}", "\u{1F632}", "\u{1F971}", "\u{1F634}", "\u{1F924}", "\u{1F62A}", "\u{1F635}", "\u{1F910}", "\u{1F974}", "\u{1F922}", "\u{1F92E}", "\u{1F927}", "\u{1F637}", "\u{1F912}", "\u{1F915}", "\u{1FAE0}", "\u{1FAE2}", "\u{1FAE3}", "\u{1FAE1}", "\u{1FAE5}"] },
+  { category: "People & Body", emojis: ["\u{1F44B}", "\u{1F91A}", "\u{1F590}\uFE0F", "\u270B", "\u{1F596}", "\u{1F44C}", "\u{1F90C}", "\u{1F90F}", "\u270C\uFE0F", "\u{1F91E}", "\u{1F91F}", "\u{1F918}", "\u{1F919}", "\u{1F448}", "\u{1F449}", "\u{1F446}", "\u{1F595}", "\u{1F447}", "\u261D\uFE0F", "\u{1F44D}", "\u{1F44E}", "\u270A", "\u{1F44A}", "\u{1F91B}", "\u{1F91C}", "\u{1F44F}", "\u{1F64C}", "\u{1F450}", "\u{1F932}", "\u{1F91D}", "\u{1F64F}", "\u270D\uFE0F", "\u{1F485}", "\u{1F933}", "\u{1F4AA}", "\u{1F9BE}", "\u{1F9BF}", "\u{1F9B5}", "\u{1F9B6}", "\u{1F442}", "\u{1F9BB}", "\u{1F443}", "\u{1F9E0}", "\u{1FAC0}", "\u{1FAC1}", "\u{1F9B7}", "\u{1F9B4}", "\u{1F440}", "\u{1F441}\uFE0F", "\u{1F445}", "\u{1F444}", "\u{1F48B}", "\u{1FA78}", "\u{1F476}", "\u{1F467}", "\u{1F9D2}", "\u{1F466}", "\u{1F469}", "\u{1F9D1}", "\u{1F468}", "\u{1F469}\u200D\u{1F9B1}", "\u{1F9D1}\u200D\u{1F9B1}", "\u{1F468}\u200D\u{1F9B1}", "\u{1F469}\u200D\u{1F9B0}", "\u{1F9D1}\u200D\u{1F9B0}", "\u{1F468}\u200D\u{1F9B0}", "\u{1F471}\u200D\u2640\uFE0F", "\u{1F471}", "\u{1F471}\u200D\u2642\uFE0F", "\u{1F469}\u200D\u{1F9B3}", "\u{1F9D1}\u200D\u{1F9B3}", "\u{1F468}\u200D\u{1F9B3}", "\u{1F469}\u200D\u{1F9B2}", "\u{1F9D1}\u200D\u{1F9B2}", "\u{1F468}\u200D\u{1F9B2}", "\u{1F9D4}", "\u{1F475}", "\u{1F9D3}", "\u{1F474}", "\u{1FAC5}", "\u{1FAC3}", "\u{1FAC4}"] },
+  { category: "Animals & Nature", emojis: ["\u{1F436}", "\u{1F431}", "\u{1F42D}", "\u{1F439}", "\u{1F430}", "\u{1F98A}", "\u{1F43B}", "\u{1F43C}", "\u{1F428}", "\u{1F42F}", "\u{1F981}", "\u{1F42E}", "\u{1F437}", "\u{1F438}", "\u{1F435}", "\u{1F414}", "\u{1F427}", "\u{1F426}", "\u{1F424}", "\u{1F986}", "\u{1F985}", "\u{1F989}", "\u{1F987}", "\u{1F43A}", "\u{1F417}", "\u{1F434}", "\u{1F984}", "\u{1F41D}", "\u{1FAB1}", "\u{1F41B}", "\u{1F98B}", "\u{1F40C}", "\u{1F41E}", "\u{1F41C}", "\u{1FAB0}", "\u{1FAB2}", "\u{1FAB3}", "\u{1F99F}", "\u{1F997}", "\u{1F577}\uFE0F", "\u{1F578}\uFE0F", "\u{1F982}", "\u{1F422}", "\u{1F40D}", "\u{1F98E}", "\u{1F996}", "\u{1F995}", "\u{1F419}", "\u{1F991}", "\u{1F990}", "\u{1F99E}", "\u{1F980}", "\u{1F421}", "\u{1F420}", "\u{1F41F}", "\u{1F42C}", "\u{1F433}", "\u{1F40B}", "\u{1F988}", "\u{1F40A}", "\u{1F405}", "\u{1F406}", "\u{1F993}", "\u{1F98D}", "\u{1F9A7}", "\u{1F9A3}", "\u{1F418}", "\u{1F99B}", "\u{1F98F}", "\u{1F42A}", "\u{1F42B}", "\u{1F992}", "\u{1F998}", "\u{1F9AC}", "\u{1F403}", "\u{1F402}", "\u{1F404}", "\u{1F40E}", "\u{1F416}", "\u{1F40F}", "\u{1F411}", "\u{1F999}", "\u{1F410}", "\u{1F98C}", "\u{1F415}", "\u{1F429}", "\u{1F9AE}", "\u{1F415}\u200D\u{1F9BA}", "\u{1F408}", "\u{1F408}\u200D\u2B1B", "\u{1FAB6}", "\u{1F413}", "\u{1F983}", "\u{1F9A4}", "\u{1F99A}", "\u{1F99C}", "\u{1F9A2}", "\u{1F9A9}", "\u{1F54A}\uFE0F", "\u{1F407}", "\u{1F99D}", "\u{1F9A8}", "\u{1F9A1}", "\u{1F9AB}", "\u{1F9A6}", "\u{1F9A5}", "\u{1F401}", "\u{1F400}", "\u{1F43F}\uFE0F", "\u{1F9EF}", "\u{1F994}", "\u{1F9AD}"] },
+  { category: "Food & Drink", emojis: ["\u{1F34E}", "\u{1F350}", "\u{1F34A}", "\u{1F34B}", "\u{1F34C}", "\u{1F349}", "\u{1F347}", "\u{1F353}", "\u{1FAD0}", "\u{1F348}", "\u{1F352}", "\u{1F351}", "\u{1F96D}", "\u{1F34D}", "\u{1F965}", "\u{1F95D}", "\u{1F345}", "\u{1F346}", "\u{1F951}", "\u{1F966}", "\u{1F96C}", "\u{1F952}", "\u{1F336}\uFE0F", "\u{1FAD1}", "\u{1F955}", "\u{1F9C4}", "\u{1F9C5}", "\u{1F954}", "\u{1F360}", "\u{1F950}", "\u{1F96F}", "\u{1F35E}", "\u{1F956}", "\u{1F968}", "\u{1F9C0}", "\u{1F95A}", "\u{1F373}", "\u{1F9C8}", "\u{1F95E}", "\u{1F9C7}", "\u{1F953}", "\u{1F969}", "\u{1F357}", "\u{1F356}", "\u{1F9B4}", "\u{1F32D}", "\u{1F354}", "\u{1F35F}", "\u{1F355}", "\u{1FAD3}", "\u{1F96A}", "\u{1F959}", "\u{1F9C6}", "\u{1F32E}", "\u{1F32F}", "\u{1FAD4}", "\u{1F957}", "\u{1F958}", "\u{1FAD5}", "\u{1F96B}", "\u{1F35D}", "\u{1F35C}", "\u{1F372}", "\u{1F35B}", "\u{1F363}", "\u{1F371}", "\u{1F95F}", "\u{1F9AA}", "\u{1F364}", "\u{1F359}", "\u{1F35A}", "\u{1F358}", "\u{1F365}", "\u{1F960}", "\u{1F96E}", "\u{1F362}", "\u{1F361}", "\u{1F367}", "\u{1F368}", "\u{1F366}", "\u{1F967}", "\u{1F9C1}", "\u{1F370}", "\u{1F382}", "\u{1F36E}", "\u{1F36D}", "\u{1F36C}", "\u{1F36B}", "\u{1F37F}", "\u{1F369}", "\u{1F36A}", "\u{1F330}", "\u{1F95C}", "\u{1F36F}", "\u{1F95B}", "\u{1F37C}", "\u{1FAD6}", "\u2615", "\u{1F375}", "\u{1F9C3}", "\u{1F964}", "\u{1F9CB}", "\u{1F376}", "\u{1F37A}", "\u{1F37B}", "\u{1F942}", "\u{1F377}", "\u{1F943}", "\u{1F378}", "\u{1F379}", "\u{1F9C9}", "\u{1F37E}", "\u{1F9CA}", "\u{1F944}", "\u{1F374}", "\u{1F37D}\uFE0F", "\u{1F962}", "\u{1F9C2}"] },
+  { category: "Travel & Places", emojis: ["\u{1F30D}", "\u{1F30E}", "\u{1F30F}", "\u{1F310}", "\u{1F5FA}\uFE0F", "\u{1F5FE}", "\u{1F9ED}", "\u{1F3D4}\uFE0F", "\u26F0\uFE0F", "\u{1F30B}", "\u{1F5FB}", "\u{1F3D5}\uFE0F", "\u{1F3D6}\uFE0F", "\u{1F3DC}\uFE0F", "\u{1F3DD}\uFE0F", "\u{1F3DE}\uFE0F", "\u{1F3DF}\uFE0F", "\u{1F3DB}\uFE0F", "\u{1F3D7}\uFE0F", "\u{1F9F1}", "\u{1FAA8}", "\u{1FAB5}", "\u{1F6D6}", "\u{1F3D8}\uFE0F", "\u{1F3DA}\uFE0F", "\u{1F3E0}", "\u{1F3E1}", "\u{1F3E2}", "\u{1F3E3}", "\u{1F3E4}", "\u{1F3E5}", "\u{1F3E6}", "\u{1F3E8}", "\u{1F3E9}", "\u{1F3EA}", "\u{1F3EB}", "\u{1F3EC}", "\u{1F3ED}", "\u{1F3EF}", "\u{1F3F0}", "\u{1F492}", "\u{1F5FC}", "\u{1F5FD}", "\u26EA", "\u{1F54C}", "\u{1F6D5}", "\u{1F54D}", "\u26E9\uFE0F", "\u{1F54B}", "\u26F2", "\u26FA", "\u{1F301}", "\u{1F303}", "\u{1F3D9}\uFE0F", "\u{1F304}", "\u{1F305}", "\u{1F306}", "\u{1F307}", "\u{1F309}", "\u2668\uFE0F", "\u{1F3A0}", "\u{1F3A1}", "\u{1F3A2}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
+  { category: "Activities", emojis: ["\u26BD", "\u{1F3C0}", "\u{1F3C8}", "\u26BE", "\u{1F94E}", "\u{1F3BE}", "\u{1F3D0}", "\u{1F3C9}", "\u{1F94F}", "\u{1F3B1}", "\u{1FA80}", "\u{1F3D3}", "\u{1F3F8}", "\u{1F3D2}", "\u{1F3D1}", "\u{1F94D}", "\u{1F3CF}", "\u{1FA83}", "\u{1F945}", "\u26F3", "\u{1FA81}", "\u{1F3A3}", "\u{1F93F}", "\u{1F3BD}", "\u{1F3BF}", "\u{1F6F7}", "\u{1F94C}", "\u{1F3AF}", "\u{1FA80}", "\u{1FA81}", "\u{1F3B1}", "\u{1F3AE}", "\u{1F3B2}", "\u{1F9E9}", "\u{1F3AD}", "\u{1F3A8}", "\u{1F3AA}", "\u{1F3A4}", "\u{1F3A7}", "\u{1F3BC}", "\u{1F3B9}", "\u{1F941}", "\u{1FA98}", "\u{1F3B7}", "\u{1F3BA}", "\u{1FA97}", "\u{1F3B8}", "\u{1FA95}", "\u{1F3BB}", "\u{1F3AC}", "\u{1F3F9}", "\u{1F6FC}", "\u{1F6F9}", "\u{1F6F6}", "\u{1FA82}", "\u{1FA81}", "\u{1F939}", "\u{1F9D8}", "\u{1F9D7}", "\u{1F3C7}", "\u{1F3CB}\uFE0F", "\u{1F93C}", "\u{1F938}", "\u{1F93E}", "\u{1F3CC}\uFE0F", "\u{1F3C4}", "\u{1F3CA}", "\u{1F3C2}", "\u{1FA82}", "\u{1F93A}", "\u{1F3C7}", "\u{1F3CB}\uFE0F", "\u{1F93C}", "\u{1F938}", "\u{1F93E}", "\u{1F3CC}\uFE0F", "\u{1F3C4}", "\u{1F3CA}", "\u{1F3C2}", "\u{1FA82}", "\u{1F93A}"] },
+  { category: "Objects", emojis: ["\u231A", "\u{1F4F1}", "\u{1F4F2}", "\u{1F4BB}", "\u2328\uFE0F", "\u{1F5A5}\uFE0F", "\u{1F5A8}\uFE0F", "\u{1F5B1}\uFE0F", "\u{1F5B2}\uFE0F", "\u{1F579}\uFE0F", "\u{1F5DC}\uFE0F", "\u{1F4BD}", "\u{1F4BE}", "\u{1F4BF}", "\u{1F4C0}", "\u{1F4FC}", "\u{1F4F7}", "\u{1F4F8}", "\u{1F4F9}", "\u{1F3A5}", "\u{1F4FD}\uFE0F", "\u{1F39E}\uFE0F", "\u{1F4DE}", "\u260E\uFE0F", "\u{1F4DF}", "\u{1F4E0}", "\u{1F4FA}", "\u{1F4FB}", "\u{1F399}\uFE0F", "\u{1F39A}\uFE0F", "\u{1F39B}\uFE0F", "\u{1F9ED}", "\u23F1\uFE0F", "\u23F2\uFE0F", "\u23F0", "\u{1F570}\uFE0F", "\u231B", "\u23F3", "\u{1F4E1}", "\u{1F50B}", "\u{1F50C}", "\u{1F4A1}", "\u{1F526}", "\u{1F56F}\uFE0F", "\u{1FA94}", "\u{1F9EF}", "\u{1F6E2}\uFE0F", "\u{1F4B8}", "\u{1F4B5}", "\u{1F4B4}", "\u{1F4B6}", "\u{1F4B7}", "\u{1FA99}", "\u{1F4B0}", "\u{1F4B3}", "\u{1F48E}", "\u2696\uFE0F", "\u{1F9F0}", "\u{1FA9B}", "\u{1F527}", "\u{1F528}", "\u2692\uFE0F", "\u{1F6E0}\uFE0F", "\u26CF\uFE0F", "\u{1FA9A}", "\u{1F529}", "\u2699\uFE0F", "\u{1FA9C}", "\u{1F9F1}", "\u26D3\uFE0F", "\u{1F9F2}", "\u{1F52B}", "\u{1F4A3}", "\u{1F9E8}", "\u{1FA93}", "\u{1F52A}", "\u{1F5E1}\uFE0F", "\u2694\uFE0F", "\u{1F6E1}\uFE0F", "\u{1F6AC}", "\u26B0\uFE0F", "\u{1FAA6}", "\u26B1\uFE0F", "\u{1F3FA}", "\u{1F52E}", "\u{1F4FF}", "\u{1F9FF}", "\u{1F488}", "\u2697\uFE0F", "\u{1F52D}", "\u{1F52C}", "\u{1F573}\uFE0F", "\u{1FA79}", "\u{1FA7A}", "\u{1F48A}", "\u{1F489}", "\u{1FA78}", "\u{1F9EC}", "\u{1F9A0}", "\u{1F9EB}", "\u{1F9EA}", "\u{1F321}\uFE0F", "\u{1F9F9}", "\u{1F9FA}", "\u{1F9FB}", "\u{1F6BD}", "\u{1F6B0}", "\u{1F6BF}", "\u{1F6C1}", "\u{1F6C0}", "\u{1F9FC}", "\u{1FAA5}", "\u{1FA92}", "\u{1F9FD}", "\u{1FAA3}", "\u{1F9F4}", "\u{1F6CE}\uFE0F", "\u{1F511}", "\u{1F5DD}\uFE0F", "\u{1F6AA}", "\u{1FA91}", "\u{1F6CB}\uFE0F", "\u{1F6CF}\uFE0F", "\u{1F6CC}", "\u{1F9F8}", "\u{1FA86}", "\u{1F5BC}\uFE0F", "\u{1FA9E}", "\u{1FA9F}", "\u{1F6CD}\uFE0F", "\u{1F6D2}", "\u{1F381}", "\u{1F388}", "\u{1F38F}", "\u{1F380}", "\u{1FA84}", "\u{1FA85}", "\u{1F38A}", "\u{1F389}", "\u{1F38E}", "\u{1F3EE}", "\u{1F390}", "\u{1F9E7}", "\u2709\uFE0F", "\u{1F4E9}", "\u{1F4E8}", "\u{1F4E7}", "\u{1F48C}", "\u{1F4E5}", "\u{1F4E4}", "\u{1F4E6}", "\u{1F3F7}\uFE0F", "\u{1F4EA}", "\u{1F4EB}", "\u{1F4EC}", "\u{1F4ED}", "\u{1F4EE}", "\u{1F4EF}", "\u{1F4DC}", "\u{1F4C3}", "\u{1F4C4}", "\u{1F4D1}", "\u{1F9FE}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4C9}", "\u{1F5D2}\uFE0F", "\u{1F5D3}\uFE0F", "\u{1F4C6}", "\u{1F4C5}", "\u{1F5D1}\uFE0F", "\u{1F4C7}", "\u{1F5C3}\uFE0F", "\u{1F5F3}\uFE0F", "\u{1F5C4}\uFE0F", "\u{1F4CB}", "\u{1F4C1}", "\u{1F4C2}", "\u{1F5C2}\uFE0F", "\u{1F5DE}\uFE0F", "\u{1F4F0}", "\u{1F4D3}", "\u{1F4D4}", "\u{1F4D2}", "\u{1F4D5}", "\u{1F4D7}", "\u{1F4D8}", "\u{1F4D9}", "\u{1F4DA}", "\u{1F4D6}", "\u{1F516}", "\u{1F9F7}", "\u{1F517}", "\u{1F4CE}", "\u{1F587}\uFE0F", "\u{1F4D0}", "\u{1F4CF}", "\u{1F9EE}", "\u{1F4CC}", "\u{1F4CD}", "\u2702\uFE0F", "\u{1F58A}\uFE0F", "\u{1F58B}\uFE0F", "\u2712\uFE0F", "\u{1F58C}\uFE0F", "\u{1F58D}\uFE0F", "\u{1F4DD}", "\u270F\uFE0F", "\u{1F50D}", "\u{1F50E}", "\u{1F50F}", "\u{1F510}", "\u{1F512}", "\u{1F513}"] },
+  { category: "Weather", emojis: ["\u2601\uFE0F", "\u26C5", "\u26C8\uFE0F", "\u{1F324}\uFE0F", "\u{1F325}\uFE0F", "\u{1F326}\uFE0F", "\u{1F327}\uFE0F", "\u{1F328}\uFE0F", "\u{1F329}\uFE0F", "\u{1F32A}\uFE0F", "\u{1F32B}\uFE0F", "\u{1F31D}", "\u{1F311}", "\u{1F312}", "\u{1F313}", "\u{1F314}", "\u{1F315}", "\u{1F316}", "\u{1F317}", "\u{1F318}", "\u{1F319}", "\u{1F31A}", "\u{1F31B}", "\u{1F31C}", "\u2600\uFE0F", "\u{1F31E}", "\u2B50", "\u{1F31F}", "\u{1F320}", "\u2604\uFE0F", "\u{1F321}\uFE0F", "\u{1F32C}\uFE0F", "\u{1F300}", "\u{1F308}", "\u{1F302}", "\u2602\uFE0F", "\u2614", "\u26F1\uFE0F", "\u26A1", "\u2744\uFE0F", "\u2603\uFE0F", "\u26C4", "\u{1F525}", "\u{1F4A7}", "\u{1F30A}"] },
+  { category: "Symbols", emojis: ["\u2764\uFE0F", "\u{1F9E1}", "\u{1F49B}", "\u{1F49A}", "\u{1F499}", "\u{1F49C}", "\u{1F5A4}", "\u{1F90D}", "\u{1F90E}", "\u{1F494}", "\u2763\uFE0F", "\u{1F495}", "\u{1F49E}", "\u{1F493}", "\u{1F497}", "\u{1F496}", "\u{1F498}", "\u{1F49D}", "\u{1F49F}", "\u262E\uFE0F", "\u271D\uFE0F", "\u262A\uFE0F", "\u{1F549}\uFE0F", "\u2638\uFE0F", "\u2721\uFE0F", "\u{1F52F}", "\u{1F54E}", "\u262F\uFE0F", "\u2626\uFE0F", "\u{1F6D0}", "\u26CE", "\u2648", "\u2649", "\u264A", "\u264B", "\u264C", "\u264D", "\u264E", "\u264F", "\u2650", "\u2651", "\u2652", "\u2653", "\u{1F194}", "\u269B\uFE0F", "\u{1F251}", "\u2622\uFE0F", "\u2623\uFE0F", "\u{1F4F4}", "\u{1F4F3}", "\u{1F236}", "\u{1F21A}", "\u{1F238}", "\u{1F23A}", "\u{1F237}\uFE0F", "\u2734\uFE0F", "\u{1F19A}", "\u{1F4AE}", "\u{1F250}", "\u3299\uFE0F", "\u3297\uFE0F", "\u{1F234}", "\u{1F235}", "\u{1F239}", "\u{1F232}", "\u{1F170}\uFE0F", "\u{1F171}\uFE0F", "\u{1F18E}", "\u{1F191}", "\u{1F17E}\uFE0F", "\u{1F198}", "\u274C", "\u2B55", "\u{1F6D1}", "\u26D4", "\u{1F4DB}", "\u{1F6AB}", "\u{1F4AF}", "\u{1F4A2}", "\u2668\uFE0F", "\u{1F6B7}", "\u{1F6AF}", "\u{1F6B3}", "\u{1F6B1}", "\u{1F51E}", "\u{1F4F5}", "\u{1F6AD}", "\u2757", "\u2755", "\u2753", "\u2754", "\u203C\uFE0F", "\u2049\uFE0F", "\u{1F505}", "\u{1F506}", "\u303D\uFE0F", "\u26A0\uFE0F", "\u{1F6B8}", "\u{1F531}", "\u269C\uFE0F", "\u{1F530}", "\u267B\uFE0F", "\u2705", "\u{1F22F}", "\u{1F4B9}", "\u2747\uFE0F", "\u2733\uFE0F", "\u274E", "\u{1F310}", "\u{1F4A0}", "\u24C2\uFE0F", "\u{1F300}", "\u{1F4A4}", "\u{1F3E7}", "\u{1F6BE}", "\u267F", "\u{1F17F}\uFE0F", "\u{1F6D7}", "\u{1F233}", "\u{1F202}\uFE0F", "\u{1F6C2}", "\u{1F6C3}", "\u{1F6C4}", "\u{1F6C5}", "\u{1F6B9}", "\u{1F6BA}", "\u{1F6BC}", "\u26A7", "\u{1F6BB}", "\u{1F6AE}", "\u{1F3A6}", "\u{1F4F6}", "\u{1F201}", "\u{1F523}", "\u2139\uFE0F", "\u{1F524}", "\u{1F521}", "\u{1F520}", "\u{1F196}", "\u{1F197}", "\u{1F199}", "\u{1F192}", "\u{1F195}", "\u{1F193}", "0\uFE0F\u20E3", "1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}", "\u{1F522}", "#\uFE0F\u20E3", "*\uFE0F\u20E3", "\u23CF\uFE0F", "\u25B6\uFE0F", "\u23F8\uFE0F", "\u23EF\uFE0F", "\u23F9\uFE0F", "\u23FA\uFE0F", "\u23ED\uFE0F", "\u23EE\uFE0F", "\u23E9", "\u23EA", "\u23EB", "\u23EC", "\u25C0\uFE0F", "\u{1F53C}", "\u{1F53D}", "\u27A1\uFE0F", "\u2B05\uFE0F", "\u2B06\uFE0F", "\u2B07\uFE0F", "\u2197\uFE0F", "\u2198\uFE0F", "\u2199\uFE0F", "\u2196\uFE0F", "\u2195\uFE0F", "\u2194\uFE0F", "\u21AA\uFE0F", "\u21A9\uFE0F", "\u2934\uFE0F", "\u2935\uFE0F", "\u{1F500}", "\u{1F501}", "\u{1F502}", "\u{1F504}", "\u{1F503}", "\u{1F3B5}", "\u{1F3B6}", "\u2795", "\u2796", "\u2797", "\u2716\uFE0F", "\u267E\uFE0F", "\u{1F4B2}", "\u{1F4B1}", "\u2122\uFE0F", "\xA9\uFE0F", "\xAE\uFE0F", "\u3030\uFE0F", "\u27B0", "\u27BF", "\u{1F51A}", "\u{1F519}", "\u{1F51B}", "\u{1F51D}", "\u{1F51C}", "\u2714\uFE0F", "\u2611\uFE0F", "\u{1F518}", "\u{1F534}", "\u{1F7E0}", "\u{1F7E1}", "\u{1F7E2}", "\u{1F535}", "\u{1F7E3}", "\u26AB", "\u26AA", "\u{1F7E4}", "\u{1F53A}", "\u{1F53B}", "\u{1F538}", "\u{1F539}", "\u{1F536}", "\u{1F537}", "\u{1F533}", "\u{1F532}"] }
+];
+var emojiDescriptions = {
+  "\u2639\uFE0F": "frowning face sad unhappy upset",
+  "\u{1F910}": "zipper-mouth face quiet silence secret mute",
+  "\u{1F912}": "face with thermometer sick ill fever temperature",
+  "\u{1F913}": "nerd face glasses smart geek studious",
+  "\u{1F914}": "thinking face thoughtful curious pondering",
+  "\u{1F915}": "face with head-bandage injury hurt bandaged",
+  "\u{1F917}": "hugging face hug comfort happy",
+  "\u{1F922}": "nauseated face sick vomit gross disgusted",
+  "\u{1F923}": "rolling on the floor laughing happy cry rofl lol",
+  "\u{1F924}": "drooling face food hungry desire want",
+  "\u{1F925}": "lying face liar nose growing pinocchio",
+  "\u{1F927}": "sneezing face sick cold allergy achoo",
+  "\u{1F928}": "face with raised eyebrow skeptical suspicious doubt",
+  "\u{1F929}": "star-struck excited amazed starry-eyed",
+  "\u{1F92A}": "zany face crazy silly wild goofy",
+  "\u{1F92B}": "shushing face quiet silence secret",
+  "\u{1F92C}": "face with symbols on mouth swearing angry cursing",
+  "\u{1F92D}": "face with hand over mouth giggling surprise",
+  "\u{1F92E}": "face vomiting sick throw up gross ill",
+  "\u{1F92F}": "exploding head mind blown shocked amazed",
+  "\u{1F970}": "smiling face with hearts love heart adore affection",
+  "\u{1F971}": "yawning face sleepy tired bored",
+  "\u{1F973}": "partying face celebration party festive",
+  "\u{1F974}": "woozy face drunk dizzy tipsy disoriented",
+  "\u{1F975}": "hot face heat sweating overheated",
+  "\u{1F976}": "cold face freezing ice frozen",
+  "\u{1F97A}": "pleading face begging puppy eyes",
+  "\u{1F9D0}": "face with monocle smart sophisticated examine",
+  "\u{1F600}": "grinning face smile happy joyful",
+  "\u{1F601}": "beaming face with smiling eyes grin happy proud",
+  "\u{1F602}": "face with tears of joy laughing crying happy lol",
+  "\u{1F603}": "grinning face with big eyes smile happy excited",
+  "\u{1F604}": "grinning face with smiling eyes happy joy laugh",
+  "\u{1F605}": "grinning face with sweat happy relief nervous",
+  "\u{1F607}": "smiling face with halo angel innocent blessed",
+  "\u{1F609}": "winking face flirt playful joke",
+  "\u{1F60A}": "smiling face with smiling eyes happy sweet shy",
+  "\u{1F60B}": "face savoring food yummy delicious tasty",
+  "\u{1F60C}": "relieved face calm relaxed content",
+  "\u{1F60D}": "smiling face with heart-eyes love heart adore",
+  "\u{1F60E}": "smiling face with sunglasses cool confident",
+  "\u{1F60F}": "smirking face flirt smug suggestive",
+  "\u{1F610}": "neutral face expressionless blank meh",
+  "\u{1F611}": "expressionless face blank unimpressed",
+  "\u{1F612}": "unamused face unhappy annoyed unimpressed",
+  "\u{1F613}": "downcast face with sweat tired stressed",
+  "\u{1F614}": "pensive face sad thoughtful reflective",
+  "\u{1F615}": "confused face puzzled unsure",
+  "\u{1F616}": "confounded face confused frustrated",
+  "\u{1F617}": "kissing face love affection",
+  "\u{1F618}": "face blowing a kiss love heart flirt",
+  "\u{1F619}": "kissing face with smiling eyes love happy",
+  "\u{1F61A}": "kissing face with closed eyes love shy",
+  "\u{1F61B}": "face with tongue playful silly taste",
+  "\u{1F61C}": "winking face with tongue playful silly joke",
+  "\u{1F61D}": "squinting face with tongue playful silly ecstatic",
+  "\u{1F61E}": "disappointed face sad unhappy dejected",
+  "\u{1F61F}": "worried face concerned anxious nervous",
+  "\u{1F620}": "angry face mad furious",
+  "\u{1F621}": "pouting face angry rage mad",
+  "\u{1F622}": "crying face sad tear unhappy",
+  "\u{1F623}": "persevering face struggling frustrated",
+  "\u{1F624}": "face with steam from nose angry frustrated proud",
+  "\u{1F625}": "sad but relieved face disappointed relieved",
+  "\u{1F626}": "frowning face with open mouth shock horror",
+  "\u{1F627}": "anguished face shocked scared distressed",
+  "\u{1F628}": "fearful face scared worried shocked",
+  "\u{1F629}": "weary face tired frustrated exhausted",
+  "\u{1F62A}": "sleepy face tired drowsy rest",
+  "\u{1F62B}": "tired face exhausted weary",
+  "\u{1F62C}": "grimacing face awkward nervous uncomfortable",
+  "\u{1F62D}": "loudly crying face sad sobbing upset",
+  "\u{1F62E}": "face with open mouth surprise shock wow gasp",
+  "\u{1F62F}": "hushed face surprised shocked stunned",
+  "\u{1F630}": "anxious face with sweat nervous worried",
+  "\u{1F631}": "face screaming in fear scared shocked",
+  "\u{1F632}": "astonished face shocked surprised amazed wow",
+  "\u{1F633}": "flushed face blushing embarrassed surprised",
+  "\u{1F634}": "sleeping face sleep zzz tired rest",
+  "\u{1F635}": "dizzy face spiral confused disoriented",
+  "\u{1F636}": "face without mouth speechless silent blank",
+  "\u{1F637}": "face with medical mask sick ill covid virus",
+  "\u{1F641}": "slightly frowning face sad disappointed",
+  "\u{1F642}": "slightly smiling face happy content",
+  "\u{1F643}": "upside-down face silly playful ironic",
+  "\u{1F644}": "face with rolling eyes exasperated annoyed",
+  "\u261D\uFE0F": "index pointing up direction gesture",
+  "\u270A": "raised fist power solidarity strength",
+  "\u270B": "raised hand stop high five palm",
+  "\u270C\uFE0F": "victory hand peace victory yeah",
+  "\u270D\uFE0F": "writing hand write note signature",
+  "\u{1F440}": "eyes look see watch",
+  "\u{1F441}\uFE0F": "eye look see watch",
+  "\u{1F442}": "ear hear listen sound",
+  "\u{1F443}": "nose smell sniff",
+  "\u{1F444}": "mouth lips kiss speak",
+  "\u{1F445}": "tongue taste lick",
+  "\u{1F446}": "backhand index pointing up direction gesture",
+  "\u{1F447}": "backhand index pointing down direction gesture",
+  "\u{1F448}": "backhand index pointing left direction gesture",
+  "\u{1F449}": "backhand index pointing right direction gesture",
+  "\u{1F44A}": "oncoming fist punch bro fist bump",
+  "\u{1F44B}": "waving hand hello goodbye wave greeting",
+  "\u{1F44C}": "ok hand perfect agree approval",
+  "\u{1F44D}": "thumbs up approve like yes good",
+  "\u{1F44E}": "thumbs down disapprove dislike no bad",
+  "\u{1F44F}": "clapping hands praise applause congratulations bravo",
+  "\u{1F450}": "open hands hug welcome",
+  "\u{1F466}": "boy child young male kid",
+  "\u{1F467}": "girl child young female kid",
+  "\u{1F468}": "man male adult person gender",
+  "\u{1F468}\u200D\u{1F9B0}": "man red hair male person ginger hairstyle",
+  "\u{1F468}\u200D\u{1F9B1}": "man curly hair male person hairstyle",
+  "\u{1F468}\u200D\u{1F9B2}": "man bald male person no hair",
+  "\u{1F468}\u200D\u{1F9B3}": "man white hair male person hairstyle",
+  "\u{1F469}": "woman female adult person gender",
+  "\u{1F469}\u200D\u{1F9B0}": "woman red hair female person ginger hairstyle",
+  "\u{1F469}\u200D\u{1F9B1}": "woman curly hair female person hairstyle",
+  "\u{1F469}\u200D\u{1F9B2}": "woman bald female person no hair",
+  "\u{1F469}\u200D\u{1F9B3}": "woman white hair female person hairstyle",
+  "\u{1F471}": "person blonde hair human hairstyle",
+  "\u{1F471}\u200D\u2640\uFE0F": "woman blonde hair female person hairstyle",
+  "\u{1F471}\u200D\u2642\uFE0F": "man blonde hair male person hairstyle",
+  "\u{1F474}": "old man elderly male person senior",
+  "\u{1F475}": "old woman elderly female person senior",
+  "\u{1F476}": "baby child infant young newborn",
+  "\u{1F485}": "nail polish beauty manicure cosmetics",
+  "\u{1F48B}": "kiss mark lips love romance",
+  "\u{1F4AA}": "flexed biceps strong muscle flex",
+  "\u{1F590}\uFE0F": "hand with fingers splayed stop halt palm",
+  "\u{1F595}": "middle finger rude offensive gesture",
+  "\u{1F596}": "vulcan salute star trek spock prosper",
+  "\u{1F90C}": "pinched fingers italian what gesture",
+  "\u{1F90F}": "pinching hand small tiny little",
+  "\u{1F918}": "sign of the horns rock metal music",
+  "\u{1F919}": "call me hand phone hang loose",
+  "\u{1F91A}": "raised back of hand stop halt",
+  "\u{1F91B}": "left-facing fist bump greeting",
+  "\u{1F91C}": "right-facing fist bump greeting",
+  "\u{1F91D}": "handshake deal agreement partnership",
+  "\u{1F91E}": "crossed fingers luck hopeful wish",
+  "\u{1F91F}": "love-you gesture rock love sign",
+  "\u{1F932}": "palms up together pray beg",
+  "\u{1F933}": "selfie camera phone photo",
+  "\u{1F9B4}": "bone skeleton body structure",
+  "\u{1F9B5}": "leg kick foot limb",
+  "\u{1F9B6}": "foot toe kick limb",
+  "\u{1F9B7}": "tooth teeth dental",
+  "\u{1F9BB}": "ear with hearing aid accessibility deaf",
+  "\u{1F9BE}": "mechanical arm robot prosthetic",
+  "\u{1F9BF}": "mechanical leg robot prosthetic",
+  "\u{1F9D1}": "person adult gender-neutral human",
+  "\u{1F9D1}\u200D\u{1F9B0}": "person red hair human ginger hairstyle",
+  "\u{1F9D1}\u200D\u{1F9B1}": "person curly hair human hairstyle",
+  "\u{1F9D1}\u200D\u{1F9B2}": "person bald human no hair",
+  "\u{1F9D1}\u200D\u{1F9B3}": "person white hair human hairstyle",
+  "\u{1F9D2}": "child young kid gender-neutral youth",
+  "\u{1F9D3}": "older person elderly human senior",
+  "\u{1F9D4}": "person beard facial hair face",
+  "\u{1F9E0}": "brain mind intellect thinking",
+  "\u{1FA78}": "drop of blood injury period medical",
+  "\u{1FAC0}": "anatomical heart organ cardiac",
+  "\u{1FAC1}": "lungs breathing organ respiratory",
+  "\u{1F64C}": "raising hands celebration praise hooray",
+  "\u{1F64F}": "folded hands please thank you pray hope",
+  "\u2615": "hot beverage coffee tea drink",
+  "\u{1F330}": "chestnut food nut seed",
+  "\u{1F358}": "rice cracker japanese food snack",
+  "\u{1F359}": "rice ball japanese food onigiri",
+  "\u{1F35A}": "cooked rice food asian grain",
+  "\u{1F35B}": "curry rice food indian spicy",
+  "\u{1F35C}": "steaming bowl noodles ramen soup",
+  "\u{1F361}": "dango japanese food dessert sweet",
+  "\u{1F362}": "oden japanese food skewer",
+  "\u{1F363}": "sushi japanese food fish rice",
+  "\u{1F364}": "fried shrimp seafood tempura",
+  "\u{1F365}": "fish cake japanese food naruto",
+  "\u{1F366}": "soft ice cream dessert cold sweet",
+  "\u{1F367}": "shaved ice dessert cold sweet",
+  "\u{1F368}": "ice cream dessert cold sweet",
+  "\u{1F369}": "doughnut sweet dessert breakfast",
+  "\u{1F36A}": "cookie sweet dessert biscuit",
+  "\u{1F36B}": "chocolate bar candy sweet dessert",
+  "\u{1F36C}": "candy sweet dessert sugar",
+  "\u{1F36D}": "lollipop candy sweet dessert",
+  "\u{1F36E}": "custard dessert sweet pudding",
+  "\u{1F36F}": "honey pot sweet bee food",
+  "\u{1F370}": "shortcake dessert sweet slice",
+  "\u{1F371}": "bento box japanese food lunch",
+  "\u{1F372}": "pot of food stew soup cooking",
+  "\u{1F374}": "fork and knife cutlery silverware",
+  "\u{1F375}": "teacup without handle green tea drink",
+  "\u{1F376}": "sake japanese drink alcohol rice wine",
+  "\u{1F377}": "wine glass drink alcohol beverage",
+  "\u{1F378}": "cocktail glass drink alcohol martini",
+  "\u{1F379}": "tropical drink alcohol beverage cocktail",
+  "\u{1F37A}": "beer mug drink alcohol beverage",
+  "\u{1F37B}": "clinking beer mugs drink alcohol cheers",
+  "\u{1F37C}": "baby bottle milk drink infant",
+  "\u{1F37D}\uFE0F": "fork knife plate cutlery dining",
+  "\u{1F37E}": "bottle with popping cork celebration drink",
+  "\u{1F37F}": "popcorn movie snack corn",
+  "\u{1F382}": "birthday cake celebration dessert",
+  "\u{1F942}": "clinking glasses drink alcohol champagne",
+  "\u{1F943}": "tumbler glass drink alcohol whiskey",
+  "\u{1F944}": "spoon cutlery silverware utensil",
+  "\u{1F957}": "green salad healthy food vegetables",
+  "\u{1F95B}": "glass of milk drink dairy beverage",
+  "\u{1F95C}": "peanuts food nuts legumes",
+  "\u{1F95F}": "dumpling food asian chinese",
+  "\u{1F960}": "fortune cookie chinese food prediction",
+  "\u{1F962}": "chopsticks utensils asian eating",
+  "\u{1F964}": "cup with straw drink beverage soda",
+  "\u{1F967}": "pie dessert food baked",
+  "\u{1F96E}": "moon cake chinese food festival",
+  "\u{1F9AA}": "oyster seafood shellfish pearl",
+  "\u{1F9C1}": "cupcake dessert sweet cake",
+  "\u{1F9C3}": "beverage box juice drink straw",
+  "\u{1F9C9}": "mate drink beverage tea south american",
+  "\u{1F9CA}": "ice cube cold frozen water",
+  "\u{1F9CB}": "bubble tea drink boba taiwanese",
+  "\u{1FAD0}": "blueberries fruit food berries",
+  "\u{1FAD1}": "bell pepper vegetable food",
+  "\u{1FAD2}": "olive fruit food mediterranean",
+  "\u{1FAD3}": "flatbread food pita naan",
+  "\u{1FAD4}": "tamale food mexican wrapped",
+  "\u{1FAD5}": "fondue food cheese melted",
+  "\u{1FAD6}": "teapot drink hot beverage",
+  "\u{1F405}": "tiger cat wild animal dangerous",
+  "\u{1F406}": "leopard cat wild animal spots",
+  "\u{1F408}\u200D\u2B1B": "black cat feline animal pet",
+  "\u{1F40A}": "crocodile alligator reptile dangerous",
+  "\u{1F40B}": "whale sea creature marine mammal",
+  "\u{1F415}\u200D\u{1F9BA}": "service dog assistance animal",
+  "\u{1F419}": "octopus sea creature tentacles",
+  "\u{1F41F}": "fish sea creature swimming",
+  "\u{1F420}": "tropical fish sea creature aquarium",
+  "\u{1F421}": "blowfish pufferfish sea creature",
+  "\u{1F42C}": "dolphin sea creature marine mammal",
+  "\u{1F433}": "spouting whale sea creature marine mammal",
+  "\u{1F43F}\uFE0F": "chipmunk animal squirrel",
+  "\u{1F577}\uFE0F": "spider arachnid bug insect",
+  "\u{1F578}\uFE0F": "spider web cobweb arachnid",
+  "\u{1F982}": "scorpion arachnid dangerous",
+  "\u{1F980}": "crab seafood shellfish",
+  "\u{1F988}": "shark sea creature dangerous fish",
+  "\u{1F98D}": "gorilla ape primate monkey",
+  "\u{1F990}": "shrimp seafood shellfish",
+  "\u{1F991}": "squid sea creature tentacles",
+  "\u{1F993}": "zebra stripes wild animal",
+  "\u{1F994}": "hedgehog animal spiky cute",
+  "\u{1F995}": "sauropod dinosaur extinct long-neck",
+  "\u{1F996}": "tyrannosaurus rex dinosaur extinct",
+  "\u{1F997}": "cricket insect chirping bug",
+  "\u{1F99E}": "lobster seafood shellfish",
+  "\u{1F9A1}": "badger animal woodland",
+  "\u{1F9A3}": "mammoth extinct animal prehistoric",
+  "\u{1F9A4}": "dodo extinct bird animal",
+  "\u{1F9A5}": "sloth slow animal lazy",
+  "\u{1F9A6}": "otter swimming animal water",
+  "\u{1F9A7}": "orangutan ape primate monkey",
+  "\u{1F9A8}": "skunk animal smelly spray",
+  "\u{1F9A9}": "flamingo pink bird animal",
+  "\u{1F9AB}": "beaver animal dam builder",
+  "\u{1F9AC}": "bison buffalo animal wild",
+  "\u{1F9AE}": "guide dog service animal assistance",
+  "\u{1FAB6}": "feather bird plume light",
+  "\u2668\uFE0F": "hot springs steam bath spa onsen",
+  "\u26E9\uFE0F": "shinto shrine building religious japanese",
+  "\u26EA": "church building religious christian worship",
+  "\u26F0\uFE0F": "mountain nature landscape peak hill",
+  "\u26F2": "fountain water decoration park plaza",
+  "\u26FA": "tent camping outdoors shelter vacation",
+  "\u{1F301}": "foggy city weather mist urban",
+  "\u{1F303}": "night with stars city evening urban",
+  "\u{1F304}": "sunrise over mountains morning dawn nature",
+  "\u{1F305}": "sunrise morning dawn sun nature",
+  "\u{1F306}": "cityscape at dusk evening urban sunset",
+  "\u{1F307}": "sunset over buildings evening urban",
+  "\u{1F309}": "bridge at night city urban evening",
+  "\u{1F30B}": "volcano mountain eruption nature disaster",
+  "\u{1F30D}": "globe showing europe africa earth world planet",
+  "\u{1F30E}": "globe showing americas earth world planet",
+  "\u{1F30F}": "globe showing asia australia earth world planet",
+  "\u{1F310}": "globe with meridians earth world planet network",
+  "\u{1F3A0}": "carousel horse amusement park ride",
+  "\u{1F3A1}": "ferris wheel amusement park ride fair",
+  "\u{1F3A2}": "roller coaster amusement park ride thrill",
+  "\u{1F3AA}": "circus tent entertainment show performance",
+  "\u{1F3D4}\uFE0F": "snow capped mountain peak nature landscape",
+  "\u{1F3D5}\uFE0F": "camping tent outdoors nature vacation",
+  "\u{1F3D6}\uFE0F": "beach with umbrella vacation summer sand sea",
+  "\u{1F3D7}\uFE0F": "building construction site development crane",
+  "\u{1F3D8}\uFE0F": "houses buildings residential neighborhood",
+  "\u{1F3D9}\uFE0F": "cityscape urban buildings skyline",
+  "\u{1F3DA}\uFE0F": "derelict house abandoned building old",
+  "\u{1F3DB}\uFE0F": "classical building architecture historic landmark",
+  "\u{1F3DC}\uFE0F": "desert hot dry sand nature landscape",
+  "\u{1F3DD}\uFE0F": "desert island beach vacation tropical",
+  "\u{1F3DE}\uFE0F": "national park nature landscape scenic",
+  "\u{1F3DF}\uFE0F": "stadium sports arena event venue",
+  "\u{1F3E0}": "house building home residential dwelling",
+  "\u{1F3E1}": "house with garden home yard residential",
+  "\u{1F3E2}": "office building business work corporate",
+  "\u{1F3E3}": "japanese post office building mail service",
+  "\u{1F3E4}": "post office building mail service",
+  "\u{1F3E5}": "hospital building medical healthcare emergency",
+  "\u{1F3E6}": "bank building money finance business",
+  "\u{1F3E8}": "hotel building lodging accommodation travel",
+  "\u{1F3E9}": "love hotel building romance accommodation",
+  "\u{1F3EA}": "convenience store building shop retail",
+  "\u{1F3EB}": "school building education learning",
+  "\u{1F3EC}": "department store building shopping retail",
+  "\u{1F3ED}": "factory building industrial manufacturing",
+  "\u{1F3EF}": "japanese castle building landmark historic",
+  "\u{1F3F0}": "castle building landmark historic medieval",
+  "\u{1F488}": "barber pole haircut salon shop",
+  "\u{1F492}": "wedding chapel marriage ceremony church",
+  "\u{1F54B}": "kaaba building religious islamic mecca",
+  "\u{1F54C}": "mosque building religious islamic worship",
+  "\u{1F54D}": "synagogue building religious jewish worship",
+  "\u{1F5FA}\uFE0F": "world map geography atlas travel global",
+  "\u{1F5FB}": "mount fuji japan mountain landmark nature",
+  "\u{1F5FC}": "tokyo tower landmark japan building",
+  "\u{1F5FD}": "statue of liberty landmark usa freedom",
+  "\u{1F5FE}": "map of japan geography country asian",
+  "\u{1F9ED}": "compass navigation direction travel tool",
+  "\u{1F9F1}": "brick construction building material wall",
+  "\u{1FAA8}": "rock stone nature boulder mineral",
+  "\u{1FAB5}": "wood log nature lumber timber material",
+  "\u{1F6D5}": "hindu temple building religious worship",
+  "\u{1F6D6}": "hut house shelter primitive dwelling",
+  "\u26BD": "soccer ball football sport team game",
+  "\u26BE": "baseball sport team game ball bat",
+  "\u26F3": "flag in hole golf sport course game",
+  "\u{1F3A3}": "fishing pole rod sport hook line",
+  "\u{1F3A4}": "microphone karaoke sing music performance",
+  "\u{1F3A7}": "headphone music audio listen sound",
+  "\u{1F3A8}": "artist palette art painting creativity",
+  "\u{1F3AC}": "clapper board movie film director action",
+  "\u{1F3AD}": "performing arts theater drama masks",
+  "\u{1F3AE}": "video game controller gaming play",
+  "\u{1F3AF}": "direct hit target dart game sport",
+  "\u{1F3B1}": "pool 8 ball billiards game sport cue",
+  "\u{1F3B2}": "game die dice gambling play random",
+  "\u{1F3B7}": "saxophone jazz instrument music brass",
+  "\u{1F3B8}": "guitar instrument music strings rock",
+  "\u{1F3B9}": "musical keyboard piano instrument keys",
+  "\u{1F3BA}": "trumpet brass instrument music fanfare",
+  "\u{1FA97}": "banjo instrument music strings folk",
+  "\u{1F3BB}": "violin instrument music strings classical",
+  "\u{1F3BC}": "musical score notes sheet music",
+  "\u{1F3BD}": "running shirt athletics sport race",
+  "\u{1F3BE}": "tennis sport racket ball court game",
+  "\u{1F3BF}": "skis winter sport snow mountain",
+  "\u{1F3C0}": "basketball sport team game ball",
+  "\u{1F3C8}": "american football sport team game ball",
+  "\u{1F3C9}": "rugby football sport team game ball",
+  "\u{1F3CF}": "cricket sport team game bat ball",
+  "\u{1F3D0}": "volleyball sport team game ball net",
+  "\u{1F3D1}": "field hockey stick sport team game ball",
+  "\u{1F3D2}": "ice hockey stick sport team game puck",
+  "\u{1F3D3}": "ping pong table tennis sport game paddle",
+  "\u{1F3F8}": "badminton sport game racket shuttlecock",
+  "\u{1F3F9}": "bow and arrow archery sport target shoot",
+  "\u{1F93F}": "diving mask snorkel underwater swim sport",
+  "\u{1F941}": "drum percussion instrument music rhythm",
+  "\u{1F945}": "goal net sports hockey soccer score",
+  "\u{1F94C}": "curling stone winter sport ice game",
+  "\u{1F94D}": "lacrosse sport team game stick ball",
+  "\u{1F94E}": "softball sport team game ball bat",
+  "\u{1F94F}": "flying disc frisbee sport game outdoor",
+  "\u{1F9E9}": "puzzle piece jigsaw game entertainment",
+  "\u{1FA80}": "yo-yo toy game skill string",
+  "\u{1FA81}": "kite flying outdoor toy wind sport",
+  "\u{1FA83}": "boomerang sport throw return australian",
+  "\u{1FA95}": "accordion instrument music squeeze box",
+  "\u{1FA98}": "long drum percussion instrument music",
+  "\u{1F6F7}": "sled winter sport snow ride",
+  "\u2601\uFE0F": "cloud",
+  "\u26C5": "sun behind cloud",
+  "\u26C8\uFE0F": "cloud with lightning and rain",
+  "\u{1F324}\uFE0F": "sun behind one cloud",
+  "\u{1F325}\uFE0F": "sun behind two clouds",
+  "\u{1F326}\uFE0F": "sun behind three clouds",
+  "\u{1F327}\uFE0F": "cloud with rain",
+  "\u{1F328}\uFE0F": "cloud with snow",
+  "\u{1F329}\uFE0F": "cloud with lightning",
+  "\u{1F32A}\uFE0F": "cloud with tornado",
+  "\u{1F32B}\uFE0F": "cloud with fog",
+  "\u{1F31D}": "full moon",
+  "\u{1F311}": "new moon",
+  "\u{1F312}": "waxing crescent moon",
+  "\u{1F313}": "waxing gibbous moon",
+  "\u{1F314}": "full moon",
+  "\u{1F315}": "waning gibbous moon",
+  "\u{1F316}": "waning crescent moon",
+  "\u{1F317}": "last quarter moon",
+  "\u{1F318}": "first quarter moon",
+  "\u{1F319}": "crescent moon",
+  "\u{1F31A}": "new moon face",
+  "\u{1F31B}": "first quarter moon face",
+  "\u{1F31C}": "last quarter moon face",
+  "\u2600\uFE0F": "sun",
+  "\u{1F31E}": "sun with face",
+  "\u2B50": "star",
+  "\u{1F31F}": "shooting star",
+  "\u{1F320}": "milky way",
+  "\u2604\uFE0F": "comet",
+  "\u{1F321}\uFE0F": "thermometer",
+  "\u{1F32C}\uFE0F": "wind",
+  "\u{1F300}": "cyclone",
+  "\u{1F308}": "rainbow",
+  "\u{1F302}": "umbrella",
+  "\u2602\uFE0F": "umbrella",
+  "\u2614": "umbrella with rain",
+  "\u26F1\uFE0F": "umbrella on beach",
+  "\u26A1": "high voltage",
+  "\u2744\uFE0F": "snowflake",
+  "\u2603\uFE0F": "snowman",
+  "\u26C4": "snowman without snow",
+  "\u{1F525}": "fire",
+  "\u{1F4A7}": "droplet",
+  "\u{1F30A}": "wave",
+  "\u231A": "watch timekeeping device",
+  "\u231B": "hourglass timer device",
+  "\u2328\uFE0F": "keyboard input device",
+  "\u23F0": "alarm clock timekeeping device",
+  "\u23F1\uFE0F": "stopwatch timer device",
+  "\u23F2\uFE0F": "timer device",
+  "\u23F3": "stopwatch timer device",
+  "\u260E\uFE0F": "telephone handset communication device",
+  "\u2692\uFE0F": "wrench and hammer tool fixing device",
+  "\u2694\uFE0F": "shield and sword defensive weapon",
+  "\u2696\uFE0F": "scale balance weight device",
+  "\u2699\uFE0F": "gear mechanical device",
+  "\u26B0\uFE0F": "coffin casket burial container",
+  "\u26B1\uFE0F": "hourglass memorial timer",
+  "\u26CF\uFE0F": "pickaxe tool mining device",
+  "\u26D3\uFE0F": "chain link security device",
+  "\u2702\uFE0F": "scissors cutting tool",
+  "\u2709\uFE0F": "envelope letter mail",
+  "\u270F\uFE0F": "pencil writing tool",
+  "\u2712\uFE0F": "pen writing tool",
+  "\u{1F380}": "bow ribbon decoration",
+  "\u{1F381}": "gift wrapped package",
+  "\u{1F388}": "balloon decoration",
+  "\u{1F389}": "party confetti decoration",
+  "\u{1F38A}": "party popper decoration",
+  "\u{1F38E}": "traditional japanese doll",
+  "\u{1F38F}": "origami paper decoration",
+  "\u{1F390}": "envelope letter mail",
+  "\u{1F399}\uFE0F": "microphone sound amplification device",
+  "\u{1F39A}\uFE0F": "headphones audio listening device",
+  "\u{1F39B}\uFE0F": "speaker sound amplification device",
+  "\u{1F39E}\uFE0F": "video cassette recording device",
+  "\u{1F3A5}": "video camera recording device",
+  "\u{1F3EE}": "lantern festival decoration",
+  "\u{1F3F7}\uFE0F": "price tag label",
+  "\u{1F3FA}": "bell gong musical instrument",
+  "\u{1F48C}": "envelope letter mail",
+  "\u{1F48E}": "gemstone jewelry accessory",
+  "\u{1F4A1}": "light bulb lighting device",
+  "\u{1F4A3}": "bomb explosive weapon",
+  "\u{1F4B0}": "money currency finance device",
+  "\u{1F4B3}": "credit card finance device",
+  "\u{1F4B4}": "money currency finance device",
+  "\u{1F4B5}": "money currency finance device",
+  "\u{1F4B6}": "money currency finance device",
+  "\u{1F4B7}": "money currency finance device",
+  "\u{1F4B8}": "money currency finance device",
+  "\u{1F4BB}": "computer desktop",
+  "\u{1F4BD}": "computer disk storage device",
+  "\u{1F4BE}": "floppy disk storage device",
+  "\u{1F4BF}": "compact disc storage device",
+  "\u{1F4C0}": "dvd disc storage device",
+  "\u{1F4C1}": "file folder storage",
+  "\u{1F4C2}": "file folder storage",
+  "\u{1F4C3}": "page of paper",
+  "\u{1F4C4}": "page of paper",
+  "\u{1F4C5}": "calendar date",
+  "\u{1F4C6}": "calendar date",
+  "\u{1F4C7}": "file folder storage",
+  "\u{1F4C8}": "chart graph",
+  "\u{1F4C9}": "chart graph",
+  "\u{1F4CA}": "chart graph",
+  "\u{1F4CB}": "clipboard storage container",
+  "\u{1F4CC}": "pushpin sticky note marker",
+  "\u{1F4CD}": "pin sticky note marker",
+  "\u{1F4CE}": "paperclip attachment",
+  "\u{1F4CF}": "ruler measuring tool",
+  "\u{1F4D0}": "ruler measuring tool",
+  "\u{1F4D1}": "page of paper",
+  "\u{1F4D2}": "book book",
+  "\u{1F4D3}": "book book",
+  "\u{1F4D4}": "book book",
+  "\u{1F4D5}": "book book",
+  "\u{1F4D6}": "book book",
+  "\u{1F4D7}": "book book",
+  "\u{1F4D8}": "book book",
+  "\u{1F4D9}": "book book",
+  "\u{1F4DA}": "book book",
+  "\u{1F4DC}": "scroll parchment paper",
+  "\u{1F4DD}": "pencil writing tool",
+  "\u{1F4DE}": "telephone handset communication device",
+  "\u{1F4DF}": "pager pager device",
+  "\u{1F4E0}": "television television device",
+  "\u{1F4E1}": "satellite communication device",
+  "\u{1F4E4}": "envelope letter mail",
+  "\u{1F4E5}": "envelope letter mail",
+  "\u{1F4E6}": "package shipping container",
+  "\u{1F4E7}": "envelope letter mail",
+  "\u{1F4E8}": "envelope letter mail",
+  "\u{1F4E9}": "envelope letter mail",
+  "\u{1F4EA}": "envelope letter mail",
+  "\u{1F4EB}": "envelope letter mail",
+  "\u{1F4EC}": "envelope letter mail",
+  "\u{1F4ED}": "envelope letter mail",
+  "\u{1F4EE}": "envelope letter mail",
+  "\u{1F4EF}": "envelope letter mail",
+  "\u{1F4F0}": "newspaper newspaper",
+  "\u{1F4F1}": "smartphone mobile phone",
+  "\u{1F4F2}": "smartphone mobile phone",
+  "\u{1F4F7}": "camera photo imaging device",
+  "\u{1F4F8}": "camera photo imaging device",
+  "\u{1F4F9}": "video camera recording device",
+  "\u{1F4FA}": "television television device",
+  "\u{1F4FB}": "radio broadcasting device",
+  "\u{1F4FC}": "vhs tape storage device",
+  "\u{1F4FD}\uFE0F": "video cassette recording device",
+  "\u{1F4FF}": "prayer beads religious accessory",
+  "\u{1F50B}": "battery power supply device",
+  "\u{1F50C}": "battery power supply device",
+  "\u{1F50D}": "magnifying glass search tool",
+  "\u{1F50E}": "magnifying glass search tool",
+  "\u{1F50F}": "lock security device",
+  "\u{1F510}": "lock security device",
+  "\u{1F511}": "key lock security device",
+  "\u{1F512}": "lock security device",
+  "\u{1F513}": "lock security device",
+  "\u{1F516}": "bookmark page marker",
+  "\u{1F517}": "link page marker",
+  "\u{1F526}": "flashlight flashlight device",
+  "\u{1F527}": "wrench tool fixing device",
+  "\u{1F528}": "hammer tool striking device",
+  "\u{1F529}": "gear mechanical device",
+  "\u{1F52B}": "gun firearm weapon",
+  "\u{1F52E}": "crystal ball fortune telling device",
+  "\u{1F56F}\uFE0F": "candle light source",
+  "\u{1F570}\uFE0F": "hourglass timer device",
+  "\u{1F579}\uFE0F": "joystick game controller",
+  "\u{1F587}\uFE0F": "paperclip attachment",
+  "\u{1F58A}\uFE0F": "pen writing tool",
+  "\u{1F58B}\uFE0F": "pen writing tool",
+  "\u{1F58C}\uFE0F": "paintbrush painting tool",
+  "\u{1F58D}\uFE0F": "paintbrush painting tool",
+  "\u{1F5A5}\uFE0F": "computer monitor screen",
+  "\u{1F5A8}\uFE0F": "printer output device",
+  "\u{1F5B1}\uFE0F": "computer mouse pointing device",
+  "\u{1F5B2}\uFE0F": "touchscreen input device",
+  "\u{1F5BC}\uFE0F": "picture frame photo display",
+  "\u{1F5C2}\uFE0F": "file folder storage",
+  "\u{1F5C3}\uFE0F": "file folder storage",
+  "\u{1F5C4}\uFE0F": "file folder storage",
+  "\u{1F5D1}\uFE0F": "trash can waste disposal",
+  "\u{1F5D2}\uFE0F": "notebook paper",
+  "\u{1F5D3}\uFE0F": "calendar paper",
+  "\u{1F5DC}\uFE0F": "clamp tool mechanical device",
+  "\u{1F5DD}\uFE0F": "lock and key security device",
+  "\u{1F5DE}\uFE0F": "file folder storage",
+  "\u{1F5E1}\uFE0F": "sword weapon",
+  "\u{1F5F3}\uFE0F": "file folder storage",
+  "\u{1F9E7}": "red envelope money gift",
+  "\u{1F9E8}": "firecracker explosive weapon",
+  "\u{1F9EE}": "calculator arithmetic device",
+  "\u{1F9EF}": "fire extinguisher safety device",
+  "\u{1F9F0}": "toolbox tool storage device",
+  "\u{1F9F2}": "magnet magnetic field device",
+  "\u{1F9F4}": "lotion cosmetic product",
+  "\u{1F9F7}": "link page marker",
+  "\u{1F9F8}": "pillow cushion",
+  "\u{1F9F9}": "broom cleaning tool",
+  "\u{1F9FA}": "basket storage container",
+  "\u{1F9FC}": "soap dispenser",
+  "\u{1F9FD}": "washcloth cleaning tool",
+  "\u{1F9FE}": "receipt invoice",
+  "\u{1F9FF}": "magic wand wizard spell casting device",
+  "\u{1FA84}": "magic wand wizard witch spell",
+  "\u{1FA85}": "pi\xF1ata party celebration mexican",
+  "\u{1FA86}": "nesting dolls russian matryoshka toy",
+  "\u{1FA91}": "bed bed",
+  "\u{1FA92}": "razor shaving tool",
+  "\u{1FA93}": "axe tool chopping device",
+  "\u{1FA94}": "candle light source",
+  "\u{1FA99}": "coin currency finance device",
+  "\u{1FA9A}": "saw tool woodworking device",
+  "\u{1FA9B}": "screwdriver tool fixing device",
+  "\u{1FA9C}": "lever mechanical device",
+  "\u{1FA9E}": "mirror reflection device",
+  "\u{1FA9F}": "curtain window covering",
+  "\u{1FAA1}": "sewing needle thread craft",
+  "\u{1FAA2}": "knot rope tied string",
+  "\u{1FAA3}": "bucket pail container water",
+  "\u{1FAA4}": "mouse trap rodent catch",
+  "\u{1FAA5}": "toothbrush dental hygiene tool",
+  "\u{1FAA6}": "headstone grave cemetery death",
+  "\u{1FAA7}": "placard sign protest announcement",
+  "\u{1FAA9}": "mirror ball disco party dance",
+  "\u{1FAAA}": "identification card id license",
+  "\u{1FAAB}": "low battery empty power dying",
+  "\u{1FAAC}": "hamsa amulet protection luck",
+  "\u{1FAAD}": "wireless speaker audio bluetooth",
+  "\u{1FAAE}": "folding hand fan cooling breeze",
+  "\u{1FAAF}": "khanda sikh religion symbol",
+  "\u{1FAB0}": "fly insect bug pest",
+  "\u{1FAB1}": "worm animal earth crawler",
+  "\u{1FAB2}": "beetle insect bug",
+  "\u{1FAB3}": "cockroach insect bug pest",
+  "\u{1FAB4}": "potted plant garden indoor nature",
+  "\u{1FAB7}": "lotus flower buddhism peace",
+  "\u{1FAB8}": "coral ocean sea marine",
+  "\u{1FAB9}": "empty nest bird home",
+  "\u{1FABA}": "nest with eggs bird home",
+  "\u{1FAE7}": "bubbles soap water floating",
+  "\u{1FAF8}": "rightwards hand pushing right",
+  "\u{1F6AA}": "door door",
+  "\u{1F6AC}": "cigarette smoking device",
+  "\u{1F6B0}": "water closet flushing device",
+  "\u{1F6BD}": "toilet flushing device",
+  "\u{1F6BF}": "shower shower head",
+  "\u{1F6C0}": "bathroom bathtub",
+  "\u{1F6C1}": "bathroom bathtub",
+  "\u{1F6CE}\uFE0F": "bell doorbell communication device",
+  "\u{1F6CB}\uFE0F": "sofa couch seating",
+  "\u{1F6CF}\uFE0F": "bed bed",
+  "\u{1F6CC}": "bed and pillow sleeping arrangement",
+  "\u{1F6CD}\uFE0F": "shopping bag retail shopping",
+  "\u{1F6D2}": "shopping cart retail shopping"
 };
-var SaveImageModal = class extends import_obsidian7.Modal {
-  constructor(app2, suggestedName, onSubmit) {
-    super(app2);
-    this.suggestedName = suggestedName;
-    this.onSubmit = onSubmit;
-  }
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl("h2", { text: "Save Image" });
-    contentEl.createEl("p", { text: "Enter a name for the image file." });
-    const fileNameSetting = new import_obsidian7.Setting(contentEl).setName("File name").addText((text) => text.setValue(this.suggestedName).onChange((value) => {
-      this.suggestedName = value;
-    }));
-    const buttonContainer = contentEl.createDiv();
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.justifyContent = "flex-end";
-    buttonContainer.style.gap = "8px";
-    buttonContainer.style.marginTop = "1em";
-    const cancelButton = buttonContainer.createEl("button", { text: "Cancel" });
-    const saveButton = buttonContainer.createEl("button", {
-      text: "Save",
-      cls: "mod-cta"
-    });
-    cancelButton.addEventListener("click", () => this.close());
-    saveButton.addEventListener("click", () => {
-      if (this.suggestedName) {
-        this.onSubmit(this.suggestedName);
-        this.close();
-      } else {
-        new import_obsidian7.Notice("Please enter a file name");
-      }
-    });
-    const modalEl = this.modalEl;
-    modalEl.style.position = "absolute";
-    modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
-    modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
-  }
-  onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
-  }
-};
-var EmojiSelectionModal = class extends import_obsidian7.Modal {
-  constructor(app2, plugin, onChoose) {
-    super(app2);
+
+// src/modal/modals/emojiSelectionModal.js
+var EmojiSelectionModal = class extends import_obsidian14.Modal {
+  constructor(app, plugin, onChoose) {
+    super(app);
     this.plugin = plugin;
     this.onChoose = onChoose;
     this.searchQuery = "";
@@ -2927,10 +3325,13 @@ var EmojiSelectionModal = class extends import_obsidian7.Modal {
     contentEl.empty();
   }
 };
-var TargetPositionModal = class extends import_obsidian7.Modal {
-  constructor(app2, plugin, onPositionChange) {
+
+// src/modal/modals/targetPositionModal.js
+var import_obsidian15 = require("obsidian");
+var TargetPositionModal = class extends import_obsidian15.Modal {
+  constructor(app, plugin, onPositionChange) {
     var _a;
-    super(app2);
+    super(app);
     this.plugin = plugin;
     this.onPositionChange = onPositionChange;
     this.isDragging = false;
@@ -3154,6 +3555,7 @@ var TargetPositionModal = class extends import_obsidian7.Modal {
     let isDragging = false;
     let offsetX, offsetY;
     modalEl.addEventListener("mousedown", (e) => {
+      if (e.target === zoomSlider || e.target === heightSlider) return;
       isDragging = true;
       offsetX = e.clientX - modalEl.getBoundingClientRect().left;
       offsetY = e.clientY - modalEl.getBoundingClientRect().top;
@@ -3211,25 +3613,8 @@ var TargetPositionModal = class extends import_obsidian7.Modal {
   }
 };
 
-// virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.2</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>The Targeting Modal is now draggable (can help move it out of the way to see the banner)</li>\n<li>Updated the padding and height of embedded notes without banners to shrink to their content</li>\n<li>Improved cache to include banner icons</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with select image icon being added to embedded notes</li>\n</ul>\n<h3>v2.21.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Addressed issue with target icon button not being cleaned up when viewing a note without a banner</li>\n<li>Resolved custom inline title colors being applied to notes without banners</li>\n<li>Resolved issue with Pixel Banner plugin preventing notes from being exported to PDF</li>\n</ul>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
-
-// src/main.js
-function getFrontmatterValue(frontmatter, fieldNames) {
-  if (!frontmatter || !fieldNames) return null;
-  const fields = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
-  for (const field of fields) {
-    if (frontmatter.hasOwnProperty(field)) {
-      const value = frontmatter[field];
-      if (typeof value === "string" && (value.toLowerCase() === "true" || value.toLowerCase() === "false")) {
-        return value.toLowerCase() === "true";
-      }
-      return value;
-    }
-  }
-  return null;
-}
-module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
+// src/core/pixelBannerPluginClass.js
+var PixelBannerPlugin = class extends import_obsidian16.Plugin {
   constructor() {
     super(...arguments);
     // Update modes for banner refresh
@@ -3290,7 +3675,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     __publicField(this, "MAX_POOL_SIZE", 10);
     __publicField(this, "debouncedEnsureBanner", debounce(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
+      if (activeLeaf && activeLeaf.view instanceof import_obsidian16.MarkdownView) {
         const contentEl = activeLeaf.view.contentEl;
         const hasBanner = contentEl.querySelector(".pixel-banner-image");
         if (hasBanner) {
@@ -3370,7 +3755,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       if (force || now - entry.timestamp > maxAge) {
         if (entry.leafId) {
           const leaf = this.app.workspace.getLeafById(entry.leafId);
-          if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian8.MarkdownView) {
+          if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian16.MarkdownView) {
             const contentEl = leaf.view.contentEl;
             ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
               const container = contentEl.querySelector(`.${selector}`);
@@ -3393,7 +3778,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         const [key, entry] = entries.shift();
         if (entry.leafId) {
           const leaf = this.app.workspace.getLeafById(entry.leafId);
-          if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian8.MarkdownView) {
+          if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian16.MarkdownView) {
             const contentEl = leaf.view.contentEl;
             ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
               const container = contentEl.querySelector(`.${selector}`);
@@ -3417,7 +3802,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     for (const [key, entry] of this.bannerStateCache) {
       if (key.includes(`-${leafId}`)) {
         const leaf = this.app.workspace.getLeafById(leafId);
-        if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian8.MarkdownView) {
+        if ((leaf == null ? void 0 : leaf.view) instanceof import_obsidian16.MarkdownView) {
           const contentEl = leaf.view.contentEl;
           ["cm-sizer", "markdown-preview-sizer"].forEach((selector) => {
             const container = contentEl.querySelector(`.${selector}`);
@@ -3439,9 +3824,22 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
   // --------------------------------------
   async onload() {
     await this.loadSettings();
+    this.pixelBannerPlusEnabled = false;
+    this.pixelBannerPlusBannerTokens = 0;
+    this.verifyPixelBannerPlusCredentials();
     this.updateEmbeddedTitlesVisibility();
     await this.checkVersion();
     this.addSettingTab(new PixelBannerSettingTab(this.app, this));
+    this.addCommand({
+      id: "generate-banner-with-ai",
+      name: "\u2728 Generate Banner with AI",
+      checkCallback: (checking) => {
+        if (checking) {
+          return this.pixelBannerPlusEnabled;
+        }
+        new GenerateAIBannerModal(this.app, this).open();
+      }
+    });
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", this.handleActiveLeafChange.bind(this))
     );
@@ -3472,8 +3870,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           ...this.settings.customBannerHeightField,
           ...this.settings.customFadeField,
           ...this.settings.customBorderRadiusField,
-          ...this.settings.customBannerShuffleField,
           ...this.settings.customTitleColorField,
+          ...this.settings.customBannerShuffleField,
           ...this.settings.customBannerIconField,
           ...this.settings.customBannerIconSizeField,
           ...this.settings.customBannerIconXPositionField,
@@ -3496,7 +3894,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         this.lastFrontmatter.set(file.path, frontmatter);
         const leaves = this.app.workspace.getLeavesOfType("markdown");
         for (const leaf of leaves) {
-          if (leaf.view instanceof import_obsidian8.MarkdownView && leaf.view.file === file) {
+          if (leaf.view instanceof import_obsidian16.MarkdownView && leaf.view.file === file) {
             this.loadedImages.delete(file.path);
             this.lastKeywords.delete(file.path);
             await this.updateBanner(leaf.view, true);
@@ -3511,7 +3909,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       name: "\u{1F4CC} Pin current banner image",
       checkCallback: (checking) => {
         var _a;
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian16.MarkdownView);
         if (!activeView || !activeView.file) return false;
         const imageUrl = this.loadedImages.get(activeView.file.path);
         const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
@@ -3537,7 +3935,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       name: "\u{1F504} Refresh current banner image",
       checkCallback: (checking) => {
         var _a;
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian16.MarkdownView);
         if (!activeView || !activeView.file) return false;
         const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
         let bannerImage;
@@ -3554,10 +3952,10 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           this.loadedImages.delete(activeView.file.path);
           this.lastKeywords.delete(activeView.file.path);
           this.updateBanner(activeView, true).then(() => {
-            new import_obsidian8.Notice("\u{1F504} Refreshed banner image");
+            new import_obsidian16.Notice("\u{1F504} Refreshed banner image");
           }).catch((error) => {
             console.error("Error refreshing image:", error);
-            new import_obsidian8.Notice("\u{1F62D} Failed to refresh image");
+            new import_obsidian16.Notice("\u{1F62D} Failed to refresh image");
           });
         }
         return true;
@@ -3573,7 +3971,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       name: "\u2B50 Set Banner Icon",
       checkCallback: (checking) => {
         var _a;
-        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+        const activeView = this.app.workspace.getActiveViewOfType(import_obsidian16.MarkdownView);
         if (!activeView || !activeView.file) return false;
         const frontmatter = (_a = this.app.metadataCache.getFileCache(activeView.file)) == null ? void 0 : _a.frontmatter;
         let hasBanner = false;
@@ -3617,7 +4015,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       this.app.metadataCache.on("resolved", () => {
         var _a;
         const leaf = this.app.workspace.activeLeaf;
-        if (leaf && leaf.view instanceof import_obsidian8.MarkdownView) {
+        if (leaf && leaf.view instanceof import_obsidian16.MarkdownView) {
           const contentEl = leaf.view.contentEl;
           const hasBanner = contentEl.querySelector(".pixel-banner-image");
           if (hasBanner) {
@@ -3651,7 +4049,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     this.lastKeywords.clear();
     this.imageCache.clear();
     this.app.workspace.iterateAllLeaves((leaf) => {
-      if (leaf.view instanceof import_obsidian8.MarkdownView) {
+      if (leaf.view instanceof import_obsidian16.MarkdownView) {
         this.updateBanner(leaf.view, true);
         if (this.settings.hidePixelBannerFields) {
           this.updateFieldVisibility(leaf.view);
@@ -3662,7 +4060,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
   async handleActiveLeafChange(leaf) {
     var _a;
     this.cleanupCache();
-    if (!leaf || !(leaf.view instanceof import_obsidian8.MarkdownView) || !leaf.view.file) {
+    if (!leaf || !(leaf.view instanceof import_obsidian16.MarkdownView) || !leaf.view.file) {
       return;
     }
     const currentPath = leaf.view.file.path;
@@ -3727,7 +4125,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         shouldUpdateBanner = true;
       }
       const previousLeaf = this.app.workspace.activeLeaf;
-      if (previousLeaf && previousLeaf.view instanceof import_obsidian8.MarkdownView && previousLeaf !== leaf) {
+      if (previousLeaf && previousLeaf.view instanceof import_obsidian16.MarkdownView && previousLeaf !== leaf) {
         this.cleanupPreviousLeaf(previousLeaf);
       }
       if (shouldUpdateBanner) {
@@ -3811,7 +4209,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     }
     setTimeout(() => {
       const activeLeaf = this.app.workspace.activeLeaf;
-      if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
+      if (activeLeaf && activeLeaf.view instanceof import_obsidian16.MarkdownView) {
         const contentEl = activeLeaf.view.contentEl;
         const hasBanner = contentEl.querySelector(".pixel-banner-image");
         if (hasBanner) {
@@ -3825,7 +4223,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     }, 100);
   }
   async handleModeChange(leaf) {
-    if (leaf && leaf.view instanceof import_obsidian8.MarkdownView && leaf.view.file) {
+    if (leaf && leaf.view instanceof import_obsidian16.MarkdownView && leaf.view.file) {
       await this.updateBanner(leaf.view, true);
       if (this.settings.hidePixelBannerFields) {
         this.updateFieldVisibility(leaf.view);
@@ -4105,7 +4503,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           );
           if (bannerRemoved || structuralChange) {
             const activeLeaf = this.app.workspace.activeLeaf;
-            if (activeLeaf && activeLeaf.view instanceof import_obsidian8.MarkdownView) {
+            if (activeLeaf && activeLeaf.view instanceof import_obsidian16.MarkdownView) {
               const contentEl = activeLeaf.view.contentEl;
               const hasBanner = contentEl.querySelector('.pixel-banner-image[style*="display: block"]');
               if (!hasBanner) {
@@ -4230,7 +4628,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     const keywords = [keyword, fallbackKeyword];
     for (const currentKeyword of keywords) {
       try {
-        const response = await (0, import_obsidian8.requestUrl)({
+        const response = await (0, import_obsidian16.requestUrl)({
           url: `https://api.pexels.com/v1/search?query=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&size=${this.settings.imageSize}&orientation=${this.settings.imageOrientation}`,
           method: "GET",
           headers: {
@@ -4241,13 +4639,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           console.error("Failed to fetch images:", response.status, response.text);
           continue;
         }
-        const data = response.json;
-        if (data.photos && data.photos.length > 0) {
-          const randomIndex = Math.floor(Math.random() * data.photos.length);
+        const data2 = response.json;
+        if (data2.photos && data2.photos.length > 0) {
+          const randomIndex = Math.floor(Math.random() * data2.photos.length);
           if (currentKeyword !== keyword) {
             console.log(`No image found for "${keyword}". Using image for "${currentKeyword}" instead.`);
           }
-          const imageUrl = data.photos[randomIndex].src[this.settings.imageSize];
+          const imageUrl = data2.photos[randomIndex].src[this.settings.imageSize];
           try {
             await this.preloadImage(imageUrl);
           } catch (error) {
@@ -4259,7 +4657,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         }
       } catch (error) {
         console.error(`Error fetching image from API for keyword "${currentKeyword}":`, error);
-        new import_obsidian8.Notice(`Failed to fetch image: ${error.message}`);
+        new import_obsidian16.Notice(`Failed to fetch image: ${error.message}`);
       }
     }
     console.error("No images found for any keywords, including the random default.");
@@ -4289,11 +4687,11 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           console.error(`Pixabay API error: ${response.status} ${response.statusText}`);
           continue;
         }
-        let data;
+        let data2;
         if (response.arrayBuffer) {
           const text = new TextDecoder().decode(response.arrayBuffer);
           try {
-            data = JSON.parse(text);
+            data2 = JSON.parse(text);
           } catch (error) {
             console.error("Failed to parse Pixabay response:", error);
             continue;
@@ -4302,8 +4700,8 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           console.error("Unexpected response format:", response);
           continue;
         }
-        if (data.hits && data.hits.length > 0) {
-          const imageUrls = data.hits.map((hit) => hit.largeImageURL);
+        if (data2.hits && data2.hits.length > 0) {
+          const imageUrls = data2.hits.map((hit) => hit.largeImageURL);
           if (imageUrls.length > 0) {
             const randomIndex = Math.floor(Math.random() * imageUrls.length);
             const selectedImageUrl = imageUrls[randomIndex];
@@ -4316,7 +4714,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian8.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
+    new import_obsidian16.Notice("Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.");
     return null;
   }
   async fetchFlickrImage(keyword) {
@@ -4336,13 +4734,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           console.error(`Flickr API error: ${response.status} ${response.statusText}`);
           continue;
         }
-        const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
-        if (data.stat !== "ok") {
-          console.error("Flickr API error:", data);
+        const data2 = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+        if (data2.stat !== "ok") {
+          console.error("Flickr API error:", data2);
           continue;
         }
-        if (data.photos && data.photos.photo && data.photos.photo.length > 0) {
-          const photos = data.photos.photo;
+        if (data2.photos && data2.photos.photo && data2.photos.photo.length > 0) {
+          const photos = data2.photos.photo;
           const randomIndex = Math.floor(Math.random() * photos.length);
           const photo = photos[randomIndex];
           let size = "z";
@@ -4368,7 +4766,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian8.Notice("Failed to fetch an image after multiple attempts");
+    new import_obsidian16.Notice("Failed to fetch an image after multiple attempts");
     return null;
   }
   async fetchUnsplashImage(keyword) {
@@ -4398,13 +4796,13 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
           console.error(`Unsplash API error: ${response.status}`);
           continue;
         }
-        const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
-        if (!data.results || data.results.length === 0) {
+        const data2 = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
+        if (!data2.results || data2.results.length === 0) {
           console.log(`No images found for keyword: ${currentKeyword}`);
           continue;
         }
-        const randomIndex = Math.floor(Math.random() * data.results.length);
-        const photo = data.results[randomIndex];
+        const randomIndex = Math.floor(Math.random() * data2.results.length);
+        const photo = data2.results[randomIndex];
         let imageUrl;
         switch (this.settings.imageSize) {
           case "small":
@@ -4425,7 +4823,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       }
     }
     console.error("No images found after all attempts");
-    new import_obsidian8.Notice("Failed to fetch an image after multiple attempts");
+    new import_obsidian16.Notice("Failed to fetch an image after multiple attempts");
     return null;
   }
   async makeRequest(url, options = {}) {
@@ -4435,7 +4833,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     }
     this.rateLimiter.lastRequestTime = Date.now();
     try {
-      const response = await (0, import_obsidian8.requestUrl)({
+      const response = await (0, import_obsidian16.requestUrl)({
         url,
         headers: options.headers || {},
         ...options
@@ -4567,7 +4965,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       this.observer.disconnect();
     }
     this.app.workspace.iterateAllLeaves((leaf) => {
-      if (leaf.view instanceof import_obsidian8.MarkdownView) {
+      if (leaf.view instanceof import_obsidian16.MarkdownView) {
         const viewContent = leaf.view.contentEl;
         if (viewContent._resizeObserver) {
           viewContent._resizeObserver.disconnect();
@@ -4805,24 +5203,28 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
         targetBtn.innerHTML = "\u{1F3AF}";
         const currentBannerImage = bannerImage;
         targetBtn.onclick = () => {
-          new TargetPositionModal(this.app, this, (x, y) => {
-            var _a2;
-            const activeFile2 = this.app.workspace.getActiveFile();
-            if (activeFile2) {
-              const frontmatter2 = (_a2 = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a2.frontmatter;
-              if (frontmatter2) {
-                const xFields = Array.isArray(this.settings.customXPositionField) ? this.settings.customXPositionField[0].split(",")[0].trim() : this.settings.customXPositionField;
-                const yFields = Array.isArray(this.settings.customYPositionField) ? this.settings.customYPositionField[0].split(",")[0].trim() : this.settings.customYPositionField;
-                this.app.fileManager.processFrontMatter(activeFile2, (fm) => {
-                  fm[xFields] = x;
-                  fm[yFields] = y;
-                });
-                if (currentBannerImage && currentBannerImage.style) {
-                  currentBannerImage.style.objectPosition = `${x}% ${y}%`;
+          new TargetPositionModal(
+            this.app,
+            this,
+            (x, y) => {
+              var _a2;
+              const activeFile2 = this.app.workspace.getActiveFile();
+              if (activeFile2) {
+                const frontmatter2 = (_a2 = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a2.frontmatter;
+                if (frontmatter2) {
+                  const xFields = Array.isArray(this.settings.customXPositionField) ? this.settings.customXPositionField[0].split(",")[0].trim() : this.settings.customXPositionField;
+                  const yFields = Array.isArray(this.settings.customYPositionField) ? this.settings.customYPositionField[0].split(",")[0].trim() : this.settings.customYPositionField;
+                  this.app.fileManager.processFrontMatter(activeFile2, (fm) => {
+                    fm[xFields] = x;
+                    fm[yFields] = y;
+                  });
+                  if (currentBannerImage && currentBannerImage.style) {
+                    currentBannerImage.style.objectPosition = `${x}% ${y}%`;
+                  }
                 }
               }
             }
-          }).open();
+          ).open();
         };
         container._targetBtn = targetBtn;
         container.appendChild(targetBtn);
@@ -4951,7 +5353,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
               await handlePinIconClick(imageUrl, this);
             } catch (error) {
               console.error("Error pinning image:", error);
-              new import_obsidian8.Notice("Failed to pin the image.");
+              new import_obsidian16.Notice("Failed to pin the image.");
             }
           };
           container.appendChild(pinIcon);
@@ -4983,14 +5385,14 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
                       await handlePinIconClick(newImageUrl, this);
                     } catch (error) {
                       console.error("Error pinning image:", error);
-                      new import_obsidian8.Notice("Failed to pin the image.");
+                      new import_obsidian16.Notice("Failed to pin the image.");
                     }
                   };
-                  new import_obsidian8.Notice("\u{1F504} Refreshed banner image");
+                  new import_obsidian16.Notice("\u{1F504} Refreshed banner image");
                 }
               } catch (error) {
                 console.error("Error refreshing image:", error);
-                new import_obsidian8.Notice("Failed to refresh image");
+                new import_obsidian16.Notice("Failed to refresh image");
               }
             };
             container.appendChild(refreshIcon);
@@ -5072,6 +5474,58 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
     }
     return availableProviders[Math.floor(Math.random() * availableProviders.length)];
   }
+  async verifyPixelBannerPlusCredentials() {
+    this.pixelBannerPlusEnabled = false;
+    this.pixelBannerPlusBannerTokens = 0;
+    const email = this.settings.pixelBannerPlusEmail;
+    const apiKey = this.settings.pixelBannerPlusApiKey;
+    if (!email || !apiKey) {
+      this.pixelBannerPlusEnabled = false;
+      this.pixelBannerPlusBannerTokens = 0;
+      return false;
+    }
+    try {
+      const response = await (0, import_obsidian16.requestUrl)({
+        url: `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.VERIFY}`,
+        method: "GET",
+        headers: {
+          "X-User-Email": email,
+          "X-API-Key": apiKey,
+          "Accept": "application/json"
+        }
+      });
+      if (response.status === 200) {
+        const data2 = response.json;
+        this.pixelBannerPlusEnabled = true;
+        this.pixelBannerPlusBannerTokens = data2.banner_tokens;
+        console.log("Pixel Banner Plus credentials verified, \u{1FA99} Banner Tokens:", data2.banner_tokens);
+        return data2;
+      } else {
+        this.pixelBannerPlusEnabled = false;
+        this.pixelBannerPlusBannerTokens = 0;
+        console.error("Failed to verify Pixel Banner Plus credentials:", data);
+      }
+      return false;
+    } catch (error) {
+      console.error("Failed to verify Pixel Banner Plus credentials:", error);
+      return false;
+    }
+  }
+  getRandomImageFromFolder(folderPath) {
+    try {
+      const folder = this.app.vault.getAbstractFileByPath(folderPath);
+      if (!folder || !folder.children) return null;
+      const imageFiles = folder.children.filter(
+        (file) => file.extension && ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(file.extension.toLowerCase())
+      );
+      if (imageFiles.length === 0) return null;
+      const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
+      return randomImage.path;
+    } catch (error) {
+      console.error("Error getting random image:", error);
+      return null;
+    }
+  }
   updateFieldVisibility(view) {
     if (!view || view.getMode() !== "preview") return;
     const fieldsToHide = [
@@ -5120,21 +5574,6 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
       propertiesContainer.classList.remove("pixel-banner-hidden-section");
     }
   }
-  getRandomImageFromFolder(folderPath) {
-    try {
-      const folder = this.app.vault.getAbstractFileByPath(folderPath);
-      if (!folder || !folder.children) return null;
-      const imageFiles = folder.children.filter(
-        (file) => file.extension && ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(file.extension.toLowerCase())
-      );
-      if (imageFiles.length === 0) return null;
-      const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
-      return randomImage.path;
-    } catch (error) {
-      console.error("Error getting random image:", error);
-      return null;
-    }
-  }
   updateEmbeddedTitlesVisibility() {
     const styleId = "pixel-banner-embedded-titles";
     let styleEl = document.getElementById(styleId);
@@ -5174,7 +5613,7 @@ module.exports = class PixelBannerPlugin extends import_obsidian8.Plugin {
   async handleSelectImage() {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) {
-      new import_obsidian8.Notice("No active file");
+      new import_obsidian16.Notice("No active file");
       return;
     }
     new ImageSelectionModal(
@@ -5218,9 +5657,9 @@ ${cleanContent}`;
         if (updatedContent !== fileContent) {
           await this.app.vault.modify(activeFile, updatedContent);
           if (this.settings.useShortPath && imageReference === selectedFile.path) {
-            new import_obsidian8.Notice("Banner image updated (full path used due to duplicate filenames)");
+            new import_obsidian16.Notice("Banner image updated (full path used due to duplicate filenames)");
           } else {
-            new import_obsidian8.Notice("Banner image updated");
+            new import_obsidian16.Notice("Banner image updated");
           }
         }
       },
@@ -5230,7 +5669,7 @@ ${cleanContent}`;
   async handleSetBannerIcon() {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) {
-      new import_obsidian8.Notice("No active file");
+      new import_obsidian16.Notice("No active file");
       return;
     }
     new EmojiSelectionModal(
@@ -5297,7 +5736,7 @@ ${cleanContent}`;
           const retryDelay = 150;
           let success = false;
           for (let i = 0; i < maxRetries && !success; i++) {
-            const view = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+            const view = this.app.workspace.getActiveViewOfType(import_obsidian16.MarkdownView);
             if (view) {
               try {
                 const cache = this.app.metadataCache.getFileCache(activeFile);
@@ -5316,12 +5755,12 @@ ${cleanContent}`;
           }
           if (!success) {
             await new Promise((resolve) => setTimeout(resolve, 500));
-            const view = this.app.workspace.getActiveViewOfType(import_obsidian8.MarkdownView);
+            const view = this.app.workspace.getActiveViewOfType(import_obsidian16.MarkdownView);
             if (view) {
               await this.updateBanner(view, true);
             }
           }
-          new import_obsidian8.Notice("Banner icon updated");
+          new import_obsidian16.Notice("Banner icon updated");
         }
       }
     ).open();
@@ -5341,232 +5780,6 @@ ${cleanContent}`;
     return ((_a = metadata == null ? void 0 : metadata.frontmatter) == null ? void 0 : _a.banner) !== void 0;
   }
 };
-async function handlePinIconClick(imageUrl, plugin, usedField = null) {
-  const imageBlob = await fetchImage(imageUrl);
-  const { file } = await saveImageLocally(imageBlob, plugin);
-  const finalPath = await waitForFileRename(file, plugin);
-  if (!finalPath) {
-    console.error("\u274C Failed to resolve valid file path");
-    new import_obsidian8.Notice("Failed to save image - file not found");
-    return;
-  }
-  await updateNoteFrontmatter(finalPath, plugin, usedField);
-  hidePinIcon();
-}
-async function fetchImage(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Image download failed");
-  return await response.arrayBuffer();
-}
-var FolderSelectionModal2 = class extends import_obsidian8.FuzzySuggestModal {
-  constructor(app2, defaultFolder, onChoose) {
-    super(app2);
-    this.defaultFolder = defaultFolder;
-    this.onChoose = onChoose;
-    this.setPlaceholder("Select or type folder path to save Pinned Banner Image");
-    this.titleEl.setText("Choose Folder to save Pinned Banner Image");
-  }
-  getItems() {
-    return [this.defaultFolder, ...this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path)];
-  }
-  getItemText(item) {
-    return item;
-  }
-  onChooseItem(item) {
-    this.onChoose(item);
-  }
-  onOpen() {
-    super.onOpen();
-    const inputEl = this.inputEl;
-    inputEl.value = this.defaultFolder;
-    inputEl.select();
-    this.updateSuggestions();
-  }
-};
-async function saveImageLocally(arrayBuffer, plugin) {
-  const vault = plugin.app.vault;
-  const defaultFolderPath = plugin.settings.pinnedImageFolder;
-  const folderPath = await new Promise((resolve) => {
-    const modal = new FolderSelectionModal2(plugin.app, defaultFolderPath, (result) => {
-      resolve(result);
-    });
-    modal.open();
-  });
-  if (!folderPath) {
-    throw new Error("No folder selected");
-  }
-  if (!await vault.adapter.exists(folderPath)) {
-    await vault.createFolder(folderPath);
-  }
-  const suggestedName = "pixel-banner-image";
-  const userInput = await new Promise((resolve) => {
-    const modal = new SaveImageModal2(plugin.app, suggestedName, (result) => {
-      resolve(result);
-    });
-    modal.open();
-  });
-  if (!userInput) {
-    throw new Error("No filename provided");
-  }
-  let baseName = userInput.replace(/[^a-zA-Z0-9-_ ]/g, "").trim();
-  if (!baseName) baseName = "banner";
-  if (!baseName.toLowerCase().endsWith(".png")) baseName += ".png";
-  let fileName = baseName;
-  let counter = 1;
-  while (await vault.adapter.exists(`${folderPath}/${fileName}`)) {
-    const nameWithoutExt = baseName.slice(0, -4);
-    fileName = `${nameWithoutExt}-${counter}.png`;
-    counter++;
-  }
-  const filePath = `${folderPath}/${fileName}`;
-  const savedFile = await vault.createBinary(filePath, arrayBuffer);
-  return {
-    initialPath: filePath,
-    file: savedFile
-  };
-}
-async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
-  const activeFile = app.workspace.getActiveFile();
-  if (!activeFile) return;
-  let imageReference = imagePath;
-  if (plugin.settings.useShortPath) {
-    const imageFile = plugin.app.vault.getAbstractFileByPath(imagePath);
-    if (imageFile) {
-      const allFiles = plugin.app.vault.getFiles();
-      const matchingFiles = allFiles.filter((f) => f.name === imageFile.name);
-      imageReference = matchingFiles.length === 1 ? imageFile.name : imageFile.path;
-    }
-  }
-  let fileContent = await app.vault.read(activeFile);
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-  const hasFrontmatter = frontmatterRegex.test(fileContent);
-  const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0 ? plugin.settings.customBannerField[0] : "banner");
-  fileContent = fileContent.replace(/^\s+/, "");
-  let updatedContent;
-  if (hasFrontmatter) {
-    updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-      let cleanedFrontmatter = frontmatter.trim();
-      plugin.settings.customBannerField.forEach((field) => {
-        const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, "g");
-        cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, "");
-      });
-      cleanedFrontmatter = cleanedFrontmatter.trim();
-      const newFrontmatter = `${bannerField}: "[[${imageReference}]]"${cleanedFrontmatter ? "\n" + cleanedFrontmatter : ""}`;
-      return `---
-${newFrontmatter}
----`;
-    });
-  } else {
-    const cleanContent = fileContent.replace(/^\s+/, "");
-    updatedContent = `---
-${bannerField}: "[[${imageReference}]]"
----
 
-${cleanContent}`;
-  }
-  updatedContent = updatedContent.replace(/^\s+/, "");
-  if (updatedContent !== fileContent) {
-    await app.vault.modify(activeFile, updatedContent);
-    if (plugin.settings.useShortPath && imageReference === imagePath) {
-      new import_obsidian8.Notice("Banner image pinned (full path used due to duplicate filenames)");
-    } else {
-      new import_obsidian8.Notice("Banner image pinned");
-    }
-  }
-}
-function hidePinIcon() {
-  const pinIcon = document.querySelector(".pin-icon");
-  if (pinIcon) pinIcon.style.display = "none";
-}
-var SaveImageModal2 = class extends import_obsidian8.Modal {
-  constructor(app2, suggestedName, onSubmit) {
-    super(app2);
-    this.suggestedName = suggestedName;
-    this.onSubmit = onSubmit;
-  }
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl("h2", { text: "Save Banner Image" });
-    const inputContainer = contentEl.createDiv();
-    inputContainer.style.margin = "1em 0";
-    const input = inputContainer.createEl("input", {
-      type: "text",
-      value: this.suggestedName
-    });
-    input.style.width = "100%";
-    input.focus();
-    input.select();
-    const buttonContainer = contentEl.createDiv();
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.justifyContent = "flex-end";
-    buttonContainer.style.gap = "1em";
-    buttonContainer.style.marginTop = "1em";
-    const submitButton = buttonContainer.createEl("button", {
-      text: "Save"
-    });
-    submitButton.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.onSubmit(input.value);
-      this.close();
-    });
-    const cancelButton = buttonContainer.createEl("button", {
-      text: "Cancel"
-    });
-    cancelButton.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.onSubmit(null);
-      this.close();
-    });
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        event.stopPropagation();
-        setTimeout(() => {
-          this.onSubmit(input.value);
-          this.close();
-        }, 0);
-      }
-    });
-  }
-  onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
-  }
-};
-async function waitForFileRename(file, plugin) {
-  return new Promise((resolve) => {
-    const initialPath = file.path;
-    let timeoutId;
-    let renamedPath = null;
-    const validatePath = async (path) => {
-      if (!path) return false;
-      return await plugin.app.vault.adapter.exists(path);
-    };
-    const handleRename = async (theFile) => {
-      if (theFile == null ? void 0 : theFile.path) {
-        renamedPath = theFile == null ? void 0 : theFile.path;
-      }
-    };
-    const cleanup = () => {
-      plugin.app.vault.off("rename", handleRename);
-    };
-    plugin.app.vault.on("rename", handleRename);
-    timeoutId = setTimeout(async () => {
-      cleanup();
-      if (renamedPath) {
-        const exists = await validatePath(renamedPath);
-        if (exists) {
-          return resolve(renamedPath);
-        }
-      }
-      const initialExists = await validatePath(initialPath);
-      if (initialExists) {
-        return resolve(initialPath);
-      }
-      resolve(null);
-    }, 1500);
-  });
-}
+// src/main.js
+var main_default = PixelBannerPlugin;

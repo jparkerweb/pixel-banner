@@ -1,4 +1,6 @@
 {
+  "pixelBannerPlusEmail": "jparkerweb@gmail.com",
+  "pixelBannerPlusApiKey": "83abb7f2-fdae-4a09-b133-c7d17efb5572",
   "apiProvider": "all",
   "pexelsApiKey": "RoKgyYgLEu0BEzqw5Z4LMnknOquciriNYvtfEe2yHh0sbVLG422J58qq",
   "pixabayApiKey": "",
@@ -175,6 +177,8 @@
   "bannerIconPaddingY": "0",
   "bannerIconBorderRadius": "17",
   "bannerIconVeritalOffset": "0",
+  "pixelBannerPlusEnabled": true,
+  "pixelBannerPlusEnabledURL": "https://stale-cloths-accept.loca.lt/",
   "customBannerIconPaddingField": [
     "icon-padding"
   ],

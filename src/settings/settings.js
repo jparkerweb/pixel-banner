@@ -1,11 +1,13 @@
-import { PluginSettingTab, Setting, FuzzySuggestModal, MarkdownView } from 'obsidian';
-import { createExampleSettings } from './settingsTabExample';
-import { createAPISettings } from './settingsTabAPISettings';
-import { createFolderSettings } from './settingsTabFolderImages';
-import { createCustomFieldsSettings } from './settingsTabCustomFieldNames';
-import { createGeneralSettings } from './settingsTabGeneral';
+import { PluginSettingTab, FuzzySuggestModal } from 'obsidian';
+import { createExampleSettings } from './tabs/settingsTabExample';
+import { createAPISettings } from './tabs/settingsTabAPISettings';
+import { createFolderSettings } from './tabs/settingsTabFolderImages';
+import { createCustomFieldsSettings } from './tabs/settingsTabCustomFieldNames';
+import { createGeneralSettings } from './tabs/settingsTabGeneral';
 
 const DEFAULT_SETTINGS = {
+    pixelBannerPlusEmail: '',
+    pixelBannerPlusApiKey: '',
     apiProvider: 'all',
     pexelsApiKey: '',
     pixabayApiKey: '',

@@ -1,6 +1,5 @@
-import { Setting, Notice } from 'obsidian';
-import { FolderSuggestModal } from './settings';
-import { DEFAULT_SETTINGS } from './settings';
+import { Setting } from 'obsidian';
+import { FolderSuggestModal } from '../settings';
 
 export function createFolderSettings(containerEl, plugin) {
     // section callout

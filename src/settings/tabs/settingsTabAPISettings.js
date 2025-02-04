@@ -1,5 +1,5 @@
 import { Setting, Notice } from 'obsidian';
-import { DEFAULT_SETTINGS } from './settings';
+import { DEFAULT_SETTINGS } from '../settings';
 
 // API test functions
 async function testPexelsApi(apiKey) {
