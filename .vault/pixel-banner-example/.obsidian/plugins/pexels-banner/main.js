@@ -3584,13 +3584,15 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     const activeFile = this.app.workspace.getActiveFile();
     const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a.frontmatter;
     const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) ? this.plugin.settings.customImageDisplayField[0].split(",")[0].trim() : this.plugin.settings.customImageDisplayField;
-    const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
-    const yField = Array.isArray(this.plugin.settings.customYPositionField) ? this.plugin.settings.customYPositionField[0].split(",")[0].trim() : this.plugin.settings.customYPositionField;
-    const heightField = Array.isArray(this.plugin.settings.customBannerHeightField) ? this.plugin.settings.customBannerHeightField[0].split(",")[0].trim() : this.plugin.settings.customBannerHeightField;
-    this.currentX = (frontmatter == null ? void 0 : frontmatter[xField]) || this.plugin.settings.xPosition;
-    this.currentY = (frontmatter == null ? void 0 : frontmatter[yField]) || this.plugin.settings.yPosition;
-    this.currentHeight = (frontmatter == null ? void 0 : frontmatter[heightField]) || this.plugin.settings.bannerHeight;
     this.currentDisplay = (frontmatter == null ? void 0 : frontmatter[displayField]) || this.plugin.settings.imageDisplay;
+    const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
+    this.currentX = (frontmatter == null ? void 0 : frontmatter[xField]) || this.plugin.settings.xPosition;
+    const yField = Array.isArray(this.plugin.settings.customYPositionField) ? this.plugin.settings.customYPositionField[0].split(",")[0].trim() : this.plugin.settings.customYPositionField;
+    this.currentY = (frontmatter == null ? void 0 : frontmatter[yField]) || this.plugin.settings.yPosition;
+    const heightField = Array.isArray(this.plugin.settings.customBannerHeightField) ? this.plugin.settings.customBannerHeightField[0].split(",")[0].trim() : this.plugin.settings.customBannerHeightField;
+    this.currentHeight = (frontmatter == null ? void 0 : frontmatter[heightField]) || this.plugin.settings.bannerHeight;
+    const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField) ? this.plugin.settings.customContentStartField[0].split(",")[0].trim() : this.plugin.settings.customContentStartField;
+    this.currentContentStartPosition = (frontmatter == null ? void 0 : frontmatter[contentStartPositionField]) || this.plugin.settings.contentStartPosition;
     this.currentZoom = 100;
     if (this.currentDisplay && this.currentDisplay.endsWith("%")) {
       this.currentZoom = parseInt(this.currentDisplay) || 100;
@@ -3618,6 +3620,14 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
       frontmatter[heightField] = height;
     });
   }
+  updateBannerContentStartPosition(position) {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) return;
+    const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField) ? this.plugin.settings.customContentStartField[0].split(",")[0].trim() : this.plugin.settings.customContentStartField;
+    this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+      frontmatter[contentStartPositionField] = position;
+    });
+  }
   onPositionChange(x, y) {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) return;
@@ -3631,6 +3641,8 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     contentEl.empty();
     contentEl.addClass("target-position-modal");
     modalEl.style.opacity = "0.8";
+    modalEl.style.width = "max-content";
+    modalEl.style.height = "max-content";
     bgEl.style.opacity = "0";
     const mainContainer = contentEl.createDiv({ cls: "main-container" });
     mainContainer.style.display = "flex";
@@ -3768,6 +3780,47 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     targetArea.addEventListener("click", updatePosition);
     verticalLine.style.left = `${this.currentX}%`;
     horizontalLine.style.top = `${this.currentY}%`;
+    const contentStartPositionContainer = mainContainer.createDiv({ cls: "content-start-position-container" });
+    contentStartPositionContainer.style.display = "flex";
+    contentStartPositionContainer.style.flexDirection = "column";
+    contentStartPositionContainer.style.gap = "10px";
+    contentStartPositionContainer.style.alignItems = "center";
+    contentStartPositionContainer.style.minWidth = "60px";
+    contentStartPositionContainer.style.flex = "0 auto";
+    const contentStartPositionLabel = contentStartPositionContainer.createEl("div", {
+      text: "Content Start Position",
+      cls: "content-start-position-label",
+      attr: {
+        style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                    text-align: center;
+                    width: 60px;
+                `
+      }
+    });
+    const contentStartPositionValue = contentStartPositionContainer.createDiv({ cls: "content-start-position-value" });
+    contentStartPositionValue.style.fontFamily = "var(--font-monospace)";
+    contentStartPositionValue.style.fontSize = "0.9em";
+    contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
+    const contentStartPositionSlider = contentStartPositionContainer.createEl("input", {
+      type: "range",
+      cls: "content-start-position-slider",
+      attr: {
+        min: "1",
+        max: "800",
+        step: "5",
+        value: this.currentContentStartPosition
+      }
+    });
+    contentStartPositionSlider.style.flex = "1";
+    contentStartPositionSlider.style.writingMode = "vertical-lr";
+    contentStartPositionSlider.style.direction = "rtl";
+    contentStartPositionSlider.addEventListener("input", () => {
+      this.currentContentStartPosition = parseInt(contentStartPositionSlider.value);
+      contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
+      this.updateBannerContentStartPosition(this.currentContentStartPosition);
+    });
     const resetButton = contentEl.createEl("button", {
       text: "Reset to Defaults",
       cls: "mod-cta reset-button"
@@ -3786,6 +3839,10 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
       heightSlider.value = this.currentHeight;
       heightValue.setText(`${this.currentHeight}px`);
       this.updateBannerHeight(this.currentHeight);
+      this.currentContentStartPosition = this.plugin.settings.contentStartPosition;
+      contentStartPositionSlider.value = this.currentContentStartPosition;
+      contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
+      this.updateBannerContentStartPosition(this.currentContentStartPosition);
       this.currentX = 50;
       this.currentY = 50;
       verticalLine.style.left = `${this.currentX}%`;
@@ -3801,7 +3858,7 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     let isDragging = false;
     let offsetX, offsetY;
     modalEl.addEventListener("mousedown", (e) => {
-      if (e.target === zoomSlider || e.target === heightSlider) return;
+      if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider) return;
       isDragging = true;
       offsetX = e.clientX - modalEl.getBoundingClientRect().left;
       offsetY = e.clientY - modalEl.getBoundingClientRect().top;

@@ -11,32 +11,42 @@ export class TargetPositionModal extends Modal {
         this.onPositionChange = onPositionChange;
         this.isDragging = false;
         
-        // Get current display mode, zoom, postion, and banner height
+        // Get current banner / icon values
         const activeFile = this.app.workspace.getActiveFile();
         const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+
+        // display field
         const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
             ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
             : this.plugin.settings.customImageDisplayField;
+        this.currentDisplay = frontmatter?.[displayField] || this.plugin.settings.imageDisplay;
 
+        // x position field
         const xField = Array.isArray(this.plugin.settings.customXPositionField) 
             ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
             : this.plugin.settings.customXPositionField;
+        this.currentX = frontmatter?.[xField] || this.plugin.settings.xPosition;
 
+        // y position field
         const yField = Array.isArray(this.plugin.settings.customYPositionField) 
             ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
             : this.plugin.settings.customYPositionField;
+        this.currentY = frontmatter?.[yField] || this.plugin.settings.yPosition;
 
+        // height field
         const heightField = Array.isArray(this.plugin.settings.customBannerHeightField)
             ? this.plugin.settings.customBannerHeightField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerHeightField;
-
-        this.currentX = frontmatter?.[xField] || this.plugin.settings.xPosition;
-        this.currentY = frontmatter?.[yField] || this.plugin.settings.yPosition;
         this.currentHeight = frontmatter?.[heightField] || this.plugin.settings.bannerHeight;
-        this.currentDisplay = frontmatter?.[displayField] || this.plugin.settings.imageDisplay;
-        this.currentZoom = 100;
-        
+
+        // content start position field
+        const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField)
+            ? this.plugin.settings.customContentStartField[0].split(',')[0].trim()
+            : this.plugin.settings.customContentStartField;
+        this.currentContentStartPosition = frontmatter?.[contentStartPositionField] || this.plugin.settings.contentStartPosition;
+
         // Parse current display value for zoom percentage
+        this.currentZoom = 100;
         if (this.currentDisplay && this.currentDisplay.endsWith('%')) {
             this.currentZoom = parseInt(this.currentDisplay) || 100;
             this.currentDisplay = 'cover-zoom';
@@ -75,6 +85,19 @@ export class TargetPositionModal extends Modal {
         });
     }
 
+    updateBannerContentStartPosition(position) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField)
+            ? this.plugin.settings.customContentStartField[0].split(',')[0].trim()
+            : this.plugin.settings.customContentStartField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[contentStartPositionField] = position;
+        });
+    }
+
     onPositionChange(x, y) {
         const activeFile = this.app.workspace.getActiveFile();
         if (!activeFile) return;
@@ -90,6 +113,8 @@ export class TargetPositionModal extends Modal {
         contentEl.empty();
         contentEl.addClass('target-position-modal');
         modalEl.style.opacity = "0.8";
+        modalEl.style.width = "max-content";
+        modalEl.style.height = "max-content";
         bgEl.style.opacity = "0";
 
         // Create main container with flex layout
@@ -279,6 +304,57 @@ export class TargetPositionModal extends Modal {
         verticalLine.style.left = `${this.currentX}%`;
         horizontalLine.style.top = `${this.currentY}%`;
 
+        
+        // Content Start Position control container
+        const contentStartPositionContainer = mainContainer.createDiv({ cls: 'content-start-position-container' });
+        contentStartPositionContainer.style.display = 'flex';
+        contentStartPositionContainer.style.flexDirection = 'column';
+        contentStartPositionContainer.style.gap = '10px';
+        contentStartPositionContainer.style.alignItems = 'center';
+        contentStartPositionContainer.style.minWidth = '60px';
+        contentStartPositionContainer.style.flex = '0 auto';
+
+        // Content Start Position label
+        const contentStartPositionLabel = contentStartPositionContainer.createEl('div', { 
+            text: 'Content Start Position',
+            cls: 'content-start-position-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                    text-align: center;
+                    width: 60px;
+                `
+            }
+        });
+
+        // Content Start Position value display
+        const contentStartPositionValue = contentStartPositionContainer.createDiv({ cls: 'content-start-position-value' });
+        contentStartPositionValue.style.fontFamily = 'var(--font-monospace)';
+        contentStartPositionValue.style.fontSize = '0.9em';
+        contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
+
+        // Content Start Position slider
+        const contentStartPositionSlider = contentStartPositionContainer.createEl('input', {
+            type: 'range',
+            cls: 'content-start-position-slider',
+            attr: {
+                min: '1',
+                max: '800',
+                step: '5',
+                value: this.currentContentStartPosition
+            }
+        });
+        contentStartPositionSlider.style.flex = '1';
+        contentStartPositionSlider.style.writingMode = 'vertical-lr';
+        contentStartPositionSlider.style.direction = 'rtl';
+
+        contentStartPositionSlider.addEventListener('input', () => {
+            this.currentContentStartPosition = parseInt(contentStartPositionSlider.value);
+            contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
+            this.updateBannerContentStartPosition(this.currentContentStartPosition);
+        });
+        
         // Reset to defaults button
         const resetButton = contentEl.createEl('button', {
             text: 'Reset to Defaults',
@@ -304,6 +380,12 @@ export class TargetPositionModal extends Modal {
             heightSlider.value = this.currentHeight;
             heightValue.setText(`${this.currentHeight}px`);
             this.updateBannerHeight(this.currentHeight);
+
+            // Reset content start position
+            this.currentContentStartPosition = this.plugin.settings.contentStartPosition;
+            contentStartPositionSlider.value = this.currentContentStartPosition;
+            contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
+            this.updateBannerContentStartPosition(this.currentContentStartPosition);
 
             // Reset position
             this.currentX = 50;
@@ -332,7 +414,7 @@ export class TargetPositionModal extends Modal {
 
         modalEl.addEventListener('mousedown', (e) => {
             // Prevent dragging if the target is a slider
-            if (e.target === zoomSlider || e.target === heightSlider) return;
+            if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider) return;
             isDragging = true;
             offsetX = e.clientX - modalEl.getBoundingClientRect().left;
             offsetY = e.clientY - modalEl.getBoundingClientRect().top;
