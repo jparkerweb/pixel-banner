@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Untitled.md",
+                "file": "Untitled 2.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Untitled"
+              "title": "Untitled 2"
             }
           }
         ]
@@ -799,6 +799,106 @@
             "id": "3861e5b5ad2c0787",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "0fd1ab69097b1752",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8dc4ff64e8c8db46",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7536bf82d242adb5",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9c636511e7bae106",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "45c62ec359a62255",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "169607614f24a51d",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "4ba6a0f6e8c5933a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "9be7b53421bdea20",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fcda682c55d1fb75",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a17d39abf1148c12",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -806,7 +906,7 @@
             }
           }
         ],
-        "currentTab": 68
+        "currentTab": 78
       }
     ],
     "direction": "horizontal",
@@ -826,9 +926,19 @@
   },
   "active": "58e2d93c847f9ac0",
   "lastOpenFiles": [
-    "Untitled.md",
+    "pixel-banner-images/sprinkler-town-1.png",
     "Untitled 1.md",
+    "Untitled 2.md",
+    "Untitled.md",
     "Monkey.md",
+    "tests/banner icon 2.md",
+    "tests/blank.md",
+    "tests/banner icon 1.md",
+    "tests/various embedded heights/_embedding-test.md",
+    "tests/various embedded heights/banner-height-300.md",
+    "tests/various embedded heights/banner-height-150.md",
+    "tests/various embedded heights/banner-height-50.md",
+    "tests/🧪 test - 1 - internal link.md",
     "🚩 Pixel-Banner.md",
     "pixel-banner-images/monkey-hair.png",
     "pixel-banner-images/joys.png",

@@ -45,6 +45,12 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customContentStartField;
         this.currentContentStartPosition = frontmatter?.[contentStartPositionField] || this.plugin.settings.contentStartPosition;
 
+        // banner icon x position field
+        const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField)
+            ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconXPositionField;
+        this.currentBannerIconXPosition = frontmatter?.[bannerIconXPositionField] || this.plugin.settings.bannerIconXPosition;
+
         // Parse current display value for zoom percentage
         this.currentZoom = 100;
         if (this.currentDisplay && this.currentDisplay.endsWith('%')) {
@@ -95,6 +101,19 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
             frontmatter[contentStartPositionField] = position;
+        });
+    }
+
+    updateBannerIconXPosition(position) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField)
+            ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconXPositionField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconXPositionField] = position;
         });
     }
 
@@ -354,6 +373,77 @@ export class TargetPositionModal extends Modal {
             contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
             this.updateBannerContentStartPosition(this.currentContentStartPosition);
         });
+
+        // banner icon controls container
+        const bannerIconControlsContainer = contentEl.createDiv({
+            cls: 'main-container',
+            attr: {
+                style: `
+                    margin-top: 20px;
+                    display: none;
+                `
+            }
+        });
+
+        // Check if note has banner icon
+        const activeFile = this.app.workspace.getActiveFile();
+        const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+        const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField)
+            ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconField;
+        
+        if (frontmatter?.[bannerIconField]) {
+            bannerIconControlsContainer.style.display = 'block';
+        }
+
+        // Banner Icon X Position control container
+        const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({ cls: 'banner-icon-x-position-container' });
+        bannerIconXPositionContainer.style.display = 'flex';
+        bannerIconXPositionContainer.style.flexDirection = 'row';
+        bannerIconXPositionContainer.style.gap = '10px';
+        bannerIconXPositionContainer.style.alignItems = 'center';
+        bannerIconXPositionContainer.style.minWidth = '60px';
+        bannerIconXPositionContainer.style.flex = '0 auto';
+
+        // Banner Icon X Position label
+        const bannerIconXPositionLabel = bannerIconXPositionContainer.createEl('div', { 
+            text: 'Icon X Position',
+            cls: 'banner-icon-x-position-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Banner Icon X Position slider
+        const bannerIconXPositionSlider = bannerIconXPositionContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-x-position-slider',
+            attr: {
+                min: '1',
+                max: '99',
+                step: '1',
+                value: this.currentBannerIconXPosition
+            }
+        });
+        bannerIconXPositionSlider.style.flex = '1';
+        bannerIconXPositionSlider.style.writingMode = 'horizontal-tb';
+        bannerIconXPositionSlider.style.direction = 'ltr';
+
+        // Banner Icon X Position value display
+        const bannerIconXPositionValue = bannerIconXPositionContainer.createDiv({ cls: 'banner-icon-x-position-value' });
+        bannerIconXPositionValue.style.fontFamily = 'var(--font-monospace)';
+        bannerIconXPositionValue.style.fontSize = '0.9em';
+        bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}`);
+
+        // Banner Icon X Position slider event listener
+        bannerIconXPositionSlider.addEventListener('input', () => {
+            this.currentBannerIconXPosition = parseInt(bannerIconXPositionSlider.value);
+            bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}`);
+            this.updateBannerIconXPosition(this.currentBannerIconXPosition);
+        });
         
         // Reset to defaults button
         const resetButton = contentEl.createEl('button', {
@@ -387,6 +477,12 @@ export class TargetPositionModal extends Modal {
             contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
             this.updateBannerContentStartPosition(this.currentContentStartPosition);
 
+            // Reset banner icon x position
+            this.currentBannerIconXPosition = this.plugin.settings.bannerIconXPosition;
+            bannerIconXPositionSlider.value = this.currentBannerIconXPosition;
+            bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}px`);
+            this.updateBannerIconXPosition(this.currentBannerIconXPosition);
+
             // Reset position
             this.currentX = 50;
             this.currentY = 50;
@@ -414,7 +510,7 @@ export class TargetPositionModal extends Modal {
 
         modalEl.addEventListener('mousedown', (e) => {
             // Prevent dragging if the target is a slider
-            if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider) return;
+            if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider || e.target === bannerIconXPositionSlider) return;
             isDragging = true;
             offsetX = e.clientX - modalEl.getBoundingClientRect().left;
             offsetY = e.clientY - modalEl.getBoundingClientRect().top;

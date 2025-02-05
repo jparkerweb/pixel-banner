@@ -788,8 +788,7 @@
 /* -- banner icon overlay -- */
 /* ------------------------- */
 .banner-icon-overlay {
-    /* transform: translate(-50%, -15%); */
-    transform: translateY(-15px);
+    transform: translate(-50%, -15%);
     position: absolute;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
@@ -808,8 +807,8 @@
     white-space: nowrap;
     text-wrap: pretty;
     word-break: break-word;
-    /* width: max-content !important; */
-    width: calc(var(--pixel-banner-width) - (var(--pixel-banner-width) * var(--pixel-banner-icon-x, 25%)) - var(--pixel-banner-banner-gap));
+    width: max-content !important;
+    /* width: calc(var(--pixel-banner-width) - (var(--pixel-banner-width) * var(--pixel-banner-icon-x, 25%)) - var(--pixel-banner-banner-gap)); */
     max-width: var(--pixel-banner-width) !important;
     pointer-events: none;
 }

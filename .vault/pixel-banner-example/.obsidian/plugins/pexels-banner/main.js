@@ -3593,6 +3593,8 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     this.currentHeight = (frontmatter == null ? void 0 : frontmatter[heightField]) || this.plugin.settings.bannerHeight;
     const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField) ? this.plugin.settings.customContentStartField[0].split(",")[0].trim() : this.plugin.settings.customContentStartField;
     this.currentContentStartPosition = (frontmatter == null ? void 0 : frontmatter[contentStartPositionField]) || this.plugin.settings.contentStartPosition;
+    const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField) ? this.plugin.settings.customBannerIconXPositionField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconXPositionField;
+    this.currentBannerIconXPosition = (frontmatter == null ? void 0 : frontmatter[bannerIconXPositionField]) || this.plugin.settings.bannerIconXPosition;
     this.currentZoom = 100;
     if (this.currentDisplay && this.currentDisplay.endsWith("%")) {
       this.currentZoom = parseInt(this.currentDisplay) || 100;
@@ -3628,6 +3630,14 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
       frontmatter[contentStartPositionField] = position;
     });
   }
+  updateBannerIconXPosition(position) {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (!activeFile) return;
+    const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField) ? this.plugin.settings.customBannerIconXPositionField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconXPositionField;
+    this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+      frontmatter[bannerIconXPositionField] = position;
+    });
+  }
   onPositionChange(x, y) {
     const activeFile = this.app.workspace.getActiveFile();
     if (!activeFile) return;
@@ -3637,6 +3647,7 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     });
   }
   onOpen() {
+    var _a;
     const { contentEl, modalEl, bgEl } = this;
     contentEl.empty();
     contentEl.addClass("target-position-modal");
@@ -3771,9 +3782,9 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
       this.currentY = Math.round(y);
       const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
       const yField = Array.isArray(this.plugin.settings.customYPositionField) ? this.plugin.settings.customYPositionField[0].split(",")[0].trim() : this.plugin.settings.customYPositionField;
-      this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
-        frontmatter[xField] = this.currentX;
-        frontmatter[yField] = this.currentY;
+      this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter2) => {
+        frontmatter2[xField] = this.currentX;
+        frontmatter2[yField] = this.currentY;
       });
       updatePositionIndicator();
     };
@@ -3821,6 +3832,60 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
       contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
       this.updateBannerContentStartPosition(this.currentContentStartPosition);
     });
+    const bannerIconControlsContainer = contentEl.createDiv({
+      cls: "main-container",
+      attr: {
+        style: `
+                    margin-top: 20px;
+                    display: none;
+                `
+      }
+    });
+    const activeFile = this.app.workspace.getActiveFile();
+    const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a.frontmatter;
+    const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) ? this.plugin.settings.customBannerIconField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconField;
+    if (frontmatter == null ? void 0 : frontmatter[bannerIconField]) {
+      bannerIconControlsContainer.style.display = "block";
+    }
+    const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({ cls: "banner-icon-x-position-container" });
+    bannerIconXPositionContainer.style.display = "flex";
+    bannerIconXPositionContainer.style.flexDirection = "row";
+    bannerIconXPositionContainer.style.gap = "10px";
+    bannerIconXPositionContainer.style.alignItems = "center";
+    bannerIconXPositionContainer.style.minWidth = "60px";
+    bannerIconXPositionContainer.style.flex = "0 auto";
+    const bannerIconXPositionLabel = bannerIconXPositionContainer.createEl("div", {
+      text: "Icon X Position",
+      cls: "banner-icon-x-position-label",
+      attr: {
+        style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+      }
+    });
+    const bannerIconXPositionSlider = bannerIconXPositionContainer.createEl("input", {
+      type: "range",
+      cls: "banner-icon-x-position-slider",
+      attr: {
+        min: "1",
+        max: "99",
+        step: "1",
+        value: this.currentBannerIconXPosition
+      }
+    });
+    bannerIconXPositionSlider.style.flex = "1";
+    bannerIconXPositionSlider.style.writingMode = "horizontal-tb";
+    bannerIconXPositionSlider.style.direction = "ltr";
+    const bannerIconXPositionValue = bannerIconXPositionContainer.createDiv({ cls: "banner-icon-x-position-value" });
+    bannerIconXPositionValue.style.fontFamily = "var(--font-monospace)";
+    bannerIconXPositionValue.style.fontSize = "0.9em";
+    bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}`);
+    bannerIconXPositionSlider.addEventListener("input", () => {
+      this.currentBannerIconXPosition = parseInt(bannerIconXPositionSlider.value);
+      bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}`);
+      this.updateBannerIconXPosition(this.currentBannerIconXPosition);
+    });
     const resetButton = contentEl.createEl("button", {
       text: "Reset to Defaults",
       cls: "mod-cta reset-button"
@@ -3843,6 +3908,10 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
       contentStartPositionSlider.value = this.currentContentStartPosition;
       contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
       this.updateBannerContentStartPosition(this.currentContentStartPosition);
+      this.currentBannerIconXPosition = this.plugin.settings.bannerIconXPosition;
+      bannerIconXPositionSlider.value = this.currentBannerIconXPosition;
+      bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}px`);
+      this.updateBannerIconXPosition(this.currentBannerIconXPosition);
       this.currentX = 50;
       this.currentY = 50;
       verticalLine.style.left = `${this.currentX}%`;
@@ -3850,15 +3919,15 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
       updatePositionIndicator();
       const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
       const yField = Array.isArray(this.plugin.settings.customYPositionField) ? this.plugin.settings.customYPositionField[0].split(",")[0].trim() : this.plugin.settings.customYPositionField;
-      this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
-        frontmatter[xField] = this.currentX;
-        frontmatter[yField] = this.currentY;
+      this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter2) => {
+        frontmatter2[xField] = this.currentX;
+        frontmatter2[yField] = this.currentY;
       });
     });
     let isDragging = false;
     let offsetX, offsetY;
     modalEl.addEventListener("mousedown", (e) => {
-      if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider) return;
+      if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider || e.target === bannerIconXPositionSlider) return;
       isDragging = true;
       offsetX = e.clientX - modalEl.getBoundingClientRect().left;
       offsetY = e.clientY - modalEl.getBoundingClientRect().top;

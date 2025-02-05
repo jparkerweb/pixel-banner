@@ -1,7 +1,7 @@
 ---
-icon: 🦞🤩😎🤓
+icon: 😰
 banner: "[[crazy-board-games.png]]"
-icon-x: 70
+icon-x: 49
 banner-x: 50
 banner-y: 50
 banner-display: cover
