@@ -1656,7 +1656,7 @@ module.exports = class PixelBannerPlugin extends Plugin {
         input = input.trim().replace(/^["'](.*)["']$/, '$1');
 
         // Check if it's an Obsidian internal link
-        if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?\[{2}.*\]{2}"?$/)) {
+        if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
             return 'obsidianLink';
         }
         
