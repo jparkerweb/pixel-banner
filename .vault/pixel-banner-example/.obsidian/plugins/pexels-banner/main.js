@@ -1698,6 +1698,7 @@ var PIXEL_BANNER_PLUS = {
   ENDPOINTS: {
     VERIFY: "verify",
     GENERATE: "generate",
+    GENERATE_BANNER_IDEA: "generate-banner-idea",
     HISTORY: "history"
   }
 };
@@ -1826,8 +1827,12 @@ var FolderSelectionModal = class extends import_obsidian9.FuzzySuggestModal {
     super(app);
     this.defaultFolder = defaultFolder;
     this.onChoose = onChoose;
+    const titleDiv = document.createElement("p");
+    titleDiv.textContent = "Choose Folder to save Banner Image";
+    titleDiv.style.padding = "0 20px";
+    titleDiv.style.color = "var(--text-accent)";
+    this.modalEl.appendChild(titleDiv);
     this.setPlaceholder("Select or type folder path to save Banner Image");
-    this.titleEl.setText("Choose Folder to save Banner Image");
   }
   getItems() {
     const folderPaths = this.app.vault.getAllLoadedFiles().filter((file) => file.children).map((folder) => folder.path);
@@ -1981,6 +1986,7 @@ async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedF
   }
   await updateNoteFrontmatter(finalPath, plugin, usedField);
   hidePinIcon();
+  return "success";
 }
 async function fetchImage(url) {
   const response = await fetch(url);
@@ -2002,7 +2008,7 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
   if (!await vault.adapter.exists(folderPath)) {
     await vault.createFolder(folderPath);
   }
-  const suggestedName = suggestedFilename || "pixel-banner-image";
+  const suggestedName = (suggestedFilename == null ? void 0 : suggestedFilename.toLowerCase()) || "pixel-banner-image";
   const userInput = await new Promise((resolve) => {
     const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
       resolve(result);
@@ -2132,7 +2138,16 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
       if (response.status === 200 && response.json.image) {
         this.plugin.pixelBannerPlusBannerTokens = response.json.balance;
         const pixelBannerPlusBalanceEl = document.querySelector(".modal.pixel-banner-ai-modal .pixel-banner-plus-token-balance");
-        pixelBannerPlusBalanceEl.innerText = `\u{1FA99} Remaining Banner Tokens: ${this.plugin.pixelBannerPlusBannerTokens}`;
+        const tokenCountSpan = pixelBannerPlusBalanceEl.querySelector("span") || document.createElement("span");
+        tokenCountSpan.style.color = "var(--text-accent)";
+        tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+        if (!tokenCountSpan.parentElement) {
+          pixelBannerPlusBalanceEl.innerText = "\u{1FA99} Remaining Banner Tokens: ";
+          pixelBannerPlusBalanceEl.appendChild(tokenCountSpan);
+        }
+        tokenCountSpan.classList.remove("token-balance-animation");
+        void tokenCountSpan.offsetWidth;
+        tokenCountSpan.classList.add("token-balance-animation");
         this.imageContainer.empty();
         const imgWrapper = this.imageContainer.createDiv({ cls: "pixel-banner-generated-image-wrapper" });
         const img = imgWrapper.createEl("img", {
@@ -2148,9 +2163,16 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
           text: "Download and Use as Banner"
         });
         useAsButton.addEventListener("click", async () => {
+          var _a;
           const imageUrl = `data:image/png;base64,${response.json.image}`;
-          await this.handleImageClick(img);
-          await handlePinIconClick(imageUrl, this.plugin);
+          let filename = ((_a = this.prompt) == null ? void 0 : _a.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()) || "banner";
+          filename = filename.replace(/\s+/g, "-").substring(0, 47);
+          debugger;
+          const didSave = await handlePinIconClick(imageUrl, this.plugin, null, filename);
+          if (didSave === "success") {
+            const imageId = response.json.imageId;
+            this.downloadHistory.addImage(imageId);
+          }
           this.close();
         });
       } else {
@@ -2163,40 +2185,40 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
       errorDiv.setText("Failed to generate image. Please try again.");
     }
   }
-  async handleImageClick(img) {
-    const imageId = img.getAttribute("imageid");
-    if (this.downloadHistory.hasImage(imageId)) {
-      const confirmed = await new Promise((resolve) => {
-        const modal = new import_obsidian12.Modal(this.app);
-        modal.contentEl.createEl("h2", { text: "Image Already Downloaded" });
-        modal.contentEl.createEl("p", { text: "You have already downloaded this image. Do you want to download it again?" });
-        const buttonContainer = modal.contentEl.createDiv();
-        buttonContainer.style.display = "flex";
-        buttonContainer.style.justifyContent = "flex-end";
-        buttonContainer.style.gap = "10px";
-        const cancelButton = buttonContainer.createEl("button", { text: "Cancel" });
-        const confirmButton = buttonContainer.createEl("button", { text: "Download Again", cls: "mod-cta" });
-        cancelButton.onclick = () => {
-          modal.close();
-          resolve(false);
-        };
-        confirmButton.onclick = () => {
-          modal.close();
-          resolve(true);
-        };
-        modal.open();
-      });
-      if (!confirmed) return;
-    }
-    try {
-      await handlePinIconClick(img.src, this.plugin);
-      this.downloadHistory.addImage(imageId);
-      this.close();
-    } catch (error) {
-      console.error("Failed to download image:", error);
-      new import_obsidian12.Notice("Failed to download image");
-    }
-  }
+  // async handleImageClick(img) {
+  //     const imageId = img.getAttribute('imageid');
+  //     if (this.downloadHistory.hasImage(imageId)) {
+  //         const confirmed = await new Promise(resolve => {
+  //             const modal = new Modal(this.app);
+  //             modal.contentEl.createEl('h2', { text: 'Image Already Downloaded' });
+  //             modal.contentEl.createEl('p', { text: 'You have already downloaded this image. Do you want to download it again?' });
+  //             const buttonContainer = modal.contentEl.createDiv();
+  //             buttonContainer.style.display = 'flex';
+  //             buttonContainer.style.justifyContent = 'flex-end';
+  //             buttonContainer.style.gap = '10px';
+  //             const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+  //             const confirmButton = buttonContainer.createEl('button', { text: 'Download Again', cls: 'mod-cta' });
+  //             cancelButton.onclick = () => {
+  //                 modal.close();
+  //                 resolve(false);
+  //             };
+  //             confirmButton.onclick = () => {
+  //                 modal.close();
+  //                 resolve(true);
+  //             };
+  //             modal.open();
+  //         });
+  //         if (!confirmed) return;
+  //     }
+  //     try {
+  //         await handlePinIconClick(img.src, this.plugin, null, this.prompt);
+  //         this.downloadHistory.addImage(imageId);
+  //         this.close();
+  //     } catch (error) {
+  //         console.error('Failed to download image:', error);
+  //         new Notice('Failed to download image');
+  //     }
+  // }
   async checkDownloadHistory(img) {
     const imageId = img.getAttribute("imageid");
     if (this.downloadHistory.hasImage(imageId)) {
@@ -2227,18 +2249,33 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h2", { text: "\u2728 Generate Banner with AI" });
-    const promptContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-ai-control-row" });
+    const promptContainer = contentEl.createDiv({
+      cls: "setting-item pixel-banner-ai-control-row",
+      attr: {
+        style: `
+                    align-items: flex-start;
+                `
+      }
+    });
     const promptInfo = promptContainer.createDiv({ cls: "setting-item-info" });
     promptInfo.createDiv({ cls: "setting-item-name", text: "Prompt" });
     const promptControl = promptContainer.createDiv({ cls: "setting-item-control" });
-    const promptInput = promptControl.createEl("input", {
-      type: "text",
-      cls: "full-width-input"
+    const promptInput = promptControl.createEl("textarea", {
+      cls: "full-width-input",
+      attr: {
+        id: "ai-banner-prompt",
+        rows: 4
+      }
     });
     promptInput.value = this.prompt;
     promptInput.addEventListener("input", (e) => {
       this.prompt = e.target.value;
     });
+    const inspirationButton = promptContainer.createEl("button", {
+      cls: "pixel-banner-inspiration-button",
+      text: "\u{1F4A1}"
+    });
+    inspirationButton.addEventListener("click", () => this.getPromptInspiration());
     const widthContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-ai-control-row" });
     const widthInfo = widthContainer.createDiv({ cls: "setting-item-info" });
     widthInfo.createDiv({ cls: "setting-item-name", text: "Width" });
@@ -2273,7 +2310,14 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     });
     const buttonContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-generate-btn-container pixel-banner-ai-control-row" });
     const tokenBalance = buttonContainer.createDiv({ cls: "pixel-banner-plus-token-balance" });
-    tokenBalance.setText(`\u{1FA99} Remaining Banner Tokens: ${this.plugin.pixelBannerPlusBannerTokens}`);
+    const tokenCountSpan = document.createElement("span");
+    tokenCountSpan.style.color = "var(--text-accent)";
+    tokenCountSpan.style.fontWeight = "bold";
+    tokenCountSpan.style.letterSpacing = "1px";
+    tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+    tokenBalance.setText("\u{1FA99} Remaining Banner Tokens: ");
+    tokenBalance.appendChild(tokenCountSpan);
+    tokenCountSpan.classList.add("token-balance-animation");
     const generateButton = buttonContainer.createEl("button", {
       cls: "mod-cta",
       text: "Generate Image"
@@ -2295,7 +2339,6 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     const historyContainer = contentEl.createDiv({ cls: "pixel-banner-history-container" });
     try {
       const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + "?limit=10";
-      console.log("Fetching history from:", historyUrl);
       const response = await (0, import_obsidian12.requestUrl)({
         url: historyUrl,
         method: "GET",
@@ -2313,7 +2356,7 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
             attr: {
               src: imageData.base64Image,
               "imageId": imageData.imageId,
-              "filename": imageData.prompt.trim().substr(0, 25).replace(/\s/g, "-")
+              "filename": imageData.prompt.trim().substr(0, 47).replace(/\s/g, "-").toLowerCase()
             }
           });
           imgWrapper.setAttribute("aria-label", imageData.prompt);
@@ -2332,6 +2375,41 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
       console.error("Failed to fetch history:", error);
       const errorDiv = historyContainer.createDiv({ cls: "pixel-banner-error" });
       errorDiv.setText("Failed to load history. Please try again later.");
+    }
+  }
+  async getPromptInspiration() {
+    var _a;
+    const inspirationButton = this.contentEl.querySelector(".pixel-banner-inspiration-button");
+    const originalText = inspirationButton.textContent;
+    const promptTextarea = this.contentEl.querySelector("#ai-banner-prompt");
+    try {
+      inspirationButton.textContent = "\u23F3";
+      inspirationButton.disabled = true;
+      const inspirationUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE_BANNER_IDEA, PIXEL_BANNER_PLUS.API_URL).toString();
+      const response = await (0, import_obsidian12.requestUrl)({
+        url: inspirationUrl,
+        method: "GET",
+        headers: {
+          "X-User-Email": this.plugin.settings.pixelBannerPlusEmail,
+          "X-API-Key": this.plugin.settings.pixelBannerPlusApiKey,
+          "Accept": "application/json"
+        }
+      });
+      if (response.status === 200 && response.json.bannerIdea) {
+        const promptInput = this.contentEl.querySelector("#ai-banner-prompt");
+        if (promptInput) {
+          let promptIdea = (_a = response.json.bannerIdea) == null ? void 0 : _a.toLowerCase();
+          promptIdea = promptIdea.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+          promptInput.value = promptIdea;
+          this.prompt = promptIdea;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to get prompt inspiration:", error);
+      new import_obsidian12.Notice("Failed to get prompt inspiration. Please try again.");
+    } finally {
+      inspirationButton.textContent = originalText;
+      inspirationButton.disabled = false;
     }
   }
   onClose() {
@@ -2422,8 +2500,9 @@ var ImageSelectionModal = class extends import_obsidian13.Modal {
     });
     const controlsRow = searchContainer.createDiv({ cls: "controls-row" });
     const pixelBannerPlusGenAIButton = controlsRow.createEl("button");
+    pixelBannerPlusGenAIButton.addClass("radial-pulse-animation");
     const sparkleSpan = pixelBannerPlusGenAIButton.createSpan({ cls: "twinkle-animation", text: "\u2728 " });
-    pixelBannerPlusGenAIButton.createSpan({ cls: "margin-left-5", text: "Generate with AI" });
+    pixelBannerPlusGenAIButton.createSpan({ cls: "margin-left-5", text: "AI Banners" });
     pixelBannerPlusGenAIButton.addEventListener("click", () => {
       this.close();
       new GenerateAIBannerModal(this.app, this.plugin).open();
@@ -5232,7 +5311,7 @@ var PixelBannerPlugin = class extends import_obsidian16.Plugin {
       return "invalid";
     }
     input = input.trim().replace(/^["'](.*)["']$/, "$1");
-    if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?\[{2}.*\]{2}"?$/)) {
+    if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
       return "obsidianLink";
     }
     try {
