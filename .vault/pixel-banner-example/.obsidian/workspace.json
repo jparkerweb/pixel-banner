@@ -899,6 +899,16 @@
             "id": "a17d39abf1148c12",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f3c305ef084443bf",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -906,7 +916,7 @@
             }
           }
         ],
-        "currentTab": 78
+        "currentTab": 79
       }
     ],
     "direction": "horizontal",
@@ -926,12 +936,12 @@
   },
   "active": "58e2d93c847f9ac0",
   "lastOpenFiles": [
+    "tests/banner icon 2.md",
+    "Untitled 2.md",
     "pixel-banner-images/sprinkler-town-1.png",
     "Untitled 1.md",
-    "Untitled 2.md",
     "Untitled.md",
     "Monkey.md",
-    "tests/banner icon 2.md",
     "tests/blank.md",
     "tests/banner icon 1.md",
     "tests/various embedded heights/_embedding-test.md",

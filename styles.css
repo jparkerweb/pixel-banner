@@ -788,7 +788,10 @@
 /* -- banner icon overlay -- */
 /* ------------------------- */
 .banner-icon-overlay {
-    transform: translate(-50%, -15%);
+    /* transform: translate(-50%, -15%); */
+    --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
+    /* --pixel-banner-icon-translate-y: calc(var(--pixel-banner-icon-y) * -1); */
+    transform: translate(var(--pixel-banner-icon-translate-x), -15%);
     position: absolute;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
