@@ -9,9 +9,9 @@ import { updateNoteFrontmatter } from './frontmatterUtils';
 // ----------------------------------------------------------------------------
 // -- helper for pinning an image once chosen from UI or loaded from keyword --
 // ----------------------------------------------------------------------------
-export async function handlePinIconClick(imageUrl, plugin, usedField = null) {
+export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null) {
     const imageBlob = await fetchImage(imageUrl);
-    const { file } = await saveImageLocally(imageBlob, plugin);
+    const { file } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
     const finalPath = await waitForFileRename(file, plugin);
     
     if (!finalPath) {
@@ -37,7 +37,7 @@ async function fetchImage(url) {
 // ------------------------
 // -- save image locally --
 // ------------------------
-async function saveImageLocally(arrayBuffer, plugin) {
+async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
     const vault = plugin.app.vault;
     const defaultFolderPath = plugin.settings.pinnedImageFolder;
 
@@ -58,7 +58,7 @@ async function saveImageLocally(arrayBuffer, plugin) {
     }
 
     // Prompt for filename
-    const suggestedName = 'pixel-banner-image';
+    const suggestedName = suggestedFilename || 'pixel-banner-image';
     const userInput = await new Promise((resolve) => {
         const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
             resolve(result);

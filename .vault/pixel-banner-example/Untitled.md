@@ -1,5 +1,7 @@
 ---
-banner: "[[pixel-banner-image-1.png]]"
+icon: "🦞🤩😎🤓"
+banner: "[[crazy-board-games.png]]"
+icon-x: 70
 ---
 
-# Monkey Brains
+# Crazy Board Games

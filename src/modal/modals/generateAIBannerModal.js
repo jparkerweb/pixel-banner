@@ -267,7 +267,8 @@ export class GenerateAIBannerModal extends Modal {
                         cls: 'pixel-banner-history-image',
                         attr: {
                             src: imageData.base64Image,
-                            'imageId': imageData.imageId
+                            'imageId': imageData.imageId,
+                            'filename': imageData.prompt.trim().substr(0, 25).replace(/\s/g, '-'),
                         }
                     });
 
@@ -280,7 +281,8 @@ export class GenerateAIBannerModal extends Modal {
                         const shouldDownload = await this.checkDownloadHistory(img);
                         if (!shouldDownload) return;
                         
-                        await handlePinIconClick(imageData.base64Image, this.plugin);
+                        const filename = img.getAttribute('filename');
+                        await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
                         this.downloadHistory.addImage(img.getAttribute('imageid'));
                         this.close();
                     });

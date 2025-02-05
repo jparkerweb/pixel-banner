@@ -1868,9 +1868,11 @@ var SaveImageModal = class extends import_obsidian10.Modal {
     contentEl.empty();
     contentEl.createEl("h2", { text: "Save Image" });
     contentEl.createEl("p", { text: "Enter a name for the image file." });
-    const fileNameSetting = new import_obsidian10.Setting(contentEl).setName("File name").addText((text) => text.setValue(this.suggestedName).onChange((value) => {
-      this.suggestedName = value;
-    }));
+    const fileNameSetting = new import_obsidian10.Setting(contentEl).setName("File name").addText((text) => {
+      text.setValue(this.suggestedName).onChange((value) => {
+        this.suggestedName = value;
+      }).inputEl.style.width = "100%";
+    });
     const buttonContainer = contentEl.createDiv();
     buttonContainer.style.display = "flex";
     buttonContainer.style.justifyContent = "flex-end";
@@ -1968,9 +1970,9 @@ ${cleanContent}`;
 }
 
 // src/utils/handlePinIconClick.js
-async function handlePinIconClick(imageUrl, plugin, usedField = null) {
+async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null) {
   const imageBlob = await fetchImage(imageUrl);
-  const { file } = await saveImageLocally(imageBlob, plugin);
+  const { file } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
   const finalPath = await waitForFileRename(file, plugin);
   if (!finalPath) {
     console.error("\u274C Failed to resolve valid file path");
@@ -1985,7 +1987,7 @@ async function fetchImage(url) {
   if (!response.ok) throw new Error("Image download failed");
   return await response.arrayBuffer();
 }
-async function saveImageLocally(arrayBuffer, plugin) {
+async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
   const vault = plugin.app.vault;
   const defaultFolderPath = plugin.settings.pinnedImageFolder;
   const folderPath = await new Promise((resolve) => {
@@ -2000,7 +2002,7 @@ async function saveImageLocally(arrayBuffer, plugin) {
   if (!await vault.adapter.exists(folderPath)) {
     await vault.createFolder(folderPath);
   }
-  const suggestedName = "pixel-banner-image";
+  const suggestedName = suggestedFilename || "pixel-banner-image";
   const userInput = await new Promise((resolve) => {
     const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
       resolve(result);
@@ -2310,7 +2312,8 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
             cls: "pixel-banner-history-image",
             attr: {
               src: imageData.base64Image,
-              "imageId": imageData.imageId
+              "imageId": imageData.imageId,
+              "filename": imageData.prompt.trim().substr(0, 25).replace(/\s/g, "-")
             }
           });
           imgWrapper.setAttribute("aria-label", imageData.prompt);
@@ -2318,7 +2321,8 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
           imgWrapper.addEventListener("click", async () => {
             const shouldDownload = await this.checkDownloadHistory(img);
             if (!shouldDownload) return;
-            await handlePinIconClick(imageData.base64Image, this.plugin);
+            const filename = img.getAttribute("filename");
+            await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
             this.downloadHistory.addImage(img.getAttribute("imageid"));
             this.close();
           });
@@ -2355,6 +2359,42 @@ var ImageSelectionModal = class extends import_obsidian13.Modal {
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
+  }
+  async confirmDelete(file) {
+    return new Promise((resolve) => {
+      const modal = new import_obsidian13.Modal(this.app);
+      modal.contentEl.createEl("h2", { text: "Delete Image" });
+      modal.contentEl.createEl("p", { text: `Are you sure you want to delete "${file.name}"?` });
+      const buttonContainer = modal.contentEl.createDiv();
+      buttonContainer.style.display = "flex";
+      buttonContainer.style.justifyContent = "flex-end";
+      buttonContainer.style.gap = "10px";
+      const cancelButton = buttonContainer.createEl("button", { text: "Cancel" });
+      const deleteButton = buttonContainer.createEl("button", {
+        text: "Delete",
+        cls: "mod-warning"
+      });
+      cancelButton.onclick = () => {
+        modal.close();
+        resolve(false);
+      };
+      deleteButton.onclick = () => {
+        modal.close();
+        resolve(true);
+      };
+      modal.open();
+    });
+  }
+  async deleteImage(file) {
+    const confirmed = await this.confirmDelete(file);
+    if (!confirmed) return;
+    try {
+      await this.app.vault.delete(file);
+      this.imageFiles = this.imageFiles.filter((f) => f.path !== file.path);
+      this.updateImageGrid();
+    } catch (error) {
+      new import_obsidian13.Notice(`Failed to delete image: ${error.message}`);
+    }
   }
   onOpen() {
     this.modalEl.addClass("pixel-banner-image-select-modal");
@@ -2549,6 +2589,13 @@ var ImageSelectionModal = class extends import_obsidian13.Modal {
       const modifiedDate = this.formatDate(file.stat.mtime);
       statsContainer.createEl("span", {
         text: `${fileSize} \u2022 ${modifiedDate}`
+      });
+      const deleteBtn = imageContainer.createDiv({ cls: "pixel-banner-image-delete" });
+      const trashIcon = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+      deleteBtn.innerHTML = trashIcon;
+      deleteBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await this.deleteImage(file);
       });
       imageContainer.addEventListener("click", () => {
         this.onChoose(file);
@@ -3363,10 +3410,46 @@ var EmojiSelectionModal = class extends import_obsidian14.Modal {
     this.emojis = emojiList;
   }
   onOpen() {
+    var _a;
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("pixel-banner-emoji-select-modal");
-    contentEl.createEl("h2", { text: "Select Banner Icon" });
+    const activeFile = this.app.workspace.getActiveFile();
+    const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a.frontmatter;
+    const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) ? this.plugin.settings.customBannerIconField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconField;
+    this.currentBannerIconField = (frontmatter == null ? void 0 : frontmatter[bannerIconField]) || "";
+    contentEl.createEl("h3", {
+      text: "Set Banner Icon",
+      cls: "banner-icon-title"
+    });
+    const bannerIconContainer = contentEl.createDiv({ cls: "banner-icon-container" });
+    this.bannerIconInput = bannerIconContainer.createEl("input", {
+      type: "text",
+      placeholder: "Banner icon value...",
+      cls: "banner-icon-input",
+      attr: {
+        style: `
+                    font-size: 1.2em;
+                    padding: 15px 10px;
+                `
+      },
+      value: this.currentBannerIconField || ""
+    });
+    const setBannerButton = bannerIconContainer.createEl("button", {
+      text: "Set the Banner Icon",
+      cls: "set-banner-button",
+      attr: {
+        style: `
+                    background-color: var(--interactive-accent);
+                    --text-color: var(--text-on-accent);
+                `
+      }
+    });
+    setBannerButton.addEventListener("click", () => {
+      this.onChoose(this.bannerIconInput.value);
+      this.close();
+    });
+    contentEl.createEl("h5", { text: "Emoji Selector" });
     const searchContainer = contentEl.createDiv({ cls: "emoji-search-container" });
     const searchInput = searchContainer.createEl("input", {
       type: "text",
@@ -3405,8 +3488,7 @@ var EmojiSelectionModal = class extends import_obsidian14.Modal {
             }
           });
           emojiButton.addEventListener("click", () => {
-            this.onChoose(emoji);
-            this.close();
+            this.bannerIconInput.value += emoji;
           });
         });
       }
@@ -3427,7 +3509,7 @@ var EmojiSelectionModal = class extends import_obsidian14.Modal {
             }
             .emoji-grid-container {
                 overflow-y: auto;
-                max-height: 60vh;
+                max-height: 400px !important;
                 padding-right: 10px;
             }
             .emoji-category-section {
@@ -3454,6 +3536,29 @@ var EmojiSelectionModal = class extends import_obsidian14.Modal {
             }
             .emoji-button:hover {
                 background: var(--background-modifier-hover);
+            }
+            .banner-icon-container {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                margin-top: 1em;
+                padding: 8px;
+                border-top: 1px solid var(--background-modifier-border);
+            }
+            .banner-icon-input {
+                flex: 1;
+                padding: 8px;
+            }
+            .set-banner-button {
+                padding: 8px 16px;
+                background: var(--interactive-accent);
+                color: var(--text-on-accent);
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .set-banner-button:hover {
+                background: var(--interactive-accent-hover);
             }
         `;
     document.head.appendChild(style);

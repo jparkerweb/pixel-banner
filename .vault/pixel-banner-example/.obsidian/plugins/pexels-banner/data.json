@@ -155,7 +155,7 @@
   "showReleaseNotes": true,
   "lastVersion": "2.21.2",
   "showRefreshIcon": true,
-  "showViewImageIcon": true,
+  "showViewImageIcon": false,
   "showSetTargetXYPosition": true,
   "hidePixelBannerFields": true,
   "hidePropertiesSectionIfOnlyBanner": true,

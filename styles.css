@@ -503,6 +503,40 @@
     max-width: 1100px;
 }
 
+/* Delete icon for image selection modal */
+.pixel-banner-image-select-modal .pixel-banner-image-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background-color: var(--background-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: .5;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.pixel-banner-image-select-modal .pixel-banner-image-wrapper:hover .pixel-banner-image-delete {
+    opacity: 1;
+}
+
+.pixel-banner-image-select-modal .pixel-banner-image-delete:hover {
+    background-color: red;
+    color: white;
+    opacity: 1;
+}
+
+.pixel-banner-image-select-modal .pixel-banner-image-delete svg {
+    width: 16px;
+    height: 16px;
+}
+
+
 .pixel-banner-image-select-description {
     margin-top: -15px;
     font-size: 0.8em;
@@ -754,7 +788,8 @@
 /* -- banner icon overlay -- */
 /* ------------------------- */
 .banner-icon-overlay {
-    transform: translate(-50%, -15%);
+    /* transform: translate(-50%, -15%); */
+    transform: translateY(-15px);
     position: absolute;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
@@ -772,7 +807,9 @@
     border-radius: var(--pixel-banner-icon-border-radius, 17px);
     white-space: nowrap;
     text-wrap: pretty;
-    width: max-content !important;
+    word-break: break-word;
+    /* width: max-content !important; */
+    width: calc(var(--pixel-banner-width) - (var(--pixel-banner-width) * var(--pixel-banner-icon-x, 25%)) - var(--pixel-banner-banner-gap));
     max-width: var(--pixel-banner-width) !important;
     pointer-events: none;
 }

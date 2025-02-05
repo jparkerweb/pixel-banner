@@ -21,8 +21,54 @@ export class EmojiSelectionModal extends Modal {
         contentEl.empty();
         contentEl.addClass('pixel-banner-emoji-select-modal');
 
+        // get the current banner icon
+        const activeFile = this.app.workspace.getActiveFile();
+        const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+        const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
+            ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconField;
+
+        this.currentBannerIconField = frontmatter?.[bannerIconField] || "";
+
         // Title
-        contentEl.createEl('h2', { text: 'Select Banner Icon' });
+        contentEl.createEl('h3', {
+            text: 'Set Banner Icon',
+            cls: 'banner-icon-title'
+        });
+
+        // Create banner icon input container
+        const bannerIconContainer = contentEl.createDiv({ cls: 'banner-icon-container' });
+        this.bannerIconInput = bannerIconContainer.createEl('input', {
+            type: 'text',
+            placeholder: 'Banner icon value...',
+            cls: 'banner-icon-input',
+            attr: {
+                style: `
+                    font-size: 1.2em;
+                    padding: 15px 10px;
+                `
+            },
+            value: this.currentBannerIconField || ''
+        });
+
+        const setBannerButton = bannerIconContainer.createEl('button', {
+            text: 'Set the Banner Icon',
+            cls: 'set-banner-button',
+            attr: {
+                style: `
+                    background-color: var(--interactive-accent);
+                    --text-color: var(--text-on-accent);
+                `
+            }
+        });
+
+        setBannerButton.addEventListener('click', () => {
+            this.onChoose(this.bannerIconInput.value);
+            this.close();
+        });
+
+        // Title
+        contentEl.createEl('h5', { text: 'Emoji Selector' });
 
         // Search container
         const searchContainer = contentEl.createDiv({ cls: 'emoji-search-container' });
@@ -80,8 +126,7 @@ export class EmojiSelectionModal extends Modal {
                     });
 
                     emojiButton.addEventListener('click', () => {
-                        this.onChoose(emoji);
-                        this.close();
+                        this.bannerIconInput.value += emoji;
                     });
                 });
             }
@@ -104,7 +149,7 @@ export class EmojiSelectionModal extends Modal {
             }
             .emoji-grid-container {
                 overflow-y: auto;
-                max-height: 60vh;
+                max-height: 400px !important;
                 padding-right: 10px;
             }
             .emoji-category-section {
@@ -131,6 +176,29 @@ export class EmojiSelectionModal extends Modal {
             }
             .emoji-button:hover {
                 background: var(--background-modifier-hover);
+            }
+            .banner-icon-container {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                margin-top: 1em;
+                padding: 8px;
+                border-top: 1px solid var(--background-modifier-border);
+            }
+            .banner-icon-input {
+                flex: 1;
+                padding: 8px;
+            }
+            .set-banner-button {
+                padding: 8px 16px;
+                background: var(--interactive-accent);
+                color: var(--text-on-accent);
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .set-banner-button:hover {
+                background: var(--interactive-accent-hover);
             }
         `;
         document.head.appendChild(style);

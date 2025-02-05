@@ -29,6 +29,49 @@ export class ImageSelectionModal extends Modal {
         };
     }
 
+    async confirmDelete(file) {
+        return new Promise(resolve => {
+            const modal = new Modal(this.app);
+            modal.contentEl.createEl('h2', { text: 'Delete Image' });
+            modal.contentEl.createEl('p', { text: `Are you sure you want to delete "${file.name}"?` });
+            
+            const buttonContainer = modal.contentEl.createDiv();
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.justifyContent = 'flex-end';
+            buttonContainer.style.gap = '10px';
+            
+            const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+            const deleteButton = buttonContainer.createEl('button', { 
+                text: 'Delete',
+                cls: 'mod-warning'
+            });
+            
+            cancelButton.onclick = () => {
+                modal.close();
+                resolve(false);
+            };
+            deleteButton.onclick = () => {
+                modal.close();
+                resolve(true);
+            };
+            modal.open();
+        });
+    }
+
+    async deleteImage(file) {
+        const confirmed = await this.confirmDelete(file);
+        if (!confirmed) return;
+
+        try {
+            await this.app.vault.delete(file);
+            // Remove the image from our list and refresh the grid
+            this.imageFiles = this.imageFiles.filter(f => f.path !== file.path);
+            this.updateImageGrid();
+        } catch (error) {
+            new Notice(`Failed to delete image: ${error.message}`);
+        }
+    }
+
     onOpen() {
         // Add custom class to the modal element
         this.modalEl.addClass('pixel-banner-image-select-modal');
@@ -302,6 +345,16 @@ export class ImageSelectionModal extends Modal {
             
             statsContainer.createEl('span', {
                 text: `${fileSize} • ${modifiedDate}`
+            });
+
+            // Add delete button
+            const deleteBtn = imageContainer.createDiv({ cls: 'pixel-banner-image-delete' });
+            const trashIcon = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+            deleteBtn.innerHTML = trashIcon;
+            
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation(); // Prevent image selection when clicking delete
+                await this.deleteImage(file);
             });
 
             // Add click handler

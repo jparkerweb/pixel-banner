@@ -20,11 +20,13 @@ export class SaveImageModal extends Modal {
 
         const fileNameSetting = new Setting(contentEl)
             .setName('File name')
-            .addText(text => text
-                .setValue(this.suggestedName)
-                .onChange(value => {
-                    this.suggestedName = value;
-                }));
+            .addText(text => {
+                text.setValue(this.suggestedName)
+                    .onChange(value => {
+                        this.suggestedName = value;
+                    })
+                    .inputEl.style.width = '100%';
+            });
 
         const buttonContainer = contentEl.createDiv();
         buttonContainer.style.display = 'flex';
