@@ -22,6 +22,8 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
     
     await updateNoteFrontmatter(finalPath, plugin, usedField);
     hidePinIcon();
+
+    return "success";
 }
 
 // -----------------
@@ -58,7 +60,7 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
     }
 
     // Prompt for filename
-    const suggestedName = suggestedFilename || 'pixel-banner-image';
+    const suggestedName = suggestedFilename?.toLowerCase() || 'pixel-banner-image';
     const userInput = await new Promise((resolve) => {
         const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
             resolve(result);

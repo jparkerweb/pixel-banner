@@ -4,6 +4,7 @@ export const PIXEL_BANNER_PLUS = {
     ENDPOINTS: {
         VERIFY: 'verify',
         GENERATE: 'generate',
+        GENERATE_BANNER_IDEA: 'generate-banner-idea',
         HISTORY: 'history'
     }
 };

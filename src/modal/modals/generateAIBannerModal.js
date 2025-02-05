@@ -48,7 +48,16 @@ export class GenerateAIBannerModal extends Modal {
                 // update Banner Token Balance
                 this.plugin.pixelBannerPlusBannerTokens = response.json.balance;
                 const pixelBannerPlusBalanceEl = document.querySelector('.modal.pixel-banner-ai-modal .pixel-banner-plus-token-balance');
-                pixelBannerPlusBalanceEl.innerText = `🪙 Remaining Banner Tokens: ${this.plugin.pixelBannerPlusBannerTokens}`;
+                const tokenCountSpan = pixelBannerPlusBalanceEl.querySelector('span') || document.createElement('span');
+                tokenCountSpan.style.color = 'var(--text-accent)';
+                tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+                if (!tokenCountSpan.parentElement) {
+                    pixelBannerPlusBalanceEl.innerText = '🪙 Remaining Banner Tokens: ';
+                    pixelBannerPlusBalanceEl.appendChild(tokenCountSpan);
+                }
+                tokenCountSpan.classList.remove('token-balance-animation');
+                void tokenCountSpan.offsetWidth; // Force reflow
+                tokenCountSpan.classList.add('token-balance-animation');
                 
                 // Clear loading spinner
                 this.imageContainer.empty();
@@ -71,8 +80,14 @@ export class GenerateAIBannerModal extends Modal {
                 });
                 useAsButton.addEventListener('click', async () => {
                     const imageUrl = `data:image/png;base64,${response.json.image}`;
-                    await this.handleImageClick(img);
-                    await handlePinIconClick(imageUrl, this.plugin);
+                    let filename = this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
+                    filename = filename.replace(/\s+/g, '-').substring(0, 47);
+                    debugger;
+                    const didSave = await handlePinIconClick(imageUrl, this.plugin, null, filename);
+                    if (didSave === "success") {
+                        const imageId = response.json.imageId;
+                        this.downloadHistory.addImage(imageId);
+                    }
                     this.close();
                 });
             } else {
@@ -83,46 +98,6 @@ export class GenerateAIBannerModal extends Modal {
             this.imageContainer.empty();
             const errorDiv = this.imageContainer.createDiv({ cls: 'pixel-banner-error' });
             errorDiv.setText('Failed to generate image. Please try again.');
-        }
-    }
-
-    async handleImageClick(img) {
-        const imageId = img.getAttribute('imageid');
-        if (this.downloadHistory.hasImage(imageId)) {
-            const confirmed = await new Promise(resolve => {
-                const modal = new Modal(this.app);
-                modal.contentEl.createEl('h2', { text: 'Image Already Downloaded' });
-                modal.contentEl.createEl('p', { text: 'You have already downloaded this image. Do you want to download it again?' });
-                
-                const buttonContainer = modal.contentEl.createDiv();
-                buttonContainer.style.display = 'flex';
-                buttonContainer.style.justifyContent = 'flex-end';
-                buttonContainer.style.gap = '10px';
-                
-                const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
-                const confirmButton = buttonContainer.createEl('button', { text: 'Download Again', cls: 'mod-cta' });
-                
-                cancelButton.onclick = () => {
-                    modal.close();
-                    resolve(false);
-                };
-                confirmButton.onclick = () => {
-                    modal.close();
-                    resolve(true);
-                };
-                modal.open();
-            });
-            
-            if (!confirmed) return;
-        }
-        
-        try {
-            await handlePinIconClick(img.src, this.plugin);
-            this.downloadHistory.addImage(imageId);
-            this.close();
-        } catch (error) {
-            console.error('Failed to download image:', error);
-            new Notice('Failed to download image');
         }
     }
 
@@ -164,19 +139,35 @@ export class GenerateAIBannerModal extends Modal {
         contentEl.createEl('h2', { text: '✨ Generate Banner with AI' });
 
         // Prompt
-        const promptContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-control-row' });
+        const promptContainer = contentEl.createDiv({
+            cls: 'setting-item pixel-banner-ai-control-row',
+            attr: {
+                style: `
+                    align-items: flex-start;
+                `
+            }
+        });
         const promptInfo = promptContainer.createDiv({ cls: 'setting-item-info' });
         promptInfo.createDiv({ cls: 'setting-item-name', text: 'Prompt' });
         
         const promptControl = promptContainer.createDiv({ cls: 'setting-item-control' });
-        const promptInput = promptControl.createEl('input', {
-            type: 'text',
-            cls: 'full-width-input'
+        const promptInput = promptControl.createEl('textarea', {
+            cls: 'full-width-input',
+            attr: {
+                id: 'ai-banner-prompt',
+                rows: 4
+            }
         });
         promptInput.value = this.prompt;
         promptInput.addEventListener('input', (e) => {
             this.prompt = e.target.value;
         });
+
+        const inspirationButton = promptContainer.createEl('button', {
+            cls: 'pixel-banner-inspiration-button',
+            text: '💡'
+        });
+        inspirationButton.addEventListener('click', () => this.getPromptInspiration());
 
         // Width
         const widthContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-control-row' });
@@ -220,7 +211,14 @@ export class GenerateAIBannerModal extends Modal {
         const buttonContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-generate-btn-container pixel-banner-ai-control-row' });
         
         const tokenBalance = buttonContainer.createDiv({ cls: 'pixel-banner-plus-token-balance' });
-        tokenBalance.setText(`🪙 Remaining Banner Tokens: ${this.plugin.pixelBannerPlusBannerTokens}`);
+        const tokenCountSpan = document.createElement('span');
+        tokenCountSpan.style.color = 'var(--text-accent)';
+        tokenCountSpan.style.fontWeight = 'bold';
+        tokenCountSpan.style.letterSpacing = '1px';
+        tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+        tokenBalance.setText('🪙 Remaining Banner Tokens: ');
+        tokenBalance.appendChild(tokenCountSpan);
+        tokenCountSpan.classList.add('token-balance-animation');
         
         const generateButton = buttonContainer.createEl('button', {
             cls: 'mod-cta',
@@ -248,7 +246,6 @@ export class GenerateAIBannerModal extends Modal {
         
         try {
             const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + '?limit=10';
-            console.log('Fetching history from:', historyUrl);
             
             const response = await requestUrl({
                 url: historyUrl,
@@ -268,7 +265,7 @@ export class GenerateAIBannerModal extends Modal {
                         attr: {
                             src: imageData.base64Image,
                             'imageId': imageData.imageId,
-                            'filename': imageData.prompt.trim().substr(0, 25).replace(/\s/g, '-'),
+                            'filename': imageData.prompt.trim().substr(0, 47).replace(/\s/g, '-').toLowerCase(),
                         }
                     });
 
@@ -292,6 +289,44 @@ export class GenerateAIBannerModal extends Modal {
             console.error('Failed to fetch history:', error);
             const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });
             errorDiv.setText('Failed to load history. Please try again later.');
+        }
+    }
+
+    async getPromptInspiration() {
+        const inspirationButton = this.contentEl.querySelector('.pixel-banner-inspiration-button');
+        const originalText = inspirationButton.textContent;
+        const promptTextarea = this.contentEl.querySelector('#ai-banner-prompt');
+        
+        try {
+            inspirationButton.textContent = '⏳';
+            inspirationButton.disabled = true;
+            
+            const inspirationUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE_BANNER_IDEA, PIXEL_BANNER_PLUS.API_URL).toString();
+            const response = await requestUrl({
+                url: inspirationUrl,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.status === 200 && response.json.bannerIdea) {
+                const promptInput = this.contentEl.querySelector('#ai-banner-prompt');
+                if (promptInput) {
+                let promptIdea = response.json.bannerIdea?.toLowerCase();
+                promptIdea = promptIdea.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+                    promptInput.value = promptIdea;
+                    this.prompt = promptIdea;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to get prompt inspiration:', error);
+            new Notice('Failed to get prompt inspiration. Please try again.');
+        } finally {
+            inspirationButton.textContent = originalText;
+            inspirationButton.disabled = false;
         }
     }
 

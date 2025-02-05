@@ -10,11 +10,14 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         this.defaultFolder = defaultFolder;
         this.onChoose = onChoose;
         
+        const titleDiv = document.createElement("p");
+        titleDiv.textContent = "Choose Folder to save Banner Image";
+        titleDiv.style.padding = "0 20px";
+        titleDiv.style.color = "var(--text-accent)";
+        this.modalEl.appendChild(titleDiv);
+
         // Set custom placeholder text
         this.setPlaceholder("Select or type folder path to save Banner Image");
-        
-        // Set modal title
-        this.titleEl.setText("Choose Folder to save Banner Image");
     }
 
     getItems() {
