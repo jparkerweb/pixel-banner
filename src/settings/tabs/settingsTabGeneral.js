@@ -5,7 +5,7 @@ export function createGeneralSettings(containerEl, plugin) {
     // section callout
     const calloutElPixelBannerPlus = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
     calloutElPixelBannerPlus.createEl('div', { text: '✨ Pixel Banner Plus ✨' });
-    calloutElPixelBannerPlus.createEl('div', { text: 'An optional premium feature made available to supporters via Ko-Fi. Users are able to generate beatiful high quality banners using GenAI.' });
+    calloutElPixelBannerPlus.createEl('div', { text: 'An optional premium feature, including the ability to generate high quality banners using GenAI.' });
 
     // Create a group for the Pixel Banner Plus Settings
     const pixelBannerPlusSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });

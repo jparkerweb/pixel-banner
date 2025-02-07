@@ -1014,7 +1014,7 @@ var import_obsidian5 = require("obsidian");
 function createGeneralSettings(containerEl, plugin) {
   const calloutElPixelBannerPlus = containerEl.createEl("div", { cls: "tab-callout margin-bottom-0" });
   calloutElPixelBannerPlus.createEl("div", { text: "\u2728 Pixel Banner Plus \u2728" });
-  calloutElPixelBannerPlus.createEl("div", { text: "An optional premium feature made available to supporters via Ko-Fi. Users are able to generate beatiful high quality banners using GenAI." });
+  calloutElPixelBannerPlus.createEl("div", { text: "An optional premium feature, including the ability to generate high quality banners using GenAI." });
   const pixelBannerPlusSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
   new import_obsidian5.Setting(pixelBannerPlusSettingsGroup).setName("Pixel Banner Plus Email Address").setDesc("Your email address for Pixel Banner Plus authentication").addText(
     (text) => text.setPlaceholder("Enter your email address").setValue(plugin.settings.pixelBannerPlusEmail).onChange(async (value) => {
@@ -1693,7 +1693,7 @@ function debounce(func, wait) {
 
 // src/resources/constants.js
 var PIXEL_BANNER_PLUS = {
-  // API_URL: 'https://api.pixel-banner.online/',
+  // API_URL: 'https://pixel-banner.online/',
   API_URL: "http://localhost:3000/",
   ENDPOINTS: {
     VERIFY: "verify",
@@ -1867,6 +1867,7 @@ var SaveImageModal = class extends import_obsidian10.Modal {
     super(app);
     this.suggestedName = suggestedName;
     this.onSubmit = onSubmit;
+    this.useAsBanner = true;
   }
   onOpen() {
     const { contentEl } = this;
@@ -1877,6 +1878,11 @@ var SaveImageModal = class extends import_obsidian10.Modal {
       text.setValue(this.suggestedName).onChange((value) => {
         this.suggestedName = value;
       }).inputEl.style.width = "100%";
+    });
+    new import_obsidian10.Setting(contentEl).setName("Use Saved Image as Banner").addToggle((toggle) => {
+      toggle.setValue(this.useAsBanner).onChange((value) => {
+        this.useAsBanner = value;
+      });
     });
     const buttonContainer = contentEl.createDiv();
     buttonContainer.style.display = "flex";
@@ -1891,7 +1897,9 @@ var SaveImageModal = class extends import_obsidian10.Modal {
     cancelButton.addEventListener("click", () => this.close());
     saveButton.addEventListener("click", () => {
       if (this.suggestedName) {
-        this.onSubmit(this.suggestedName);
+        this.onSubmit(this.suggestedName, this.useAsBanner);
+        console.log(`File name: ${this.suggestedName}`);
+        console.log(`Use as banner: ${this.useAsBanner}`);
         this.close();
       } else {
         new import_obsidian10.Notice("Please enter a file name");
@@ -1977,15 +1985,20 @@ ${cleanContent}`;
 // src/utils/handlePinIconClick.js
 async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null) {
   const imageBlob = await fetchImage(imageUrl);
-  const { file } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
+  const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
   const finalPath = await waitForFileRename(file, plugin);
+  console.log(`File name: ${file.name}`);
+  console.log(`Use as banner: ${useAsBanner}`);
+  console.log(`Final path: ${finalPath}`);
   if (!finalPath) {
     console.error("\u274C Failed to resolve valid file path");
     new Notice("Failed to save image - file not found");
     return;
   }
-  await updateNoteFrontmatter(finalPath, plugin, usedField);
-  hidePinIcon();
+  if (useAsBanner) {
+    await updateNoteFrontmatter(finalPath, plugin, usedField);
+    hidePinIcon();
+  }
   return "success";
 }
 async function fetchImage(url) {
@@ -2010,15 +2023,15 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
   }
   const suggestedName = (suggestedFilename == null ? void 0 : suggestedFilename.toLowerCase()) || "pixel-banner-image";
   const userInput = await new Promise((resolve) => {
-    const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
-      resolve(result);
+    const modal = new SaveImageModal(plugin.app, suggestedName, (name, useAsBanner) => {
+      resolve({ name, useAsBanner });
     });
     modal.open();
   });
   if (!userInput) {
     throw new Error("No filename provided");
   }
-  let baseName = userInput.replace(/[^a-zA-Z0-9-_ ]/g, "").trim();
+  let baseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, "").trim();
   if (!baseName) baseName = "banner";
   if (!baseName.toLowerCase().endsWith(".png")) baseName += ".png";
   let fileName = baseName;
@@ -2032,7 +2045,8 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
   const savedFile = await vault.createBinary(filePath, arrayBuffer);
   return {
     initialPath: filePath,
-    file: savedFile
+    file: savedFile,
+    useAsBanner: userInput.useAsBanner
   };
 }
 function hidePinIcon() {
@@ -2185,40 +2199,6 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
       errorDiv.setText("Failed to generate image. Please try again.");
     }
   }
-  // async handleImageClick(img) {
-  //     const imageId = img.getAttribute('imageid');
-  //     if (this.downloadHistory.hasImage(imageId)) {
-  //         const confirmed = await new Promise(resolve => {
-  //             const modal = new Modal(this.app);
-  //             modal.contentEl.createEl('h2', { text: 'Image Already Downloaded' });
-  //             modal.contentEl.createEl('p', { text: 'You have already downloaded this image. Do you want to download it again?' });
-  //             const buttonContainer = modal.contentEl.createDiv();
-  //             buttonContainer.style.display = 'flex';
-  //             buttonContainer.style.justifyContent = 'flex-end';
-  //             buttonContainer.style.gap = '10px';
-  //             const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
-  //             const confirmButton = buttonContainer.createEl('button', { text: 'Download Again', cls: 'mod-cta' });
-  //             cancelButton.onclick = () => {
-  //                 modal.close();
-  //                 resolve(false);
-  //             };
-  //             confirmButton.onclick = () => {
-  //                 modal.close();
-  //                 resolve(true);
-  //             };
-  //             modal.open();
-  //         });
-  //         if (!confirmed) return;
-  //     }
-  //     try {
-  //         await handlePinIconClick(img.src, this.plugin, null, this.prompt);
-  //         this.downloadHistory.addImage(imageId);
-  //         this.close();
-  //     } catch (error) {
-  //         console.error('Failed to download image:', error);
-  //         new Notice('Failed to download image');
-  //     }
-  // }
   async checkDownloadHistory(img) {
     const imageId = img.getAttribute("imageid");
     if (this.downloadHistory.hasImage(imageId)) {

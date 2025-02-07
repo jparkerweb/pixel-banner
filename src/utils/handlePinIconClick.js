@@ -11,8 +11,12 @@ import { updateNoteFrontmatter } from './frontmatterUtils';
 // ----------------------------------------------------------------------------
 export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null) {
     const imageBlob = await fetchImage(imageUrl);
-    const { file } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
+    const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
     const finalPath = await waitForFileRename(file, plugin);
+
+    console.log(`File name: ${file.name}`);
+    console.log(`Use as banner: ${useAsBanner}`);
+    console.log(`Final path: ${finalPath}`);
     
     if (!finalPath) {
         console.error('❌ Failed to resolve valid file path');
@@ -20,8 +24,10 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
         return;
     }
     
-    await updateNoteFrontmatter(finalPath, plugin, usedField);
-    hidePinIcon();
+    if (useAsBanner) {
+        await updateNoteFrontmatter(finalPath, plugin, usedField);
+        hidePinIcon();
+    }
 
     return "success";
 }
@@ -62,8 +68,8 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
     // Prompt for filename
     const suggestedName = suggestedFilename?.toLowerCase() || 'pixel-banner-image';
     const userInput = await new Promise((resolve) => {
-        const modal = new SaveImageModal(plugin.app, suggestedName, (result) => {
-            resolve(result);
+        const modal = new SaveImageModal(plugin.app, suggestedName, (name, useAsBanner) => {
+            resolve({ name, useAsBanner });
         });
         modal.open();
     });
@@ -72,7 +78,7 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
         throw new Error('No filename provided');
     }
 
-    let baseName = userInput.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
+    let baseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
     if (!baseName) baseName = 'banner';
     if (!baseName.toLowerCase().endsWith('.png')) baseName += '.png';
 
@@ -86,10 +92,11 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
 
     const filePath = `${folderPath}/${fileName}`;
     const savedFile = await vault.createBinary(filePath, arrayBuffer);
-    
+
     return {
         initialPath: filePath,
-        file: savedFile
+        file: savedFile,
+        useAsBanner: userInput.useAsBanner
     };
 }
 

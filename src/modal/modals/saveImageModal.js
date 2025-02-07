@@ -1,6 +1,5 @@
 import { Modal, Notice, Setting } from 'obsidian';
 
-
 // ----------------------
 // -- save image modal --
 // ----------------------
@@ -9,6 +8,7 @@ export class SaveImageModal extends Modal {
         super(app);
         this.suggestedName = suggestedName;
         this.onSubmit = onSubmit;
+        this.useAsBanner = true;
     }
 
     onOpen() {
@@ -28,6 +28,16 @@ export class SaveImageModal extends Modal {
                     .inputEl.style.width = '100%';
             });
 
+        new Setting(contentEl)
+            .setName('Use Saved Image as Banner')
+            .addToggle(toggle => {
+                toggle
+                    .setValue(this.useAsBanner)
+                    .onChange(value => {
+                        this.useAsBanner = value;
+                    });
+            });
+
         const buttonContainer = contentEl.createDiv();
         buttonContainer.style.display = 'flex';
         buttonContainer.style.justifyContent = 'flex-end';
@@ -43,7 +53,9 @@ export class SaveImageModal extends Modal {
         cancelButton.addEventListener('click', () => this.close());
         saveButton.addEventListener('click', () => {
             if (this.suggestedName) {
-                this.onSubmit(this.suggestedName);
+                this.onSubmit(this.suggestedName, this.useAsBanner);
+                console.log(`File name: ${this.suggestedName}`);
+                console.log(`Use as banner: ${this.useAsBanner}`);
                 this.close();
             } else {
                 new Notice('Please enter a file name');
