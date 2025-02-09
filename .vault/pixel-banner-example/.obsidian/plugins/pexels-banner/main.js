@@ -1699,6 +1699,7 @@ var PIXEL_BANNER_PLUS = {
     VERIFY: "verify",
     GENERATE: "generate",
     GENERATE_BANNER_IDEA: "generate-banner-idea",
+    GENERATE_BANNER_IDEA_FROM_SEED: "generate-banner-idea-from-seed",
     HISTORY: "history"
   }
 };
@@ -2251,11 +2252,17 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     promptInput.addEventListener("input", (e) => {
       this.prompt = e.target.value;
     });
-    const inspirationButton = promptContainer.createEl("button", {
+    const promptInspirationContainer = promptContainer.createDiv({ cls: "pixel-banner-prompt-inspiration-container" });
+    const inspirationButton = promptInspirationContainer.createEl("button", {
       cls: "pixel-banner-inspiration-button",
       text: "\u{1F4A1}"
     });
     inspirationButton.addEventListener("click", () => this.getPromptInspiration());
+    const inspirationFromSeedButton = promptInspirationContainer.createEl("button", {
+      cls: "pixel-banner-inspiration-from-seed-button",
+      text: "\u{1F331}"
+    });
+    inspirationFromSeedButton.addEventListener("click", () => this.getPromptInspirationFromSeed());
     const widthContainer = contentEl.createDiv({ cls: "setting-item pixel-banner-ai-control-row" });
     const widthInfo = widthContainer.createDiv({ cls: "setting-item-info" });
     widthInfo.createDiv({ cls: "setting-item-name", text: "Width" });
@@ -2390,6 +2397,46 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     } finally {
       inspirationButton.textContent = originalText;
       inspirationButton.disabled = false;
+    }
+  }
+  async getPromptInspirationFromSeed() {
+    var _a;
+    const inspirationFromSeedButton = this.contentEl.querySelector(".pixel-banner-inspiration-from-seed-button");
+    const originalText = inspirationFromSeedButton.textContent;
+    const promptTextarea = this.contentEl.querySelector("#ai-banner-prompt");
+    let seed = promptTextarea.value.trim();
+    if (seed.length === 0) {
+      new import_obsidian12.Notice("Please enter at lease one word in the Prompt box to grow your banner idea from.");
+      return;
+    }
+    try {
+      inspirationFromSeedButton.textContent = "\u23F3";
+      inspirationFromSeedButton.disabled = true;
+      const inspirationUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE_BANNER_IDEA_FROM_SEED, PIXEL_BANNER_PLUS.API_URL).toString();
+      const response = await (0, import_obsidian12.requestUrl)({
+        url: inspirationUrl + `/${seed}`,
+        method: "GET",
+        headers: {
+          "X-User-Email": this.plugin.settings.pixelBannerPlusEmail,
+          "X-API-Key": this.plugin.settings.pixelBannerPlusApiKey,
+          "Accept": "application/json"
+        }
+      });
+      if (response.status === 200 && response.json.bannerIdea) {
+        const promptInput = this.contentEl.querySelector("#ai-banner-prompt");
+        if (promptInput) {
+          let promptIdea = (_a = response.json.bannerIdea) == null ? void 0 : _a.toLowerCase();
+          promptIdea = promptIdea.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+          promptInput.value = promptIdea;
+          this.prompt = promptIdea;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to get prompt inspiration:", error);
+      new import_obsidian12.Notice("Failed to get prompt inspiration. Please try again.");
+    } finally {
+      inspirationFromSeedButton.textContent = originalText;
+      inspirationFromSeedButton.disabled = false;
     }
   }
   onClose() {
@@ -4044,6 +4091,81 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
   }
 };
 
+// src/core/settings.js
+async function loadSettings(plugin) {
+  plugin.settings = Object.assign({}, DEFAULT_SETTINGS, await plugin.loadData());
+  if (!Array.isArray(plugin.settings.folderImages)) {
+    plugin.settings.folderImages = [];
+  }
+  if (plugin.settings.folderImages) {
+    plugin.settings.folderImages.forEach((folderImage) => {
+      folderImage.imageDisplay = folderImage.imageDisplay || "cover";
+      folderImage.imageRepeat = folderImage.imageRepeat || false;
+      folderImage.directChildrenOnly = folderImage.directChildrenOnly || false;
+    });
+  }
+}
+async function saveSettings(plugin) {
+  await plugin.saveData(plugin.settings);
+  plugin.loadedImages.clear();
+  plugin.lastKeywords.clear();
+  plugin.imageCache.clear();
+  plugin.app.workspace.iterateAllLeaves((leaf) => {
+    if (leaf.view instanceof MarkdownView) {
+      plugin.updateBanner(leaf.view, true);
+      if (plugin.settings.hidePixelBannerFields) {
+        plugin.updateFieldVisibility(leaf.view);
+      }
+    }
+  });
+}
+
+// src/core/iconOverlay.js
+function getIconOverlay() {
+  if (this.iconOverlayPool.length > 0) {
+    return this.iconOverlayPool.pop();
+  }
+  const overlay = document.createElement("div");
+  overlay.className = "banner-icon-overlay";
+  return overlay;
+}
+function returnIconOverlay(overlay) {
+  if (this.iconOverlayPool.length < this.MAX_POOL_SIZE) {
+    overlay.style.cssText = "";
+    overlay.className = "banner-icon-overlay";
+    overlay.textContent = "";
+    overlay.remove();
+    this.iconOverlayPool.push(overlay);
+  }
+}
+function shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
+  if (!existingOverlay || !newIconState) return true;
+  if (!existingOverlay._isPersistentBannerIcon || existingOverlay.dataset.viewType !== viewType || existingOverlay.textContent !== newIconState.icon) {
+    return true;
+  }
+  const computedStyle = window.getComputedStyle(existingOverlay);
+  const styleChecks = {
+    fontSize: `${newIconState.size}px`,
+    left: `${newIconState.xPosition}%`,
+    opacity: `${newIconState.opacity}%`,
+    color: newIconState.color,
+    fontWeight: newIconState.fontWeight,
+    backgroundColor: newIconState.backgroundColor,
+    borderRadius: `${newIconState.borderRadius}px`,
+    marginTop: `${newIconState.verticalOffset}px`
+  };
+  const currentPadding = computedStyle.padding.split(" ");
+  const expectedPadding = `${newIconState.paddingY}px ${newIconState.paddingX}px`;
+  if (currentPadding.join(" ") !== expectedPadding) {
+    return true;
+  }
+  return Object.entries(styleChecks).some(([prop, value]) => {
+    const current = computedStyle[prop];
+    return current !== value && // Handle special cases for colors
+    !(prop.includes("color") && this.normalizeColor(current) === this.normalizeColor(value));
+  });
+}
+
 // src/core/pixelBannerPluginClass.js
 var PixelBannerPlugin = class extends import_obsidian16.Plugin {
   constructor() {
@@ -4070,31 +4192,6 @@ var PixelBannerPlugin = class extends import_obsidian16.Plugin {
     __publicField(this, "lastFrontmatter", /* @__PURE__ */ new Map());
     // Enhanced cache management properties
     __publicField(this, "bannerStateCache", /* @__PURE__ */ new Map());
-    /* Cache format:
-        cacheKey -> {
-            state: {
-                imageUrl,
-                iconState: {
-                    icon,
-                    size,
-                    xPosition,
-                    opacity,
-                    color,
-                    fontWeight,
-                    backgroundColor,
-                    paddingX,
-                    paddingY,
-                    borderRadius,
-                    verticalOffset,
-                    viewType // 'preview' or 'source'
-                }
-            },
-            timestamp,
-            leafId,
-            isShuffled,
-            frontmatter
-        }
-    */
     __publicField(this, "MAX_CACHE_AGE", 30 * 60 * 1e3);
     // 30 minutes in milliseconds
     __publicField(this, "MAX_CACHE_ENTRIES", 30);
@@ -4115,57 +4212,25 @@ var PixelBannerPlugin = class extends import_obsidian16.Plugin {
       }
     }, 100));
   }
-  // Get an overlay from the pool or create a new one
-  getIconOverlay() {
-    if (this.iconOverlayPool.length > 0) {
-      return this.iconOverlayPool.pop();
-    }
-    const overlay = document.createElement("div");
-    overlay.className = "banner-icon-overlay";
-    return overlay;
+  async loadSettings() {
+    await loadSettings(this);
   }
-  // Return an overlay to the pool
-  returnIconOverlay(overlay) {
-    if (this.iconOverlayPool.length < this.MAX_POOL_SIZE) {
-      overlay.style.cssText = "";
-      overlay.className = "banner-icon-overlay";
-      overlay.textContent = "";
-      overlay.remove();
-      this.iconOverlayPool.push(overlay);
-    }
+  async saveSettings() {
+    await saveSettings(this);
+  }
+  getIconOverlay() {
+    getIconOverlay(this);
+  }
+  returnIconOverlay() {
+    returnIconOverlay(this);
+  }
+  shouldUpdateIconOverlay() {
+    shouldUpdateIconOverlay(this);
   }
   // Helper method to generate cache key
   generateCacheKey(filePath, leafId, isShuffled = false) {
     const encodedPath = encodeURIComponent(filePath);
     return `${encodedPath}-${leafId}${isShuffled ? "-shuffle" : ""}`;
-  }
-  // Optimized method to compare icon states and determine if update is needed
-  shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
-    if (!existingOverlay || !newIconState) return true;
-    if (!existingOverlay._isPersistentBannerIcon || existingOverlay.dataset.viewType !== viewType || existingOverlay.textContent !== newIconState.icon) {
-      return true;
-    }
-    const computedStyle = window.getComputedStyle(existingOverlay);
-    const styleChecks = {
-      fontSize: `${newIconState.size}px`,
-      left: `${newIconState.xPosition}%`,
-      opacity: `${newIconState.opacity}%`,
-      color: newIconState.color,
-      fontWeight: newIconState.fontWeight,
-      backgroundColor: newIconState.backgroundColor,
-      borderRadius: `${newIconState.borderRadius}px`,
-      marginTop: `${newIconState.verticalOffset}px`
-    };
-    const currentPadding = computedStyle.padding.split(" ");
-    const expectedPadding = `${newIconState.paddingY}px ${newIconState.paddingX}px`;
-    if (currentPadding.join(" ") !== expectedPadding) {
-      return true;
-    }
-    return Object.entries(styleChecks).some(([prop, value]) => {
-      const current = computedStyle[prop];
-      return current !== value && // Handle special cases for colors
-      !(prop.includes("color") && this.normalizeColor(current) === this.normalizeColor(value));
-    });
   }
   // Helper to normalize color values for comparison
   normalizeColor(color) {
@@ -4460,33 +4525,6 @@ var PixelBannerPlugin = class extends import_obsidian16.Plugin {
         }
       })
     );
-  }
-  async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    if (!Array.isArray(this.settings.folderImages)) {
-      this.settings.folderImages = [];
-    }
-    if (this.settings.folderImages) {
-      this.settings.folderImages.forEach((folderImage) => {
-        folderImage.imageDisplay = folderImage.imageDisplay || "cover";
-        folderImage.imageRepeat = folderImage.imageRepeat || false;
-        folderImage.directChildrenOnly = folderImage.directChildrenOnly || false;
-      });
-    }
-  }
-  async saveSettings() {
-    await this.saveData(this.settings);
-    this.loadedImages.clear();
-    this.lastKeywords.clear();
-    this.imageCache.clear();
-    this.app.workspace.iterateAllLeaves((leaf) => {
-      if (leaf.view instanceof import_obsidian16.MarkdownView) {
-        this.updateBanner(leaf.view, true);
-        if (this.settings.hidePixelBannerFields) {
-          this.updateFieldVisibility(leaf.view);
-        }
-      }
-    });
   }
   async handleActiveLeafChange(leaf) {
     var _a;

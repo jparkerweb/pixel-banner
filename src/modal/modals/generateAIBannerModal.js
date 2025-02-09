@@ -163,11 +163,19 @@ export class GenerateAIBannerModal extends Modal {
             this.prompt = e.target.value;
         });
 
-        const inspirationButton = promptContainer.createEl('button', {
+        // create a div to hold the prompt inspiration buttons
+        const promptInspirationContainer = promptContainer.createDiv({ cls: 'pixel-banner-prompt-inspiration-container' });
+
+        const inspirationButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-button',
             text: '💡'
         });
         inspirationButton.addEventListener('click', () => this.getPromptInspiration());
+        const inspirationFromSeedButton = promptInspirationContainer.createEl('button', {
+            cls: 'pixel-banner-inspiration-from-seed-button',
+            text: '🌱'
+        });
+        inspirationFromSeedButton.addEventListener('click', () => this.getPromptInspirationFromSeed());
 
         // Width
         const widthContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-control-row' });
@@ -327,6 +335,50 @@ export class GenerateAIBannerModal extends Modal {
         } finally {
             inspirationButton.textContent = originalText;
             inspirationButton.disabled = false;
+        }
+    }
+    
+    async getPromptInspirationFromSeed() {
+        const inspirationFromSeedButton = this.contentEl.querySelector('.pixel-banner-inspiration-from-seed-button');
+        const originalText = inspirationFromSeedButton.textContent;
+        const promptTextarea = this.contentEl.querySelector('#ai-banner-prompt');
+
+        let seed = promptTextarea.value.trim();
+        if (seed.length === 0) {
+            new Notice('Please enter at lease one word in the Prompt box to grow your banner idea from.');
+            return;
+        }
+        
+        try {
+            inspirationFromSeedButton.textContent = '⏳';
+            inspirationFromSeedButton.disabled = true;
+            
+            const inspirationUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE_BANNER_IDEA_FROM_SEED, PIXEL_BANNER_PLUS.API_URL).toString();
+            const response = await requestUrl({
+                url: inspirationUrl + `/${seed}`,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.status === 200 && response.json.bannerIdea) {
+                const promptInput = this.contentEl.querySelector('#ai-banner-prompt');
+                if (promptInput) {
+                let promptIdea = response.json.bannerIdea?.toLowerCase();
+                promptIdea = promptIdea.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+                    promptInput.value = promptIdea;
+                    this.prompt = promptIdea;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to get prompt inspiration:', error);
+            new Notice('Failed to get prompt inspiration. Please try again.');
+        } finally {
+            inspirationFromSeedButton.textContent = originalText;
+            inspirationFromSeedButton.disabled = false;
         }
     }
 

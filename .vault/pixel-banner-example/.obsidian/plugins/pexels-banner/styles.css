@@ -1222,7 +1222,21 @@
     flex: 1;
 }
 
-.pixel-banner-inspiration-button {
+.pixel-banner-prompt-inspiration-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+    justify-content: center;
+}
+.pixel-banner-prompt-inspiration-container > button {
+    margin: 0;
+    flex: 0 auto;
+    width: 40px;
+    border: 1px solid var(--modal-border-color);
+}
+.pixel-banner-inspiration-button,
+.pixel-banner-inspiration-from-seed-button {
     padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
@@ -1232,12 +1246,12 @@
     font-size: 16px;
     margin-left: 10px;
 }
-
-.pixel-banner-inspiration-button:hover {
+.pixel-banner-inspiration-button:hover,
+.pixel-banner-inspiration-from-seed-button:hover {
     background-color: var(--interactive-accent-hover);
 }
-
-.pixel-banner-inspiration-button:disabled {
+.pixel-banner-inspiration-button:disabled,
+.pixel-banner-inspiration-from-seed-button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
     background-color: var(--interactive-accent);

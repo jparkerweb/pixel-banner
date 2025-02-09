@@ -8,6 +8,9 @@ import {
 } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
+import { loadSettings, saveSettings } from './settings.js';
+import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay } from './iconOverlay.js'; 
+
 
 
 // -----------------------
@@ -16,9 +19,9 @@ import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 export class PixelBannerPlugin extends Plugin {
     // Update modes for banner refresh
     UPDATE_MODE = {
-        FULL_UPDATE: 'FULL_UPDATE',           // Complete update including new images
+        FULL_UPDATE: 'FULL_UPDATE',             // Complete update including new images
         ENSURE_VISIBILITY: 'ENSURE_VISIBILITY', // Only ensure banner is visible with current image
-        SHUFFLE_UPDATE: 'SHUFFLE_UPDATE'       // Update for shuffle banners only
+        SHUFFLE_UPDATE: 'SHUFFLE_UPDATE'        // Update for shuffle banners only
     };
 
     debounceTimer = null;
@@ -33,31 +36,7 @@ export class PixelBannerPlugin extends Plugin {
     lastFrontmatter = new Map();
     
     // Enhanced cache management properties
-    bannerStateCache = new Map(); /* Cache format:
-        cacheKey -> {
-            state: {
-                imageUrl,
-                iconState: {
-                    icon,
-                    size,
-                    xPosition,
-                    opacity,
-                    color,
-                    fontWeight,
-                    backgroundColor,
-                    paddingX,
-                    paddingY,
-                    borderRadius,
-                    verticalOffset,
-                    viewType // 'preview' or 'source'
-                }
-            },
-            timestamp,
-            leafId,
-            isShuffled,
-            frontmatter
-        }
-    */
+    bannerStateCache = new Map();
     MAX_CACHE_AGE = 30 * 60 * 1000; // 30 minutes in milliseconds
     MAX_CACHE_ENTRIES = 30; // Maximum number of entries to keep in cache
     SHUFFLE_CACHE_AGE = 5 * 1000; // 5 seconds in milliseconds for shuffled banners
@@ -66,27 +45,14 @@ export class PixelBannerPlugin extends Plugin {
     iconOverlayPool = [];
     MAX_POOL_SIZE = 10;
 
-    // Get an overlay from the pool or create a new one
-    getIconOverlay() {
-        if (this.iconOverlayPool.length > 0) {
-            return this.iconOverlayPool.pop();
-        }
-        const overlay = document.createElement('div');
-        overlay.className = 'banner-icon-overlay';
-        return overlay;
-    }
 
-    // Return an overlay to the pool
-    returnIconOverlay(overlay) {
-        if (this.iconOverlayPool.length < this.MAX_POOL_SIZE) {
-            // Reset the overlay
-            overlay.style.cssText = '';
-            overlay.className = 'banner-icon-overlay';
-            overlay.textContent = '';
-            overlay.remove(); // Remove from DOM
-            this.iconOverlayPool.push(overlay);
-        }
-    }
+    async loadSettings() { await loadSettings(this); }
+    async saveSettings() { await saveSettings(this); }
+    getIconOverlay() { getIconOverlay(this); }
+    returnIconOverlay() { returnIconOverlay(this) }
+    shouldUpdateIconOverlay() { shouldUpdateIconOverlay(this) }
+
+
 
     // Helper method to generate cache key
     generateCacheKey(filePath, leafId, isShuffled = false) {
@@ -95,47 +61,7 @@ export class PixelBannerPlugin extends Plugin {
         return `${encodedPath}-${leafId}${isShuffled ? '-shuffle' : ''}`;
     }
 
-    // Optimized method to compare icon states and determine if update is needed
-    shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
-        if (!existingOverlay || !newIconState) return true;
-        
-        // Quick checks first
-        if (!existingOverlay._isPersistentBannerIcon ||
-            existingOverlay.dataset.viewType !== viewType ||
-            existingOverlay.textContent !== newIconState.icon) {
-            return true;
-        }
 
-        // Cache computed style
-        const computedStyle = window.getComputedStyle(existingOverlay);
-        
-        // Define style checks with expected values
-        const styleChecks = {
-            fontSize: `${newIconState.size}px`,
-            left: `${newIconState.xPosition}%`,
-            opacity: `${newIconState.opacity}%`,
-            color: newIconState.color,
-            fontWeight: newIconState.fontWeight,
-            backgroundColor: newIconState.backgroundColor,
-            borderRadius: `${newIconState.borderRadius}px`,
-            marginTop: `${newIconState.verticalOffset}px`
-        };
-
-        // Check padding separately to handle both X and Y
-        const currentPadding = computedStyle.padding.split(' ');
-        const expectedPadding = `${newIconState.paddingY}px ${newIconState.paddingX}px`;
-        if (currentPadding.join(' ') !== expectedPadding) {
-            return true;
-        }
-
-        // Check all other styles
-        return Object.entries(styleChecks).some(([prop, value]) => {
-            const current = computedStyle[prop];
-            return current !== value && 
-                   // Handle special cases for colors
-                   !(prop.includes('color') && this.normalizeColor(current) === this.normalizeColor(value));
-        });
-    }
 
     // Helper to normalize color values for comparison
     normalizeColor(color) {
@@ -533,39 +459,7 @@ export class PixelBannerPlugin extends Plugin {
         );
     }
 
-    async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-        
-        // Ensure folderImages is always an array
-        if (!Array.isArray(this.settings.folderImages)) {
-            this.settings.folderImages = [];
-        }
 
-        if (this.settings.folderImages) {
-            this.settings.folderImages.forEach(folderImage => {
-                folderImage.imageDisplay = folderImage.imageDisplay || 'cover';
-                folderImage.imageRepeat = folderImage.imageRepeat || false;
-                folderImage.directChildrenOnly = folderImage.directChildrenOnly || false; // New setting
-            });
-        }
-    }
-
-    async saveSettings() {
-        await this.saveData(this.settings);
-        this.loadedImages.clear();
-        this.lastKeywords.clear();
-        this.imageCache.clear();
-        
-        // Update all banners and field visibility
-        this.app.workspace.iterateAllLeaves(leaf => {
-            if (leaf.view instanceof MarkdownView) {
-                this.updateBanner(leaf.view, true);
-                if (this.settings.hidePixelBannerFields) {
-                    this.updateFieldVisibility(leaf.view);
-                }
-            }
-        });
-    }
 
     async handleActiveLeafChange(leaf) {
         // Run periodic cache cleanup

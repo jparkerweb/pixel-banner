@@ -2,6 +2,24 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.0.0 - 2025-02-??
+#### ✨ Added
+- New `✨ Pixel Banner Plus` premium features:
+  > - Generate banners using custom "text to banner" prompts
+  > - Get image prompt inspiration from the AI models
+  > - Cloud Server endpoint for handeling user accounts and AI interactions (https://pixel-banner.online/)
+- When using the '📌 Pin Banner' action, you can specify to not use the saved image as a banner (good for just saving file)
+- Targeting Modal now has a slider to control the "X" position of the Banner Icon
+- Targeting Modal now has a slider to control the "Content Start" position
+
+#### 📦 Updated
+- Complete restructuring of plugin codebase for better organization and maintainability
+- The Targeting Modal slider controls wont unitentionally drag the modal
+- Added extra calculation to ensure Banner Icon position is within the Note's visible bounds
+
+#### 🐛 Fixed
+- Fixed issue with the "Directory" selection modal was displaying the suggested directory twice when saving a banner image
+
 ### v2.21.2 - 2025-01-28
 #### 📦 Updated
 - The Targeting Modal is now draggable (can help move it out of the way to see the banner)
