@@ -1,7 +1,7 @@
     // Get an overlay from the pool or create a new one
-    export function getIconOverlay() {
-        if (this.iconOverlayPool.length > 0) {
-            return this.iconOverlayPool.pop();
+    export function getIconOverlay(plugin) {
+        if (plugin.iconOverlayPool.length > 0) {
+            return plugin.iconOverlayPool.pop();
         }
         const overlay = document.createElement('div');
         overlay.className = 'banner-icon-overlay';
@@ -9,19 +9,19 @@
     }
 
     // Return an overlay to the pool
-    export function returnIconOverlay(overlay) {
-        if (this.iconOverlayPool.length < this.MAX_POOL_SIZE) {
+    export function returnIconOverlay(plugin, overlay) {
+        if (plugin.iconOverlayPool.length < plugin.MAX_POOL_SIZE) {
             // Reset the overlay
             overlay.style.cssText = '';
             overlay.className = 'banner-icon-overlay';
             overlay.textContent = '';
             overlay.remove(); // Remove from DOM
-            this.iconOverlayPool.push(overlay);
+            plugin.iconOverlayPool.push(overlay);
         }
     }
 
     // Optimized method to compare icon states and determine if update is needed
-    export function shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
+    export function shouldUpdateIconOverlay(plugin, existingOverlay, newIconState, viewType) {
         if (!existingOverlay || !newIconState) return true;
         
         // Quick checks first
@@ -58,6 +58,6 @@
             const current = computedStyle[prop];
             return current !== value && 
                     // Handle special cases for colors
-                    !(prop.includes('color') && this.normalizeColor(current) === this.normalizeColor(value));
+                    !(prop.includes('color') && plugin.normalizeColor(current) === plugin.normalizeColor(value));
         });
     }

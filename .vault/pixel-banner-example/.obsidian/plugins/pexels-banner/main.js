@@ -1880,7 +1880,7 @@ var SaveImageModal = class extends import_obsidian10.Modal {
         this.suggestedName = value;
       }).inputEl.style.width = "100%";
     });
-    new import_obsidian10.Setting(contentEl).setName("Use Saved Image as Banner").addToggle((toggle) => {
+    new import_obsidian10.Setting(contentEl).setName("Use Saved Image as Banner").setDesc("If disabled, the saved image will be saved to your vault, but not applied to the current note.").addToggle((toggle) => {
       toggle.setValue(this.useAsBanner).onChange((value) => {
         this.useAsBanner = value;
       });
@@ -2130,10 +2130,18 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
   }
   async generateImage() {
     if (!this.imageContainer) return;
+    const existingImage = this.imageContainer.querySelector(".pixel-banner-generated-image");
+    const existingImageData = existingImage ? {
+      base64Image: existingImage.src,
+      imageId: existingImage.getAttribute("imageId")
+    } : null;
     this.imageContainer.empty();
     const loadingContainer = this.imageContainer.createDiv({ cls: "pixel-banner-loading" });
     loadingContainer.createDiv({ cls: "dot-pulse" });
     try {
+      if (existingImageData) {
+        await this.refreshHistoryContainer();
+      }
       const generateUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE, PIXEL_BANNER_PLUS.API_URL).toString();
       const response = await (0, import_obsidian12.requestUrl)({
         url: generateUrl,
@@ -2182,7 +2190,6 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
           const imageUrl = `data:image/png;base64,${response.json.image}`;
           let filename = ((_a = this.prompt) == null ? void 0 : _a.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()) || "banner";
           filename = filename.replace(/\s+/g, "-").substring(0, 47);
-          debugger;
           const didSave = await handlePinIconClick(imageUrl, this.plugin, null, filename);
           if (didSave === "success") {
             const imageId = response.json.imageId;
@@ -2437,6 +2444,50 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
     } finally {
       inspirationFromSeedButton.textContent = originalText;
       inspirationFromSeedButton.disabled = false;
+    }
+  }
+  async refreshHistoryContainer() {
+    const historyContainer = this.contentEl.querySelector(".pixel-banner-history-container");
+    if (!historyContainer) return;
+    historyContainer.empty();
+    try {
+      const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + "?limit=10";
+      const response = await (0, import_obsidian12.requestUrl)({
+        url: historyUrl,
+        method: "GET",
+        headers: {
+          "X-User-Email": this.plugin.settings.pixelBannerPlusEmail,
+          "X-API-Key": this.plugin.settings.pixelBannerPlusApiKey,
+          "Accept": "application/json"
+        }
+      });
+      if (response.status === 200 && response.json.images) {
+        response.json.images.forEach((imageData) => {
+          const imgWrapper = historyContainer.createDiv({ cls: "pixel-banner-history-image-wrapper" });
+          const img = imgWrapper.createEl("img", {
+            cls: "pixel-banner-history-image",
+            attr: {
+              src: imageData.base64Image,
+              "imageId": imageData.imageId,
+              "filename": imageData.prompt.trim().substr(0, 47).replace(/\s/g, "-").toLowerCase()
+            }
+          });
+          imgWrapper.setAttribute("aria-label", imageData.prompt);
+          imgWrapper.addClass("has-tooltip");
+          imgWrapper.addEventListener("click", async () => {
+            const shouldDownload = await this.checkDownloadHistory(img);
+            if (!shouldDownload) return;
+            const filename = img.getAttribute("filename");
+            await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+            this.downloadHistory.addImage(img.getAttribute("imageid"));
+            this.close();
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+      const errorDiv = historyContainer.createDiv({ cls: "pixel-banner-error" });
+      errorDiv.setText("Failed to load history. Please try again later.");
     }
   }
   onClose() {
@@ -4121,24 +4172,24 @@ async function saveSettings(plugin) {
 }
 
 // src/core/iconOverlay.js
-function getIconOverlay() {
-  if (this.iconOverlayPool.length > 0) {
-    return this.iconOverlayPool.pop();
+function getIconOverlay(plugin) {
+  if (plugin.iconOverlayPool.length > 0) {
+    return plugin.iconOverlayPool.pop();
   }
   const overlay = document.createElement("div");
   overlay.className = "banner-icon-overlay";
   return overlay;
 }
-function returnIconOverlay(overlay) {
-  if (this.iconOverlayPool.length < this.MAX_POOL_SIZE) {
+function returnIconOverlay(plugin, overlay) {
+  if (plugin.iconOverlayPool.length < plugin.MAX_POOL_SIZE) {
     overlay.style.cssText = "";
     overlay.className = "banner-icon-overlay";
     overlay.textContent = "";
     overlay.remove();
-    this.iconOverlayPool.push(overlay);
+    plugin.iconOverlayPool.push(overlay);
   }
 }
-function shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
+function shouldUpdateIconOverlay(plugin, existingOverlay, newIconState, viewType) {
   if (!existingOverlay || !newIconState) return true;
   if (!existingOverlay._isPersistentBannerIcon || existingOverlay.dataset.viewType !== viewType || existingOverlay.textContent !== newIconState.icon) {
     return true;
@@ -4162,7 +4213,7 @@ function shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
   return Object.entries(styleChecks).some(([prop, value]) => {
     const current = computedStyle[prop];
     return current !== value && // Handle special cases for colors
-    !(prop.includes("color") && this.normalizeColor(current) === this.normalizeColor(value));
+    !(prop.includes("color") && plugin.normalizeColor(current) === plugin.normalizeColor(value));
   });
 }
 
@@ -4219,13 +4270,13 @@ var PixelBannerPlugin = class extends import_obsidian16.Plugin {
     await saveSettings(this);
   }
   getIconOverlay() {
-    getIconOverlay(this);
+    return getIconOverlay(this);
   }
-  returnIconOverlay() {
-    returnIconOverlay(this);
+  returnIconOverlay(overlay) {
+    returnIconOverlay(this, overlay);
   }
-  shouldUpdateIconOverlay() {
-    shouldUpdateIconOverlay(this);
+  shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) {
+    return shouldUpdateIconOverlay(this, existingOverlay, newIconState, viewType);
   }
   // Helper method to generate cache key
   generateCacheKey(filePath, leafId, isShuffled = false) {

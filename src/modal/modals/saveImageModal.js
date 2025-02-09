@@ -30,6 +30,7 @@ export class SaveImageModal extends Modal {
 
         new Setting(contentEl)
             .setName('Use Saved Image as Banner')
+            .setDesc('If disabled, the saved image will be saved to your vault, but not applied to the current note.')
             .addToggle(toggle => {
                 toggle
                     .setValue(this.useAsBanner)

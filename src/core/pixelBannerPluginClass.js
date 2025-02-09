@@ -48,9 +48,11 @@ export class PixelBannerPlugin extends Plugin {
 
     async loadSettings() { await loadSettings(this); }
     async saveSettings() { await saveSettings(this); }
-    getIconOverlay() { getIconOverlay(this); }
-    returnIconOverlay() { returnIconOverlay(this) }
-    shouldUpdateIconOverlay() { shouldUpdateIconOverlay(this) }
+    getIconOverlay() { return getIconOverlay(this); }
+    returnIconOverlay(overlay) { returnIconOverlay(this, overlay); }
+    shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) { 
+        return shouldUpdateIconOverlay(this, existingOverlay, newIconState, viewType); 
+    }
 
 
 

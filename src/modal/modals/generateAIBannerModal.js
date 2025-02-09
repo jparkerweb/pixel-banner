@@ -21,12 +21,24 @@ export class GenerateAIBannerModal extends Modal {
     async generateImage() {
         if (!this.imageContainer) return;
         
+        // Store existing image data if present
+        const existingImage = this.imageContainer.querySelector('.pixel-banner-generated-image');
+        const existingImageData = existingImage ? {
+            base64Image: existingImage.src,
+            imageId: existingImage.getAttribute('imageId')
+        } : null;
+        
         // Show loading dots
         this.imageContainer.empty();
         const loadingContainer = this.imageContainer.createDiv({ cls: 'pixel-banner-loading' });
         loadingContainer.createDiv({ cls: 'dot-pulse' });
         
         try {
+            // If we had a previous image, refresh history before generating new one
+            if (existingImageData) {
+                await this.refreshHistoryContainer();
+            }
+
             const generateUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE, PIXEL_BANNER_PLUS.API_URL).toString();
             const response = await requestUrl({
                 url: generateUrl,
@@ -82,7 +94,6 @@ export class GenerateAIBannerModal extends Modal {
                     const imageUrl = `data:image/png;base64,${response.json.image}`;
                     let filename = this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                     filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                    debugger;
                     const didSave = await handlePinIconClick(imageUrl, this.plugin, null, filename);
                     if (didSave === "success") {
                         const imageId = response.json.imageId;
@@ -379,6 +390,58 @@ export class GenerateAIBannerModal extends Modal {
         } finally {
             inspirationFromSeedButton.textContent = originalText;
             inspirationFromSeedButton.disabled = false;
+        }
+    }
+
+    async refreshHistoryContainer() {
+        const historyContainer = this.contentEl.querySelector('.pixel-banner-history-container');
+        if (!historyContainer) return;
+
+        historyContainer.empty();
+        
+        try {
+            const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + '?limit=10';
+            
+            const response = await requestUrl({
+                url: historyUrl,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.status === 200 && response.json.images) {
+                response.json.images.forEach(imageData => {
+                    const imgWrapper = historyContainer.createDiv({ cls: 'pixel-banner-history-image-wrapper' });
+                    const img = imgWrapper.createEl('img', {
+                        cls: 'pixel-banner-history-image',
+                        attr: {
+                            src: imageData.base64Image,
+                            'imageId': imageData.imageId,
+                            'filename': imageData.prompt.trim().substr(0, 47).replace(/\s/g, '-').toLowerCase(),
+                        }
+                    });
+
+                    imgWrapper.setAttribute('aria-label', imageData.prompt);
+                    imgWrapper.addClass('has-tooltip');
+
+                    imgWrapper.addEventListener('click', async () => {
+                        const shouldDownload = await this.checkDownloadHistory(img);
+                        if (!shouldDownload) return;
+                        
+                        const filename = img.getAttribute('filename');
+                        await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+                        this.downloadHistory.addImage(img.getAttribute('imageid'));
+                        this.close();
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch history:', error);
+            const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });
+            errorDiv.setText('Failed to load history. Please try again later.');
         }
     }
 

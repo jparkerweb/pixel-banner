@@ -640,12 +640,14 @@
     border-radius: 8px;
     overflow: hidden;
     background: var(--background-secondary);
+
 }
 
 .pixel-banner-generated-image {
     width: 100%;
     height: auto;
     display: block;
+    animation: pixel-banner--fade-in 1300ms ease-in-out;
 }
 
 .pixel-banner-image-controls {
@@ -1166,6 +1168,7 @@
     align-items: center;
     max-width: 200px;
     max-height: 200px;
+    animation: pixel-banner--fade-in 1300ms ease-in-out;
 }
 
 /* Hover effect */
