@@ -1,15 +1,26 @@
 import { Plugin, MarkdownView, requestUrl, Notice } from 'obsidian';
 import { releaseNotes } from 'virtual:release-notes';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/settings.js';
-import { PIXEL_BANNER_PLUS } from '../resources/constants.js';
 import { 
-    ReleaseNotesModal, ImageViewModal, ImageSelectionModal, EmojiSelectionModal,
+    ReleaseNotesModal, ImageViewModal, ImageSelectionModal,
     TargetPositionModal, GenerateAIBannerModal
 } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
-import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay } from './iconOverlay.js'; 
+import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon } from './bannerIconHelpers.js'; 
+import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
+import {
+    makeRequest,
+    fetchPexelsImage,
+    fetchPixabayImage,
+    fetchFlickrImage,
+    fetchUnsplashImage
+} from '../services/apiService.js';
+import {
+    verifyPixelBannerPlusCredentials
+} from '../services/apiPIxelBannerPlus.js';
+
 
 
 
@@ -46,6 +57,9 @@ export class PixelBannerPlugin extends Plugin {
     MAX_POOL_SIZE = 10;
 
 
+    // ----------------------------------------------------
+    // -- bind imported functions to the plugin instance --
+    // ----------------------------------------------------
     async loadSettings() { await loadSettings(this); }
     async saveSettings() { await saveSettings(this); }
     getIconOverlay() { return getIconOverlay(this); }
@@ -53,14 +67,20 @@ export class PixelBannerPlugin extends Plugin {
     shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) { 
         return shouldUpdateIconOverlay(this, existingOverlay, newIconState, viewType); 
     }
-
-
-
-    // Helper method to generate cache key
     generateCacheKey(filePath, leafId, isShuffled = false) {
-        // Ensure filePath is properly encoded to handle special characters and numbers
-        const encodedPath = encodeURIComponent(filePath);
-        return `${encodedPath}-${leafId}${isShuffled ? '-shuffle' : ''}`;
+        return generateCacheKey.call(this, filePath, leafId, isShuffled);
+    }
+    getCacheEntriesForFile(filePath) {
+        return getCacheEntriesForFile.call(this, filePath);
+    }
+    cleanupCache(force = false) {
+        return cleanupCache.call(this, force);
+    }
+    invalidateLeafCache(leafId) {
+        return invalidateLeafCache.call(this, leafId);
+    }
+    handleSetBannerIcon() { 
+        return handleSetBannerIcon(this); 
     }
 
 
@@ -72,103 +92,6 @@ export class PixelBannerPlugin extends Plugin {
         return color.toLowerCase().replace(/\s+/g, '');
     }
 
-    // Helper method to get all cache entries for a file
-    getCacheEntriesForFile(filePath) {
-        const encodedPath = encodeURIComponent(filePath);
-        return Array.from(this.bannerStateCache.entries())
-            .filter(([key]) => key.startsWith(`${encodedPath}-`));
-    }
-
-    // Enhanced cache cleanup method
-    cleanupCache(force = false) {
-        const now = Date.now();
-        
-        // Clean up by age
-        for (const [key, entry] of this.bannerStateCache) {
-            // Use shorter timeout for shuffle images
-            const maxAge = entry.isShuffled ? this.SHUFFLE_CACHE_AGE : this.MAX_CACHE_AGE;
-            if (force || now - entry.timestamp > maxAge) {
-                // Clean up any persistent icon overlays for this entry
-                if (entry.leafId) {
-                    const leaf = this.app.workspace.getLeafById(entry.leafId);
-                    if (leaf?.view instanceof MarkdownView) {
-                        const contentEl = leaf.view.contentEl;
-                        ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
-                            const container = contentEl.querySelector(`.${selector}`);
-                            if (container) {
-                                const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
-                                iconOverlays.forEach(overlay => overlay.remove());
-                            }
-                        });
-                    }
-                }
-
-                // Clean up blob URLs
-                if (entry.state?.imageUrl?.startsWith('blob:')) {
-                    URL.revokeObjectURL(entry.state.imageUrl);
-                }
-                this.bannerStateCache.delete(key);
-            }
-        }
-        
-        // Clean up by size if not doing a force cleanup
-        if (!force && this.bannerStateCache.size > this.MAX_CACHE_ENTRIES) {
-            // Sort entries by timestamp (oldest first)
-            const entries = Array.from(this.bannerStateCache.entries())
-                .sort(([, a], [, b]) => a.timestamp - b.timestamp);
-            
-            // Remove oldest entries until we're at max size
-            while (entries.length > this.MAX_CACHE_ENTRIES) {
-                const [key, entry] = entries.shift();
-                // Clean up any persistent icon overlays for this entry
-                if (entry.leafId) {
-                    const leaf = this.app.workspace.getLeafById(entry.leafId);
-                    if (leaf?.view instanceof MarkdownView) {
-                        const contentEl = leaf.view.contentEl;
-                        ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
-                            const container = contentEl.querySelector(`.${selector}`);
-                            if (container) {
-                                const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
-                                iconOverlays.forEach(overlay => overlay.remove());
-                            }
-                        });
-                    }
-                }
-
-                // Clean up blob URLs
-                if (entry.state?.imageUrl?.startsWith('blob:')) {
-                    URL.revokeObjectURL(entry.state.imageUrl);
-                }
-                this.bannerStateCache.delete(key);
-            }
-        }
-    }
-
-    // Helper to invalidate cache for a specific leaf
-    invalidateLeafCache(leafId) {
-        for (const [key, entry] of this.bannerStateCache) {
-            if (key.includes(`-${leafId}`)) {
-                // Clean up any persistent icon overlays
-                const leaf = this.app.workspace.getLeafById(leafId);
-                if (leaf?.view instanceof MarkdownView) {
-                    const contentEl = leaf.view.contentEl;
-                    ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
-                        const container = contentEl.querySelector(`.${selector}`);
-                        if (container) {
-                            const iconOverlays = container.querySelectorAll('.banner-icon-overlay[data-persistent="true"]');
-                            iconOverlays.forEach(overlay => overlay.remove());
-                        }
-                    });
-                }
-
-                // Clean up blob URLs
-                if (entry.state?.imageUrl?.startsWith('blob:')) {
-                    URL.revokeObjectURL(entry.state.imageUrl);
-                }
-                this.bannerStateCache.delete(key);
-            }
-        }
-    }
 
     // --------------------------------------
     // -- onload method / main entry point --
@@ -402,7 +325,8 @@ export class PixelBannerPlugin extends Plugin {
                 if (checking) return hasBanner;
 
                 if (hasBanner) {
-                    this.handleSetBannerIcon();
+                    // Bind this context explicitly
+                    handleSetBannerIcon(this);
                 }
                 return true;
             }
@@ -1218,7 +1142,6 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'keyword') {
-            // Handle comma-delimited keywords
             const keywords = input.includes(',') 
                 ? input.split(',')
                     .map(k => k.trim())
@@ -1226,7 +1149,6 @@ export class PixelBannerPlugin extends Plugin {
                     .filter(Boolean)
                 : [input];
             
-            // Only proceed if we have valid keywords
             if (keywords.length > 0) {
                 const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
                 const provider = this.getActiveApiProvider();
@@ -1242,19 +1164,15 @@ export class PixelBannerPlugin extends Plugin {
                     return null;
                 }
                 
-                if (provider === 'pexels') {
-                    return this.fetchPexelsImage(selectedKeyword);
-                } else if (provider === 'pixabay') {
-                    return this.fetchPixabayImage(selectedKeyword);
-                } else if (provider === 'flickr') {
-                    return this.fetchFlickrImage(selectedKeyword);
-                } else if (provider === 'unsplash') {
-                    return this.fetchUnsplashImage(selectedKeyword);
+                switch (provider) {
+                    case 'pexels': return fetchPexelsImage(this, selectedKeyword);
+                    case 'pixabay': return fetchPixabayImage(this, selectedKeyword);
+                    case 'flickr': return fetchFlickrImage(this, selectedKeyword);
+                    case 'unsplash': return fetchUnsplashImage(this, selectedKeyword);
+                    default: return null;
                 }
             }
-            return null;
         }
-
         return null;
     }
 
@@ -1340,7 +1258,7 @@ export class PixelBannerPlugin extends Plugin {
             });
 
             try {
-                const response = await this.makeRequest(`${apiUrl}?${params}`);
+                const response = await makeRequest(`${apiUrl}?${params}`);
                 
                 if (response.status !== 200) {
                     console.error(`Pixabay API error: ${response.status} ${response.statusText}`);
@@ -1399,7 +1317,7 @@ export class PixelBannerPlugin extends Plugin {
                 // Use Flickr search API to find photos
                 const searchUrl = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&text=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&format=json&nojsoncallback=1&sort=relevance&content_type=1&media=photos&safe_search=1`;
                 
-                const response = await this.makeRequest(searchUrl);
+                const response = await makeRequest(searchUrl);
                 
                 if (response.status !== 200) {
                     console.error(`Flickr API error: ${response.status} ${response.statusText}`);
@@ -1464,7 +1382,7 @@ export class PixelBannerPlugin extends Plugin {
                     orientation: this.settings.imageOrientation
                 });
 
-                const response = await this.makeRequest(`${apiUrl}?${params}`, {
+                const response = await makeRequest(`${apiUrl}?${params}`, {
                     headers: {
                         'Authorization': `Client-ID ${apiKey}`,
                         'Accept-Version': 'v1'
@@ -1510,26 +1428,6 @@ export class PixelBannerPlugin extends Plugin {
         console.error('No images found after all attempts');
         new Notice('Failed to fetch an image after multiple attempts');
         return null;
-    }
-
-    async makeRequest(url, options = {}) {
-        const now = Date.now();
-        if (now - this.rateLimiter.lastRequestTime < this.rateLimiter.minInterval) {
-            await new Promise(resolve => setTimeout(resolve, this.rateLimiter.minInterval));
-        }
-        this.rateLimiter.lastRequestTime = Date.now();
-
-        try {
-            const response = await requestUrl({
-                url,
-                headers: options.headers || {},
-                ...options
-            });
-            return response;
-        } catch (error) {
-            console.error('Request failed:', error);
-            throw new Error(`Request failed: ${error.message}`);
-        }
     }
 
     preloadImage(url) {
@@ -2432,45 +2330,10 @@ export class PixelBannerPlugin extends Plugin {
     }
 
     async verifyPixelBannerPlusCredentials() {
-        this.pixelBannerPlusEnabled = false;
-        this.pixelBannerPlusBannerTokens = 0;
-
-        const email = this.settings.pixelBannerPlusEmail;
-        const apiKey = this.settings.pixelBannerPlusApiKey;
-
-        if (!email || !apiKey) {
-            this.pixelBannerPlusEnabled = false;
-            this.pixelBannerPlusBannerTokens = 0;
-            return false;
-        }
-
-        try {
-            const response = await requestUrl({
-                url: `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.VERIFY}`,
-                method: 'GET',
-                headers: {
-                    'X-User-Email': email,
-                    'X-API-Key': apiKey,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (response.status === 200) {
-                const data = response.json;
-                this.pixelBannerPlusEnabled = true;
-                this.pixelBannerPlusBannerTokens = data.banner_tokens;
-                console.log('Pixel Banner Plus credentials verified, 🪙 Banner Tokens:', data.banner_tokens);
-                return data;
-            } else {
-                this.pixelBannerPlusEnabled = false;
-                this.pixelBannerPlusBannerTokens = 0;
-                console.error('Failed to verify Pixel Banner Plus credentials:', data);
-            }
-            return false;
-        } catch (error) {
-            console.error('Failed to verify Pixel Banner Plus credentials:', error);
-            return false;
-        }
+        const result = await verifyPixelBannerPlusCredentials(this);
+        this.pixelBannerPlusEnabled = result.verified;
+        this.pixelBannerPlusBannerTokens = result.bannerTokens;
+        return result.verified;
     }
 
     getRandomImageFromFolder(folderPath) {
@@ -2657,121 +2520,7 @@ export class PixelBannerPlugin extends Plugin {
         ).open();
     }
 
-    async handleSetBannerIcon() {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) {
-            new Notice('No active file');
-            return;
-        }
-
-        new EmojiSelectionModal(
-            this.app,
-            this,
-            async (selectedEmoji) => {
-                let fileContent = await this.app.vault.read(activeFile);
-                const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-                const hasFrontmatter = frontmatterRegex.test(fileContent);
-                
-                const bannerIconField = Array.isArray(this.settings.customBannerIconField) && 
-                    this.settings.customBannerIconField.length > 0 ? 
-                    this.settings.customBannerIconField[0] : 'banner-icon';
-
-                fileContent = fileContent.replace(/^\s+/, '');
-
-                let updatedContent;
-                if (hasFrontmatter) {
-                    updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-                        let cleanedFrontmatter = frontmatter.trim();
-                        
-                        this.settings.customBannerIconField.forEach(field => {
-                            const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
-                            cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
-                        });
-
-                        cleanedFrontmatter = cleanedFrontmatter.trim();
-                        const newFrontmatter = `${bannerIconField}: "${selectedEmoji}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
-                        return `---\n${newFrontmatter}\n---`;
-                    });
-                } else {
-                    const cleanContent = fileContent.replace(/^\s+/, '');
-                    updatedContent = `---\n${bannerIconField}: "${selectedEmoji}"\n---\n\n${cleanContent}`;
-                }
-
-                updatedContent = updatedContent.replace(/^\s+/, '');
-                
-                if (updatedContent !== fileContent) {
-                    await this.app.vault.modify(activeFile, updatedContent);
-
-                    // Wait for metadata update
-                    const metadataUpdated = new Promise(resolve => {
-                        let eventRef = null;
-                        let resolved = false;
-
-                        const cleanup = () => {
-                            if (eventRef) {
-                                this.app.metadataCache.off('changed', eventRef);
-                                eventRef = null;
-                            }
-                        };
-
-                        const timeoutId = setTimeout(() => {
-                            if (!resolved) {
-                                resolved = true;
-                                cleanup();
-                                resolve();
-                            }
-                        }, 2000);
-
-                        eventRef = this.app.metadataCache.on('changed', (file) => {
-                            if (file.path === activeFile.path && !resolved) {
-                                resolved = true;
-                                clearTimeout(timeoutId);
-                                cleanup();
-                                setTimeout(resolve, 50);
-                            }
-                        });
-                    });
-
-                    await metadataUpdated;
-
-                    // attempt to update banner with retries
-                    const maxRetries = 3;
-                    const retryDelay = 150;
-                    let success = false;
-
-                    for (let i = 0; i < maxRetries && !success; i++) {
-                        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-                        if (view) {
-                            try {
-                                const cache = this.app.metadataCache.getFileCache(activeFile);
-                                if (!cache || !cache.frontmatter || cache.frontmatter[bannerIconField] !== selectedEmoji) {
-                                    await new Promise(resolve => setTimeout(resolve, 100));
-                                    continue;
-                                }
-
-                                await this.updateBanner(view, true);
-                                success = true;
-                            } catch (error) {
-                                if (i < maxRetries - 1) {
-                                    await new Promise(resolve => setTimeout(resolve, retryDelay));
-                                }
-                            }
-                        }
-                    }
-
-                    if (!success) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-                        if (view) {
-                            await this.updateBanner(view, true);
-                        }
-                    }
-
-                    new Notice('Banner icon updated');
-                }
-            }
-        ).open();
-    }
+    
 
     async updateBannerPosition(file, position) {
         if (!file) return;
