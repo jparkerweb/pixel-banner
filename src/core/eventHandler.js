@@ -6,7 +6,15 @@ async function handleActiveLeafChange(leaf) {
     // 'this' will be the plugin instance
     this.cleanupCache();
 
-    // If no leaf or not a markdown view, just clean up previous
+    // Clean up previous leaf and its icon overlay
+    const previousLeaf = this.app.workspace.activeLeaf;
+    if (previousLeaf && previousLeaf.view instanceof MarkdownView && previousLeaf !== leaf) {
+        this.cleanupPreviousLeaf(previousLeaf);
+        // Use the plugin's bound method
+        this.cleanupIconOverlay(previousLeaf.view);
+    }
+
+    // If no leaf or not a markdown view, just return
     if (!leaf || !(leaf.view instanceof MarkdownView) || !leaf.view.file) {
         return;
     }
@@ -15,6 +23,14 @@ async function handleActiveLeafChange(leaf) {
     const leafId = leaf.id;
     const frontmatter = this.app.metadataCache.getFileCache(leaf.view.file)?.frontmatter;
     const currentTime = Date.now();
+
+    // Check if the new leaf should have a banner icon
+    const hasBannerIcon = this.settings.customBannerIconField.some(field => frontmatter?.[field]);
+    
+    // If no banner icon in frontmatter, ensure any existing overlay is removed
+    if (!hasBannerIcon) {
+        this.cleanupIconOverlay(leaf.view);
+    }
 
     try {
         // Check if this note uses shuffle functionality

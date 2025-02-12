@@ -22,6 +22,8 @@ export function getIconOverlay(plugin) {
 
 // Return an overlay to the pool
 export function returnIconOverlay(plugin, overlay) {
+    if (!overlay) return;
+    
     if (plugin.iconOverlayPool.length < plugin.MAX_POOL_SIZE) {
         // Reset the overlay
         overlay.style.cssText = '';
@@ -188,4 +190,15 @@ export async function handleSetBannerIcon(plugin) {
             }
         }
     ).open();
+}
+
+// Update the cleanup function to be more defensive
+export function cleanupIconOverlay(plugin, view) {
+    if (!view || !view.contentEl) return;
+    
+    const existingOverlay = view.contentEl.querySelector('.banner-icon-overlay');
+    if (existingOverlay) {
+        plugin.returnIconOverlay(existingOverlay);
+        existingOverlay.remove();
+    }
 }

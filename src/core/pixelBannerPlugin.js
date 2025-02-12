@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/s
 import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal } from '../modal/modals.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
-import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon } from './bannerIconHelpers.js'; 
+import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, cleanupIconOverlay } from './bannerIconHelpers.js'; 
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials } from '../services/apiPIxelBannerPlus.js';
@@ -67,6 +67,7 @@ export class PixelBannerPlugin extends Plugin {
     applyBannerWidth(el) { return applyBannerWidth(this, el); }
     updateAllBanners() { return updateAllBanners(this); }
     updateBannerPosition(file, position) { return updateBannerPosition(this, file, position); }
+    cleanupIconOverlay(view) { return cleanupIconOverlay(this, view); }
 
     // --------------------------------------------
     // -- add bindings for the utility functions --
