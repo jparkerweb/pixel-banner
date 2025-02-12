@@ -1,3 +1,5 @@
+import { MarkdownView } from 'obsidian';
+
 // Helper method to generate cache key
 export function generateCacheKey(filePath, leafId, isShuffled = false) {
     // Ensure filePath is properly encoded to handle special characters and numbers

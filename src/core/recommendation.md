@@ -20,7 +20,7 @@
   - [x] makeRequest()
   - [x] verifyPixelBannerPlusCredentials()
 
-### 2. Banner Management (`/src/core/banner/`)
+### 2. Banner Management (`/src/core/`)
 #### bannerManager.js
 - [x] Create banner directory
 - [x] Create bannerManager.js
@@ -34,19 +34,19 @@
   - [x] updateBannerPosition()
 
 #### bannerUtils.js
-- [ ] Create bannerUtils.js
-- [ ] Move and refactor utility methods:
-  - [ ] getInputType()
-  - [ ] getPathFromObsidianLink()
-  - [ ] getVaultImageUrl()
-  - [ ] preloadImage()
-  - [ ] getFolderPath()
-  - [ ] getFolderSpecificImage()
-  - [ ] getFolderSpecificSetting()
-  - [ ] getRandomImageFromFolder()
-  - [ ] getActiveApiProvider()
-  - [ ] hasBannerFrontmatter()
-  - [ ] createFolderImageSettings()
+- [x] Create bannerUtils.js
+- [x] Move and refactor utility methods:
+  - [x] getInputType()
+  - [x] getPathFromObsidianLink()
+  - [x] getVaultImageUrl()
+  - [x] preloadImage()
+  - [x] getFolderPath()
+  - [x] getFolderSpecificImage()
+  - [x] getFolderSpecificSetting()
+  - [x] getRandomImageFromFolder()
+  - [x] getActiveApiProvider()
+  - [x] hasBannerFrontmatter()
+  - [x] createFolderImageSettings()
 
 ### 3. Event Handlers (`/src/core/events/`)
 - [ ] Create events directory
