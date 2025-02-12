@@ -2,6 +2,14 @@ import { MarkdownView, Notice } from 'obsidian';
 import { EmojiSelectionModal } from '../modal/modals.js';
 
 
+// Helper to normalize color values for comparison
+function normalizeColor(color) {
+    if (!color || color === 'transparent' || color === 'none') return 'transparent';
+    // Convert rgb/rgba to lowercase and remove spaces
+    return color.toLowerCase().replace(/\s+/g, '');
+}
+
+
 // Get an overlay from the pool or create a new one
 export function getIconOverlay(plugin) {
     if (plugin.iconOverlayPool.length > 0) {
@@ -62,7 +70,7 @@ export function shouldUpdateIconOverlay(plugin, existingOverlay, newIconState, v
         const current = computedStyle[prop];
         return current !== value && 
                 // Handle special cases for colors
-                !(prop.includes('color') && plugin.normalizeColor(current) === plugin.normalizeColor(value));
+                !(prop.includes('color') && normalizeColor(current) === normalizeColor(value));
     });
 }
 

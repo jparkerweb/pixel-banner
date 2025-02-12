@@ -1,63 +1,17 @@
-import { Plugin, MarkdownView, requestUrl, Notice } from 'obsidian';
+import { Plugin, MarkdownView, Notice } from 'obsidian';
 import { releaseNotes } from 'virtual:release-notes';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/settings.js';
-import { 
-    ReleaseNotesModal, ImageSelectionModal,
-    TargetPositionModal, GenerateAIBannerModal
-} from '../modal/modals.js';
-import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
+import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal } from '../modal/modals.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
 import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon } from './bannerIconHelpers.js'; 
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
-import {
-    makeRequest,
-    fetchPexelsImage,
-    fetchPixabayImage,
-    fetchFlickrImage,
-    fetchUnsplashImage
-} from '../services/apiService.js';
-import {
-    verifyPixelBannerPlusCredentials
-} from '../services/apiPIxelBannerPlus.js';
-import {
-    addPixelBanner,
-    updateBanner,
-    applyBannerSettings,
-    applyContentStartPosition,
-    applyBannerWidth,
-    updateAllBanners,
-    updateBannerPosition
-} from './bannerManager.js';
-import {
-    getInputType,
-    getPathFromObsidianLink,
-    getVaultImageUrl,
-    preloadImage,
-    getFolderPath,
-    getFolderSpecificImage,
-    getFolderSpecificSetting,
-    getRandomImageFromFolder,
-    getActiveApiProvider,
-    hasBannerFrontmatter,
-    createFolderImageSettings
-} from './bannerUtils.js';
-import {
-    handleActiveLeafChange,
-    handleLayoutChange,
-    handleModeChange,
-    handleSelectImage
-} from './eventHandler.js';
-import {
-    setupMutationObserver,
-    setupResizeObserver,
-    updateFieldVisibility,
-    updateEmbeddedTitlesVisibility,
-    updateEmbeddedBannersVisibility,
-    cleanupPreviousLeaf
-} from './domManager.js';
-
-
+import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
+import { verifyPixelBannerPlusCredentials } from '../services/apiPIxelBannerPlus.js';
+import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition } from './bannerManager.js';
+import { getInputType, getPathFromObsidianLink, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
+import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage } from './eventHandler.js';
+import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 
 
 // -----------------------
@@ -100,26 +54,12 @@ export class PixelBannerPlugin extends Plugin {
     async saveSettings() { await saveSettings(this); }
     getIconOverlay() { return getIconOverlay(this); }
     returnIconOverlay(overlay) { returnIconOverlay(this, overlay); }
-    shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) { 
-        return shouldUpdateIconOverlay(this, existingOverlay, newIconState, viewType); 
-    }
-    generateCacheKey(filePath, leafId, isShuffled = false) {
-        return generateCacheKey.call(this, filePath, leafId, isShuffled);
-    }
-    getCacheEntriesForFile(filePath) {
-        return getCacheEntriesForFile.call(this, filePath);
-    }
-    cleanupCache(force = false) {
-        return cleanupCache.call(this, force);
-    }
-    invalidateLeafCache(leafId) {
-        return invalidateLeafCache.call(this, leafId);
-    }
-    handleSetBannerIcon() { 
-        return handleSetBannerIcon(this); 
-    }
-
-    // Bind imported functions to the plugin instance
+    shouldUpdateIconOverlay(existingOverlay, newIconState, viewType) { return shouldUpdateIconOverlay(this, existingOverlay, newIconState, viewType); }
+    generateCacheKey(filePath, leafId, isShuffled = false) { return generateCacheKey.call(this, filePath, leafId, isShuffled); }
+    getCacheEntriesForFile(filePath) { return getCacheEntriesForFile.call(this, filePath); }
+    cleanupCache(force = false) { return cleanupCache.call(this, force); }
+    invalidateLeafCache(leafId) { return invalidateLeafCache.call(this, leafId); }
+    handleSetBannerIcon() { return handleSetBannerIcon(this); }
     addPixelBanner(el, ctx) { return addPixelBanner(this, el, ctx); }
     updateBanner(view, isContentChange, updateMode) { return updateBanner(this, view, isContentChange, updateMode); }
     applyBannerSettings(bannerDiv, ctx, isEmbedded) { return applyBannerSettings(this, bannerDiv, ctx, isEmbedded); }
@@ -128,12 +68,38 @@ export class PixelBannerPlugin extends Plugin {
     updateAllBanners() { return updateAllBanners(this); }
     updateBannerPosition(file, position) { return updateBannerPosition(this, file, position); }
 
-    // Helper to normalize color values for comparison
-    normalizeColor(color) {
-        if (!color || color === 'transparent' || color === 'none') return 'transparent';
-        // Convert rgb/rgba to lowercase and remove spaces
-        return color.toLowerCase().replace(/\s+/g, '');
-    }
+    // --------------------------------------------
+    // -- add bindings for the utility functions --
+    // --------------------------------------------
+    getInputType(input) { return getInputType.call(this, input); }
+    getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
+    getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
+    preloadImage(url) { return preloadImage.call(this, url); }
+    getFolderPath(filePath) { return getFolderPath.call(this, filePath); }
+    getFolderSpecificImage(filePath) { return getFolderSpecificImage.call(this, filePath); }
+    getFolderSpecificSetting(filePath, settingName) { return getFolderSpecificSetting.call(this, filePath, settingName); }
+    getRandomImageFromFolder(folderPath) { return getRandomImageFromFolder.call(this, folderPath); }
+    getActiveApiProvider() { return getActiveApiProvider.call(this); }
+    hasBannerFrontmatter(file) { return hasBannerFrontmatter.call(this, file); }
+    createFolderImageSettings(folderImage) { return createFolderImageSettings.call(this, folderImage); }
+
+    // -------------------------------------
+    // -- add bindings for event handlers --
+    // -------------------------------------
+    handleActiveLeafChange(leaf) { return handleActiveLeafChange.call(this, leaf); }
+    handleLayoutChange() { return handleLayoutChange.call(this); }
+    handleModeChange(leaf) { return handleModeChange.call(this, leaf); }
+    handleSelectImage() { return handleSelectImage.call(this); }
+
+    // -------------------------------------
+    // -- add bindings for DOM management --
+    // -------------------------------------
+    setupMutationObserver() { return setupMutationObserver.call(this); }
+    setupResizeObserver(viewContent) { return setupResizeObserver.call(this, viewContent); }
+    updateFieldVisibility(view) { return updateFieldVisibility.call(this, view); }
+    updateEmbeddedTitlesVisibility() { return updateEmbeddedTitlesVisibility.call(this); }
+    updateEmbeddedBannersVisibility() { return updateEmbeddedBannersVisibility.call(this); }
+    cleanupPreviousLeaf(previousLeaf) { return cleanupPreviousLeaf.call(this, previousLeaf); }
 
 
     // --------------------------------------
@@ -429,21 +395,10 @@ export class PixelBannerPlugin extends Plugin {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // -----------------------------
+    // -- debounced ensure banner --
+    // -----------------------------
     debouncedEnsureBanner = debounce(() => {
-        // console.log('🔄 debouncedEnsureBanner called from:', new Error().stack.split('\n')[2].trim());
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
             // Only update if we have a banner
@@ -455,12 +410,10 @@ export class PixelBannerPlugin extends Plugin {
         }
     }, 100);
 
-    
 
-
-
-
-
+    // -------------------
+    // -- get image url --
+    // -------------------
     async getImageUrl(type, input) {
         if (type === 'url' || type === 'path') {
             return input;
@@ -513,261 +466,10 @@ export class PixelBannerPlugin extends Plugin {
         return null;
     }
 
-    async fetchPexelsImage(keyword) {
-        const apiKey = this.settings.pexelsApiKey;
-        if (!apiKey) {
-            return null;
-        }
 
-        // Implement rate limiting
-        const now = Date.now();
-        if (now - this.rateLimiter.lastRequestTime < this.rateLimiter.minInterval) {
-            await new Promise(resolve => setTimeout(resolve, this.rateLimiter.minInterval));
-        }
-        this.rateLimiter.lastRequestTime = Date.now();
-
-        const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
-        const fallbackKeyword = defaultKeywords[Math.floor(Math.random() * defaultKeywords.length)];
-        const keywords = [keyword, fallbackKeyword];
-        
-        for (const currentKeyword of keywords) {
-            try {
-                const response = await requestUrl({
-                    url: `https://api.pexels.com/v1/search?query=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&size=${this.settings.imageSize}&orientation=${this.settings.imageOrientation}`,
-                    method: 'GET',
-                    headers: {
-                        'Authorization': apiKey
-                    }
-                });
-
-                if (response.status !== 200) {
-                    console.error('Failed to fetch images:', response.status, response.text);
-                    continue;
-                }
-
-                const data = response.json;
-
-                if (data.photos && data.photos.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * data.photos.length);
-                    if (currentKeyword !== keyword) {
-                        console.log(`No image found for "${keyword}". Using image for "${currentKeyword}" instead.`);
-                    }
-                    const imageUrl = data.photos[randomIndex].src[this.settings.imageSize];
-                    try {
-                        await this.preloadImage(imageUrl);
-                    } catch (error) {
-                        console.error(`Failed to preload image: ${error.message}`);
-                    }
-                    return imageUrl;
-                } else if (currentKeyword === keyword) {
-                    console.log(`No image found for the provided keyword: "${keyword}". Trying a random default keyword.`);
-                }
-            } catch (error) {
-                console.error(`Error fetching image from API for keyword "${currentKeyword}":`, error);
-                new Notice(`Failed to fetch image: ${error.message}`);
-            }
-        }
-
-        console.error('No images found for any keywords, including the random default.');
-        return null;
-    }
-
-    async fetchPixabayImage(keyword) {
-        const apiKey = this.settings.pixabayApiKey;
-        if (!apiKey) {
-            return null;
-        }
-
-        const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
-        const keywordsToTry = [keyword, ...defaultKeywords];
-        const maxAttempts = 4;
-
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
-
-            const apiUrl = 'https://pixabay.com/api/';
-            const params = new URLSearchParams({
-                key: apiKey,
-                q: encodeURIComponent(currentKeyword),
-                image_type: 'photo',
-                per_page: this.settings.numberOfImages,
-                safesearch: true,
-            });
-
-            try {
-                const response = await makeRequest(`${apiUrl}?${params}`);
-                
-                if (response.status !== 200) {
-                    console.error(`Pixabay API error: ${response.status} ${response.statusText}`);
-                    continue;
-                }
-
-                let data;
-                if (response.arrayBuffer) {
-                    const text = new TextDecoder().decode(response.arrayBuffer);
-                    try {
-                        data = JSON.parse(text);
-                    } catch (error) {
-                        console.error('Failed to parse Pixabay response:', error);
-                        continue;
-                    }
-                } else {
-                    console.error('Unexpected response format:', response);
-                    continue;
-                }
-
-                if (data.hits && data.hits.length > 0) {
-                    const imageUrls = data.hits.map(hit => hit.largeImageURL);
-                    
-                    if (imageUrls.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * imageUrls.length);
-                        const selectedImageUrl = imageUrls[randomIndex];
-                        return selectedImageUrl;
-                    }
-                }
-                
-                console.log(`No images found for keyword: ${currentKeyword}`);
-            } catch (error) {
-                console.error('Error fetching image from Pixabay:', error);
-            }
-        }
-
-        console.error('No images found after all attempts');
-        new Notice('Failed to fetch an image after multiple attempts, try a different keyword and/or update the backup keyword list in settings.');
-        return null;
-    }
-
-    async fetchFlickrImage(keyword) {
-        const apiKey = this.settings.flickrApiKey;
-        if (!apiKey) {
-            return null;
-        }
-
-        const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
-        const keywordsToTry = [keyword, ...defaultKeywords];
-        const maxAttempts = 4;
-
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
-
-            try {
-                // Use Flickr search API to find photos
-                const searchUrl = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&text=${encodeURIComponent(currentKeyword)}&per_page=${this.settings.numberOfImages}&format=json&nojsoncallback=1&sort=relevance&content_type=1&media=photos&safe_search=1`;
-                
-                const response = await makeRequest(searchUrl);
-                
-                if (response.status !== 200) {
-                    console.error(`Flickr API error: ${response.status} ${response.statusText}`);
-                    continue;
-                }
-
-                const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
-                
-                if (data.stat !== 'ok') {
-                    console.error('Flickr API error:', data);
-                    continue;
-                }
-
-                if (data.photos && data.photos.photo && data.photos.photo.length > 0) {
-                    const photos = data.photos.photo;
-                    const randomIndex = Math.floor(Math.random() * photos.length);
-                    const photo = photos[randomIndex];
-                    
-                    // Construct image URL based on size preference
-                    let size = 'z'; // Default to medium 640
-                    switch (this.settings.imageSize) {
-                        case 'small': size = 'n'; break;  // Small 320
-                        case 'medium': size = 'z'; break; // Medium 640
-                        case 'large': size = 'b'; break;  // Large 1024
-                    }
-                    
-                    // Construct Flickr image URL
-                    const imageUrl = `https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}_${size}.jpg`;
-                    return imageUrl;
-                }
-                
-                console.log(`No images found for keyword: ${currentKeyword}`);
-            } catch (error) {
-                console.error('Error fetching image from Flickr:', error);
-            }
-        }
-
-        console.error('No images found after all attempts');
-        new Notice('Failed to fetch an image after multiple attempts');
-        return null;
-    }
-
-    async fetchUnsplashImage(keyword) {
-        const apiKey = this.settings.unsplashApiKey;
-        if (!apiKey) {
-            return null;
-        }
-
-        const defaultKeywords = this.settings.defaultKeywords.split(',').map(k => k.trim());
-        const keywordsToTry = [keyword, ...defaultKeywords];
-        const maxAttempts = 4;
-
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const currentKeyword = attempt === 0 ? keyword : keywordsToTry[Math.floor(Math.random() * keywordsToTry.length)];
-
-            try {
-                // Use the search endpoint instead of random
-                let apiUrl = 'https://api.unsplash.com/search/photos';
-                const params = new URLSearchParams({
-                    query: currentKeyword,
-                    per_page: this.settings.numberOfImages,
-                    orientation: this.settings.imageOrientation
-                });
-
-                const response = await makeRequest(`${apiUrl}?${params}`, {
-                    headers: {
-                        'Authorization': `Client-ID ${apiKey}`,
-                        'Accept-Version': 'v1'
-                    }
-                });
-
-                if (response.status !== 200) {
-                    console.error(`Unsplash API error: ${response.status}`);
-                    continue;
-                }
-
-                const data = JSON.parse(new TextDecoder().decode(response.arrayBuffer));
-                if (!data.results || data.results.length === 0) {
-                    console.log(`No images found for keyword: ${currentKeyword}`);
-                    continue;
-                }
-
-                const randomIndex = Math.floor(Math.random() * data.results.length);
-                const photo = data.results[randomIndex];
-                
-                // Get the appropriate size URL based on settings
-                let imageUrl;
-                switch (this.settings.imageSize) {
-                    case 'small':
-                        imageUrl = photo.urls.small;
-                        break;
-                    case 'medium':
-                        imageUrl = photo.urls.regular;
-                        break;
-                    case 'large':
-                        imageUrl = photo.urls.full;
-                        break;
-                    default:
-                        imageUrl = photo.urls.regular;
-                }
-
-                return imageUrl;
-            } catch (error) {
-                console.error('Error fetching image from Unsplash:', error);
-            }
-        }
-
-        console.error('No images found after all attempts');
-        new Notice('Failed to fetch an image after multiple attempts');
-        return null;
-    }
-
-
+    // --------------------
+    // -- post processor --
+    // --------------------
     async postProcessor(el, ctx) {
         const frontmatter = ctx.frontmatter;
         if (frontmatter && frontmatter[this.settings.customBannerField]) {
@@ -827,6 +529,10 @@ export class PixelBannerPlugin extends Plugin {
         }
     }
 
+
+    // --------------
+    // -- onunload --
+    // --------------
     onunload() {
         if (this.observer) {
             this.observer.disconnect();
@@ -853,11 +559,9 @@ export class PixelBannerPlugin extends Plugin {
     }
 
 
-
-
-
-
-
+    // -------------------------
+    // -- clean orphaned pins --
+    // -------------------------
     async cleanOrphanedPins() {
         const vault = this.app.vault;
         const folderPath = this.settings.pinnedImageFolder;
@@ -940,6 +644,7 @@ export class PixelBannerPlugin extends Plugin {
         }
     }
 
+
     // -----------------------------------------
     // -- show release notes for new versions --
     // -----------------------------------------
@@ -962,6 +667,7 @@ export class PixelBannerPlugin extends Plugin {
         }
     }
 
+
     // -----------------------------------------------
     // -- get release notes for the current version --
     // -----------------------------------------------
@@ -970,46 +676,13 @@ export class PixelBannerPlugin extends Plugin {
     }
 
 
-
-
-
+    // ------------------------------------------
+    // -- verify pixel banner plus credentials --
+    // ------------------------------------------
     async verifyPixelBannerPlusCredentials() {
         const result = await verifyPixelBannerPlusCredentials(this);
         this.pixelBannerPlusEnabled = result.verified;
         this.pixelBannerPlusBannerTokens = result.bannerTokens;
         return result.verified;
     }
-
-
-
-
-
-
-
-    // Add bindings for the utility functions
-    getInputType(input) { return getInputType.call(this, input); }
-    getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
-    getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
-    preloadImage(url) { return preloadImage.call(this, url); }
-    getFolderPath(filePath) { return getFolderPath.call(this, filePath); }
-    getFolderSpecificImage(filePath) { return getFolderSpecificImage.call(this, filePath); }
-    getFolderSpecificSetting(filePath, settingName) { return getFolderSpecificSetting.call(this, filePath, settingName); }
-    getRandomImageFromFolder(folderPath) { return getRandomImageFromFolder.call(this, folderPath); }
-    getActiveApiProvider() { return getActiveApiProvider.call(this); }
-    hasBannerFrontmatter(file) { return hasBannerFrontmatter.call(this, file); }
-    createFolderImageSettings(folderImage) { return createFolderImageSettings.call(this, folderImage); }
-
-    // Add bindings for event handlers
-    handleActiveLeafChange(leaf) { return handleActiveLeafChange.call(this, leaf); }
-    handleLayoutChange() { return handleLayoutChange.call(this); }
-    handleModeChange(leaf) { return handleModeChange.call(this, leaf); }
-    handleSelectImage() { return handleSelectImage.call(this); }
-
-    // Add bindings for DOM management functions
-    setupMutationObserver() { return setupMutationObserver.call(this); }
-    setupResizeObserver(viewContent) { return setupResizeObserver.call(this, viewContent); }
-    updateFieldVisibility(view) { return updateFieldVisibility.call(this, view); }
-    updateEmbeddedTitlesVisibility() { return updateEmbeddedTitlesVisibility.call(this); }
-    updateEmbeddedBannersVisibility() { return updateEmbeddedBannersVisibility.call(this); }
-    cleanupPreviousLeaf(previousLeaf) { return cleanupPreviousLeaf.call(this, previousLeaf); }
 }

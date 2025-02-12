@@ -1,10 +1,12 @@
 import { requestUrl, Notice } from 'obsidian';
 
+
 // Rate limiter for API requests
 const rateLimiter = {
     lastRequestTime: 0,
     minInterval: 1000 // 1 second between requests
 };
+
 
 // Base request handler with rate limiting
 async function makeRequest(url, options = {}) {
