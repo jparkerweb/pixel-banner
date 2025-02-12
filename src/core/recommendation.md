@@ -58,15 +58,15 @@
   - [x] handleSelectImage()
 
 ### 4. DOM Management (`/src/core/dom/`)
-- [ ] Create dom directory
-- [ ] Create domManager.js
-- [ ] Move and refactor methods:
-  - [ ] setupMutationObserver()
-  - [ ] setupResizeObserver()
-  - [ ] updateFieldVisibility()
-  - [ ] updateEmbeddedTitlesVisibility()
-  - [ ] updateEmbeddedBannersVisibility()
-  - [ ] cleanupPreviousLeaf()
+- [x] Create dom directory
+- [x] Create domManager.js
+- [x] Move and refactor methods:
+  - [x] setupMutationObserver()
+  - [x] setupResizeObserver()
+  - [x] updateFieldVisibility()
+  - [x] updateEmbeddedTitlesVisibility()
+  - [x] updateEmbeddedBannersVisibility()
+  - [x] cleanupPreviousLeaf()
 
 ### 5. Cache Management (`/src/core/cache/`)
 - [x] Created initial cacheHelpers.js
