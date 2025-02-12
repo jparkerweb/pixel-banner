@@ -49,15 +49,13 @@
   - [x] createFolderImageSettings()
 
 ### 3. Event Handlers (`/src/core/events/`)
-- [ ] Create events directory
-- [ ] Create eventHandlers.js
-- [ ] Move and refactor methods:
-  - [ ] handleActiveLeafChange()
-  - [ ] handleLayoutChange()
-  - [ ] handleModeChange()
-  - [ ] handleSelectImage()
-  - [ ] handleSetBannerIcon()
-  - [ ] handlePinIconClick() (verify already moved)
+- [x] Create events directory
+- [x] Create eventHandlers.js
+- [x] Move and refactor methods:
+  - [x] handleActiveLeafChange()
+  - [x] handleLayoutChange()
+  - [x] handleModeChange()
+  - [x] handleSelectImage()
 
 ### 4. DOM Management (`/src/core/dom/`)
 - [ ] Create dom directory
