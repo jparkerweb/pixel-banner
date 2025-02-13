@@ -149,6 +149,8 @@ Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode
    Re-renders or hides frontmatter fields if the user toggles between preview/edit modes.
 4. **handleSelectImage()**  
    Opens a modal to select or upload a new banner image from the vault, then modifies frontmatter.
+5. **handleBannerIconClick()**  
+   Opens the Select Pixel Banner modal for choosing between different banner selection methods.
 
 ---
 
@@ -268,6 +270,17 @@ Helps visually set or tweak the X/Y offsets for the banner and icon.
    Injects styles for crosshair lines, etc.  
 5. **onClose()**  
    Removes the style element.
+
+---
+
+## `/src/modal/modals/selectPixelBannerModal.js`
+**Class**: `SelectPixelBannerModal` (extends `Modal`)  
+Provides a central hub for accessing different banner selection methods.
+
+**Key Methods**:
+- **onOpen()**: Renders three large buttons for different banner selection methods
+- **addStyle()**: Adds custom styling for the modal buttons
+- **onClose()**: Cleans up the modal content and styles
 
 ---
 
