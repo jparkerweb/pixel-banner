@@ -511,7 +511,7 @@ export function createGeneralSettings(containerEl, plugin) {
 
     // Add the showSelectImageIcon setting
     const showSelectImageIconSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Show Select Image Icon')
+        .setName('Show Select Pixel Banner Icon')
         .setDesc('Show an icon to select banner image in the top-left corner')
         .addToggle(toggle => toggle
             .setValue(plugin.settings.showSelectImageIcon)

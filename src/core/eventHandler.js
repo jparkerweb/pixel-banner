@@ -1,5 +1,5 @@
 import { MarkdownView, Notice } from 'obsidian';
-import { ImageSelectionModal } from '../modal/modals.js';
+import { ImageSelectionModal, SelectPixelBannerModal } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 
 async function handleActiveLeafChange(leaf) {
@@ -279,9 +279,14 @@ async function handleSelectImage() {
     ).open();
 }
 
+function handleBannerIconClick() {
+    new SelectPixelBannerModal(this.app, this).open();
+}
+
 export {
     handleActiveLeafChange,
     handleLayoutChange,
     handleModeChange,
-    handleSelectImage
+    handleSelectImage,
+    handleBannerIconClick
 };

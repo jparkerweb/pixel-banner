@@ -1,7 +1,7 @@
 import { Plugin, MarkdownView, Notice } from 'obsidian';
 import { releaseNotes } from 'virtual:release-notes';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/settings.js';
-import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal } from '../modal/modals.js';
+import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, SelectPixelBannerModal } from '../modal/modals.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
 import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, cleanupIconOverlay } from './bannerIconHelpers.js'; 
@@ -10,7 +10,7 @@ import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashIma
 import { verifyPixelBannerPlusCredentials } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition } from './bannerManager.js';
 import { getInputType, getPathFromObsidianLink, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
-import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage } from './eventHandler.js';
+import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 
 
@@ -91,6 +91,7 @@ export class PixelBannerPlugin extends Plugin {
     handleLayoutChange() { return handleLayoutChange.call(this); }
     handleModeChange(leaf) { return handleModeChange.call(this, leaf); }
     handleSelectImage() { return handleSelectImage.call(this); }
+    handleBannerIconClick() { return handleBannerIconClick.call(this); }
 
     // -------------------------------------
     // -- add bindings for DOM management --
@@ -305,10 +306,19 @@ export class PixelBannerPlugin extends Plugin {
             }
         });
 
+        this.addCommand({
+            id: 'open-pixel-banner-select',
+            name: '🚩 Select Pixel Banner',
+            callback: () => {
+                // new SelectPixelBannerModal(this.app, this).open();
+                this.handleBannerIconClick();
+            }
+        });
+
         // Add command for selecting banner image
         this.addCommand({
             id: 'set-banner-image',
-            name: '🏷️ Select Image',
+            name: '🏷️ Select Banner from Vault',
             callback: () => this.handleSelectImage()
         });
 

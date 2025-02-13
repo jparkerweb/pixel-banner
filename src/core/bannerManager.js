@@ -94,10 +94,10 @@ async function addPixelBanner(plugin, el, ctx) {
             selectImageIcon.style.left = `${leftOffset}px`;
             selectImageIcon.style.fontSize = '1.5em';
             selectImageIcon.style.cursor = 'pointer';
-            selectImageIcon.innerHTML = '🏷️';
+            selectImageIcon.innerHTML = '🚩';
             selectImageIcon._isPersistentSelectImage = true;
 
-            selectImageIcon.onclick = () => plugin.handleSelectImage();
+            selectImageIcon.onclick = () => plugin.handleBannerIconClick();
             container.appendChild(selectImageIcon);
             leftOffset += 35;
 
@@ -681,9 +681,9 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 selectImageIcon.style.left = `${plugin.settings.bannerGap + 5}px`;
                 selectImageIcon.style.fontSize = '1.5em';
                 selectImageIcon.style.cursor = 'pointer';
-                selectImageIcon.innerHTML = '🏷️';
+                selectImageIcon.innerHTML = '🚩';
                 selectImageIcon._isPersistentSelectImage = true;
-                selectImageIcon.onclick = () => plugin.handleSelectImage();
+                selectImageIcon.onclick = () => plugin.handleBannerIconClick();
                 container.insertBefore(selectImageIcon, container.firstChild);
             }
         } else if (!plugin.settings.showSelectImageIcon && container) {
