@@ -602,7 +602,7 @@ export function createGeneralSettings(containerEl, plugin) {
 
     // Add the showSetTargetXYPosition setting
     const showSetTargetXYPositionSetting = new Setting(containerEl)
-        .setName('Show Set Banner and Icon Positions')
+        .setName('Show Targeting Modal Icon')
         .setDesc('Show an icon to open the targeting modal to set the banner and icon positions')
         .addToggle(toggle => toggle
             .setValue(plugin.settings.showSetTargetXYPosition)
