@@ -355,7 +355,7 @@ export class PixelBannerPlugin extends Plugin {
         // Add command to open targeting modal
         this.addCommand({
             id: 'set-banner-position',
-            name: '🎯 Set Banner Position',
+            name: '🎯 Set Banner and Icon Positions',
             checkCallback: (checking) => {
                 const activeFile = this.app.workspace.getActiveFile();
                 const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
