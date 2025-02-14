@@ -1,5 +1,5 @@
 import { Modal } from 'obsidian';
-import { ImageSelectionModal, GenerateAIBannerModal } from '../modals';
+import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal } from '../modals';
 
 export class SelectPixelBannerModal extends Modal {
     constructor(app, plugin) {
@@ -46,15 +46,16 @@ export class SelectPixelBannerModal extends Modal {
             this.close();
             new GenerateAIBannerModal(this.app, this.plugin).open();
         });
-
+        
         // Store Button
         const storeButton = buttonContainer.createEl('button', {
             text: '🏪 Browse the Pixel Banner Plus store for a Banner',
             cls: 'pixel-banner-select-button'
         });
         storeButton.addEventListener('click', () => {
-            // Placeholder for future store modal
+            // open the store modal
             this.close();
+            new PixelBannerStoreModal(this.app, this.plugin).open();
         });
 
         // Add styles
