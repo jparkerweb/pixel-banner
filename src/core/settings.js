@@ -1,3 +1,4 @@
+import { MarkdownView } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../settings/settings.js';
 
 

@@ -1,4 +1,4 @@
-import { Setting, MarkdownView } from 'obsidian';
+import { Setting, MarkdownView, Notice } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../settings';
 
 export function createGeneralSettings(containerEl, plugin) {
