@@ -1,5 +1,6 @@
-import { Modal } from 'obsidian';
+import { Modal, Setting } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
+import { handlePinIconClick } from '../../utils/handlePinIconClick';
 
 
 // ------------------------------------
@@ -138,26 +139,88 @@ export class PixelBannerStoreModal extends Modal {
     // -- Display Images --
     // --------------------
     displayImages(images) {
-        this.imageContainer.empty();
+        const container = this.imageContainer;
+        container.empty();
         
-        images.forEach(img => {
-            const imageCard = this.imageContainer.createDiv({ cls: 'pixel-banner-store-image-card' });
-            
-            const image = imageCard.createEl('img', {
+        images.forEach(image => {
+            const card = container.createEl('div', {
+                cls: 'pixel-banner-store-image-card',
                 attr: {
-                    src: img.base64Image,
-                    alt: img.prompt
+                    'data-image-id': image.id,
+                    'data-image-cost': image.cost
                 }
             });
 
-            const details = imageCard.createDiv({ cls: 'pixel-banner-store-image-details' });
-            const truncatedPrompt = img.prompt.length > 85 ? img.prompt.slice(0, 85) + '...' : img.prompt;
+            const imgEl = card.createEl('img', {
+                attr: {
+                    src: image.base64Image,
+                    alt: image.prompt
+                }
+            });
+
+            const details = card.createDiv({ cls: 'pixel-banner-store-image-details' });
+            const truncatedPrompt = image.prompt.length > 85 ? image.prompt.slice(0, 85) + '...' : image.prompt;
             details.createEl('p', { text: truncatedPrompt, cls: 'pixel-banner-store-prompt' });
-            const costText = img.cost === 0 ? 'FREE' : `🪙 ${img.cost} Banner Token`;
+            const costText = image.cost === 0 ? 'FREE' : `🪙 ${image.cost} Banner Token`;
             const costEl = details.createEl('p', { text: costText, cls: 'pixel-banner-store-cost' });
-            if (img.cost === 0) {
+            if (image.cost === 0) {
                 costEl.addClass('free');
             }
+
+            // Add click handler
+            card.addEventListener('click', async () => {
+                const cost = parseInt(card.getAttribute('data-image-cost'));
+                
+                if (cost > 0) {
+                    new ConfirmPurchaseModal(this.app, cost, image.base64Image, async () => {
+                        try {
+                            const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
+                                headers: {
+                                    'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                                    'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                                    'Accept': 'application/json'
+                                }
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Failed to fetch image');
+                            }
+
+                            const data = await response.json();
+                            let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
+                            filename = filename.replace(/\s+/g, '-').substring(0, 47);
+                            await handlePinIconClick(data.base64Image, this.plugin, null, filename);
+                            this.close();
+                            
+                        } catch (error) {
+                            console.error('Error fetching store image:', error);
+                        }
+                    }).open();
+                } else {
+                    try {
+                        const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
+                            headers: {
+                                'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                                'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch image');
+                        }
+
+                        const data = await response.json();
+                        let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
+                        filename = filename.replace(/\s+/g, '-').substring(0, 47);
+                        await handlePinIconClick(data.base64Image, this.plugin, null, filename);
+                        this.close();
+                        
+                    } catch (error) {
+                        console.error('Error fetching store image:', error);
+                    }
+                }
+            });
         });
     }
 
@@ -203,10 +266,17 @@ export class PixelBannerStoreModal extends Modal {
                 align-items: center;
                 padding: 12px 12px 7px 12px;
                 width: 224px;
+                transition: transform 0.2s ease;
+                cursor: pointer;
+                animation: pixel-banner--fade-in 1300ms ease-in-out;
+            }
+            .pixel-banner-store-image-card:hover {
+                transform: scale(1.05);
             }
 
             .pixel-banner-store-image-card img {
-                width: 200px;
+                max-width: 200px;
+                max-height: 200px;
                 object-fit: cover;
             }
 
@@ -257,6 +327,80 @@ export class PixelBannerStoreModal extends Modal {
 
     onClose() {
         this.contentEl.empty();
+        if (this.style) {
+            this.style.remove();
+        }
+    }
+}
+
+// Add this class inside the file but outside the PixelBannerStoreModal class
+class ConfirmPurchaseModal extends Modal {
+    constructor(app, cost, previewImage, onConfirm) {
+        super(app);
+        this.cost = cost;
+        this.previewImage = previewImage;
+        this.onConfirm = onConfirm;
+    }
+
+    onOpen() {
+        const {contentEl} = this;
+        contentEl.empty();
+        
+        // Add styles first
+        this.addStyle();
+        
+        contentEl.createEl('h2', { text: '🪙 Confirm Pixel Banner Purchase' });
+        
+        // Add preview image
+        const imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-confirm-image' });
+        imageContainer.createEl('img', {
+            attr: {
+                src: this.previewImage,
+                alt: 'Banner Preview'
+            }
+        });
+        
+        contentEl.createEl('p', {
+            text: `This banner costs 🪙 ${this.cost} Banner Token${this.cost > 1 ? 's' : ''} and will be deducted from your balance (this is not a monitary transaction). Once purchased, the banner will be added to your vault.`,
+            cls: 'pixel-banner-store-confirm-text'
+        });
+
+        new Setting(contentEl)
+            .addButton(btn => btn
+                .setButtonText('Cancel')
+                .onClick(() => this.close()))
+            .addButton(btn => btn
+                .setButtonText('🚩 Purchase Banner ')
+                .setCta()
+                .onClick(() => {
+                    this.close();
+                    this.onConfirm();
+                }));
+    }
+
+    // Add styles for the preview image
+    addStyle() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .pixel-banner-store-confirm-image {
+                display: flex;
+                justify-content: center;
+                margin: 40px 10px;
+            }
+            
+            .pixel-banner-store-confirm-image img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 4px;
+            }
+        `;
+        document.head.appendChild(style);
+        this.style = style;
+    }
+
+    onClose() {
+        const {contentEl} = this;
+        contentEl.empty();
         if (this.style) {
             this.style.remove();
         }

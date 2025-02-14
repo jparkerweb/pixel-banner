@@ -46,6 +46,7 @@ async function fetchImage(url) {
 // -- save image locally --
 // ------------------------
 async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
+    const format = detectImageFormat(arrayBuffer);
     const vault = plugin.app.vault;
     const defaultFolderPath = plugin.settings.pinnedImageFolder;
 
@@ -80,13 +81,13 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
 
     let baseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
     if (!baseName) baseName = 'banner';
-    if (!baseName.toLowerCase().endsWith('.png')) baseName += '.png';
+    if (!baseName.toLowerCase().endsWith(`.${format}`)) baseName += `.${format}`;
 
     let fileName = baseName;
     let counter = 1;
     while (await vault.adapter.exists(`${folderPath}/${fileName}`)) {
         const nameWithoutExt = baseName.slice(0, -4);
-        fileName = `${nameWithoutExt}-${counter}.png`;
+        fileName = `${nameWithoutExt}-${counter}.${format}`;
         counter++;
     }
 
@@ -100,7 +101,24 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
     };
 }
 
+// Add this helper function
+function detectImageFormat(arrayBuffer) {
+    const uint8arr = new Uint8Array(arrayBuffer);
+    const signatures = {
+        jpeg: [0xFF, 0xD8, 0xFF],
+        png: [0x89, 0x50, 0x4E, 0x47],
+        gif: [0x47, 0x49, 0x46, 0x38],
+        webp: [0x52, 0x49, 0x46, 0x46]
+    };
 
+    for (const [format, signature] of Object.entries(signatures)) {
+        if (signature.every((byte, i) => uint8arr[i] === byte)) {
+            return format === 'jpeg' ? 'jpg' : format;
+        }
+    }
+    
+    return 'jpg'; // Default fallback
+}
 
 // -------------------
 // -- hide pin icon --

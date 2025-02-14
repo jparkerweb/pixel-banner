@@ -225,6 +225,26 @@ Lists user's images from the vault to pick from, or to upload a new one.
 
 ---
 
+## `/src/modal/modals/pixelBannerStoreModal.js`
+**Class**: `PixelBannerStoreModal` (extends `Modal`)  
+Provides interface to browse and select banners from the Pixel Banner Plus store.
+
+**Key Methods**:
+1. **onOpen()**  
+   Renders the store interface with a category dropdown selector and prepares the image grid container.
+2. **loadCategoryImages()**  
+   Fetches images for the selected category from the API, showing a loading spinner during the request.
+3. **displayImages(images)**  
+   Renders the returned images in a responsive grid, showing prompts and token costs for each image.
+4. **addStyle()**  
+   Injects custom styling for the store modal layout and animations.
+5. **onClose()**  
+   Cleans up the modal content and styles.
+
+The modal uses the Pixel Banner Plus API endpoints to fetch categories and their associated images, displaying them in a responsive grid layout with cost information and truncated prompts.
+
+---
+
 ## `/src/modal/modals/imageViewModal.js`
 **Class**: `ImageViewModal`  
 Shows a single image at larger size in a centered modal.
@@ -369,4 +389,4 @@ Various helper scripts:
 
 (Implementation details for some of these are not shown in the opened files, but references exist throughout the plugin.)
 
---- 
+---

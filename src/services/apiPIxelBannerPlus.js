@@ -18,7 +18,7 @@ async function verifyPixelBannerPlusCredentials(plugin) {
         if (response.status === 200) {
             const data = response.json;
             return {
-                verified: true,
+                verified: data.success,
                 bannerTokens: data.banner_tokens
             };
         }

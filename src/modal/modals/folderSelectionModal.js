@@ -10,6 +10,9 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         this.defaultFolder = defaultFolder;
         this.onChoose = onChoose;
         
+        // Add class for custom styling
+        this.modalEl.addClass('pixel-banner-folder-select-modal');
+        
         const titleDiv = document.createElement("p");
         titleDiv.textContent = "Choose Folder to save Banner Image";
         titleDiv.style.padding = "0 20px";
@@ -18,6 +21,29 @@ export class FolderSelectionModal extends FuzzySuggestModal {
 
         // Set custom placeholder text
         this.setPlaceholder("Select or type folder path to save Banner Image");
+
+        // Add custom styles
+        this.addStyle();
+    }
+
+    addStyle() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .pixel-banner-folder-select-modal .prompt {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+            }
+        `;
+        document.head.appendChild(style);
+        this.style = style;
+    }
+
+    onClose() {
+        if (this.style) {
+            this.style.remove();
+        }
     }
 
     getItems() {
@@ -50,11 +76,5 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         inputEl.select();
         // Trigger the search to show matching results
         this.updateSuggestions();
-
-        // Set initial position of the modal
-        const modalEl = this.modalEl;
-        modalEl.style.position = 'absolute';
-        modalEl.style.left = `${modalEl.getBoundingClientRect().left}px`;
-        modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 }

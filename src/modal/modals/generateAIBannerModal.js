@@ -79,7 +79,7 @@ export class GenerateAIBannerModal extends Modal {
                 const img = imgWrapper.createEl('img', {
                     cls: 'pixel-banner-generated-image',
                     attr: {
-                        src: `data:image/png;base64,${response.json.image}`,
+                        src: `data:image/jpeg;base64,${response.json.image}`,
                         'imageId': response.json.imageId
                     }
                 });
@@ -91,7 +91,7 @@ export class GenerateAIBannerModal extends Modal {
                     text: 'Download and Use as Banner'
                 });
                 useAsButton.addEventListener('click', async () => {
-                    const imageUrl = `data:image/png;base64,${response.json.image}`;
+                    const imageUrl = `data:image/jpeg;base64,${response.json.image}`;
                     let filename = this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                     filename = filename.replace(/\s+/g, '-').substring(0, 47);
                     const didSave = await handlePinIconClick(imageUrl, this.plugin, null, filename);

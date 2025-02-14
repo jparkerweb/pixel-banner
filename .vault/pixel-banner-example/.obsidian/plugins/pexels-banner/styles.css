@@ -496,6 +496,10 @@
     top: unset !important;
 }
 
+.prompt.pixel-banner-folder-select-modal {
+    top: unset !important;
+}
+
 .pixel-banner-image-select-modal {
     top: unset !important;
     width: var(--dialog-max-width);

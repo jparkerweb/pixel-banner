@@ -1,12 +1,12 @@
 ---
-icon: "🎲"
-banner: "[[crazy-board-games.png]]"
-icon-x: 98
+icon: 🫑
+banner: "[[vibrant-and-intricate-peppers.png]]"
+icon-x: 79
 banner-x: 50
 banner-y: 50
-banner-display: cover
 banner-height: 350
+banner-display: cover
 content-start: 275
 ---
 
-# Crazy Board Games
+# Pepper Time...

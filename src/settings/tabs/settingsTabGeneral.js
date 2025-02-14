@@ -65,7 +65,8 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     const data = await plugin.verifyPixelBannerPlusCredentials();
                     if (data) {
-                        new Notice(`✅ Pixel Banner Plus connection successful\n🪙 Banner Tokens Remaining: ${data.banner_tokens}`);
+                        new Notice(`✅ Pixel Banner Plus connection successful\n🪙 Banner Tokens Remaining: ${data.bannerTokens}`);
+                        console.log(`data: ${JSON.stringify(data)}`);
                     } else {
                         new Notice('❌ Invalid credentials');
                         plugin.pixelBannerPlusEnabled = false;

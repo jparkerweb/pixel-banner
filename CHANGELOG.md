@@ -19,6 +19,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 #### 🐛 Fixed
 - Fixed issue with the "Directory" selection modal was displaying the suggested directory twice when saving a banner image
+- Resolved issue with cleaning up cached banner icons when loading notes without banner icons
 
 ### v2.21.2 - 2025-01-28
 #### 📦 Updated

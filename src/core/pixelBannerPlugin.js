@@ -694,6 +694,6 @@ export class PixelBannerPlugin extends Plugin {
         const result = await verifyPixelBannerPlusCredentials(this);
         this.pixelBannerPlusEnabled = result.verified;
         this.pixelBannerPlusBannerTokens = result.bannerTokens;
-        return result.verified;
+        return result;
     }
 }
