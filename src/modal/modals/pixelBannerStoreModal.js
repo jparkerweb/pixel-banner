@@ -14,18 +14,23 @@ export class PixelBannerStoreModal extends Modal {
         this.selectedCategory = null;
         this.imageContainer = null;
         this.loadingEl = null;
+        this.modalEl.addClass('pixel-banner-store-modal');
     }
 
     // ----------------
     // -- Open Modal --
     // ----------------
     async onOpen() {
-        this.modalEl.addClass('pixel-banner-store-modal');
-
         const { contentEl } = this;
         contentEl.empty();
         
-        contentEl.createEl('h2', { text: '🏪 Pixel Banner Plus Store' });
+        contentEl.createEl('h3', { text: '🏪 Pixel Banner Plus Store' });
+        contentEl.createEl('p', {
+            text: `Browse the Pixel Banner Plus Store to find the perfect banner for your needs. Banner Token prices are displayed on each card below (FREE or 1 Banner Token). Previous purchases will be listed as FREE.`,
+            attr: {
+                'style': 'font-size: 12px; color: var(--text-muted);'
+            }
+        });
         
         // Create select container
         const selectContainer = contentEl.createDiv({ cls: 'pixel-banner-store-select-container' });
@@ -34,7 +39,7 @@ export class PixelBannerStoreModal extends Modal {
         this.categorySelect = selectContainer.createEl('select', { 
             cls: 'pixel-banner-store-select',
         });
-        
+
         // Add default option
         const defaultOption = this.categorySelect.createEl('option', {
             text: 'Select a category...',
@@ -88,8 +93,32 @@ export class PixelBannerStoreModal extends Modal {
             });
         }
 
+        // add "Next Category" button
+        const nextCategoryButton = selectContainer.createEl('button', {
+            text: 'Next Category',
+            cls: 'pixel-banner-store-next-category'
+        });
+        // on click of next category button, load the next category
+        nextCategoryButton.addEventListener('click', async () => {
+            // debugger;
+            // if already at the last category, loop back to the first category
+            if (this.selectedCategoryIndex === this.categories.length) {
+                this.selectedCategoryIndex = 1;
+            } else {
+                this.selectedCategoryIndex++;
+            }
+            // if this.selectedCategoryIndex is undefined or NaN, set it to 0
+            if (isNaN(this.selectedCategoryIndex)) {
+                this.selectedCategoryIndex = 1;
+            }
+            // update select box with the new category  
+            this.categorySelect.selectedIndex = this.selectedCategoryIndex;
+            this.selectedCategory = this.categorySelect.value;
+            await this.loadCategoryImages();
+        });
+
         // Create container for images
-        this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid' });
+        this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -empty' });
 
         this.addStyle();
     }
@@ -139,6 +168,10 @@ export class PixelBannerStoreModal extends Modal {
     // -- Display Images --
     // --------------------
     displayImages(images) {
+        if (images.length > 0) {
+            this.imageContainer.removeClass('-empty');
+        }
+
         const container = this.imageContainer;
         container.empty();
         
@@ -161,7 +194,7 @@ export class PixelBannerStoreModal extends Modal {
             const details = card.createDiv({ cls: 'pixel-banner-store-image-details' });
             const truncatedPrompt = image.prompt.length > 85 ? image.prompt.slice(0, 85) + '...' : image.prompt;
             details.createEl('p', { text: truncatedPrompt, cls: 'pixel-banner-store-prompt' });
-            const costText = image.cost === 0 ? 'FREE' : `🪙 ${image.cost} Banner Token`;
+            const costText = image.cost === 0 ? 'FREE' : `🪙`;
             const costEl = details.createEl('p', { text: costText, cls: 'pixel-banner-store-cost' });
             if (image.cost === 0) {
                 costEl.addClass('free');
@@ -172,7 +205,7 @@ export class PixelBannerStoreModal extends Modal {
                 const cost = parseInt(card.getAttribute('data-image-cost'));
                 
                 if (cost > 0) {
-                    new ConfirmPurchaseModal(this.app, cost, image.base64Image, async () => {
+                    new ConfirmPurchaseModal(this.app, cost, image.prompt, image.base64Image, async () => {
                         try {
                             const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
                                 headers: {
@@ -231,15 +264,33 @@ export class PixelBannerStoreModal extends Modal {
                 top: unset !important;
                 width: var(--dialog-max-width);
                 max-width: 1100px;
+                animation: pixel-banner--fade-in 1300ms ease-in-out;
             }
 
             .pixel-banner-store-select-container {
-                padding: 16px;
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+                align-items: center;
+                justify-content: end;
             }
             
             .pixel-banner-store-select {
-                width: 100%;
+                width: max-content;
                 font-size: 14px;
+            }
+
+            .pixel-banner-store-next-category {
+                font-size: 14px;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                background-color: var(--interactive-accent) !important;
+                color: var(--text-on-accent) !important;
+                border: none;
+            }
+            .pixel-banner-store-next-category:hover {
+                background-color: var(--interactive-accent-hover) !important;
             }
             
             .pixel-banner-store-error {
@@ -250,11 +301,27 @@ export class PixelBannerStoreModal extends Modal {
             .pixel-banner-store-image-grid {
                 gap: 16px;
                 padding: 16px;
+                margin-top: 20px;
                 display: flex;
                 flex-direction: row;
                 flex-wrap: wrap;
                 align-items: normal;
                 justify-content: center;
+                height: 800px;
+                max-height: 60vh;
+                overflow-y: auto;
+                border: 1px solid var(--table-border-color);
+            }
+            .pixel-banner-store-image-grid.-empty::after {
+                content: "Select an option, or click the Next Category button to cycle through them.";
+                position: relative;
+                top: 40%;
+                max-width: 380px;
+                font-size: 1.3em;
+                color: var(--text-muted);
+                max-height: 80px;
+                text-align: center;
+                opacity: 0.7;
             }
 
             .pixel-banner-store-image-card {
@@ -268,6 +335,7 @@ export class PixelBannerStoreModal extends Modal {
                 width: 224px;
                 transition: transform 0.2s ease;
                 cursor: pointer;
+                height: max-content;
                 animation: pixel-banner--fade-in 1300ms ease-in-out;
             }
             .pixel-banner-store-image-card:hover {
@@ -281,7 +349,10 @@ export class PixelBannerStoreModal extends Modal {
             }
 
             .pixel-banner-store-image-details {
-                padding: 8px;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 8px 0;
                 width: 100%;
             }
 
@@ -294,11 +365,15 @@ export class PixelBannerStoreModal extends Modal {
 
             .pixel-banner-store-cost {
                 font-size: 12px;
-                color: var(--text-muted);
+                color: var(--text-accent);
                 margin: 0;
+                text-align: right;
+                white-space: nowrap;
+                margin-left: 5px;
             }
             .pixel-banner-store-cost.free {
                 color: var(--text-success);
+                font-weight: bold;
             }
 
             .pixel-banner-store-loading {
@@ -335,9 +410,10 @@ export class PixelBannerStoreModal extends Modal {
 
 // Add this class inside the file but outside the PixelBannerStoreModal class
 class ConfirmPurchaseModal extends Modal {
-    constructor(app, cost, previewImage, onConfirm) {
+    constructor(app, cost, prompt, previewImage, onConfirm) {
         super(app);
         this.cost = cost;
+        this.prompt = prompt;
         this.previewImage = previewImage;
         this.onConfirm = onConfirm;
     }
@@ -349,7 +425,12 @@ class ConfirmPurchaseModal extends Modal {
         // Add styles first
         this.addStyle();
         
-        contentEl.createEl('h2', { text: '🪙 Confirm Pixel Banner Purchase' });
+        contentEl.createEl('h3', {
+            text: '🚩 Confirm Pixel Banner Purchase',
+            attr: {
+                'style': 'margin-top:0;'
+            }
+        });
         
         // Add preview image
         const imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-confirm-image' });
@@ -359,18 +440,31 @@ class ConfirmPurchaseModal extends Modal {
                 alt: 'Banner Preview'
             }
         });
-        
+
         contentEl.createEl('p', {
-            text: `This banner costs 🪙 ${this.cost} Banner Token${this.cost > 1 ? 's' : ''} and will be deducted from your balance (this is not a monitary transaction). Once purchased, the banner will be added to your vault.`,
-            cls: 'pixel-banner-store-confirm-text'
+            text: `${this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim()}`,
+            cls: 'pixel-banner-store-confirm-prompt',
+            attr: {
+                'style': `
+                    font-size: 12px;
+                    color: var(--text-muted);
+                    margin-top: -30px;
+                    margin-bottom: 30px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    max-width: 450px;
+                    text-align: center;
+                `
+            }
         });
 
         new Setting(contentEl)
+            .setDesc(`🪙 ${this.cost} Banner Token${this.cost > 1 ? 's' : ''} (this is not a monitary transaction). Once purchased, the banner will be added to your vault.`)
             .addButton(btn => btn
                 .setButtonText('Cancel')
                 .onClick(() => this.close()))
             .addButton(btn => btn
-                .setButtonText('🚩 Purchase Banner ')
+                .setButtonText('🎉 Purchase Banner ')
                 .setCta()
                 .onClick(() => {
                     this.close();
