@@ -7,6 +7,8 @@ export const PIXEL_BANNER_PLUS = {
         GENERATE_BANNER_IDEA: 'generate-banner-idea',
         GENERATE_BANNER_IDEA_FROM_SEED: 'generate-banner-idea-from-seed',
         HISTORY: 'history',
+        HISTORY_COUNT: 'history/count',
+        HISTORY_PAGE: 'history/page',
         STORE_CATEGORIES: 'store-categories',
         STORE_CATEGORY_IMAGES: 'store-category-images',
         STORE_IMAGE_BY_ID: 'store-image-by-id'

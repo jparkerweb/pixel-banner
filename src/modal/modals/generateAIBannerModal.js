@@ -16,6 +16,61 @@ export class GenerateAIBannerModal extends Modal {
         this.imageContainer = null;
         this.modalEl.addClass('pixel-banner-ai-modal');
         this.downloadHistory = new DownloadHistory();
+        
+        // Add pagination state
+        this.currentPage = 1;
+        this.totalPages = 1;
+        this.itemsPerPage = 10;
+        this.totalItems = 0;
+
+        // Add styles to document
+        this.addStyles();
+    }
+
+    addStyles() {
+        const styleEl = document.createElement('style');
+        styleEl.textContent = `
+            .ai-banner-pagination {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+
+            .ai-banner-pagination button {
+                padding: 4px 8px;
+                border-radius: 4px;
+            }
+
+            .ai-banner-pagination button.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .ai-banner-pagination span {
+                color: var(--text-muted);
+                font-size: 0.9em;
+            }
+
+            .pixel-banner-history-container {
+                transition: min-height 0.3s ease-out;
+            }
+
+            .pixel-banner-history-container.loading {
+                opacity: 0.7;
+                position: relative;
+            }
+
+            .pixel-banner-history-container .pixel-banner-loading {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        `;
+        document.head.appendChild(styleEl);
+        this.styleEl = styleEl;
     }
 
     async generateImage() {
@@ -256,59 +311,28 @@ export class GenerateAIBannerModal extends Modal {
 
         // History container
         contentEl.createEl('h5', {
-            text: 'Recently Generated',
+            text: '⏳ Previous AI Generated Banners',
             attr: {
                 'style': 'margin-bottom: -20px;'
             }
         });
+        // History Contianer Description
+        contentEl.createEl('p', {
+            text: 'Click an image to download and use as a banner. These downloads are always FREE as you have already paid to generate them.',
+            cls: 'pixel-banner-history-description',
+            attr: {
+                'style': 'font-size: 12px; color: var(--text-muted); padding-top: 10px; margin-bottom: -10px;'
+            }
+        });
+
+
         const historyContainer = contentEl.createDiv({ cls: 'pixel-banner-history-container' });
         
-        try {
-            const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + '?limit=10';
-            
-            const response = await requestUrl({
-                url: historyUrl,
-                method: 'GET',
-                headers: {
-                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
-                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (response.status === 200 && response.json.images) {
-                response.json.images.forEach(imageData => {
-                    const imgWrapper = historyContainer.createDiv({ cls: 'pixel-banner-history-image-wrapper' });
-                    const img = imgWrapper.createEl('img', {
-                        cls: 'pixel-banner-history-image',
-                        attr: {
-                            src: imageData.base64Image,
-                            'imageId': imageData.imageId,
-                            'filename': imageData.prompt.trim().substr(0, 47).replace(/\s/g, '-').toLowerCase(),
-                        }
-                    });
-
-                    // Add prompt as tooltip
-                    imgWrapper.setAttribute('aria-label', imageData.prompt);
-                    imgWrapper.addClass('has-tooltip');
-
-                    // Add click handler to use this image
-                    imgWrapper.addEventListener('click', async () => {
-                        const shouldDownload = await this.checkDownloadHistory(img);
-                        if (!shouldDownload) return;
-                        
-                        const filename = img.getAttribute('filename');
-                        await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
-                        this.downloadHistory.addImage(img.getAttribute('imageid'));
-                        this.close();
-                    });
-                });
-            }
-        } catch (error) {
-            console.error('Failed to fetch history:', error);
-            const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });
-            errorDiv.setText('Failed to load history. Please try again later.');
-        }
+        // Add pagination container after history container
+        const paginationContainer = contentEl.createDiv({ cls: 'ai-banner-pagination' });
+        
+        // Initial load of history with pagination
+        await this.refreshHistoryContainer();
     }
 
     async getPromptInspiration() {
@@ -400,7 +424,40 @@ export class GenerateAIBannerModal extends Modal {
         historyContainer.empty();
         
         try {
-            const historyUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY, PIXEL_BANNER_PLUS.API_URL).toString() + '?limit=10';
+            // Fetch total count first
+            const countUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY_COUNT, PIXEL_BANNER_PLUS.API_URL).toString();
+            console.log('Fetching count from:', countUrl);
+            
+            const countResponse = await requestUrl({
+                url: countUrl,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Accept': 'application/json'
+                }
+            });
+
+            console.log('Count response:', countResponse);
+            
+            // Parse the response data
+            const countData = JSON.parse(new TextDecoder().decode(countResponse.arrayBuffer));
+            console.log('Parsed count data:', countData);
+
+            if (countResponse.status === 200 && countData.count !== undefined) {
+                this.totalItems = countData.count;
+                this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+                console.log('Pagination state:', {
+                    totalItems: this.totalItems,
+                    itemsPerPage: this.itemsPerPage,
+                    totalPages: this.totalPages,
+                    currentPage: this.currentPage
+                });
+            }
+
+            // Fetch paginated history
+            const historyUrl = new URL(`${PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY_PAGE}/${this.currentPage}?limit=${this.itemsPerPage}`, PIXEL_BANNER_PLUS.API_URL).toString();
+            console.log('Fetching page from:', historyUrl);
             
             const response = await requestUrl({
                 url: historyUrl,
@@ -411,6 +468,8 @@ export class GenerateAIBannerModal extends Modal {
                     'Accept': 'application/json'
                 }
             });
+
+            console.log('Page response:', response);
 
             if (response.status === 200 && response.json.images) {
                 response.json.images.forEach(imageData => {
@@ -424,9 +483,82 @@ export class GenerateAIBannerModal extends Modal {
                         }
                     });
 
+                    // Add prompt as tooltip
                     imgWrapper.setAttribute('aria-label', imageData.prompt);
                     imgWrapper.addClass('has-tooltip');
 
+                    // Add click handler to use this image
+                    imgWrapper.addEventListener('click', async () => {
+                        const shouldDownload = await this.checkDownloadHistory(img);
+                        if (!shouldDownload) return;
+                        
+                        const filename = img.getAttribute('filename');
+                        await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+                        this.downloadHistory.addImage(img.getAttribute('imageid'));
+                        this.close();
+                    });
+                });
+
+                // Update pagination UI
+                this.updatePaginationUI();
+            }
+        } catch (error) {
+            console.error('Failed to fetch history:', error);
+            const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });
+            errorDiv.setText('Failed to load history. Please try again later.');
+        }
+    }
+
+    async updateHistoryContent() {
+        const historyContainer = this.contentEl.querySelector('.pixel-banner-history-container');
+        if (!historyContainer) return;
+
+        // Store scroll position and container height
+        const scrollPos = this.contentEl.scrollTop;
+        const containerHeight = historyContainer.offsetHeight;
+        
+        // Set minimum height during loading to prevent jumping
+        historyContainer.style.minHeight = `${containerHeight}px`;
+        
+        // Add loading state
+        historyContainer.addClass('loading');
+        historyContainer.empty();
+        
+        // Add loading indicator
+        const loadingDiv = historyContainer.createDiv({ cls: 'pixel-banner-loading' });
+        loadingDiv.createDiv({ cls: 'dot-pulse' });
+        
+        try {
+            const historyUrl = new URL(`${PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY_PAGE}/${this.currentPage}?limit=${this.itemsPerPage}`, PIXEL_BANNER_PLUS.API_URL).toString();
+            
+            const response = await requestUrl({
+                url: historyUrl,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.status === 200 && response.json.images) {
+                historyContainer.empty();
+                response.json.images.forEach(imageData => {
+                    const imgWrapper = historyContainer.createDiv({ cls: 'pixel-banner-history-image-wrapper' });
+                    const img = imgWrapper.createEl('img', {
+                        cls: 'pixel-banner-history-image',
+                        attr: {
+                            src: imageData.base64Image,
+                            'imageId': imageData.imageId,
+                            'filename': imageData.prompt.trim().substr(0, 47).replace(/\s/g, '-').toLowerCase(),
+                        }
+                    });
+
+                    // Add prompt as tooltip
+                    imgWrapper.setAttribute('aria-label', imageData.prompt);
+                    imgWrapper.addClass('has-tooltip');
+
+                    // Add click handler to use this image
                     imgWrapper.addEventListener('click', async () => {
                         const shouldDownload = await this.checkDownloadHistory(img);
                         if (!shouldDownload) return;
@@ -438,15 +570,108 @@ export class GenerateAIBannerModal extends Modal {
                     });
                 });
             }
+            
+            // Update pagination UI without scrolling
+            this.updatePaginationUI();
+            
+            // Restore scroll position
+            this.contentEl.scrollTop = scrollPos;
         } catch (error) {
             console.error('Failed to fetch history:', error);
             const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });
             errorDiv.setText('Failed to load history. Please try again later.');
+        } finally {
+            // Remove loading state and min-height after images are loaded
+            historyContainer.removeClass('loading');
+            // Use a small delay to ensure smooth transition
+            setTimeout(() => {
+                historyContainer.style.minHeight = '';
+            }, 300);
         }
+    }
+
+    updatePaginationUI() {
+        let paginationContainer = this.contentEl.querySelector('.ai-banner-pagination');
+        if (!paginationContainer) {
+            paginationContainer = this.contentEl.createDiv({ cls: 'ai-banner-pagination' });
+        }
+        paginationContainer.empty();
+
+        // First page button
+        const firstButton = paginationContainer.createEl('button', {
+            text: '«'
+        });
+        firstButton.disabled = this.currentPage <= 1;
+        if (firstButton.disabled) {
+            firstButton.addClass('disabled');
+        }
+
+        // Previous page button
+        const prevButton = paginationContainer.createEl('button', {
+            text: '‹'
+        });
+        prevButton.disabled = this.currentPage <= 1;
+        if (prevButton.disabled) {
+            prevButton.addClass('disabled');
+        }
+        
+        const pageInfo = paginationContainer.createSpan({
+            text: `Page ${this.currentPage} of ${this.totalPages}`
+        });
+        
+        // Next page button
+        const nextButton = paginationContainer.createEl('button', {
+            text: '›'
+        });
+        nextButton.disabled = this.currentPage >= this.totalPages;
+        if (nextButton.disabled) {
+            nextButton.addClass('disabled');
+        }
+
+        // Last page button
+        const lastButton = paginationContainer.createEl('button', {
+            text: '»'
+        });
+        lastButton.disabled = this.currentPage >= this.totalPages;
+        if (lastButton.disabled) {
+            lastButton.addClass('disabled');
+        }
+
+        firstButton.addEventListener('click', async (e) => {
+            if (this.currentPage > 1) {
+                this.currentPage = 1;
+                await this.updateHistoryContent();
+            }
+        });
+
+        prevButton.addEventListener('click', async (e) => {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                await this.updateHistoryContent();
+            }
+        });
+
+        nextButton.addEventListener('click', async (e) => {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage++;
+                await this.updateHistoryContent();
+            }
+        });
+
+        lastButton.addEventListener('click', async (e) => {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage = this.totalPages;
+                await this.updateHistoryContent();
+            }
+        });
     }
 
     onClose() {
         const { contentEl } = this;
         contentEl.empty();
+        // Remove styles when modal closes
+        if (this.styleEl) {
+            this.styleEl.remove();
+        }
     }
 }

@@ -202,7 +202,11 @@ Provides an interface to call "Pixel Banner Plus" AI to generate a banner image.
    Calls an endpoint for random or seed-based new prompt suggestions.  
 5. **refreshHistoryContainer()**  
    Reloads the recent images from the service.  
-6. **onClose()**  
+6. **updateHistoryContent()**  
+   Updates the history container with images using pagination.  
+7. **updatePaginationUI()**  
+   Updates the pagination UI with buttons for navigating through the history.  
+8. **onClose()**  
    Clears the modal content.
 
 ---
@@ -282,8 +286,8 @@ Helps visually set or tweak the X/Y offsets for the banner and icon.
 **Key Methods**:
 1. **updateDisplayMode(mode, zoom?)**  
    Updates frontmatter for display type (cover, contain, or custom zoom).  
-2. **updateBannerHeight(height)**, **updateBannerContentStartPosition(pos)**, **updateBannerIconXPosition(pos)**  
-   Tweaks frontmatter for banner dimensions and icon offset.  
+2. **updateBannerHeight(height)**, **updateBannerContentStartPosition(pos)**, **updateBannerIconXPosition(pos)**, **updateRepeatMode(repeat)**  
+   Tweaks frontmatter for banner dimensions, display and icon offset.  
 3. **onOpen()**  
    Draws a draggable or clickable target box to set X/Y.  
 4. **addStyle()**  

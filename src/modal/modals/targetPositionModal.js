@@ -51,6 +51,12 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customBannerIconXPositionField;
         this.currentBannerIconXPosition = frontmatter?.[bannerIconXPositionField] || this.plugin.settings.bannerIconXPosition;
 
+        // Add repeat field initialization
+        const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
+            ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
+            : this.plugin.settings.customImageRepeatField;
+        this.currentRepeat = frontmatter?.[repeatField] ?? false;
+
         // Parse current display value for zoom percentage
         this.currentZoom = 100;
         if (this.currentDisplay && this.currentDisplay.endsWith('%')) {
@@ -114,6 +120,19 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
             frontmatter[bannerIconXPositionField] = position;
+        });
+    }
+
+    updateRepeatMode(repeat) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
+            ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
+            : this.plugin.settings.customImageRepeatField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+            fm[repeatField] = repeat;
         });
     }
 
@@ -457,6 +476,7 @@ export class TargetPositionModal extends Modal {
             // Reset display mode
             displaySelect.value = 'cover';
             zoomContainer.style.display = 'none';
+            repeatContainer.style.display = 'none';
             this.currentDisplay = 'cover';
             this.updateDisplayMode('cover', null);
 
@@ -483,6 +503,11 @@ export class TargetPositionModal extends Modal {
             bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}px`);
             this.updateBannerIconXPosition(this.currentBannerIconXPosition);
 
+            // Reset repeat
+            this.currentRepeat = false;
+            toggleInput.checked = false;
+            this.updateRepeatMode(false);
+
             // Reset position
             this.currentX = 50;
             this.currentY = 50;
@@ -502,6 +527,52 @@ export class TargetPositionModal extends Modal {
                 frontmatter[xField] = this.currentX;
                 frontmatter[yField] = this.currentY;
             });
+        });
+
+        // Create repeat toggle container (initially hidden)
+        const repeatContainer = controlPanel.createDiv({ cls: 'repeat-container' });
+        repeatContainer.style.display = this.currentDisplay === 'contain' ? 'flex' : 'none';
+        repeatContainer.style.flexDirection = 'column';
+        repeatContainer.style.gap = '5px';
+        repeatContainer.style.alignItems = 'center';
+        repeatContainer.style.justifyContent = 'flex-start';
+        repeatContainer.style.marginTop = '10px';
+        repeatContainer.style.maxWidth = '70px';
+        repeatContainer.style.textAlign = 'center';
+
+        // Repeat label
+        const repeatLabel = repeatContainer.createEl('div', { 
+            text: 'repeat banner image?',
+            cls: 'repeat-label'
+        });
+        repeatLabel.style.color = 'var(--text-muted)';
+        repeatLabel.style.fontSize = '0.9em';
+        repeatLabel.style.marginBottom = '20px';
+
+        // Repeat toggle
+        const repeatToggle = repeatContainer.createEl('div', { cls: 'repeat-toggle' });
+        repeatToggle.style.marginTop = '10px';
+
+        const toggleInput = repeatToggle.createEl('input', {
+            type: 'checkbox',
+            cls: 'repeat-checkbox',
+            attr: {
+                checked: this.currentRepeat
+            }
+        });
+
+        // Update display select event handler
+        displaySelect.addEventListener('change', () => {
+            const mode = displaySelect.value;
+            zoomContainer.style.display = mode === 'cover-zoom' ? 'flex' : 'none';
+            repeatContainer.style.display = mode === 'contain' ? 'flex' : 'none';
+            this.updateDisplayMode(mode, mode === 'cover-zoom' ? this.currentZoom : null);
+        });
+
+        // Add repeat toggle event handler
+        toggleInput.addEventListener('change', () => {
+            this.currentRepeat = toggleInput.checked;
+            this.updateRepeatMode(this.currentRepeat);
         });
 
         // Add drag-and-drop functionality
@@ -561,6 +632,16 @@ export class TargetPositionModal extends Modal {
                 text-align: center;
                 margin-top: 10px;
                 font-family: var(--font-monospace);
+            }
+            .target-position-modal .repeat-container {
+                min-height: 120px;
+                display: flex;
+                justify-content: center;
+            }
+            
+            .target-position-modal .repeat-checkbox {
+                transform: scale(1.2);
+                cursor: pointer;
             }
         `;
         document.head.appendChild(style);

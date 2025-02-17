@@ -648,10 +648,11 @@
 }
 
 .pixel-banner-generated-image {
-    width: 100%;
+    width: auto;
     height: auto;
     display: block;
     animation: pixel-banner--fade-in 1300ms ease-in-out;
+    margin: 0 auto;
 }
 
 .pixel-banner-image-controls {
