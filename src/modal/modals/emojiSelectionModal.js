@@ -33,7 +33,7 @@ export class EmojiSelectionModal extends Modal {
         // Title
         contentEl.createEl('h3', {
             text: 'Set Banner Icon',
-            cls: 'banner-icon-title'
+            cls: 'banner-icon-title margin-top-0'
         });
 
         // Create banner icon input container

@@ -1,5 +1,5 @@
 import { Modal } from 'obsidian';
-import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal } from '../modals';
+import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal, EmojiSelectionModal, TargetPositionModal } from '../modals';
 
 export class SelectPixelBannerModal extends Modal {
     constructor(app, plugin) {
@@ -57,6 +57,39 @@ export class SelectPixelBannerModal extends Modal {
             this.close();
             new PixelBannerStoreModal(this.app, this.plugin).open();
         });
+
+        // Banner Icon Button
+        const bannerIconButton = buttonContainer.createEl('button', {
+            text: '⭐ Select a Banner Icon',
+            cls: 'pixel-banner-select-button'
+        });
+        bannerIconButton.addEventListener('click', () => {
+            this.close();
+            new EmojiSelectionModal(
+                this.app, 
+                this.plugin,
+                async (emoji) => {
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (activeFile) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                            const iconField = this.plugin.settings.customBannerIconField[0];
+                            frontmatter[iconField] = emoji;
+                        });
+                    }
+                }
+            ).open();
+        });
+
+        // Targeting Icon Button
+        const targetingIconButton = buttonContainer.createEl('button', {
+            text: '🎯 Define the Position and Size of the Banner and Banner Icon',
+            cls: 'pixel-banner-select-button'
+        });
+        targetingIconButton.addEventListener('click', () => {
+            this.close();
+            new TargetPositionModal(this.app, this.plugin).open();
+        });
+        
 
         // Add styles
         this.addStyle();

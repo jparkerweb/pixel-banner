@@ -60,22 +60,11 @@ async function addPixelBanner(plugin, el, ctx) {
 
     // 2) Remove existing icons (to avoid stacking or flicker)
     const oldViewIcons = container.querySelectorAll('.view-image-icon');
-    const oldTargetIcons = container.querySelectorAll('.target-btn');
     const oldPinIcons = container.querySelectorAll('.pin-icon');
     const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
     const oldSelectIcons = container.querySelectorAll('.select-image-icon');
-    const oldBannerIconButtons = container.querySelectorAll('.set-banner-icon-button');
 
-    // console.log("Cleaning up old icons:", {
-    //     viewIcons: oldViewIcons.length,
-    //     targetIcons: oldTargetIcons.length,
-    //     pinIcons: oldPinIcons.length,
-    //     refreshIcons: oldRefreshIcons.length,
-    //     selectIcons: oldSelectIcons.length,
-    //     bannerIconButtons: oldBannerIconButtons.length
-    // });
-
-    [...oldViewIcons, ...oldTargetIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons].forEach(el => el.remove());
+    [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach(el => el.remove());
 
     // 3) If embedded, just update the embedded banners' visibility and skip icon creation
     if (isEmbedded) {
@@ -100,23 +89,6 @@ async function addPixelBanner(plugin, el, ctx) {
             selectImageIcon.onclick = () => plugin.handleBannerIconClick();
             container.appendChild(selectImageIcon);
             leftOffset += 35;
-
-            // console.log("bannerImage value:", bannerImage);
-            // Only show banner icon button if a banner exists
-            if (bannerImage) {
-                const setBannerIconButton = createDiv({ cls: 'set-banner-icon-button' });
-                setBannerIconButton.style.position = 'absolute';
-                setBannerIconButton.style.top = '10px';
-                setBannerIconButton.style.left = `${leftOffset}px`;
-                setBannerIconButton.style.fontSize = '1.5em';
-                setBannerIconButton.style.cursor = 'pointer';
-                setBannerIconButton.innerHTML = '⭐';
-                setBannerIconButton._isPersistentSetBannerIcon = true;
-
-                setBannerIconButton.onclick = () => plugin.handleSetBannerIcon();
-                container.appendChild(setBannerIconButton);
-                leftOffset += 35;
-            }
         }
 
         // "View image" icon
@@ -147,55 +119,6 @@ async function addPixelBanner(plugin, el, ctx) {
 
         const activeFile = plugin.app.workspace.getActiveFile();
         const hasBanner = activeFile && plugin.hasBannerFrontmatter(activeFile);
-
-        // "Target position" icon
-        if (bannerImage && plugin.settings.showSetTargetXYPosition && !isEmbedded && hasBanner) {
-            const targetBtn = createDiv({ cls: 'target-btn' });
-            targetBtn.style.position = 'absolute';
-            targetBtn.style.top = '10px';
-            targetBtn.style.left = `${leftOffset}px`;
-            targetBtn.style.fontSize = '1.5em';
-            targetBtn.style.cursor = 'pointer';
-            targetBtn._isPersistentTarget = true;
-            targetBtn.innerHTML = '🎯';
-
-            // Capture bannerImage in closure
-            const currentBannerImage = bannerImage;
-
-            targetBtn.onclick = () => {
-                new TargetPositionModal(
-                    plugin.app,
-                    plugin,
-                    (x, y) => {
-
-                        const activeFile = plugin.app.workspace.getActiveFile();
-                        if (activeFile) {
-                            const frontmatter = plugin.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-                            if (frontmatter) {
-                                const xFields = Array.isArray(plugin.settings.customXPositionField) 
-                                    ? plugin.settings.customXPositionField[0].split(',')[0].trim()
-                                    : plugin.settings.customXPositionField;
-                                const yFields = Array.isArray(plugin.settings.customYPositionField)
-                                    ? plugin.settings.customYPositionField[0].split(',')[0].trim()
-                                    : plugin.settings.customYPositionField;
-
-                                plugin.app.fileManager.processFrontMatter(activeFile, (fm) => {
-                                    fm[xFields] = x;
-                                    fm[yFields] = y;
-                                });
-
-                                if (currentBannerImage && currentBannerImage.style) {
-                                    currentBannerImage.style.objectPosition = `${x}% ${y}%`;
-                                }
-                            }
-                        }
-                    }).open();
-            };
-
-            container._targetBtn = targetBtn;
-            container.appendChild(targetBtn);
-            leftOffset += 35;
-        }
     }
 
     // 4) Override setChildrenInPlace to preserve persistent elements
@@ -205,22 +128,18 @@ async function addPixelBanner(plugin, el, ctx) {
             // Get all persistent elements
             const bannerElement = this.querySelector(':scope > .pixel-banner-image');
             const viewImageElement = this.querySelector(':scope > .view-image-icon');
-            const targetElement = this.querySelector(':scope > .target-btn');
             const pinElement = this.querySelector(':scope > .pin-icon');
             const refreshElement = this.querySelector(':scope > .refresh-icon');
             const selectImageElement = this.querySelector(':scope > .select-image-icon');
-            const setBannerIconEl = this.querySelector(':scope > .set-banner-icon-button');
             const bannerIconOverlay = this.querySelector(':scope > .banner-icon-overlay');
 
             // Filter out old duplicates
             children = Array.from(children).filter(child => 
                 !child.classList?.contains('pixel-banner-image') &&
                 !child.classList?.contains('view-image-icon') &&
-                !child.classList?.contains('target-btn') &&
                 !child.classList?.contains('pin-icon') &&
                 !child.classList?.contains('refresh-icon') &&
                 !child.classList?.contains('select-image-icon') &&
-                !child.classList?.contains('set-banner-icon-button') &&
                 !child.classList?.contains('banner-icon-overlay')
             );
 
@@ -234,14 +153,8 @@ async function addPixelBanner(plugin, el, ctx) {
             if (selectImageElement?._isPersistentSelectImage) {
                 children.push(selectImageElement);
             }
-            if (setBannerIconEl?._isPersistentSetBannerIcon) {
-                children.push(setBannerIconEl);
-            }
             if (viewImageElement?._isPersistentViewImage) {
                 children.push(viewImageElement);
-            }
-            if (targetElement?._isPersistentTarget) {
-                children.push(targetElement);
             }
             if (pinElement?._isPersistentPin) {
                 children.push(pinElement);
@@ -353,7 +266,7 @@ async function addPixelBanner(plugin, el, ctx) {
                 let leftOffset = plugin.settings.bannerGap + 5;
                 // We already created select & view icons above; find their last offset
                 // Actually simpler: Just pick a container query for them & measure
-                const iconEls = container.querySelectorAll('.select-image-icon, .set-banner-icon-button, .view-image-icon, .target-btn');
+                const iconEls = container.querySelectorAll('.select-image-icon, .view-image-icon');
                 if (iconEls?.length) {
                     leftOffset = 10 + (35 * iconEls.length) + plugin.settings.bannerGap;
                 }
@@ -666,10 +579,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         const oldPinIcons = container.querySelectorAll('.pin-icon');
         const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
         const oldSelectIcons = container.querySelectorAll('.select-image-icon');
-        const oldBannerIconButtons = container.querySelectorAll('.set-banner-icon-button');
-        const oldTargetBtns = container.querySelectorAll('.target-btn');
 
-        [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons, ...oldBannerIconButtons, ...oldTargetBtns].forEach(el => el.remove());
+        [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach(el => el.remove());
 
         // Only add select image icon if not embedded
         if (!isEmbedded && plugin.settings.showSelectImageIcon && container) {
