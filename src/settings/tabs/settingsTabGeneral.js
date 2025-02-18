@@ -600,32 +600,6 @@ export function createGeneralSettings(containerEl, plugin) {
                 
                 plugin.updateAllBanners();
             }));
-
-    // Add the showSetTargetXYPosition setting
-    const showSetTargetXYPositionSetting = new Setting(containerEl)
-        .setName('Show Targeting Modal Icon')
-        .setDesc('Show an icon to open the targeting modal to set the banner and icon positions')
-        .addToggle(toggle => toggle
-            .setValue(plugin.settings.showSetTargetXYPosition)
-            .onChange(async (value) => {
-                plugin.settings.showSetTargetXYPosition = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-            }))
-        .addExtraButton(button => button
-            .setIcon('reset')
-            .setTooltip('Reset to default')
-            .onClick(async () => {
-                plugin.settings.showSetTargetXYPosition = DEFAULT_SETTINGS.showSetTargetXYPosition;
-                await plugin.saveSettings();
-                
-                const toggleComponent = showSetTargetXYPositionSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.showSetTargetXYPosition);
-                }
-                
-                plugin.updateAllBanners();
-            }));
     
     // Create a group for the hide settings
     const hideSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });

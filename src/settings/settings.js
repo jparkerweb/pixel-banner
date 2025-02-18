@@ -55,7 +55,6 @@ const DEFAULT_SETTINGS = {
     lastVersion: null,
     showRefreshIcon: true,
     showViewImageIcon: false,
-    showSetTargetXYPosition: true,
     hidePixelBannerFields: false,
     hidePropertiesSectionIfOnlyBanner: false,
     titleColor: 'var(--inline-title-color)',

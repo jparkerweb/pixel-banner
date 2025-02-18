@@ -788,8 +788,6 @@
 
 
 .select-image-icon,
-.set-banner-icon-button,
-.target-btn,
 .pin-icon,
 .refresh-icon,
 .view-image-icon {
@@ -800,8 +798,6 @@
     width: unset !important;
 }
 .select-image-icon:hover,
-.set-banner-icon-button:hover,
-.target-btn:hover,
 .pin-icon:hover,
 .refresh-icon:hover,
 .view-image-icon:hover {
