@@ -1,5 +1,5 @@
 import { Modal } from "obsidian";
-import { emojiList, emojiDescriptions } from `../../resources/emojis.js`;
+import { emojiData } from "../../resources/emojis.js";
 
 
 // ---------------------------
@@ -11,9 +11,6 @@ export class EmojiSelectionModal extends Modal {
         this.plugin = plugin;
         this.onChoose = onChoose;
         this.searchQuery = '';
-        this.currentPage = 1;
-        this.emojisPerPage = 100;
-        this.emojis = emojiList;
     }
 
     onOpen() {
@@ -100,36 +97,23 @@ export class EmojiSelectionModal extends Modal {
     updateEmojiGrid() {
         this.gridContainer.empty();
 
-        this.emojis.forEach(category => {
-            const filteredEmojis = category.emojis.filter(emoji => {
-                if (!this.searchQuery) return true;
-                const emojiDescription = this.getEmojiDescription(emoji);
-                // Only search the description text
-                return emojiDescription.includes(this.searchQuery.toLowerCase());
+        const filteredEmojis = emojiData.filter(({ emoji, keywords }) => {
+            if (!this.searchQuery) return true;
+            return keywords.toLowerCase().includes(this.searchQuery);
+        });
+
+        filteredEmojis.forEach(({ emoji }) => {
+            const emojiButton = this.gridContainer.createEl('button', {
+                text: emoji,
+                cls: 'emoji-button',
+                attr: {
+                    'aria-label': this.getEmojiDescription(emoji)
+                }
             });
 
-            if (filteredEmojis.length > 0) {
-                // Create category section
-                const categorySection = this.gridContainer.createDiv({ cls: 'emoji-category-section' });
-                categorySection.createEl('h3', { text: category.category, cls: 'emoji-category-title' });
-
-                // Create emoji grid for this category
-                const emojiGrid = categorySection.createDiv({ cls: 'emoji-grid' });
-
-                filteredEmojis.forEach(emoji => {
-                    const emojiButton = emojiGrid.createEl('button', {
-                        text: emoji,
-                        cls: 'emoji-button',
-                        attr: {
-                            'aria-label': this.getEmojiDescription(emoji)
-                        }
-                    });
-
-                    emojiButton.addEventListener('click', () => {
-                        this.bannerIconInput.value += emoji;
-                    });
-                });
-            }
+            emojiButton.addEventListener('click', () => {
+                this.bannerIconInput.value += emoji;
+            });
         });
 
         // Add styles
@@ -150,20 +134,6 @@ export class EmojiSelectionModal extends Modal {
             .emoji-grid-container {
                 overflow-y: auto;
                 max-height: 400px !important;
-                padding-right: 10px;
-            }
-            .emoji-category-section {
-                margin-bottom: 1.5em;
-            }
-            .emoji-category-title {
-                margin: 0.5em 0;
-                color: var(--text-muted);
-                font-size: 0.9em;
-            }
-            .emoji-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-                gap: 8px;
             }
             .emoji-button {
                 font-size: 1.5em;
@@ -173,6 +143,7 @@ export class EmojiSelectionModal extends Modal {
                 border-radius: 4px;
                 cursor: pointer;
                 transition: background-color 0.2s ease;
+                margin: 4px;
             }
             .emoji-button:hover {
                 background: var(--background-modifier-hover);
@@ -205,7 +176,8 @@ export class EmojiSelectionModal extends Modal {
     }
 
     getEmojiDescription(emoji) {
-        return (emojiDescriptions[emoji] || '').toLowerCase();
+        const emojiItem = emojiData.find(item => item.emoji === emoji);
+        return emojiItem ? emojiItem.keywords : '';
     }
 
     onClose() {

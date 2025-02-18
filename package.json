@@ -1,13 +1,14 @@
 {
     "scripts": {
-      "test-build": "node scripts/esbuild.config.mjs production && node scripts/copy-build.mjs",
-      "build": "npm run test-build && zip -r example-vault.zip .vault"
+        "test-build": "node scripts/esbuild.config.mjs production && node scripts/copy-build.mjs",
+        "build": "npm run test-build && zip -r example-vault.zip .vault",
+        "clean": "npx rimraf node_modules package-lock.json && npm install"
     },
     "devDependencies": {
-      "builtin-modules": "4.0.0",
-      "esbuild": "0.24.0",
-      "fs-extra": "^11.2.0",
-      "marked": "^14.1.3"
+        "builtin-modules": "4.0.0",
+        "esbuild": "0.25.0",
+        "fs-extra": "^11.3.0",
+        "marked": "^14.1.4",
+        "emojilib": "^4.0.1"
     }
-  }
-  
+}
