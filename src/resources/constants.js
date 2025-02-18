@@ -9,6 +9,7 @@ export const PIXEL_BANNER_PLUS = {
         HISTORY: 'history',
         HISTORY_COUNT: 'history/count',
         HISTORY_PAGE: 'history/page',
+        HISTORY_DELETE: 'history/image',
         STORE_CATEGORIES: 'store-categories',
         STORE_CATEGORY_IMAGES: 'store-category-images',
         STORE_IMAGE_BY_ID: 'store-image-by-id'

@@ -24,7 +24,7 @@ export class PixelBannerStoreModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         
-        contentEl.createEl('h3', { text: '🏪 Pixel Banner Plus Store' });
+        contentEl.createEl('h3', { text: '🏪 Pixel Banner Plus Store', cls: 'margin-top-0' });
         contentEl.createEl('p', {
             text: `Browse the Pixel Banner Plus Store to find the perfect banner for your needs. Banner Token prices are displayed on each card below (FREE or 1 Banner Token). Previous purchases will be listed as FREE.`,
             attr: {

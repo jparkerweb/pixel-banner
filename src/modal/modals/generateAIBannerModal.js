@@ -36,11 +36,22 @@ export class GenerateAIBannerModal extends Modal {
                 align-items: center;
                 gap: 10px;
                 margin-top: 10px;
+                position: sticky;
+                bottom: -20px;
+                background-color: var(--modal-background);
+                padding: 10px 20px;
+                border-radius: 7px;
+                z-index: 2;
             }
 
             .ai-banner-pagination button {
                 padding: 4px 8px;
                 border-radius: 4px;
+            }
+
+            .ai-banner-pagination button:hover:not(.disabled) {
+                background-color: var(--interactive-accent-hover);
+                cursor: pointer;
             }
 
             .ai-banner-pagination button.disabled {
@@ -143,7 +154,7 @@ export class GenerateAIBannerModal extends Modal {
                 const controls = this.imageContainer.createDiv({ cls: 'pixel-banner-image-controls' });
                 const useAsButton = controls.createEl('button', {
                     cls: 'mod-cta',
-                    text: 'Download and Use as Banner'
+                    text: '🏷️ Download and Use as Banner'
                 });
                 useAsButton.addEventListener('click', async () => {
                     const imageUrl = `data:image/jpeg;base64,${response.json.image}`;
@@ -197,26 +208,292 @@ export class GenerateAIBannerModal extends Modal {
         return true;
     }
 
+    async confirmDelete(prompt) {
+        return new Promise(resolve => {
+            let imgDescription = prompt;
+            imgDescription = imgDescription.replace(/\s/g, '-').toLowerCase();
+            imgDescription = imgDescription.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
+            if (imgDescription.length > 47) {
+                imgDescription = imgDescription.substring(0, 47);
+                imgDescription = imgDescription + '...';
+            }
+
+            const modal = new Modal(this.app);
+            modal.contentEl.createEl('h2', { text: 'Delete Image', cls: 'margin-top-0' });
+            const deletePrompt = modal.contentEl.createEl('p', { text: `Please confirm you want to delete "IMGDESCRIPTION" from your AI Generated Banner History. This will not delete any images you have previously downloaded to your vault.` });
+            deletePrompt.innerHTML = deletePrompt.innerHTML.replace('IMGDESCRIPTION', `<span style="color: var(--text-accent);">${imgDescription}</span>`);
+            
+            const buttonContainer = modal.contentEl.createDiv();
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.justifyContent = 'flex-end';
+            buttonContainer.style.gap = '10px';
+            
+            const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+            const deleteButton = buttonContainer.createEl('button', { 
+                text: 'Delete',
+                cls: 'mod-warning'
+            });
+            
+            cancelButton.onclick = () => {
+                modal.close();
+                resolve(false);
+            };
+            deleteButton.onclick = () => {
+                modal.close();
+                resolve(true);
+            };
+            modal.open();
+        });
+    }
+
+    async deleteImage(imageId, imgDescription) {
+        const confirmed = await this.confirmDelete(imgDescription);
+        if (!confirmed) return;
+
+        const deleteUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY_DELETE, PIXEL_BANNER_PLUS.API_URL).toString();
+        const response = await requestUrl({
+            url: `${deleteUrl}/${imageId}`,
+            method: 'DELETE',
+            headers: {
+                'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                'Accept': 'application/json'
+            }
+        });
+        if (response.status === 200) {
+            new Notice('Image deleted successfully');
+            this.refreshHistoryContainer();
+        } else {
+            new Notice('Failed to delete image');
+        }
+    }
+
     async onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        
-        // Title
-        contentEl.createEl('h2', { text: '✨ Generate Banner with AI' });
 
-        // Prompt
-        const promptContainer = contentEl.createDiv({
-            cls: 'setting-item pixel-banner-ai-control-row',
-            attr: {
-                style: `
+        // add style tag
+        const styleTag = contentEl.createEl('style', {
+            text: `
+                /* AI Banner Generation Modal */
+                .pixel-banner-ai-modal {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    padding: 20px;
+                    width: var(--dialog-max-width);
+                    top: unset !important;
+                }
+
+                .pixel-banner-ai-modal .modal-content {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .pixel-banner-ai-modal .setting-item {
+                    border: none;
+                    padding: 0.75rem 0;
+                }
+
+                .pixel-banner-ai-modal .full-width-input {
+                    width: 100%;
+                }
+
+                .pixel-banner-ai-modal input[type="range"] {
+                    width: 100%;
+                }
+
+                .pixel-banner-ai-modal .pixel-banner-ai-prompt-container {
+                    display: flex;
+                    flex-direction: column;
                     align-items: flex-start;
+                    max-width: 500px;
+                    width: 100%;
+                }
+
+                .pixel-banner-ai-modal .pixel-banner-ai-control-row {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 5px;
+                    justify-content: space-between;
+                    max-width: 500px;
+                    width: 100%;
+                }
+
+                .pixel-banner-generate-btn-container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 1rem;
+                    gap: 1rem;
+                }
+
+                .pixel-banner-token-balance {
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                }
+
+                .pixel-banner-generate-btn-container button {
+                    min-width: 150px;
+                }
+
+                /* History container styles */
+                .pixel-banner-history-container {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    gap: 1rem;
+                    margin-top: 2rem;
+                    padding: 1rem;
+                    border-top: 1px solid var(--background-modifier-border);
+                    place-items: start center; /* Ensures the grid is centered while items align naturally */
+                }
+
+                /* Image wrapper with masonry alignment */
+                .pixel-banner-history-image-wrapper {
+                    position: relative;
+                    cursor: pointer;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    transition: transform 0.2s ease;
+                    display: flex;
+                    justify-content: center; /* Centers image inside the wrapper */
+                    align-items: center;
+                    max-width: 200px;
+                    max-height: 200px;
+                    animation: pixel-banner--fade-in 1300ms ease-in-out;
+                }
+
+                /* Hover effect */
+                .pixel-banner-history-image-wrapper:hover {
+                    transform: scale(1.05);
+                }
+
+                /* Ensuring images keep aspect ratio */
+                .pixel-banner-history-image {
+                    width: 100%;
+                    height: auto; /* Maintain height for masonry */
+                    object-fit: cover;
+                    border-radius: 8px;
+                }
+
+                /* Tooltip styles */
+                .pixel-banner-history-image-wrapper.has-tooltip {
+                    position: relative;
+                }
+
+                /* Tooltip on hover */
+                .pixel-banner-history-image-wrapper.has-tooltip:hover::after {
+                    content: attr(aria-label);
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--background-primary);
+                    color: var(--text-normal);
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    white-space: nowrap;
+                    z-index: 100;
+                    box-shadow: var(--shadow-s);
+                    margin-bottom: 4px;
+                }
+
+                /* Error message styling */
+                .pixel-banner-history-container .pixel-banner-error {
+                    color: var(--text-error);
+                    font-size: 12px;
+                    text-align: center;
+                    padding: 8px;
+                }
+
+                .pixel-banner-input-container {
+                    display: flex;
+                    gap: 8px;
+                    width: 100%;
+                }
+
+                .pixel-banner-input-container input {
+                    flex: 1;
+                }
+
+                .pixel-banner-prompt-inspiration-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                    align-items: flex-start;
+                    justify-content: center;
+                }
+                .pixel-banner-prompt-inspiration-container > button {
+                    margin: 0;
+                    flex: 0 auto;
+                    width: 40px;
+                    border: 1px solid var(--modal-border-color);
+                }
+                .pixel-banner-inspiration-button,
+                .pixel-banner-inspiration-from-seed-button {
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    background-color: var(--interactive-accent);
+                    color: var(--text-on-accent);
+                    border: none;
+                    font-size: 16px;
+                    margin-left: 10px;
+                }
+                .pixel-banner-inspiration-button:hover,
+                .pixel-banner-inspiration-from-seed-button:hover {
+                    background-color: var(--interactive-accent-hover);
+                }
+                .pixel-banner-inspiration-button:disabled,
+                .pixel-banner-inspiration-from-seed-button:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                    background-color: var(--interactive-accent);
+                }
+            `
+        });
+        // Title
+        contentEl.createEl('h2', {
+            text: '✨ Generate a Banner with AI',
+            cls: 'margin-top-0',
+            attr: { 
+                'style': `
+                    margin-bottom: 0px;
+                    text-align: center;
                 `
             }
         });
-        const promptInfo = promptContainer.createDiv({ cls: 'setting-item-info' });
-        promptInfo.createDiv({ cls: 'setting-item-name', text: 'Prompt' });
+        contentEl.createEl('p', {
+            text: 'Simply enter a prompt, select a width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 seed button.',
+            attr: {
+                'style': `
+                    color: var(--text-muted); 
+                    max-width: 500px; 
+                    font-size: .9em;
+                    margin-bottom: 20px;
+                `
+            }
+        });
+
+        // Prompt
+        const promptContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-prompt-container' });
+        promptContainer.createDiv({ cls: 'setting-item-name', text: 'Banner Prompt' });
+        promptContainer.createDiv({
+            cls: 'setting-item-description', 
+            text: 'Enter a description of the banner you want created and click the generate button below.',
+            attr: {
+                'style': `
+                    color: var(--text-muted); 
+                    font-size: .8em;
+                `
+            }
+        });
         
-        const promptControl = promptContainer.createDiv({ cls: 'setting-item-control' });
+        const promptControl = promptContainer.createDiv({ cls: 'setting-item-control width-100 margin-top-10' });
         const promptInput = promptControl.createEl('textarea', {
             cls: 'full-width-input',
             attr: {
@@ -230,7 +507,7 @@ export class GenerateAIBannerModal extends Modal {
         });
 
         // create a div to hold the prompt inspiration buttons
-        const promptInspirationContainer = promptContainer.createDiv({ cls: 'pixel-banner-prompt-inspiration-container' });
+        const promptInspirationContainer = promptControl.createDiv({ cls: 'pixel-banner-prompt-inspiration-container' });
 
         const inspirationButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-button',
@@ -295,8 +572,8 @@ export class GenerateAIBannerModal extends Modal {
         tokenCountSpan.classList.add('token-balance-animation');
         
         const generateButton = buttonContainer.createEl('button', {
-            cls: 'mod-cta',
-            text: 'Generate Image'
+            cls: 'mod-cta cursor-pointer',
+            text: '✨ Generate Image'
         });
         generateButton.addEventListener('click', async () => {
             if (!this.prompt) {
@@ -317,13 +594,14 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         // History Contianer Description
-        contentEl.createEl('p', {
-            text: 'Click an image to download and use as a banner. These downloads are always FREE as you have already paid to generate them.',
+        const historyContainerDescription = contentEl.createEl('p', {
+            text: `Click an image to download and use as a banner. These downloads are always FREE as you have already paid to generate them.`,
             cls: 'pixel-banner-history-description',
             attr: {
                 'style': 'font-size: 12px; color: var(--text-muted); padding-top: 10px; margin-bottom: -10px;'
             }
         });
+        historyContainerDescription.innerHTML = historyContainerDescription.innerHTML.replace(/FREE/g, '<span style="color: var(--color-green); font-weight: bold;">FREE</span>');
 
 
         const historyContainer = contentEl.createDiv({ cls: 'pixel-banner-history-container' });
@@ -418,6 +696,45 @@ export class GenerateAIBannerModal extends Modal {
     }
 
     async refreshHistoryContainer() {
+        // add style tag to the contentEl
+        const styleTag = this.contentEl.createEl('style', {
+            text: `
+                /* Delete icon for history images */
+                .pixel-banner-history-container .pixel-banner-image-delete {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    width: 24px;
+                    height: 24px;
+                    background-color: var(--background-secondary);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: .5;
+                    transition: opacity 0.2s ease, background-color 0.2s ease;
+                    cursor: pointer;
+                    z-index: 2;
+                }
+
+                .pixel-banner-history-container pixel-banner-history-image-wrapper:hover .pixel-banner-image-delete {
+                    opacity: 1;
+                }
+
+                .pixel-banner-history-container .pixel-banner-image-delete:hover {
+                    background-color: red;
+                    color: white;
+                    opacity: 1;
+                }
+
+                .pixel-banner-history-container .pixel-banner-image-delete svg {
+                    width: 16px;
+                    height: 16px;
+                }
+            `
+        });
+        this.contentEl.appendChild(styleTag);
+
         const historyContainer = this.contentEl.querySelector('.pixel-banner-history-container');
         if (!historyContainer) return;
 
@@ -426,8 +743,6 @@ export class GenerateAIBannerModal extends Modal {
         try {
             // Fetch total count first
             const countUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY_COUNT, PIXEL_BANNER_PLUS.API_URL).toString();
-            console.log('Fetching count from:', countUrl);
-            
             const countResponse = await requestUrl({
                 url: countUrl,
                 method: 'GET',
@@ -438,26 +753,16 @@ export class GenerateAIBannerModal extends Modal {
                 }
             });
 
-            console.log('Count response:', countResponse);
-            
             // Parse the response data
             const countData = JSON.parse(new TextDecoder().decode(countResponse.arrayBuffer));
-            console.log('Parsed count data:', countData);
 
             if (countResponse.status === 200 && countData.count !== undefined) {
                 this.totalItems = countData.count;
                 this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
-                console.log('Pagination state:', {
-                    totalItems: this.totalItems,
-                    itemsPerPage: this.itemsPerPage,
-                    totalPages: this.totalPages,
-                    currentPage: this.currentPage
-                });
             }
 
             // Fetch paginated history
             const historyUrl = new URL(`${PIXEL_BANNER_PLUS.ENDPOINTS.HISTORY_PAGE}/${this.currentPage}?limit=${this.itemsPerPage}`, PIXEL_BANNER_PLUS.API_URL).toString();
-            console.log('Fetching page from:', historyUrl);
             
             const response = await requestUrl({
                 url: historyUrl,
@@ -469,34 +774,9 @@ export class GenerateAIBannerModal extends Modal {
                 }
             });
 
-            console.log('Page response:', response);
-
             if (response.status === 200 && response.json.images) {
                 response.json.images.forEach(imageData => {
-                    const imgWrapper = historyContainer.createDiv({ cls: 'pixel-banner-history-image-wrapper' });
-                    const img = imgWrapper.createEl('img', {
-                        cls: 'pixel-banner-history-image',
-                        attr: {
-                            src: imageData.base64Image,
-                            'imageId': imageData.imageId,
-                            'filename': imageData.prompt.trim().substr(0, 47).replace(/\s/g, '-').toLowerCase(),
-                        }
-                    });
-
-                    // Add prompt as tooltip
-                    imgWrapper.setAttribute('aria-label', imageData.prompt);
-                    imgWrapper.addClass('has-tooltip');
-
-                    // Add click handler to use this image
-                    imgWrapper.addEventListener('click', async () => {
-                        const shouldDownload = await this.checkDownloadHistory(img);
-                        if (!shouldDownload) return;
-                        
-                        const filename = img.getAttribute('filename');
-                        await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
-                        this.downloadHistory.addImage(img.getAttribute('imageid'));
-                        this.close();
-                    });
+                    const imgWrapper = this.renderImageItem(imageData, historyContainer);
                 });
 
                 // Update pagination UI
@@ -507,6 +787,50 @@ export class GenerateAIBannerModal extends Modal {
             const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });
             errorDiv.setText('Failed to load history. Please try again later.');
         }
+    }
+
+    renderImageItem(imageData, container) {
+        const imgWrapper = container.createDiv({ cls: 'pixel-banner-history-image-wrapper' });
+        const img = imgWrapper.createEl('img', {
+            cls: 'pixel-banner-history-image',
+            attr: {
+                src: imageData.base64Image,
+                'imageId': imageData.imageId,
+                'filename': imageData.prompt.trim().substr(0, 47).replace(/\s/g, '-').toLowerCase(),
+            }
+        });
+
+        // Add delete button
+        const deleteBtn = imgWrapper.createDiv({ cls: 'pixel-banner-image-delete' });
+        const trashIcon = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+        deleteBtn.innerHTML = trashIcon;
+
+        deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            await this.deleteImage(imageData.imageId, imageData.prompt);
+        });
+
+        // Add prompt as tooltip
+        let promptText = imageData.prompt;
+        if (promptText.length > 70) {
+            promptText = promptText.substring(0, 70) + '...';
+        }
+        imgWrapper.setAttribute('aria-label', promptText);
+        imgWrapper.addClass('has-tooltip');
+
+        // Add click handler to use this image
+        imgWrapper.addEventListener('click', async () => {
+            const shouldDownload = await this.checkDownloadHistory(img);
+            if (!shouldDownload) return;
+            
+            const filename = img.getAttribute('filename');
+            await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+            this.downloadHistory.addImage(img.getAttribute('imageid'));
+            this.close();
+        });
+
+        return imgWrapper;
     }
 
     async updateHistoryContent() {
@@ -544,38 +868,18 @@ export class GenerateAIBannerModal extends Modal {
             if (response.status === 200 && response.json.images) {
                 historyContainer.empty();
                 response.json.images.forEach(imageData => {
-                    const imgWrapper = historyContainer.createDiv({ cls: 'pixel-banner-history-image-wrapper' });
-                    const img = imgWrapper.createEl('img', {
-                        cls: 'pixel-banner-history-image',
-                        attr: {
-                            src: imageData.base64Image,
-                            'imageId': imageData.imageId,
-                            'filename': imageData.prompt.trim().substr(0, 47).replace(/\s/g, '-').toLowerCase(),
-                        }
-                    });
-
-                    // Add prompt as tooltip
-                    imgWrapper.setAttribute('aria-label', imageData.prompt);
-                    imgWrapper.addClass('has-tooltip');
-
-                    // Add click handler to use this image
-                    imgWrapper.addEventListener('click', async () => {
-                        const shouldDownload = await this.checkDownloadHistory(img);
-                        if (!shouldDownload) return;
-                        
-                        const filename = img.getAttribute('filename');
-                        await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
-                        this.downloadHistory.addImage(img.getAttribute('imageid'));
-                        this.close();
-                    });
+                    const imgWrapper = this.renderImageItem(imageData, historyContainer);
                 });
             }
             
             // Update pagination UI without scrolling
             this.updatePaginationUI();
             
-            // Restore scroll position
-            this.contentEl.scrollTop = scrollPos;
+            // Add smooth scroll to bottom
+            this.contentEl.scrollTo({
+                top: this.contentEl.scrollHeight,
+                behavior: 'smooth'
+            });
         } catch (error) {
             console.error('Failed to fetch history:', error);
             const errorDiv = historyContainer.createDiv({ cls: 'pixel-banner-error' });

@@ -9,7 +9,7 @@ export class SelectPixelBannerModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        contentEl.createEl('h2', { text: '🚩 Select Pixel Banner' });
+        contentEl.createEl('h2', { text: '🚩 Pixel Banner Selector', cls: 'margin-top-0' });
 
         // Create button container
         const buttonContainer = contentEl.createDiv({ cls: 'pixel-banner-select-buttons' });

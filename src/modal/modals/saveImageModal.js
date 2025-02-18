@@ -55,8 +55,6 @@ export class SaveImageModal extends Modal {
         saveButton.addEventListener('click', () => {
             if (this.suggestedName) {
                 this.onSubmit(this.suggestedName, this.useAsBanner);
-                console.log(`File name: ${this.suggestedName}`);
-                console.log(`Use as banner: ${this.useAsBanner}`);
                 this.close();
             } else {
                 new Notice('Please enter a file name');

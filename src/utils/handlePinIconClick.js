@@ -14,10 +14,6 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
     const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
     const finalPath = await waitForFileRename(file, plugin);
 
-    console.log(`File name: ${file.name}`);
-    console.log(`Use as banner: ${useAsBanner}`);
-    console.log(`Final path: ${finalPath}`);
-    
     if (!finalPath) {
         console.error('❌ Failed to resolve valid file path');
         new Notice('Failed to save image - file not found');
