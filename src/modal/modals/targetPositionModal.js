@@ -473,59 +473,69 @@ export class TargetPositionModal extends Modal {
         resetButton.style.width = '100%';
 
         resetButton.addEventListener('click', () => {
-            // Reset display mode
+            // Reset UI elements
             displaySelect.value = 'cover';
             zoomContainer.style.display = 'none';
             repeatContainer.style.display = 'none';
-            this.currentDisplay = 'cover';
-            this.updateDisplayMode('cover', null);
-
-            // Reset zoom
-            this.currentZoom = 100;
-            zoomSlider.value = this.currentZoom;
-            zoomValue.setText(`${this.currentZoom}%`);
-
-            // Reset height
-            this.currentHeight = this.plugin.settings.bannerHeight;
-            heightSlider.value = this.currentHeight;
-            heightValue.setText(`${this.currentHeight}px`);
-            this.updateBannerHeight(this.currentHeight);
-
-            // Reset content start position
-            this.currentContentStartPosition = this.plugin.settings.contentStartPosition;
-            contentStartPositionSlider.value = this.currentContentStartPosition;
-            contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
-            this.updateBannerContentStartPosition(this.currentContentStartPosition);
-
-            // Reset banner icon x position
-            this.currentBannerIconXPosition = this.plugin.settings.bannerIconXPosition;
-            bannerIconXPositionSlider.value = this.currentBannerIconXPosition;
-            bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}px`);
-            this.updateBannerIconXPosition(this.currentBannerIconXPosition);
-
-            // Reset repeat
-            this.currentRepeat = false;
+            
+            // Reset slider values for visual feedback
+            zoomSlider.value = 100;
+            heightSlider.value = this.plugin.settings.bannerHeight;
+            contentStartPositionSlider.value = this.plugin.settings.contentStartPosition;
+            bannerIconXPositionSlider.value = this.plugin.settings.bannerIconXPosition;
+            
+            // Reset value displays
+            zoomValue.setText('100%');
+            heightValue.setText(`${this.plugin.settings.bannerHeight}px`);
+            contentStartPositionValue.setText(`${this.plugin.settings.contentStartPosition}px`);
+            bannerIconXPositionValue.setText(`${this.plugin.settings.bannerIconXPosition}`);
             toggleInput.checked = false;
-            this.updateRepeatMode(false);
 
-            // Reset position
-            this.currentX = 50;
-            this.currentY = 50;
-            verticalLine.style.left = `${this.currentX}%`;
-            horizontalLine.style.top = `${this.currentY}%`;
+            // Reset crosshair position
+            verticalLine.style.left = '50%';
+            horizontalLine.style.top = '50%';
             updatePositionIndicator();
 
-            const xField = Array.isArray(this.plugin.settings.customXPositionField) 
-                ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
-                : this.plugin.settings.customXPositionField;
+            // Remove frontmatter fields to allow inheritance from plugin settings
+            const activeFile = this.app.workspace.getActiveFile();
+            this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                // Get field names
+                const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
+                    ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
+                    : this.plugin.settings.customImageDisplayField;
+                    
+                const heightField = Array.isArray(this.plugin.settings.customBannerHeightField)
+                    ? this.plugin.settings.customBannerHeightField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerHeightField;
+                    
+                const xField = Array.isArray(this.plugin.settings.customXPositionField) 
+                    ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
+                    : this.plugin.settings.customXPositionField;
+                    
+                const yField = Array.isArray(this.plugin.settings.customYPositionField) 
+                    ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
+                    : this.plugin.settings.customYPositionField;
+                    
+                const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField)
+                    ? this.plugin.settings.customContentStartField[0].split(',')[0].trim()
+                    : this.plugin.settings.customContentStartField;
+                    
+                const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField)
+                    ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconXPositionField;
+                    
+                const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
+                    ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
+                    : this.plugin.settings.customImageRepeatField;
 
-            const yField = Array.isArray(this.plugin.settings.customYPositionField) 
-                ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
-                : this.plugin.settings.customYPositionField;
-
-            this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
-                frontmatter[xField] = this.currentX;
-                frontmatter[yField] = this.currentY;
+                // Remove fields
+                delete frontmatter[displayField];
+                delete frontmatter[heightField];
+                delete frontmatter[xField];
+                delete frontmatter[yField];
+                delete frontmatter[contentStartPositionField];
+                delete frontmatter[bannerIconXPositionField];
+                delete frontmatter[repeatField];
             });
         });
 
