@@ -783,7 +783,7 @@
 /* --------------------------- */
 @keyframes pixel-banner--icon-fade-in {
     from { opacity: 0; }
-    to { opacity: 0.2; }
+    to { opacity: 0.35; }
 }
 
 
@@ -792,7 +792,7 @@
 .refresh-icon,
 .view-image-icon {
     z-index: var(--layer-modal);
-    opacity: 0.2;
+    opacity: 0.35;
     transition: all 0.4s ease-in-out;
     animation: pixel-banner--icon-fade-in 0.4s ease-in-out;
     width: unset !important;

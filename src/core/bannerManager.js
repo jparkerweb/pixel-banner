@@ -73,15 +73,13 @@ async function addPixelBanner(plugin, el, ctx) {
     // Else, add icons if settings allow
     else {
         let leftOffset = plugin.settings.bannerGap + 5;
-        // console.log("Starting icon creation, showSelectImageIcon:", plugin.settings.showSelectImageIcon);
-
-        // "Select image" + "Set banner icon"
+        // "Pixel Banner Icon"
         if (plugin.settings.showSelectImageIcon) {
             const selectImageIcon = createDiv({ cls: 'select-image-icon' });
             selectImageIcon.style.position = 'absolute';
             selectImageIcon.style.top = '10px';
             selectImageIcon.style.left = `${leftOffset}px`;
-            selectImageIcon.style.fontSize = '1.5em';
+            selectImageIcon.style.fontSize = '1.8em';
             selectImageIcon.style.cursor = 'pointer';
             selectImageIcon.innerHTML = '🚩';
             selectImageIcon._isPersistentSelectImage = true;
@@ -590,7 +588,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 selectImageIcon.style.position = 'absolute';
                 selectImageIcon.style.top = '10px';
                 selectImageIcon.style.left = `${plugin.settings.bannerGap + 5}px`;
-                selectImageIcon.style.fontSize = '1.5em';
+                selectImageIcon.style.fontSize = '1.8em';
                 selectImageIcon.style.cursor = 'pointer';
                 selectImageIcon.innerHTML = '🚩';
                 selectImageIcon._isPersistentSelectImage = true;
