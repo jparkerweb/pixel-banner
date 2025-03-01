@@ -326,6 +326,12 @@ Exports all modals from the `modal/modals` directory.
 
 ---
 
+## `/src/resources/flags.js`
+**Exports**:
+- `flags`: Variouls colored flags to be used as the Pixel Banner icon.
+
+---
+
 ## `/src/services/apiPIxelBannerPlus.js`
 **Methods**:
 1. **verifyPixelBannerPlusCredentials(plugin)**  
