@@ -2,6 +2,7 @@ import { MarkdownView, Notice } from 'obsidian';
 import { ImageViewModal, TargetPositionModal } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
+import { flags } from '../resources/flags.js';
 
 // ----------------------
 // -- add pixel banner --
@@ -81,7 +82,7 @@ async function addPixelBanner(plugin, el, ctx) {
             selectImageIcon.style.left = `${leftOffset}px`;
             selectImageIcon.style.fontSize = '1.8em';
             selectImageIcon.style.cursor = 'pointer';
-            selectImageIcon.innerHTML = '🚩';
+            selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
             selectImageIcon._isPersistentSelectImage = true;
 
             selectImageIcon.onclick = () => plugin.handleBannerIconClick();
@@ -590,7 +591,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 selectImageIcon.style.left = `${plugin.settings.bannerGap + 5}px`;
                 selectImageIcon.style.fontSize = '1.8em';
                 selectImageIcon.style.cursor = 'pointer';
-                selectImageIcon.innerHTML = '🚩';
+                selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
                 selectImageIcon._isPersistentSelectImage = true;
                 selectImageIcon.onclick = () => plugin.handleBannerIconClick();
                 container.insertBefore(selectImageIcon, container.firstChild);

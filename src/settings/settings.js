@@ -62,6 +62,7 @@ const DEFAULT_SETTINGS = {
     hideEmbeddedNoteTitles: false,
     hideEmbeddedNoteBanners: false,
     showSelectImageIcon: true,
+    selectImageIconFlag: 'red',
     defaultSelectImagePath: '',
     useShortPath: true,
     bannerGap: 12,

@@ -1,5 +1,6 @@
 import { Setting, MarkdownView, Notice } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../settings';
+import { flags } from '../../resources/flags.js';
 
 export function createGeneralSettings(containerEl, plugin) {
     // section callout
@@ -535,6 +536,91 @@ export function createGeneralSettings(containerEl, plugin) {
                 
                 plugin.updateAllBanners();
             }));
+
+    // Add the selectImageIconFlag setting
+    const selectImageIconFlagSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Select Pixel Banner Icon')
+        .setDesc('Choose which flag icon to use for the banner selector');
+        
+    // Create a container for the radio buttons
+    const flagRadioContainer = selectImageIconFlagSetting.controlEl.createDiv({
+        cls: 'pixel-banner-flag-radio-container'
+    });
+    
+    // Add style for the radio container
+    flagRadioContainer.style.display = 'flex';
+    flagRadioContainer.style.flexWrap = 'wrap';
+    flagRadioContainer.style.gap = '10px';
+    
+    // Create a radio button for each flag
+    Object.keys(flags).forEach(color => {
+        const radioContainer = flagRadioContainer.createDiv({
+            cls: 'pixel-banner-flag-radio'
+        });
+        
+        // Create the radio input
+        const radio = radioContainer.createEl('input', {
+            type: 'radio',
+            attr: {
+                id: `flag-${color}`,
+                name: 'pixel-banner-flag',
+                value: color
+            }
+        });
+        
+        // Set checked state based on current setting
+        radio.checked = plugin.settings.selectImageIconFlag === color;
+        
+        // Add change event listener
+        radio.addEventListener('change', async () => {
+            if (radio.checked) {
+                plugin.settings.selectImageIconFlag = color;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            }
+        });
+        
+        // Create the label with the flag image
+        const label = radioContainer.createEl('label', {
+            attr: {
+                for: `flag-${color}`
+            }
+        });
+        
+        // Add the flag image to the label
+        const img = label.createEl('img', {
+            attr: {
+                src: flags[color],
+                alt: `${color} flag`
+            }
+        });
+        
+        // Style the image
+        img.style.width = '20px';
+        img.style.height = '25px';
+        img.style.verticalAlign = 'middle';
+        img.style.marginLeft = '5px';
+        
+        // Add the color name
+        // label.append(` ${color}`);
+    });
+    
+    // Add reset button
+    selectImageIconFlagSetting.addExtraButton(button => button
+        .setIcon('reset')
+        .setTooltip('Reset to default')
+        .onClick(async () => {
+            plugin.settings.selectImageIconFlag = DEFAULT_SETTINGS.selectImageIconFlag;
+            await plugin.saveSettings();
+            
+            // Update radio button selection
+            const radios = flagRadioContainer.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.checked = radio.value === DEFAULT_SETTINGS.selectImageIconFlag;
+            });
+            
+            plugin.updateAllBanners();
+        }));
 
     // Add the defaultSelectImagePath setting
     const defaultSelectImagePathSetting = new Setting(SelectImageSettingsGroup)

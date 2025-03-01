@@ -1,5 +1,6 @@
 import { Modal } from 'obsidian';
 import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal, EmojiSelectionModal, TargetPositionModal } from '../modals';
+import { flags } from '../../resources/flags.js';
 
 export class SelectPixelBannerModal extends Modal {
     constructor(app, plugin) {
@@ -9,14 +10,33 @@ export class SelectPixelBannerModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        contentEl.createEl('h2', { text: '🚩 Pixel Banner Selector', cls: 'margin-top-0' });
+        
+        // Create title with the selected flag icon
+        const titleContainer = contentEl.createEl('h2', { cls: 'margin-top-0 pixel-banner-selector-title' });
+        
+        // Add the flag image
+        const flagImg = titleContainer.createEl('img', {
+            attr: {
+                src: flags[this.plugin.settings.selectImageIconFlag] || flags['red'],
+                alt: 'Pixel Banner'
+            }
+        });
+        
+        // Style the image
+        flagImg.style.width = '20px';
+        flagImg.style.height = '25px';
+        flagImg.style.verticalAlign = 'middle';
+        flagImg.style.margin = '-5px 10px 0 20px';
+        
+        // Add the text
+        titleContainer.appendChild(document.createTextNode('Pixel Banner Selector'));
 
         // Create button container
         const buttonContainer = contentEl.createDiv({ cls: 'pixel-banner-select-buttons' });
 
         // Vault Selection Button
         const vaultButton = buttonContainer.createEl('button', {
-            text: '🏷️ Select a Banner from your Vault',
+            text: '💾 Select a Banner from your Vault',
             cls: 'pixel-banner-select-button'
         });
         vaultButton.addEventListener('click', () => {
