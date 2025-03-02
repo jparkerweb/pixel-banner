@@ -81,12 +81,26 @@ export class SelectPixelBannerModal extends Modal {
             new PixelBannerStoreModal(this.app, this.plugin).open();
         });
 
+        // Check if the current note has a banner
+        const activeFile = this.app.workspace.getActiveFile();
+        const hasBanner = activeFile ? this.plugin.hasBannerFrontmatter(activeFile) : false;
+
         // Banner Icon Button
         const bannerIconButton = buttonContainer.createEl('button', {
             text: '⭐ Select a Banner Icon',
             cls: 'pixel-banner-select-button'
         });
+        
+        // Disable the button if no banner exists
+        if (!hasBanner) {
+            bannerIconButton.disabled = true;
+            bannerIconButton.classList.add('pixel-banner-button-disabled');
+            bannerIconButton.title = 'You need to add a banner first';
+        }
+        
         bannerIconButton.addEventListener('click', () => {
+            if (!hasBanner) return; // Extra safety check
+            
             this.close();
             new EmojiSelectionModal(
                 this.app, 
@@ -142,6 +156,15 @@ export class SelectPixelBannerModal extends Modal {
             
             .pixel-banner-select-button:hover {
                 background: var(--background-modifier-hover);
+            }
+            
+            .pixel-banner-button-disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            
+            .pixel-banner-button-disabled:hover {
+                background: var(--background-primary);
             }
         `;
         document.head.appendChild(style);
