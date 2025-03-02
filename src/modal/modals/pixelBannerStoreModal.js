@@ -2,6 +2,7 @@ import { Modal, Setting } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
 import { TargetPositionModal } from '../modals';
+import { flags } from '../../resources/flags.js';
 
 
 // ------------------------------------
@@ -228,8 +229,6 @@ export class PixelBannerStoreModal extends Modal {
                             
                             // Check if we should open the banner icon modal after selecting a banner
                             if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                                // Import and use EmojiSelectionModal here
-                                const { EmojiSelectionModal } = require('../modals');
                                 new EmojiSelectionModal(
                                     this.app, 
                                     this.plugin,
@@ -240,8 +239,14 @@ export class PixelBannerStoreModal extends Modal {
                                                 const iconField = this.plugin.settings.customBannerIconField[0];
                                                 frontmatter[iconField] = emoji;
                                             });
+                                            
+                                            // Check if we should open the targeting modal after setting the icon
+                                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                                new TargetPositionModal(this.app, this.plugin).open();
+                                            }
                                         }
                                     },
+                                    // Skip the targeting modal in the EmojiSelectionModal if we're going to open it here
                                     this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
                                 ).open();
                             } 
@@ -249,11 +254,11 @@ export class PixelBannerStoreModal extends Modal {
                             else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                 new TargetPositionModal(this.app, this.plugin).open();
                             }
-                            
                         } catch (error) {
-                            console.error('Error fetching store image:', error);
+                            console.error('Error purchasing image:', error);
+                            new Notice('Failed to purchase image. Please try again.');
                         }
-                    }).open();
+                    }, this.plugin).open();
                 } else {
                     try {
                         const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
@@ -459,12 +464,13 @@ export class PixelBannerStoreModal extends Modal {
 
 // Add this class inside the file but outside the PixelBannerStoreModal class
 class ConfirmPurchaseModal extends Modal {
-    constructor(app, cost, prompt, previewImage, onConfirm) {
+    constructor(app, cost, prompt, previewImage, onConfirm, plugin) {
         super(app);
         this.cost = cost;
         this.prompt = prompt;
         this.previewImage = previewImage;
         this.onConfirm = onConfirm;
+        this.plugin = plugin;
     }
 
     onOpen() {
@@ -474,12 +480,27 @@ class ConfirmPurchaseModal extends Modal {
         // Add styles first
         this.addStyle();
         
-        contentEl.createEl('h3', {
-            text: '🚩 Confirm Pixel Banner Purchase',
+
+        const titleContainer = contentEl.createEl('h3', {
+            cls: 'margin-top-0 pixel-banner-selector-title'
+        });
+
+        // Add the flag image
+        const flagImg = titleContainer.createEl('img', {
             attr: {
-                'style': 'margin-top:0;'
+                src: flags[this.plugin.settings.selectImageIconFlag] || flags['red'],
+                alt: 'Pixel Banner',
+                style: `
+                    width: 20px;
+                    height: 25px;
+                    vertical-align: middle;
+                    margin: -5px 10px 0 20px;
+                `
             }
         });
+
+        // Add the text
+        titleContainer.appendChild(document.createTextNode('Confirm Pixel Banner Purchase'));
         
         // Add preview image
         const imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-confirm-image' });

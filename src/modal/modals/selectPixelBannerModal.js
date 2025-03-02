@@ -18,15 +18,15 @@ export class SelectPixelBannerModal extends Modal {
         const flagImg = titleContainer.createEl('img', {
             attr: {
                 src: flags[this.plugin.settings.selectImageIconFlag] || flags['red'],
-                alt: 'Pixel Banner'
+                alt: 'Pixel Banner',
+                style: `
+                    width: 20px;
+                    height: 25px;
+                    vertical-align: middle;
+                    margin: -5px 10px 0 20px;
+                `
             }
         });
-        
-        // Style the image
-        flagImg.style.width = '20px';
-        flagImg.style.height = '25px';
-        flagImg.style.verticalAlign = 'middle';
-        flagImg.style.margin = '-5px 10px 0 20px';
         
         // Add the text
         titleContainer.appendChild(document.createTextNode('Pixel Banner Selector'));
