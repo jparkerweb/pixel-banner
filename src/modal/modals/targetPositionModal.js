@@ -440,8 +440,19 @@ export class TargetPositionModal extends Modal {
             ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconField;
         
-        if (frontmatter?.[bannerIconField]) {
+        // check for banner icon in frontmatter
+        const hasBannerIcon = frontmatter && frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== '';
+        
+        if (hasBannerIcon) {
             bannerIconControlsContainer.style.display = 'block';
+        } else {
+            // no banner icon found, try one more time after a short delay
+            setTimeout(() => {
+                const refreshedFrontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+                if (refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
+                    bannerIconControlsContainer.style.display = 'block';
+                }
+            }, 300);
         }
 
         // Banner Icon X Position control container

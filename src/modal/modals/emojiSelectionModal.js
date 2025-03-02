@@ -13,12 +13,16 @@ export class EmojiSelectionModal extends Modal {
         this.onChoose = onChoose;
         this.searchQuery = '';
         this.skipTargetingModal = skipTargetingModal;
+        this.closedByButton = false;
     }
 
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
         contentEl.addClass('pixel-banner-emoji-select-modal');
+        
+        // Reset the closedByButton flag when the modal opens
+        this.closedByButton = false;
 
         // get the current banner icon
         const activeFile = this.app.workspace.getActiveFile();
@@ -62,17 +66,31 @@ export class EmojiSelectionModal extends Modal {
         });
 
         setBannerButton.addEventListener('click', async () => {
+            this.closedByButton = true;
             await this.onChoose(this.bannerIconInput.value);
             this.close();
             
             // Only open the targeting modal if we're not skipping it
             // and the setting is enabled
             if (!this.skipTargetingModal && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                // Add a small delay to ensure frontmatter is fully updated
-                // before opening the target position modal
-                setTimeout(() => {
+                // Add delay to ensure frontmatter is fully updated
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Get the active file and verify the banner icon is set in frontmatter
+                const activeFile = this.app.workspace.getActiveFile();
+                if (activeFile) {
+                    // Wait a bit more for the cache to update
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    // Get the updated frontmatter
+                    const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+                    const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
+                        ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconField;
+                    
+                    // Open the targeting modal
                     new TargetPositionModal(this.app, this.plugin).open();
-                }, 500);
+                }
             }
         });
 
@@ -195,5 +213,20 @@ export class EmojiSelectionModal extends Modal {
     onClose() {
         const { contentEl } = this;
         contentEl.empty();
+        
+        // Get the active file and check if it has a banner
+        const activeFile = this.app.workspace.getActiveFile();
+        const hasBanner = activeFile ? this.plugin.hasBannerFrontmatter(activeFile) : false;
+        
+        // Only open the targeting modal if:
+        // 1. The modal wasn't closed by clicking the button (which already handles opening the targeting modal)
+        // 2. The setting is enabled
+        // 3. The note has a banner
+        if (!this.closedByButton && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon && hasBanner) {
+            // Add a small delay to ensure the current modal is fully closed
+            setTimeout(() => {
+                new TargetPositionModal(this.app, this.plugin).open();
+            }, 500);
+        }
     }
 }
