@@ -64,8 +64,11 @@ export class EmojiSelectionModal extends Modal {
             await this.onChoose(this.bannerIconInput.value);
             this.close();
             
-            // Open the target position modal after setting the banner icon
-            new TargetPositionModal(this.app, this.plugin).open();
+            // Add a small delay to ensure frontmatter is fully updated
+            // before opening the target position modal
+            setTimeout(() => {
+                new TargetPositionModal(this.app, this.plugin).open();
+            }, 500);
         });
 
         // Title
