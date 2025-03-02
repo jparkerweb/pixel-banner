@@ -1,9 +1,9 @@
 import { PluginSettingTab, FuzzySuggestModal } from 'obsidian';
-import { createExampleSettings } from './tabs/settingsTabExample';
 import { createAPISettings } from './tabs/settingsTabAPISettings';
 import { createFolderSettings } from './tabs/settingsTabFolderImages';
 import { createCustomFieldsSettings } from './tabs/settingsTabCustomFieldNames';
 import { createGeneralSettings } from './tabs/settingsTabGeneral';
+import { createPixelBannerPlusSettings } from './tabs/settingsTabPixelBannerPlus';
 
 const DEFAULT_SETTINGS = {
     pixelBannerPlusEmail: '',
@@ -114,32 +114,32 @@ class PixelBannerSettingTab extends PluginSettingTab {
 
         // Create tabs in the desired order
         const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
-            'General',
-            'Custom Field Names',
-            'Folder Images',
-            'API Settings',
-            'Examples'
+            '⚙️ General',
+            '✨ Plus',
+            '🗺️ Custom Fields',
+            '🗃️ Folder Groups',
+            '🌐 3rd Party APIs'
         ]);
 
         // General tab content
-        const generalTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'General' } });
+        const generalTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': '⚙️ General' } });
         createGeneralSettings(generalTab, this.plugin);
 
+        // Pixel Banner Plus tab content
+        const pixelBannerPlusTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': '✨ Plus' } });
+        createPixelBannerPlusSettings(pixelBannerPlusTab, this.plugin);
+
         // Custom Fields tab content
-        const customFieldsTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'Custom Field Names' } });
+        const customFieldsTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': '🗺️ Custom Fields' } });
         createCustomFieldsSettings(customFieldsTab, this.plugin);
 
-        // API Settings tab content
-        const apiTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'API Settings' } });
+        // 3rd Party APIs tab content
+        const apiTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': '🌐 3rd Party APIs' } });
         createAPISettings(apiTab, this.plugin);
 
         // Folder Images tab content
-        const foldersTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'Folder Images' } });
+        const foldersTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': '🗃️ Folder Groups' } });
         createFolderSettings(foldersTab, this.plugin);
-
-        // Examples tab content
-        const examplesTab = tabContentContainer.createEl('div', { cls: 'tab-content', attr: { 'data-tab': 'Examples' } });
-        createExampleSettings(examplesTab, this.plugin);
 
         // Activate the General tab by default
         tabsEl.firstChild.click();

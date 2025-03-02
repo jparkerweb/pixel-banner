@@ -4,86 +4,161 @@ import { flags } from '../../resources/flags.js';
 
 export function createGeneralSettings(containerEl, plugin) {
     // section callout
-    const calloutElPixelBannerPlus = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
-    calloutElPixelBannerPlus.createEl('div', { text: '✨ Pixel Banner Plus ✨' });
-    calloutElPixelBannerPlus.createEl('div', { text: 'An optional premium feature, including the ability to generate high quality banners using GenAI.' });
+    const calloutEl = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
+    calloutEl.createEl('div', { text: '⚙️ Configure default settings for all notes. These can be overridden per folder or per note.' });
 
-    // Create a group for the Pixel Banner Plus Settings
-    const pixelBannerPlusSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
+    // Create a group for the select image icon settings
+    const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
 
-    // Pixel Banner Plus Email Address
-    new Setting(pixelBannerPlusSettingsGroup)
-        .setName('Pixel Banner Plus Email Address')
-        .setDesc('Your email address for Pixel Banner Plus authentication')
-        .addText(text => text
-            .setPlaceholder('Enter your email address')
-            .setValue(plugin.settings.pixelBannerPlusEmail)
+    // Add the showSelectImageIcon setting
+    const showSelectImageIconSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Show Select Pixel Banner Icon')
+        .setDesc('Show an icon to select banner image in the top-left corner')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.showSelectImageIcon)
             .onChange(async (value) => {
-                plugin.settings.pixelBannerPlusEmail = value;
+                plugin.settings.showSelectImageIcon = value;
                 await plugin.saveSettings();
-                if (!value) {
-                    plugin.pixelBannerPlusEnabled = false;
-                }
-            })
-            .inputEl.style = 'width: 100%; max-width: 275px;'
-        );
-
-    // Pixel Banner Plus API Key
-    new Setting(pixelBannerPlusSettingsGroup)
-        .setName('Pixel Banner Plus API Key')
-        .setDesc('Your API key for Pixel Banner Plus authentication')
-        .addText(text => text
-            .setPlaceholder('Enter your API key')
-            .setValue(plugin.settings.pixelBannerPlusApiKey)
-            .onChange(async (value) => {
-                plugin.settings.pixelBannerPlusApiKey = value;
-                await plugin.saveSettings();
-                if (!value) {
-                    plugin.pixelBannerPlusEnabled = false;
-                }
-            })
-            .inputEl.style = 'width: 100%; max-width: 275px;'
-        );
-
-    // Test API Key button
-    new Setting(pixelBannerPlusSettingsGroup)
-        .setName('Test Connection')
-        .setDesc('Verify your Pixel Banner Plus credentials')
-        .addButton(button => button
-            .setButtonText('Test Pixel Banner Plus API Key')
+                plugin.updateAllBanners();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
             .onClick(async () => {
-                const email = plugin.settings.pixelBannerPlusEmail;
-                const apiKey = plugin.settings.pixelBannerPlusApiKey;
+                plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+                await plugin.saveSettings();
                 
-                if (!email || !apiKey) {
-                    new Notice('Please enter both email and API key');
-                    return;
+                const toggleComponent = showSelectImageIconSetting.components[0];
+                if (toggleComponent) {
+                    toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
                 }
-
-                button.setButtonText('Testing...');
-                button.setDisabled(true);
-
-                try {
-                    const data = await plugin.verifyPixelBannerPlusCredentials();
-                    if (data) {
-                        new Notice(`✅ Pixel Banner Plus connection successful\n🪙 Banner Tokens Remaining: ${data.bannerTokens}`);
-                        console.log(`data: ${JSON.stringify(data)}`);
-                    } else {
-                        new Notice('❌ Invalid credentials');
-                        plugin.pixelBannerPlusEnabled = false;
-                    }
-                } catch (error) {
-                    new Notice('❌ Connection failed. Please check the service URL.');
-                    plugin.pixelBannerPlusEnabled = false;
-                }
-
-                button.setButtonText('Test Pixel Banner Plus API Key');
-                button.setDisabled(false);
+                
+                plugin.updateAllBanners();
             }));
 
-    // section callout
-    const calloutEl = containerEl.createEl('div', { cls: 'tab-callout margin-top-40 margin-bottom-0' });
-    calloutEl.createEl('div', { text: 'Configure default settings for all notes. These can be overridden per folder or per note.' });
+    // Add the selectImageIconFlag setting
+    const selectImageIconFlagSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Select Pixel Banner Icon')
+        .setDesc('Choose which flag icon to use for the banner selector');
+        
+    // Create a container for the radio buttons
+    const flagRadioContainer = selectImageIconFlagSetting.controlEl.createDiv({
+        cls: 'pixel-banner-flag-radio-container'
+    });
+    
+    // Add style for the radio container
+    flagRadioContainer.style.display = 'flex';
+    flagRadioContainer.style.flexWrap = 'wrap';
+    flagRadioContainer.style.gap = '10px';
+    
+    // Create a radio button for each flag
+    Object.keys(flags).forEach(color => {
+        const radioContainer = flagRadioContainer.createDiv({
+            cls: 'pixel-banner-flag-radio'
+        });
+        
+        // Create the radio input
+        const radio = radioContainer.createEl('input', {
+            type: 'radio',
+            attr: {
+                id: `flag-${color}`,
+                name: 'pixel-banner-flag',
+                value: color
+            }
+        });
+        
+        // Set checked state based on current setting
+        radio.checked = plugin.settings.selectImageIconFlag === color;
+        
+        // Add change event listener
+        radio.addEventListener('change', async () => {
+            if (radio.checked) {
+                plugin.settings.selectImageIconFlag = color;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            }
+        });
+        
+        // Create the label with the flag image
+        const label = radioContainer.createEl('label', {
+            attr: {
+                for: `flag-${color}`
+            }
+        });
+        
+        // Add the flag image to the label
+        const img = label.createEl('img', {
+            attr: {
+                src: flags[color],
+                alt: `${color} flag`
+            }
+        });
+        
+        // Style the image
+        img.style.width = '20px';
+        img.style.height = '25px';
+        img.style.verticalAlign = 'middle';
+        img.style.marginLeft = '5px';
+        
+        // Add the color name
+        // label.append(` ${color}`);
+    });
+    
+    // Add reset button
+    selectImageIconFlagSetting.addExtraButton(button => button
+        .setIcon('reset')
+        .setTooltip('Reset to default')
+        .onClick(async () => {
+            plugin.settings.selectImageIconFlag = DEFAULT_SETTINGS.selectImageIconFlag;
+            await plugin.saveSettings();
+            
+            // Update radio button selection
+            const radios = flagRadioContainer.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.checked = radio.value === DEFAULT_SETTINGS.selectImageIconFlag;
+            });
+            
+            plugin.updateAllBanners();
+        }));
+
+    // Add the defaultSelectImagePath setting
+    const defaultSelectImagePathSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Default Select Image Path')
+        .setDesc('Set a default folder path to filter images when opening the Select Image modal')
+        .addText(text => {
+            text.setPlaceholder('Example: Images/Banners')
+                .setValue(plugin.settings.defaultSelectImagePath)
+                .onChange(async (value) => {
+                    plugin.settings.defaultSelectImagePath = value;
+                    await plugin.saveSettings();
+                });
+            text.inputEl.style.width = '200px';
+            return text;
+        })
+        .addButton(button => button
+            .setButtonText('Browse')
+            .onClick(() => {
+                new FolderSuggestModal(plugin.app, (chosenPath) => {
+                    plugin.settings.defaultSelectImagePath = chosenPath;
+                    const textInput = defaultSelectImagePathSetting.components[0];
+                    if (textInput) {
+                        textInput.setValue(chosenPath);
+                    }
+                    plugin.saveSettings();
+                }).open();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
+                await plugin.saveSettings();
+                
+                const textComponent = defaultSelectImagePathSetting.components[0];
+                if (textComponent) {
+                    textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
+                }
+            }));
 
     // Image Vertical Position setting
     new Setting(containerEl)
@@ -506,159 +581,6 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
                 
                 plugin.updateEmbeddedBannersVisibility();
-            }));
-
-    // Create a group for the hide settings
-    const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
-
-    // Add the showSelectImageIcon setting
-    const showSelectImageIconSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Show Select Pixel Banner Icon')
-        .setDesc('Show an icon to select banner image in the top-left corner')
-        .addToggle(toggle => toggle
-            .setValue(plugin.settings.showSelectImageIcon)
-            .onChange(async (value) => {
-                plugin.settings.showSelectImageIcon = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-            }))
-        .addExtraButton(button => button
-            .setIcon('reset')
-            .setTooltip('Reset to default')
-            .onClick(async () => {
-                plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
-                await plugin.saveSettings();
-                
-                const toggleComponent = showSelectImageIconSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
-                }
-                
-                plugin.updateAllBanners();
-            }));
-
-    // Add the selectImageIconFlag setting
-    const selectImageIconFlagSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Select Pixel Banner Icon')
-        .setDesc('Choose which flag icon to use for the banner selector');
-        
-    // Create a container for the radio buttons
-    const flagRadioContainer = selectImageIconFlagSetting.controlEl.createDiv({
-        cls: 'pixel-banner-flag-radio-container'
-    });
-    
-    // Add style for the radio container
-    flagRadioContainer.style.display = 'flex';
-    flagRadioContainer.style.flexWrap = 'wrap';
-    flagRadioContainer.style.gap = '10px';
-    
-    // Create a radio button for each flag
-    Object.keys(flags).forEach(color => {
-        const radioContainer = flagRadioContainer.createDiv({
-            cls: 'pixel-banner-flag-radio'
-        });
-        
-        // Create the radio input
-        const radio = radioContainer.createEl('input', {
-            type: 'radio',
-            attr: {
-                id: `flag-${color}`,
-                name: 'pixel-banner-flag',
-                value: color
-            }
-        });
-        
-        // Set checked state based on current setting
-        radio.checked = plugin.settings.selectImageIconFlag === color;
-        
-        // Add change event listener
-        radio.addEventListener('change', async () => {
-            if (radio.checked) {
-                plugin.settings.selectImageIconFlag = color;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-            }
-        });
-        
-        // Create the label with the flag image
-        const label = radioContainer.createEl('label', {
-            attr: {
-                for: `flag-${color}`
-            }
-        });
-        
-        // Add the flag image to the label
-        const img = label.createEl('img', {
-            attr: {
-                src: flags[color],
-                alt: `${color} flag`
-            }
-        });
-        
-        // Style the image
-        img.style.width = '20px';
-        img.style.height = '25px';
-        img.style.verticalAlign = 'middle';
-        img.style.marginLeft = '5px';
-        
-        // Add the color name
-        // label.append(` ${color}`);
-    });
-    
-    // Add reset button
-    selectImageIconFlagSetting.addExtraButton(button => button
-        .setIcon('reset')
-        .setTooltip('Reset to default')
-        .onClick(async () => {
-            plugin.settings.selectImageIconFlag = DEFAULT_SETTINGS.selectImageIconFlag;
-            await plugin.saveSettings();
-            
-            // Update radio button selection
-            const radios = flagRadioContainer.querySelectorAll('input[type="radio"]');
-            radios.forEach(radio => {
-                radio.checked = radio.value === DEFAULT_SETTINGS.selectImageIconFlag;
-            });
-            
-            plugin.updateAllBanners();
-        }));
-
-    // Add the defaultSelectImagePath setting
-    const defaultSelectImagePathSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Default Select Image Path')
-        .setDesc('Set a default folder path to filter images when opening the Select Image modal')
-        .addText(text => {
-            text.setPlaceholder('Example: Images/Banners')
-                .setValue(plugin.settings.defaultSelectImagePath)
-                .onChange(async (value) => {
-                    plugin.settings.defaultSelectImagePath = value;
-                    await plugin.saveSettings();
-                });
-            text.inputEl.style.width = '200px';
-            return text;
-        })
-        .addButton(button => button
-            .setButtonText('Browse')
-            .onClick(() => {
-                new FolderSuggestModal(plugin.app, (chosenPath) => {
-                    plugin.settings.defaultSelectImagePath = chosenPath;
-                    const textInput = defaultSelectImagePathSetting.components[0];
-                    if (textInput) {
-                        textInput.setValue(chosenPath);
-                    }
-                    plugin.saveSettings();
-                }).open();
-            }))
-        .addExtraButton(button => button
-            .setIcon('reset')
-            .setTooltip('Reset to default')
-            .onClick(async () => {
-                plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
-                await plugin.saveSettings();
-                
-                const textComponent = defaultSelectImagePathSetting.components[0];
-                if (textComponent) {
-                    textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
-                }
             }));
 
     // Add the showViewImageIcon setting

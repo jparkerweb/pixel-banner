@@ -71,7 +71,7 @@ function random20characters() {
 export function createAPISettings(containerEl, plugin) {
     // section callout
     const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
-    calloutEl.createEl('div', { text: 'Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes.' });
+    calloutEl.createEl('div', { text: '🌐 Optionally select which 3rd party API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes.' });
 
     // Add API provider radio buttons
     new Setting(containerEl)

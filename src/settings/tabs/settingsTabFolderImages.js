@@ -4,7 +4,7 @@ import { FolderSuggestModal } from '../settings';
 export function createFolderSettings(containerEl, plugin) {
     // section callout
     const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
-    calloutEl.createEl('div', { text: 'Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder.' });
+    calloutEl.createEl('div', { text: '🗃️ Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder.' });
 
     // Add folder images container
     const folderImagesContainer = containerEl.createEl('div', { cls: 'folder-images-container' });

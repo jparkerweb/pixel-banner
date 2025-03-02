@@ -382,8 +382,8 @@ Contains multiple small modules for organizing plugin settings sub-UI, mostly us
   Manages settings for folder-specific banner overrides.  
 - **settingsTabGeneral.js**  
   Configures general plugin options.  
-- **settingsTabExample.js**  
-  Possibly includes usage examples or placeholders.
+- **settingsTabPixelBannerPlus.js**  
+  Contains settings for Pixel Banner Plus authentication and API connection.
 
 ---
 

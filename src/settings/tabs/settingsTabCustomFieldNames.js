@@ -41,7 +41,7 @@ function validateFieldNames(settings, allFields, currentField, newNames) {
 export function createCustomFieldsSettings(containerEl, plugin) {
     // section callout
     const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
-    calloutEl.createEl('div', { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
+    calloutEl.createEl('div', { text: '🗺️ Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
 
     const customFields = [
         {
