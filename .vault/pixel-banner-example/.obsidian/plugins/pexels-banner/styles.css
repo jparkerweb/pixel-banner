@@ -303,7 +303,8 @@
     border: none;
     background: none;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 13px;
+    text-transform: uppercase;
     color: var(--text-muted);
     transition: color 0.3s ease;
 }
@@ -1063,7 +1064,6 @@
 }
 
 .target-position-modal .reset-button {
-    margin-top: 20px;
     padding: 8px;
     width: 100%;
     font-size: 14px;

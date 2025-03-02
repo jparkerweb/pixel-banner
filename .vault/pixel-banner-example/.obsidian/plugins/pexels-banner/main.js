@@ -39,83 +39,8 @@ var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.2</h3>\n<h4>\u{
 // src/settings/settings.js
 var import_obsidian6 = require("obsidian");
 
-// src/settings/tabs/settingsTabExample.js
-var import_obsidian = require("obsidian");
-var getRandomFieldName = (fieldNames) => {
-  const names = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
-  return names[Math.floor(Math.random() * names.length)];
-};
-function createExampleSettings(containerEl, plugin) {
-  new import_obsidian.Setting(containerEl).setName("How to use").setHeading().settingEl.querySelector(".setting-item-name").style.cssText = "color: var(--text-accent-hover); font-size: var(--font-ui-large);";
-  const instructionsEl = containerEl.createEl("div", { cls: "pixel-banner-section" });
-  instructionsEl.createEl("p", { text: "Add the following fields to your note's frontmatter to customize the banner:" });
-  const codeEl = instructionsEl.createEl("pre");
-  codeEl.createEl("code", {
-    text: `---
-${getRandomFieldName(plugin.settings.customBannerField)}: blue turtle
-${getRandomFieldName(plugin.settings.customYPositionField)}: 30
-${getRandomFieldName(plugin.settings.customXPositionField)}: 30
-${getRandomFieldName(plugin.settings.customContentStartField)}: 200
-${getRandomFieldName(plugin.settings.customImageDisplayField)}: contain
-${getRandomFieldName(plugin.settings.customImageRepeatField)}: true
-${getRandomFieldName(plugin.settings.customBannerHeightField)}: 400
-${getRandomFieldName(plugin.settings.customFadeField)}: -75
-${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 25
-${getRandomFieldName(plugin.settings.customTitleColorField)}: #ff0000
----
-
-# Or use a direct URL:
----
-${getRandomFieldName(plugin.settings.customBannerField)}: https://example.com/image.jpg
-${getRandomFieldName(plugin.settings.customYPositionField)}: 70
-${getRandomFieldName(plugin.settings.customXPositionField)}: 70
-${getRandomFieldName(plugin.settings.customContentStartField)}: 180
-${getRandomFieldName(plugin.settings.customImageDisplayField)}: 200%
-${getRandomFieldName(plugin.settings.customBannerHeightField)}: 300
-${getRandomFieldName(plugin.settings.customFadeField)}: -75
-${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 0
-${getRandomFieldName(plugin.settings.customTitleColorField)}: #00ff00
----
-
-# Or use a path to an image in the vault:
----
-${getRandomFieldName(plugin.settings.customBannerField)}: Assets/my-image.png
-${getRandomFieldName(plugin.settings.customYPositionField)}: 0
-${getRandomFieldName(plugin.settings.customXPositionField)}: 0
-${getRandomFieldName(plugin.settings.customContentStartField)}: 100
-${getRandomFieldName(plugin.settings.customImageDisplayField)}: auto
-${getRandomFieldName(plugin.settings.customBannerHeightField)}: 250
-${getRandomFieldName(plugin.settings.customFadeField)}: -75
-${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 50
-${getRandomFieldName(plugin.settings.customTitleColorField)}: #0000ff
----
-
-# Or use an Obsidian internal link:
----
-${getRandomFieldName(plugin.settings.customBannerField)}: [[example-image.png]]
-${getRandomFieldName(plugin.settings.customYPositionField)}: 100
-${getRandomFieldName(plugin.settings.customXPositionField)}: 100
-${getRandomFieldName(plugin.settings.customContentStartField)}: 50
-${getRandomFieldName(plugin.settings.customImageDisplayField)}: contain
-${getRandomFieldName(plugin.settings.customImageRepeatField)}: false
-${getRandomFieldName(plugin.settings.customBannerHeightField)}: 500
-${getRandomFieldName(plugin.settings.customFadeField)}: -75
-${getRandomFieldName(plugin.settings.customBorderRadiusField)}: 17
-${getRandomFieldName(plugin.settings.customTitleColorField)}: #ff00ff
----`
-  });
-  instructionsEl.createEl("p", { text: 'Note: The image display options are "auto", "cover", or "contain". The image repeat option is only applicable when the display is set to "contain".' });
-  containerEl.createEl("img", {
-    attr: {
-      src: "https://raw.githubusercontent.com/jparkerweb/pixel-banner/main/example.jpg",
-      alt: "Example of a Pixel banner",
-      style: "max-width: 100%; height: auto; margin-top: 10px; border-radius: 5px;"
-    }
-  });
-}
-
 // src/settings/tabs/settingsTabAPISettings.js
-var import_obsidian2 = require("obsidian");
+var import_obsidian = require("obsidian");
 async function testPexelsApi(apiKey) {
   try {
     const response = await fetch(`https://api.pexels.com/v1/search?query=${random20characters()}&per_page=3`, {
@@ -175,15 +100,15 @@ function random20characters() {
 }
 function createAPISettings(containerEl, plugin) {
   const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-  calloutEl.createEl("div", { text: "Optionally select which API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
-  new import_obsidian2.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").addOption("unsplash", "Unsplash").setValue(plugin.settings.apiProvider).onChange(async (value) => {
+  calloutEl.createEl("div", { text: "\u{1F310} Optionally select which 3rd party API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes." });
+  new import_obsidian.Setting(containerEl).setName("API Provider").setDesc("Select the API provider for fetching images").addDropdown((dropdown) => dropdown.addOption("all", "All (Random)").addOption("pexels", "Pexels").addOption("pixabay", "Pixabay").addOption("flickr", "Flickr").addOption("unsplash", "Unsplash").setValue(plugin.settings.apiProvider).onChange(async (value) => {
     plugin.settings.apiProvider = value;
     await plugin.saveSettings();
     plugin.settingTab.display();
   }));
-  new import_obsidian2.Setting(containerEl).setName("Pexels API Key");
+  new import_obsidian.Setting(containerEl).setName("Pexels API Key");
   containerEl.createEl("span", { text: "Enter your Pexels API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.pexels.com/api/", text: "Pexels API" });
-  const pexelsApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+  const pexelsApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
     text.setPlaceholder("Pexels API key").setValue(plugin.settings.pexelsApiKey).onChange(async (value) => {
       plugin.settings.pexelsApiKey = value;
       await plugin.saveSettings();
@@ -192,7 +117,7 @@ function createAPISettings(containerEl, plugin) {
   }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
     const apiKey = plugin.settings.pexelsApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Please enter an API key first");
+      new import_obsidian.Notice("Please enter an API key first");
       return;
     }
     button.setButtonText("Testing...");
@@ -200,12 +125,12 @@ function createAPISettings(containerEl, plugin) {
     const isValid = await testPexelsApi(apiKey);
     button.setButtonText("Test API");
     button.setDisabled(false);
-    new import_obsidian2.Notice(isValid ? "\u2705 Pexels API key is valid!" : "\u274C Invalid Pexels API key");
+    new import_obsidian.Notice(isValid ? "\u2705 Pexels API key is valid!" : "\u274C Invalid Pexels API key");
   }));
   pexelsApiKeySetting.settingEl.style.width = "100%";
-  new import_obsidian2.Setting(containerEl).setName("Pixabay API Key");
+  new import_obsidian.Setting(containerEl).setName("Pixabay API Key");
   containerEl.createEl("span", { text: "Enter your Pixabay API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://pixabay.com/api/docs/", text: "Pixabay API" });
-  const pixabayApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+  const pixabayApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
     text.setPlaceholder("Pixabay API key").setValue(plugin.settings.pixabayApiKey).onChange(async (value) => {
       plugin.settings.pixabayApiKey = value;
       await plugin.saveSettings();
@@ -214,7 +139,7 @@ function createAPISettings(containerEl, plugin) {
   }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
     const apiKey = plugin.settings.pixabayApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Please enter an API key first");
+      new import_obsidian.Notice("Please enter an API key first");
       return;
     }
     button.setButtonText("Testing...");
@@ -222,12 +147,12 @@ function createAPISettings(containerEl, plugin) {
     const isValid = await testPixabayApi(apiKey);
     button.setButtonText("Test API");
     button.setDisabled(false);
-    new import_obsidian2.Notice(isValid ? "\u2705 Pixabay API key is valid!" : "\u274C Invalid Pixabay API key");
+    new import_obsidian.Notice(isValid ? "\u2705 Pixabay API key is valid!" : "\u274C Invalid Pixabay API key");
   }));
   pixabayApiKeySetting.settingEl.style.width = "100%";
-  new import_obsidian2.Setting(containerEl).setName("Flickr API Key");
+  new import_obsidian.Setting(containerEl).setName("Flickr API Key");
   containerEl.createEl("span", { text: "Enter your Flickr API key. Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://www.flickr.com/services/api/", text: "Flickr API" });
-  const flickrApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+  const flickrApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
     text.setPlaceholder("Flickr API key").setValue(plugin.settings.flickrApiKey).onChange(async (value) => {
       plugin.settings.flickrApiKey = value;
       await plugin.saveSettings();
@@ -236,7 +161,7 @@ function createAPISettings(containerEl, plugin) {
   }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
     const apiKey = plugin.settings.flickrApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Please enter an API key first");
+      new import_obsidian.Notice("Please enter an API key first");
       return;
     }
     button.setButtonText("Testing...");
@@ -244,11 +169,11 @@ function createAPISettings(containerEl, plugin) {
     const isValid = await testFlickrApi(apiKey);
     button.setButtonText("Test API");
     button.setDisabled(false);
-    new import_obsidian2.Notice(isValid ? "\u2705 Flickr API key is valid!" : "\u274C Invalid Flickr API key");
+    new import_obsidian.Notice(isValid ? "\u2705 Flickr API key is valid!" : "\u274C Invalid Flickr API key");
   }));
-  new import_obsidian2.Setting(containerEl).setName("Unsplash API Key");
+  new import_obsidian.Setting(containerEl).setName("Unsplash API Key");
   containerEl.createEl("span", { text: "Enter your Unsplash API key (Access Key). Get your API key from ", cls: "setting-item-description" }).createEl("a", { href: "https://unsplash.com/oauth/applications", text: "Unsplash API" });
-  const unsplashApiKeySetting = new import_obsidian2.Setting(containerEl).setClass("full-width-control").addText((text) => {
+  const unsplashApiKeySetting = new import_obsidian.Setting(containerEl).setClass("full-width-control").addText((text) => {
     text.setPlaceholder("Unsplash API key").setValue(plugin.settings.unsplashApiKey).onChange(async (value) => {
       plugin.settings.unsplashApiKey = value;
       await plugin.saveSettings();
@@ -257,7 +182,7 @@ function createAPISettings(containerEl, plugin) {
   }).addButton((button) => button.setButtonText("Test API").onClick(async () => {
     const apiKey = plugin.settings.unsplashApiKey;
     if (!apiKey) {
-      new import_obsidian2.Notice("Please enter an API key first");
+      new import_obsidian.Notice("Please enter an API key first");
       return;
     }
     button.setButtonText("Testing...");
@@ -265,16 +190,16 @@ function createAPISettings(containerEl, plugin) {
     const isValid = await testUnsplashApi(apiKey);
     button.setButtonText("Test API");
     button.setDisabled(false);
-    new import_obsidian2.Notice(isValid ? "\u2705 Unsplash API key is valid!" : "\u274C Invalid Unsplash API key");
+    new import_obsidian.Notice(isValid ? "\u2705 Unsplash API key is valid!" : "\u274C Invalid Unsplash API key");
   }));
-  new import_obsidian2.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
-  new import_obsidian2.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(plugin.settings.showPinIcon).onChange(async (value) => {
+  new import_obsidian.Setting(containerEl).setName("Images").setDesc("Configure settings for images fetched from API. These settings apply when using keywords to fetch random images.").setHeading();
+  new import_obsidian.Setting(containerEl).setName("Show Pin Icon").setDesc("Show a pin icon on random banner images that allows saving them to your vault. Once pinned, your frontmatter will be updated to use the local image instead of the API image.").addToggle((toggle) => toggle.setValue(plugin.settings.showPinIcon).onChange(async (value) => {
     plugin.settings.showPinIcon = value;
     folderInputSetting.settingEl.style.display = value ? "flex" : "none";
     refreshIconSetting.settingEl.style.display = value ? "flex" : "none";
     await plugin.saveSettings();
   }));
-  const folderInputSetting = new import_obsidian2.Setting(containerEl).setName("Pinned Images Folder").setDesc("Default folder where pinned banner images will be saved").addText((text) => {
+  const folderInputSetting = new import_obsidian.Setting(containerEl).setName("Pinned Images Folder").setDesc("Default folder where pinned banner images will be saved").addText((text) => {
     text.setPlaceholder("pixel-banner-images").setValue(plugin.settings.pinnedImageFolder).onChange(async (value) => {
       plugin.settings.pinnedImageFolder = value;
       await plugin.saveSettings();
@@ -290,21 +215,21 @@ function createAPISettings(containerEl, plugin) {
     });
     return text;
   });
-  const refreshIconSetting = new import_obsidian2.Setting(containerEl).setName("Show Refresh Icon").setDesc("Show a refresh icon on random banner images that allows fetching a new random image.").addToggle((toggle) => toggle.setValue(plugin.settings.showRefreshIcon).onChange(async (value) => {
+  const refreshIconSetting = new import_obsidian.Setting(containerEl).setName("Show Refresh Icon").setDesc("Show a refresh icon on random banner images that allows fetching a new random image.").addToggle((toggle) => toggle.setValue(plugin.settings.showRefreshIcon).onChange(async (value) => {
     plugin.settings.showRefreshIcon = value;
     await plugin.saveSettings();
   }));
   folderInputSetting.settingEl.style.display = plugin.settings.showPinIcon ? "flex" : "none";
   refreshIconSetting.settingEl.style.display = plugin.settings.showPinIcon ? "flex" : "none";
-  new import_obsidian2.Setting(containerEl).setName("Size").setDesc("Select the size of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("small", "Small").addOption("medium", "Medium").addOption("large", "Large").setValue(plugin.settings.imageSize).onChange(async (value) => {
+  new import_obsidian.Setting(containerEl).setName("Size").setDesc("Select the size of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("small", "Small").addOption("medium", "Medium").addOption("large", "Large").setValue(plugin.settings.imageSize).onChange(async (value) => {
     plugin.settings.imageSize = value;
     await plugin.saveSettings();
   }));
-  new import_obsidian2.Setting(containerEl).setName("Orientation").setDesc("Select the orientation of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("landscape", "Landscape").addOption("portrait", "Portrait").addOption("square", "Square").setValue(plugin.settings.imageOrientation).onChange(async (value) => {
+  new import_obsidian.Setting(containerEl).setName("Orientation").setDesc("Select the orientation of the image - (API only)").addDropdown((dropdown) => dropdown.addOption("landscape", "Landscape").addOption("portrait", "Portrait").addOption("square", "Square").setValue(plugin.settings.imageOrientation).onChange(async (value) => {
     plugin.settings.imageOrientation = value;
     await plugin.saveSettings();
   }));
-  new import_obsidian2.Setting(containerEl).setName("Number of images").setDesc("Enter the number of random images to fetch (3-50) - (API only)").addText((text) => text.setPlaceholder("10").setValue(String(plugin.settings.numberOfImages || 10)).onChange(async (value) => {
+  new import_obsidian.Setting(containerEl).setName("Number of images").setDesc("Enter the number of random images to fetch (3-50) - (API only)").addText((text) => text.setPlaceholder("10").setValue(String(plugin.settings.numberOfImages || 10)).onChange(async (value) => {
     let numValue = Number(value);
     if (!isNaN(numValue)) {
       numValue = Math.max(3, Math.min(numValue, 50));
@@ -318,7 +243,7 @@ function createAPISettings(containerEl, plugin) {
     inputEl.max = "50";
     inputEl.style.width = "50px";
   });
-  const defaultKeywordsSetting = new import_obsidian2.Setting(containerEl).setName("Default keywords").setDesc("Enter a comma-separated list of default keywords to be used when no keyword is provided in the frontmatter, or when the provided keyword does not return any results. - (API only)").addTextArea((text) => {
+  const defaultKeywordsSetting = new import_obsidian.Setting(containerEl).setName("Default keywords").setDesc("Enter a comma-separated list of default keywords to be used when no keyword is provided in the frontmatter, or when the provided keyword does not return any results. - (API only)").addTextArea((text) => {
     text.setPlaceholder("Enter keywords, separated by commas").setValue(plugin.settings.defaultKeywords).onChange(async (value) => {
       plugin.settings.defaultKeywords = value;
       await plugin.saveSettings();
@@ -337,10 +262,10 @@ function createAPISettings(containerEl, plugin) {
 }
 
 // src/settings/tabs/settingsTabFolderImages.js
-var import_obsidian3 = require("obsidian");
+var import_obsidian2 = require("obsidian");
 function createFolderSettings(containerEl, plugin) {
   const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-  calloutEl.createEl("div", { text: "Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder." });
+  calloutEl.createEl("div", { text: "\u{1F5C3}\uFE0F Configure banner settings for specific folders. These settings will override the default settings for all notes in the specified folder." });
   const folderImagesContainer = containerEl.createEl("div", { cls: "folder-images-container" });
   plugin.settings.folderImages.forEach((folderImage, index) => {
     new FolderImageSetting(
@@ -351,7 +276,7 @@ function createFolderSettings(containerEl, plugin) {
       () => updateFolderSettings(containerEl, plugin)
     );
   });
-  const addFolderImageSetting = new import_obsidian3.Setting(containerEl).setClass("add-folder-image-setting").addButton((button) => button.setButtonText("Add Folder Image").onClick(async () => {
+  const addFolderImageSetting = new import_obsidian2.Setting(containerEl).setClass("add-folder-image-setting").addButton((button) => button.setButtonText("Add Folder Image").onClick(async () => {
     const newFolderImage = {
       folder: "",
       image: "",
@@ -377,7 +302,7 @@ function updateFolderSettings(containerEl, plugin) {
   containerEl.empty();
   createFolderSettings(containerEl, plugin);
 }
-var FolderImageSetting = class extends import_obsidian3.Setting {
+var FolderImageSetting = class extends import_obsidian2.Setting {
   constructor(containerEl, plugin, folderImage, index, onDelete) {
     super(containerEl);
     this.plugin = plugin;
@@ -422,7 +347,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
   }
   addFolderInput() {
     const folderInputContainer = this.settingEl.createDiv("folder-input-container");
-    const folderInput = new import_obsidian3.Setting(folderInputContainer).setName("Folder Path").addText((text) => {
+    const folderInput = new import_obsidian2.Setting(folderInputContainer).setName("Folder Path").addText((text) => {
       text.setValue(this.folderImage.folder || "").onChange(async (value) => {
         this.folderImage.folder = value;
         await this.plugin.saveSettings();
@@ -438,7 +363,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
       }).open();
     }));
     const shuffleContainer = this.settingEl.createDiv("shuffle-container");
-    const shuffleToggle = new import_obsidian3.Setting(shuffleContainer).setName("Enable Image Shuffle").setDesc("Randomly select an image from a specified folder each time the note loads").addToggle((toggle) => {
+    const shuffleToggle = new import_obsidian2.Setting(shuffleContainer).setName("Enable Image Shuffle").setDesc("Randomly select an image from a specified folder each time the note loads").addToggle((toggle) => {
       toggle.setValue(this.folderImage.enableImageShuffle || false).onChange(async (value) => {
         this.folderImage.enableImageShuffle = value;
         if (value) {
@@ -451,7 +376,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
         await this.plugin.saveSettings();
       });
     });
-    const shuffleFolderInput = new import_obsidian3.Setting(shuffleContainer).setName("Image Shuffle Folder").setDesc("Folder containing images to randomly select from").addText((text) => {
+    const shuffleFolderInput = new import_obsidian2.Setting(shuffleContainer).setName("Image Shuffle Folder").setDesc("Folder containing images to randomly select from").addText((text) => {
       text.setValue(this.folderImage.shuffleFolder || "").onChange(async (value) => {
         this.folderImage.shuffleFolder = value;
         await this.plugin.saveSettings();
@@ -474,7 +399,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
     if (this.folderImage.enableImageShuffle) {
       this.imageInputContainer.style.display = "none";
     }
-    const imageInput = new import_obsidian3.Setting(this.imageInputContainer).setName("Image URL or Keyword").addText((text) => {
+    const imageInput = new import_obsidian2.Setting(this.imageInputContainer).setName("Image URL or Keyword").addText((text) => {
       text.setValue(this.folderImage.image || "").onChange(async (value) => {
         this.folderImage.image = value;
         await this.plugin.saveSettings();
@@ -485,14 +410,14 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
   }
   addImageDisplaySettings(containerEl) {
     const displayContainer = this.settingEl.createDiv("display-and-repeat-container");
-    const displaySetting = new import_obsidian3.Setting(displayContainer).setName("Image Display").addDropdown((dropdown) => {
+    const displaySetting = new import_obsidian2.Setting(displayContainer).setName("Image Display").addDropdown((dropdown) => {
       dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(this.folderImage.imageDisplay || "cover").onChange(async (value) => {
         this.folderImage.imageDisplay = value;
         await this.plugin.saveSettings();
       });
       dropdown.selectEl.style.marginRight = "20px";
     });
-    const repeatSetting = new import_obsidian3.Setting(displayContainer).setName("repeat").addToggle((toggle) => {
+    const repeatSetting = new import_obsidian2.Setting(displayContainer).setName("repeat").addToggle((toggle) => {
       toggle.setValue(this.folderImage.imageRepeat || false).onChange(async (value) => {
         this.folderImage.imageRepeat = value;
         await this.plugin.saveSettings();
@@ -636,7 +561,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
   }
   addColorSettings(containerEl) {
     const colorContainer = containerEl.createDiv("color-settings-container");
-    new import_obsidian3.Setting(colorContainer).setName("Inline Title Color").addColorPicker((color) => color.setValue((() => {
+    new import_obsidian2.Setting(colorContainer).setName("Inline Title Color").addColorPicker((color) => color.setValue((() => {
       const currentColor = this.folderImage.titleColor || this.plugin.settings.titleColor;
       if (currentColor.startsWith("var(--")) {
         const temp = document.createElement("div");
@@ -681,7 +606,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
     }));
   }
   addDirectChildrenOnlyToggle() {
-    new import_obsidian3.Setting(this.settingEl).setName("Direct Children Only").setDesc("Apply banner only to direct children of the folder").addToggle((toggle) => {
+    new import_obsidian2.Setting(this.settingEl).setName("Direct Children Only").setDesc("Apply banner only to direct children of the folder").addToggle((toggle) => {
       toggle.setValue(this.folderImage.directChildrenOnly || false).onChange(async (value) => {
         this.folderImage.directChildrenOnly = value;
         await this.plugin.saveSettings();
@@ -738,20 +663,20 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
   }
   addBannerIconSettings() {
     const controlEl1 = this.settingEl.createDiv("setting-item-control full-width-control");
-    new import_obsidian3.Setting(controlEl1).setName("Icon Size").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(this.folderImage.bannerIconSize || this.plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian2.Setting(controlEl1).setName("Icon Size").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(this.folderImage.bannerIconSize || this.plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
       this.folderImage.bannerIconSize = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian3.Setting(controlEl1).setName("Icon X Position").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconXPosition || this.plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian2.Setting(controlEl1).setName("Icon X Position").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconXPosition || this.plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
       this.folderImage.bannerIconXPosition = value;
       await this.plugin.saveSettings();
     }));
     const controlEl2 = this.settingEl.createDiv("setting-item-control full-width-control");
-    new import_obsidian3.Setting(controlEl2).setName("Icon Opacity").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconOpacity || this.plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian2.Setting(controlEl2).setName("Icon Opacity").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconOpacity || this.plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
       this.folderImage.bannerIconOpacity = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian3.Setting(controlEl2).setName("Icon Color").addText((text) => {
+    new import_obsidian2.Setting(controlEl2).setName("Icon Color").addText((text) => {
       text.setPlaceholder("(e.g., #ffffff or white)").setValue(this.folderImage.bannerIconColor || this.plugin.settings.bannerIconColor).onChange(async (value) => {
         this.folderImage.bannerIconColor = value;
         await this.plugin.saveSettings();
@@ -759,13 +684,13 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
       text.inputEl.style.width = "160px";
     });
     const controlEl3 = this.settingEl.createDiv("setting-item-control full-width-control");
-    new import_obsidian3.Setting(controlEl3).setName("Icon Font Weight").addDropdown((dropdown) => {
+    new import_obsidian2.Setting(controlEl3).setName("Icon Font Weight").addDropdown((dropdown) => {
       dropdown.addOption("lighter", "Lighter").addOption("normal", "Normal").addOption("bold", "Bold").setValue(this.folderImage.bannerIconFontWeight || this.plugin.settings.bannerIconFontWeight).onChange(async (value) => {
         this.folderImage.bannerIconFontWeight = value;
         await this.plugin.saveSettings();
       });
     });
-    new import_obsidian3.Setting(controlEl3).setName("Icon BG Color").addText((text) => {
+    new import_obsidian2.Setting(controlEl3).setName("Icon BG Color").addText((text) => {
       text.setPlaceholder("(e.g., #ffffff or transparent)").setValue(this.folderImage.bannerIconBackgroundColor || this.plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
         this.folderImage.bannerIconBackgroundColor = value;
         await this.plugin.saveSettings();
@@ -773,20 +698,20 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
       text.inputEl.style.width = "160px";
     });
     const controlEl4 = this.settingEl.createDiv("setting-item-control full-width-control");
-    new import_obsidian3.Setting(controlEl4).setName("Icon Padding X").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconPaddingX || this.plugin.settings.bannerIconPaddingX).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian2.Setting(controlEl4).setName("Icon Padding X").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconPaddingX || this.plugin.settings.bannerIconPaddingX).setDynamicTooltip().onChange(async (value) => {
       this.folderImage.bannerIconPaddingX = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian3.Setting(controlEl4).setName("Icon Padding Y").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconPaddingY || this.plugin.settings.bannerIconPaddingY).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian2.Setting(controlEl4).setName("Icon Padding Y").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(this.folderImage.bannerIconPaddingY || this.plugin.settings.bannerIconPaddingY).setDynamicTooltip().onChange(async (value) => {
       this.folderImage.bannerIconPaddingY = value;
       await this.plugin.saveSettings();
     }));
     const controlEl5 = this.settingEl.createDiv("setting-item-control full-width-control");
-    new import_obsidian3.Setting(controlEl5).setName("Icon Border Radius").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(this.folderImage.bannerIconBorderRadius || this.plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian2.Setting(controlEl5).setName("Icon Border Radius").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(this.folderImage.bannerIconBorderRadius || this.plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
       this.folderImage.bannerIconBorderRadius = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian3.Setting(controlEl5).setName("Icon Vertical Offset").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(this.folderImage.bannerIconVeritalOffset || this.plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian2.Setting(controlEl5).setName("Icon Vertical Offset").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(this.folderImage.bannerIconVeritalOffset || this.plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
       this.folderImage.bannerIconVeritalOffset = value;
       await this.plugin.saveSettings();
     }));
@@ -794,7 +719,7 @@ var FolderImageSetting = class extends import_obsidian3.Setting {
 };
 
 // src/settings/tabs/settingsTabCustomFieldNames.js
-var import_obsidian4 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 function arrayToString(arr) {
   return Array.isArray(arr) ? arr.join(", ") : arr;
 }
@@ -823,7 +748,7 @@ function validateFieldNames(settings, allFields, currentField, newNames) {
 }
 function createCustomFieldsSettings(containerEl, plugin) {
   const calloutEl = containerEl.createEl("div", { cls: "tab-callout" });
-  calloutEl.createEl("div", { text: 'Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
+  calloutEl.createEl("div", { text: '\u{1F5FA}\uFE0F Customize the frontmatter field names used for the banner and Y-position. You can define multiple names for each field, separated by commas. Field names can only contain letters, numbers, dashes, and underscores. Example: "banner, pixel-banner, header_image" could all be used as the banner field name.' });
   const customFields = [
     {
       setting: "customBannerField",
@@ -981,7 +906,7 @@ function createCustomFieldsSettings(containerEl, plugin) {
     }
   ];
   customFields.forEach((field) => {
-    new import_obsidian4.Setting(containerEl).setName(field.name).setDesc(field.desc).addText((text) => {
+    new import_obsidian3.Setting(containerEl).setName(field.name).setDesc(field.desc).addText((text) => {
       text.setPlaceholder(field.placeholder).setValue(arrayToString(plugin.settings[field.setting])).onChange(async (value) => {
         const newNames = stringToArray(value);
         const allFields = customFields.map((f) => f.setting);
@@ -1010,11 +935,553 @@ function createCustomFieldsSettings(containerEl, plugin) {
 }
 
 // src/settings/tabs/settingsTabGeneral.js
-var import_obsidian5 = require("obsidian");
+var import_obsidian4 = require("obsidian");
+
+// src/resources/flags.js
+var flags = {
+  "red": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAB3RJTUUH6QMBFCMRzbWhYAAAAm9JREFUWIXt1Eto03AcwPHfPy21r6WZ2JOKrN2jrV3b6ZAWHxQcXpwOvDkUD4MdnDfdSPAQi+JBUG8TRMGDrOrwAeKiUCHIYBE8zR3s1sdBkYEwpgOXf5v272WW1dKtaZMepH8IhF8eny9/SIAQAoQQGDh0IPz3vBkHih4Mhe+cOzXnpO2rP3+vM1efvY28+jAngc6LunTisOCk7QAAjMNqgfHBqKA3CgBA7d7pYDYP9u1qZya9HvZIR0dYV9hAoYrhiMXMJxhaSPh97EhXpy4BVJW5GSHEHDWZ+Mk2u/AtFCB3vR42ouEuVINLAQDAOCkKLlrM/HuGFmb8PvZ8Z+O7sB1cFmFAiDluMvEPaLuQCvayN3q66w5QA5cCAIDZazDw4zarsNYXJNP7fewZt1tVRD1wWYAJITi9w8THHW3CfMB/hatxFxqBKyJ6jMbr12xWYaUvSB75POyg21U1Qiu4LMCGEJw1m/nnDlr4FPCzl7u7KgK0hisieo1G/qbdJvwIBcl9r4eNbnySesJlATSF4ILFzL9rdwgnXa6wsQlwaSUVJfZYxuKbTEbSHV4nBGZyeS4uy+LrdEa6tTHXDc4UCtwTGYux5KI0DADD/1zXFFYAIIFz3JSMxafptBTb4l5N4O+FAjeNc+LEl6Q0BABDNTxTN0wIgdl8novjnPhwKSVNqHxeNbxSLMILnOPiMhZns1lpQO0L1MIf8woXl2Xx3lJKGgOAsTrBmuBfRQIvMeamZCyK2ax0rEFsW/izokBcxpHbi0vSKACMaghuCffPL6B+HbDNqxn/6hbcglvwfwobF74uw/LqWtlwTxPgP3n3GrlhLVHIAAAAAElFTkSuQmCC",
+  "blue": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACMElEQVRYhWP4//8/w////xlczIwsYGx6YEYHYwOLvhjf46J8PB8+fvsuUL1qh+WGQ8dPMNAYMOW4WW8X5eNhYGBgEODn4mQo9XHYTmtLGRgYGJikhfgFkAXkRQQFfCLX7tD3n55CU4uZmRgxBB9IOLozKQTOiopau8MhcCZNHMCCTfAnExvDTyY2xkviju6s/365qRZ/ma36bOfOJ99erbm0MXMONSxmwif5k4mN4QsLDyMDAwPDIwlHd2aFwFkRUWt32AVQHgpYfYzLET+Z2BivQEMhNXp9yKvvr9dsXJdGVggQbTG6A46L2cOjQf/5zp1Pv71ec3xDBtGOINlidAcwMDAw3ICGQlL0Wv8X399u3EZEKJBtMTZHnBJz9GH998tbtfjLbO3nO3c++/Z6zSkcoYA3cZHjAFhivCPu6P5bPmBWfPS6He5YsiRVfIzLET+Z2BjPijnA04Lms507H397teb8xsw5NLMY3QEMDAwM9yQgacHMfwbtfIwNmL46sPPFt9drtm/MoL2PGRgYGHSh2W0+UkKjmcV2L3bvfPX99ZrN69LmMDAEY8hT3WJDqO/mEihMqGKx44vdO19/f71mPQ7fUd1i0+c7dz77/mbNrPXpJJfXZFmsDs2PyyioIom22PzFrp3Pv71es3d9OtHBSZHFsNJmCZUaAAQtVrq3NHUnlXxHtMW3e3kYGRjSaWIhDFC1dhq1eNTiUYtHlsUsVx6/YHjx4TOKoAwdLAYATv0+zO4Wc9kAAAAASUVORK5CYII=",
+  "green": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACOUlEQVRYhe2VzWsTQRjG39kMQaW0UcxJQWIbQSQbtVprE6RKmz3Y4kkQ8ag3r0Vt7+1uD/4BaY6CKAMqHrpDBSWI8ZJEiIjamBz8aEqVrBaVhd0ZL90S7SZu404v5oWF5Z3D73medz6Acw6ccxgZODro/G/Fh4b7Dw/evDSeC3d3GV9//AxN3dVP3s/mnoPgkq6mEvPh7i4AgFDPju0wMTY8LxoKACDt2dUTamzs270zdEbt1Q9ci1wWCg5IaEPzbZwpVhKlz2l9+okb+4UIwG5NEwOYmKO8bCtBC6XCC5G5Q3mJfqwzsqhVM36ApVaLJgZY3cYRAEA5zhQ7idLjWp9+3IcUWoLdRBRlW/kyBOmLs1E9NdnbtgDXqP8mwMQcZWPW+hiOFQJ0qc7IC7XieQyeHbsJcMZQkm3lWwLSF7Tow9MeU9i042YiTMzRU9kaC1robHghMnckL9Elg5GS6r4Z23bcTICTwqs4U74nUPr8bFQ/5ZKCL46biTAxR7mGvSCvHcnXWjUjDPynAACAN3GmBC2Uil2PiHPsVokSpssGI0/UinjHAAD9hQD9VLfJHXVxfaMJA48UMV0xGHk0/S4DoxvXfQcPrF0mtxvcuZUvYKWI6WeDE3267OrOd/BQIUBrBiO3Zlq78w0cy0v0Q52RB1q57SfSMzhZwHTZsMmzmYrnOP8J7Nw297TNx9kW+OBj6Uq2yVEQBl4ZrSJRQKd8fZ064A64A/6/wPjl+xrUjNXfmnu3APwLyT02r9kBUpoAAAAASUVORK5CYII=",
+  "orange": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABTElEQVRYhWP4//8/w////xlczIwsYGx6YEYHYwOLvhjf46J8PB8+fvsuUL1qh+WGQ8dPMNAYMOW4WW8X5eNhYGBgEODn4mQo9XHYTmtLGRgYGJikhfgFkAXkRQQFflSqVvyoVLWgqcXMTIzYxOsZGBi209IBLDjEOaC4noGBofxHpaoAAwNDJQMDwwGO9ttUiX8mAvIcDAwMAlA2VUOBkMXYHEEVB+AKakIOoDgaSPExNgcIQNmwUCghNhTI8TEuR3AwMDA0MzAw/CAmFCjxMS4HCEDZeNMCtXyMyxE40wK1fYzLAQJQNiwULGjpY2ygkQHqY3pZjJHQaGkx3lRNC4uJKkyoZTHJJRelFpNdY5FrMcVVJCkWU7U+JsZiqlpIjMWW1LaMoMUc7bexNsSoCehRVo9aPGrxqMXD1GKWK49fMLz48BlFUIYOFgMAyz/KBzK6zGkAAAAASUVORK5CYII=",
+  "purple": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABPElEQVRYhe3WPUvDQByA8aexQ5TSnmInBafsomBTXDqIk34DP4KjguIg4u4HcXKLo7jU7G4dXTpWBM12LhVivKR5+V8GyUHguOX3JHccQWuN1pqDvR3/Z17H0xrtbvt3J8fjfrcze//8Ulf3j8OH5/ELlodzergf9LsdANVbWeb8aBTYRgGcjbWeii9sra+q0IsuQi/yrcJLTsu0fg0ENgOclHUXULEALR2RBicDQPgrLIJNESIBReC0gFLbUAZOBhCLOMsb0K4AJyNc4BaIQi9SwCXwNJi4xsuoyhunBaj5PPMsSMOmCONZsAknA4hF+FJ7nHfcMN/3uuA/B80mnHmqbcCZoDScC5OEC4NV4dJgGbgyVhQWBfPAQ2lsITyYuMYfMclRx13dwA3cwP8Ubr++TZnOPn4tbtYAfwMBYNJpfZpdcwAAAABJRU5ErkJggg==",
+  "yellow": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABPklEQVRYhe3Wv0rDQBzA8W9jKVVKexE7KfgKoiApLiWIk76Bj+CooDiIuPsgTm5xKuJSH8A3cOmWiqCS5VwqxHhJ8+d3GaQHgeOWzze54whaa7TW7O9uez/zOp7GcGfLuz0+Gve7nenbx6e6vHsY3D+Nn7E8nJODvaDf7QCo3soyZ4fDwDYK4Kyv9lR8YXPNVWHkn4eR71mFl5yGaf0KCGwGOCnrbUDFArR0RBqcDADhrzAPNkWIBBSB0wJKbUMZOBlALOI0b0CzApyMaAM3wFcY+Qq4AB7d1sh4GVV547QANZtnngVp2BRhPAs24WQAsQhPao/zjmtm+14X/Oeg2YQzT7UNOBOUhnNhknBhsCpcGiwDV8aKwqJgHnggjc2F3dbI+CMmOeq4qxfwAl7A/xRuvrxOmEzffy1u1AB/A5cP1WBzW154AAAAAElFTkSuQmCC"
+};
+
+// src/settings/tabs/settingsTabGeneral.js
 function createGeneralSettings(containerEl, plugin) {
+  const calloutEl = containerEl.createEl("div", { cls: "tab-callout margin-bottom-0" });
+  calloutEl.createEl("div", { text: "\u2699\uFE0F Configure default settings for all notes. These can be overridden per folder or per note." });
+  const SelectImageSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
+  const showSelectImageIconSetting = new import_obsidian4.Setting(SelectImageSettingsGroup).setName("Show Select Pixel Banner Icon").setDesc("Show an icon to select banner image in the top-left corner").addToggle((toggle) => toggle.setValue(plugin.settings.showSelectImageIcon).onChange(async (value) => {
+    plugin.settings.showSelectImageIcon = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+    await plugin.saveSettings();
+    const toggleComponent = showSelectImageIconSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
+    }
+    plugin.updateAllBanners();
+  }));
+  const selectImageIconFlagSetting = new import_obsidian4.Setting(SelectImageSettingsGroup).setName("Select Pixel Banner Icon").setDesc("Choose which flag icon to use for the banner selector");
+  const flagRadioContainer = selectImageIconFlagSetting.controlEl.createDiv({
+    cls: "pixel-banner-flag-radio-container"
+  });
+  flagRadioContainer.style.display = "flex";
+  flagRadioContainer.style.flexWrap = "wrap";
+  flagRadioContainer.style.gap = "10px";
+  Object.keys(flags).forEach((color) => {
+    const radioContainer = flagRadioContainer.createDiv({
+      cls: "pixel-banner-flag-radio"
+    });
+    const radio = radioContainer.createEl("input", {
+      type: "radio",
+      attr: {
+        id: `flag-${color}`,
+        name: "pixel-banner-flag",
+        value: color
+      }
+    });
+    radio.checked = plugin.settings.selectImageIconFlag === color;
+    radio.addEventListener("change", async () => {
+      if (radio.checked) {
+        plugin.settings.selectImageIconFlag = color;
+        await plugin.saveSettings();
+        plugin.updateAllBanners();
+      }
+    });
+    const label = radioContainer.createEl("label", {
+      attr: {
+        for: `flag-${color}`
+      }
+    });
+    const img = label.createEl("img", {
+      attr: {
+        src: flags[color],
+        alt: `${color} flag`
+      }
+    });
+    img.style.width = "20px";
+    img.style.height = "25px";
+    img.style.verticalAlign = "middle";
+    img.style.marginLeft = "5px";
+  });
+  selectImageIconFlagSetting.addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.selectImageIconFlag = DEFAULT_SETTINGS.selectImageIconFlag;
+    await plugin.saveSettings();
+    const radios = flagRadioContainer.querySelectorAll('input[type="radio"]');
+    radios.forEach((radio) => {
+      radio.checked = radio.value === DEFAULT_SETTINGS.selectImageIconFlag;
+    });
+    plugin.updateAllBanners();
+  }));
+  const defaultSelectImagePathSetting = new import_obsidian4.Setting(SelectImageSettingsGroup).setName("Default Select Image Path").setDesc("Set a default folder path to filter images when opening the Select Image modal").addText((text) => {
+    text.setPlaceholder("Example: Images/Banners").setValue(plugin.settings.defaultSelectImagePath).onChange(async (value) => {
+      plugin.settings.defaultSelectImagePath = value;
+      await plugin.saveSettings();
+    });
+    text.inputEl.style.width = "200px";
+    return text;
+  }).addButton((button) => button.setButtonText("Browse").onClick(() => {
+    new FolderSuggestModal(plugin.app, (chosenPath) => {
+      plugin.settings.defaultSelectImagePath = chosenPath;
+      const textInput = defaultSelectImagePathSetting.components[0];
+      if (textInput) {
+        textInput.setValue(chosenPath);
+      }
+      plugin.saveSettings();
+    }).open();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
+    await plugin.saveSettings();
+    const textComponent = defaultSelectImagePathSetting.components[0];
+    if (textComponent) {
+      textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
+    }
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
+    (slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.yPosition = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.yPosition;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Image Horizontal Position").setDesc("Set the horizontal position of the image (0-100)").addSlider(
+    (slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.xPosition).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.xPosition = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.xPosition;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Content Start Position").setDesc("Set the default vertical position where the content starts (in pixels)").addText((text) => text.setPlaceholder("150").setValue(String(plugin.settings.contentStartPosition)).onChange(async (value) => {
+    const numValue = Number(value);
+    if (!isNaN(numValue) && numValue >= 0) {
+      plugin.settings.contentStartPosition = numValue;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    }
+  })).then((setting) => {
+    const inputEl = setting.controlEl.querySelector("input");
+    inputEl.type = "number";
+    inputEl.min = "0";
+    inputEl.style.width = "60px";
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.contentStartPosition = DEFAULT_SETTINGS.contentStartPosition;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
+    inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
+    inputEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => {
+    dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(plugin.settings.imageDisplay || "cover").onChange(async (value) => {
+      plugin.settings.imageDisplay = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    });
+    return dropdown;
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
+    await plugin.saveSettings();
+    const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
+    dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
+    dropdownEl.dispatchEvent(new Event("change"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => {
+    toggle.setValue(plugin.settings.imageRepeat).onChange(async (value) => {
+      plugin.settings.imageRepeat = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    });
+    return toggle;
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
+    const toggleEl = checkboxContainer.querySelector("input");
+    if (toggleEl) {
+      toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
+      checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
+      const event = new Event("change", { bubbles: true });
+      toggleEl.dispatchEvent(event);
+    }
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (0-1280 pixels)").addText((text) => {
+    text.setPlaceholder("350").setValue(String(plugin.settings.bannerHeight)).onChange(async (value) => {
+      if (value === "" || !isNaN(Number(value))) {
+        await plugin.saveSettings();
+      }
+    });
+    text.inputEl.addEventListener("blur", async (event) => {
+      let numValue = Number(event.target.value);
+      if (isNaN(numValue) || event.target.value === "") {
+        numValue = 350;
+      } else {
+        numValue = Math.max(0, Math.min(1280, numValue));
+      }
+      plugin.settings.bannerHeight = numValue;
+      text.setValue(String(numValue));
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    });
+    text.inputEl.type = "number";
+    text.inputEl.min = "0";
+    text.inputEl.max = "1280";
+    text.inputEl.style.width = "50px";
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
+    inputEl.value = DEFAULT_SETTINGS.bannerHeight;
+    inputEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Banner Fade").setDesc("Set the default fade effect for the banner image (-1500 to 100)").addSlider(
+    (slider) => slider.setLimits(-1500, 100, 5).setValue(plugin.settings.fade).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.fade = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.fade = DEFAULT_SETTINGS.fade;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.fade;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Banner Fade In Animation Duration").setDesc("Set the default fade in animation duration for the banner image (0-1000 milliseconds)").addSlider(
+    (slider) => slider.setLimits(0, 1e3, 1).setValue(plugin.settings.bannerFadeInAnimationDuration).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.bannerFadeInAnimationDuration = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerFadeInAnimationDuration = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addText((text) => {
+    text.setPlaceholder("17").setValue(String(plugin.settings.borderRadius)).onChange(async (value) => {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
+        await plugin.saveSettings();
+        plugin.updateAllBanners();
+      }
+    });
+    text.inputEl.type = "number";
+    text.inputEl.min = "0";
+    text.inputEl.max = "50";
+    text.inputEl.style.width = "50px";
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
+    inputEl.value = DEFAULT_SETTINGS.borderRadius;
+    inputEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Banner Gap").setDesc("Set the gap between the banner and the window edges (0-50 pixels)").addSlider(
+    (slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.bannerGap).setDynamicTooltip().onChange(async (value) => {
+      plugin.settings.bannerGap = value;
+      await plugin.saveSettings();
+      plugin.updateAllBanners();
+    })
+  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.bannerGap;
+    sliderEl.dispatchEvent(new Event("input"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
+    const currentColor = plugin.settings.titleColor;
+    if (currentColor.startsWith("var(--")) {
+      const temp = document.createElement("div");
+      temp.style.color = currentColor;
+      document.body.appendChild(temp);
+      const computedColor = getComputedStyle(temp).color;
+      document.body.removeChild(temp);
+      const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        const [_, r, g, b] = rgbMatch;
+        const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+        return hexColor;
+      }
+      return "#000000";
+    }
+    return currentColor;
+  })()).onChange(async (value) => {
+    plugin.settings.titleColor = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
+    await plugin.saveSettings();
+    const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
+    if (colorPickerEl) {
+      const temp = document.createElement("div");
+      temp.style.color = DEFAULT_SETTINGS.titleColor;
+      document.body.appendChild(temp);
+      const computedColor = getComputedStyle(temp).color;
+      document.body.removeChild(temp);
+      const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        const [_, r, g, b] = rgbMatch;
+        const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+        colorPickerEl.value = hexColor;
+      }
+    }
+  }));
+  const hideEmbeddedNoteTitlesSetting = new import_obsidian4.Setting(containerEl).setName("Hide Embedded Note Titles").setDesc("Hide titles of embedded notes").addToggle((toggle) => toggle.setValue(plugin.settings.hideEmbeddedNoteTitles).onChange(async (value) => {
+    plugin.settings.hideEmbeddedNoteTitles = value;
+    await plugin.saveSettings();
+    plugin.updateEmbeddedTitlesVisibility();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
+    await plugin.saveSettings();
+    const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
+    }
+    plugin.updateEmbeddedTitlesVisibility();
+  }));
+  const hideEmbeddedNoteBannersSetting = new import_obsidian4.Setting(containerEl).setName("Hide Embedded Note Banners").setDesc("Hide banners of embedded notes").addToggle((toggle) => toggle.setValue(plugin.settings.hideEmbeddedNoteBanners).onChange(async (value) => {
+    plugin.settings.hideEmbeddedNoteBanners = value;
+    await plugin.saveSettings();
+    plugin.updateEmbeddedBannersVisibility();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
+    await plugin.saveSettings();
+    const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
+    }
+    plugin.updateEmbeddedBannersVisibility();
+  }));
+  const showViewImageIconSetting = new import_obsidian4.Setting(containerEl).setName("Show View Image Icon").setDesc("Show an icon to view the banner image in full screen").addToggle((toggle) => toggle.setValue(plugin.settings.showViewImageIcon).onChange(async (value) => {
+    plugin.settings.showViewImageIcon = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
+    await plugin.saveSettings();
+    const toggleComponent = showViewImageIconSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+    }
+    plugin.updateAllBanners();
+  }));
+  const hideSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
+  const hidePixelBannerFieldsSetting = new import_obsidian4.Setting(hideSettingsGroup).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => toggle.setValue(plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+    plugin.settings.hidePixelBannerFields = value;
+    if (!value) {
+      plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+      const dependentToggle = hidePropertiesSection.components[0];
+      if (dependentToggle) {
+        dependentToggle.setValue(false);
+        dependentToggle.setDisabled(true);
+      }
+      hidePropertiesSection.settingEl.addClass("is-disabled");
+      plugin.app.workspace.iterateAllLeaves((leaf) => {
+        if (leaf.view instanceof import_obsidian4.MarkdownView && leaf.view.contentEl) {
+          const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
+          if (propertiesContainer) {
+            propertiesContainer.classList.remove("pixel-banner-hidden-section");
+            const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
+            hiddenFields.forEach((field) => {
+              field.classList.remove("pixel-banner-hidden-field");
+            });
+          }
+        }
+      });
+    } else {
+      const dependentToggle = hidePropertiesSection.components[0];
+      if (dependentToggle) {
+        dependentToggle.setDisabled(false);
+      }
+      hidePropertiesSection.settingEl.removeClass("is-disabled");
+    }
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
+    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+    await plugin.saveSettings();
+    const mainToggle = hidePixelBannerFieldsSetting.components[0];
+    if (mainToggle) {
+      mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
+    }
+    const dependentToggle = hidePropertiesSection.components[0];
+    if (dependentToggle) {
+      dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+      dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
+    }
+    hidePropertiesSection.settingEl.toggleClass("is-disabled", !DEFAULT_SETTINGS.hidePixelBannerFields);
+    plugin.updateAllBanners();
+  }));
+  const hidePropertiesSection = new import_obsidian4.Setting(hideSettingsGroup).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => toggle.setValue(plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!plugin.settings.hidePixelBannerFields).onChange(async (value) => {
+    plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+    await plugin.saveSettings();
+    const toggle = hidePropertiesSection.components[0];
+    if (toggle) {
+      toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+    }
+    plugin.updateAllBanners();
+  }));
+  hidePropertiesSection.settingEl.addClass("setting-dependent");
+  if (!plugin.settings.hidePixelBannerFields) {
+    hidePropertiesSection.settingEl.addClass("is-disabled");
+  }
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Size").setDesc("Set the default size for the banner icon").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconSize = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon X Position").setDesc("Set the default X position for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconXPosition = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Opacity").setDesc("Set the default opacity for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconOpacity = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Text Color").setDesc("Set the default text color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or white)").setValue(plugin.settings.bannerIconColor).onChange(async (value) => {
+    plugin.settings.bannerIconColor = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
+    await plugin.saveSettings();
+    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+    textInput.value = DEFAULT_SETTINGS.bannerIconColor;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    textInput.dispatchEvent(event);
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Font Weight").setDesc("Set the default font weight for the banner icon").addDropdown((dropdown) => {
+    dropdown.addOption("lighter", "Lighter").addOption("normal", "Normal").addOption("bold", "Bold").setValue(plugin.settings.bannerIconFontWeight || "normal").onChange(async (value) => {
+      plugin.settings.bannerIconFontWeight = value;
+      await plugin.saveSettings();
+    });
+    return dropdown;
+  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconFontWeight = DEFAULT_SETTINGS.bannerIconFontWeight;
+    await plugin.saveSettings();
+    const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
+    dropdownEl.value = DEFAULT_SETTINGS.bannerIconFontWeight;
+    dropdownEl.dispatchEvent(new Event("change"));
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Background Color").setDesc("Set the default background color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or transparent)").setValue(plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
+    plugin.settings.bannerIconBackgroundColor = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+    await plugin.saveSettings();
+    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+    textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    textInput.dispatchEvent(event);
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Padding X").setDesc("Set the default padding X for the banner icon").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconPaddingX).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconPaddingX = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconPaddingX = DEFAULT_SETTINGS.bannerIconPaddingX;
+    await plugin.saveSettings();
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Padding Y").setDesc("Set the default padding Y for the banner icon").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconPaddingY).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconPaddingY = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconPaddingY = DEFAULT_SETTINGS.bannerIconPaddingY;
+    await plugin.saveSettings();
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Border Radius").setDesc("Set the default border radius for the banner icon").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconBorderRadius = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  new import_obsidian4.Setting(containerEl).setName("Default Banner Icon Vertical Offset").setDesc("Set the default vertical offset for the banner icon").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.bannerIconVeritalOffset = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.bannerIconVeritalOffset = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+    await plugin.saveSettings();
+    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+    sliderInput.value = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+    const event = new Event("input", { bubbles: true, cancelable: true });
+    sliderInput.dispatchEvent(event);
+  }));
+  const showReleaseNotesSetting = new import_obsidian4.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(plugin.settings.showReleaseNotes).onChange(async (value) => {
+    plugin.settings.showReleaseNotes = value;
+    await plugin.saveSettings();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+    plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
+    await plugin.saveSettings();
+    const toggleComponent = showReleaseNotesSetting.components[0];
+    if (toggleComponent) {
+      toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
+    }
+  }));
+}
+
+// src/settings/tabs/settingsTabPixelBannerPlus.js
+var import_obsidian5 = require("obsidian");
+function createPixelBannerPlusSettings(containerEl, plugin) {
   const calloutElPixelBannerPlus = containerEl.createEl("div", { cls: "tab-callout margin-bottom-0" });
-  calloutElPixelBannerPlus.createEl("div", { text: "\u2728 Pixel Banner Plus \u2728" });
-  calloutElPixelBannerPlus.createEl("div", { text: "An optional premium feature, including the ability to generate high quality banners using GenAI." });
+  calloutElPixelBannerPlus.createEl("h4", { text: "\u2728 Pixel Banner Plus \u2728" });
+  calloutElPixelBannerPlus.createEl("div", { text: "Pixel Banner Plus enhances your notes with AI-generated, high-quality banners. Using a token-based system, you can instantly create stunning, customized visuals\u2014no design skills needed. Sign up for free to access the banner store, which includes a selection of zero-token banners at no cost. No subscription required\u2014simply purchase tokens whenever you need AI-generated designs. Transform your Obsidian workspace with professional banners, starting for free and only adding tokens as needed." });
   const pixelBannerPlusSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
   new import_obsidian5.Setting(pixelBannerPlusSettingsGroup).setName("Pixel Banner Plus Email Address").setDesc("Your email address for Pixel Banner Plus authentication").addText(
     (text) => text.setPlaceholder("Enter your email address").setValue(plugin.settings.pixelBannerPlusEmail).onChange(async (value) => {
@@ -1059,479 +1526,6 @@ function createGeneralSettings(containerEl, plugin) {
     }
     button.setButtonText("Test Pixel Banner Plus API Key");
     button.setDisabled(false);
-  }));
-  const calloutEl = containerEl.createEl("div", { cls: "tab-callout margin-top-40 margin-bottom-0" });
-  calloutEl.createEl("div", { text: "Configure default settings for all notes. These can be overridden per folder or per note." });
-  new import_obsidian5.Setting(containerEl).setName("Image Vertical Position").setDesc("Set the vertical position of the image (0-100)").addSlider(
-    (slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.yPosition).setDynamicTooltip().onChange(async (value) => {
-      plugin.settings.yPosition = value;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    })
-  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-    sliderEl.value = DEFAULT_SETTINGS.yPosition;
-    sliderEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Image Horizontal Position").setDesc("Set the horizontal position of the image (0-100)").addSlider(
-    (slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.xPosition).setDynamicTooltip().onChange(async (value) => {
-      plugin.settings.xPosition = value;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    })
-  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-    sliderEl.value = DEFAULT_SETTINGS.xPosition;
-    sliderEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Content Start Position").setDesc("Set the default vertical position where the content starts (in pixels)").addText((text) => text.setPlaceholder("150").setValue(String(plugin.settings.contentStartPosition)).onChange(async (value) => {
-    const numValue = Number(value);
-    if (!isNaN(numValue) && numValue >= 0) {
-      plugin.settings.contentStartPosition = numValue;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    }
-  })).then((setting) => {
-    const inputEl = setting.controlEl.querySelector("input");
-    inputEl.type = "number";
-    inputEl.min = "0";
-    inputEl.style.width = "60px";
-  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.contentStartPosition = DEFAULT_SETTINGS.contentStartPosition;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
-    inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
-    inputEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Image Display").setDesc("Set how the banner image should be displayed").addDropdown((dropdown) => {
-    dropdown.addOption("auto", "Auto").addOption("cover", "Cover").addOption("contain", "Contain").setValue(plugin.settings.imageDisplay || "cover").onChange(async (value) => {
-      plugin.settings.imageDisplay = value;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    });
-    return dropdown;
-  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
-    await plugin.saveSettings();
-    const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
-    dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-    dropdownEl.dispatchEvent(new Event("change"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Image Repeat").setDesc('Enable image repetition when "Contain" is selected').addToggle((toggle) => {
-    toggle.setValue(plugin.settings.imageRepeat).onChange(async (value) => {
-      plugin.settings.imageRepeat = value;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    });
-    return toggle;
-  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector(".checkbox-container");
-    const toggleEl = checkboxContainer.querySelector("input");
-    if (toggleEl) {
-      toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-      checkboxContainer.classList.toggle("is-enabled", DEFAULT_SETTINGS.imageRepeat);
-      const event = new Event("change", { bubbles: true });
-      toggleEl.dispatchEvent(event);
-    }
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Banner Height").setDesc("Set the default height of the banner image (0-1280 pixels)").addText((text) => {
-    text.setPlaceholder("350").setValue(String(plugin.settings.bannerHeight)).onChange(async (value) => {
-      if (value === "" || !isNaN(Number(value))) {
-        await plugin.saveSettings();
-      }
-    });
-    text.inputEl.addEventListener("blur", async (event) => {
-      let numValue = Number(event.target.value);
-      if (isNaN(numValue) || event.target.value === "") {
-        numValue = 350;
-      } else {
-        numValue = Math.max(0, Math.min(1280, numValue));
-      }
-      plugin.settings.bannerHeight = numValue;
-      text.setValue(String(numValue));
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    });
-    text.inputEl.type = "number";
-    text.inputEl.min = "0";
-    text.inputEl.max = "1280";
-    text.inputEl.style.width = "50px";
-  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
-    inputEl.value = DEFAULT_SETTINGS.bannerHeight;
-    inputEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Banner Fade").setDesc("Set the default fade effect for the banner image (-1500 to 100)").addSlider(
-    (slider) => slider.setLimits(-1500, 100, 5).setValue(plugin.settings.fade).setDynamicTooltip().onChange(async (value) => {
-      plugin.settings.fade = value;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    })
-  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.fade = DEFAULT_SETTINGS.fade;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-    sliderEl.value = DEFAULT_SETTINGS.fade;
-    sliderEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Banner Fade In Animation Duration").setDesc("Set the default fade in animation duration for the banner image (0-1000 milliseconds)").addSlider(
-    (slider) => slider.setLimits(0, 1e3, 1).setValue(plugin.settings.bannerFadeInAnimationDuration).setDynamicTooltip().onChange(async (value) => {
-      plugin.settings.bannerFadeInAnimationDuration = value;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    })
-  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerFadeInAnimationDuration = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-    sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
-    sliderEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addText((text) => {
-    text.setPlaceholder("17").setValue(String(plugin.settings.borderRadius)).onChange(async (value) => {
-      const numValue = Number(value);
-      if (!isNaN(numValue)) {
-        plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
-        await plugin.saveSettings();
-        plugin.updateAllBanners();
-      }
-    });
-    text.inputEl.type = "number";
-    text.inputEl.min = "0";
-    text.inputEl.max = "50";
-    text.inputEl.style.width = "50px";
-  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
-    inputEl.value = DEFAULT_SETTINGS.borderRadius;
-    inputEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Banner Gap").setDesc("Set the gap between the banner and the window edges (0-50 pixels)").addSlider(
-    (slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.bannerGap).setDynamicTooltip().onChange(async (value) => {
-      plugin.settings.bannerGap = value;
-      await plugin.saveSettings();
-      plugin.updateAllBanners();
-    })
-  ).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
-    sliderEl.value = DEFAULT_SETTINGS.bannerGap;
-    sliderEl.dispatchEvent(new Event("input"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Inline Title Color").setDesc("Set the default inline title color for all banners").addColorPicker((color) => color.setValue((() => {
-    const currentColor = plugin.settings.titleColor;
-    if (currentColor.startsWith("var(--")) {
-      const temp = document.createElement("div");
-      temp.style.color = currentColor;
-      document.body.appendChild(temp);
-      const computedColor = getComputedStyle(temp).color;
-      document.body.removeChild(temp);
-      const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-      if (rgbMatch) {
-        const [_, r, g, b] = rgbMatch;
-        const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
-        return hexColor;
-      }
-      return "#000000";
-    }
-    return currentColor;
-  })()).onChange(async (value) => {
-    plugin.settings.titleColor = value;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
-    await plugin.saveSettings();
-    const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
-    if (colorPickerEl) {
-      const temp = document.createElement("div");
-      temp.style.color = DEFAULT_SETTINGS.titleColor;
-      document.body.appendChild(temp);
-      const computedColor = getComputedStyle(temp).color;
-      document.body.removeChild(temp);
-      const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-      if (rgbMatch) {
-        const [_, r, g, b] = rgbMatch;
-        const hexColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
-        colorPickerEl.value = hexColor;
-      }
-    }
-  }));
-  const hideEmbeddedNoteTitlesSetting = new import_obsidian5.Setting(containerEl).setName("Hide Embedded Note Titles").setDesc("Hide titles of embedded notes").addToggle((toggle) => toggle.setValue(plugin.settings.hideEmbeddedNoteTitles).onChange(async (value) => {
-    plugin.settings.hideEmbeddedNoteTitles = value;
-    await plugin.saveSettings();
-    plugin.updateEmbeddedTitlesVisibility();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
-    await plugin.saveSettings();
-    const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
-    if (toggleComponent) {
-      toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
-    }
-    plugin.updateEmbeddedTitlesVisibility();
-  }));
-  const hideEmbeddedNoteBannersSetting = new import_obsidian5.Setting(containerEl).setName("Hide Embedded Note Banners").setDesc("Hide banners of embedded notes").addToggle((toggle) => toggle.setValue(plugin.settings.hideEmbeddedNoteBanners).onChange(async (value) => {
-    plugin.settings.hideEmbeddedNoteBanners = value;
-    await plugin.saveSettings();
-    plugin.updateEmbeddedBannersVisibility();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
-    await plugin.saveSettings();
-    const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
-    if (toggleComponent) {
-      toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
-    }
-    plugin.updateEmbeddedBannersVisibility();
-  }));
-  const SelectImageSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
-  const showSelectImageIconSetting = new import_obsidian5.Setting(SelectImageSettingsGroup).setName("Show Select Pixel Banner Icon").setDesc("Show an icon to select banner image in the top-left corner").addToggle((toggle) => toggle.setValue(plugin.settings.showSelectImageIcon).onChange(async (value) => {
-    plugin.settings.showSelectImageIcon = value;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
-    await plugin.saveSettings();
-    const toggleComponent = showSelectImageIconSetting.components[0];
-    if (toggleComponent) {
-      toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
-    }
-    plugin.updateAllBanners();
-  }));
-  const defaultSelectImagePathSetting = new import_obsidian5.Setting(SelectImageSettingsGroup).setName("Default Select Image Path").setDesc("Set a default folder path to filter images when opening the Select Image modal").addText((text) => {
-    text.setPlaceholder("Example: Images/Banners").setValue(plugin.settings.defaultSelectImagePath).onChange(async (value) => {
-      plugin.settings.defaultSelectImagePath = value;
-      await plugin.saveSettings();
-    });
-    text.inputEl.style.width = "200px";
-    return text;
-  }).addButton((button) => button.setButtonText("Browse").onClick(() => {
-    new FolderSuggestModal(plugin.app, (chosenPath) => {
-      plugin.settings.defaultSelectImagePath = chosenPath;
-      const textInput = defaultSelectImagePathSetting.components[0];
-      if (textInput) {
-        textInput.setValue(chosenPath);
-      }
-      plugin.saveSettings();
-    }).open();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
-    await plugin.saveSettings();
-    const textComponent = defaultSelectImagePathSetting.components[0];
-    if (textComponent) {
-      textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
-    }
-  }));
-  const showViewImageIconSetting = new import_obsidian5.Setting(containerEl).setName("Show View Image Icon").setDesc("Show an icon to view the banner image in full screen").addToggle((toggle) => toggle.setValue(plugin.settings.showViewImageIcon).onChange(async (value) => {
-    plugin.settings.showViewImageIcon = value;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
-    await plugin.saveSettings();
-    const toggleComponent = showViewImageIconSetting.components[0];
-    if (toggleComponent) {
-      toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
-    }
-    plugin.updateAllBanners();
-  }));
-  const hideSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
-  const hidePixelBannerFieldsSetting = new import_obsidian5.Setting(hideSettingsGroup).setName("Hide Pixel Banner Fields").setDesc("Hide banner-related frontmatter fields in Reading mode").addToggle((toggle) => toggle.setValue(plugin.settings.hidePixelBannerFields).onChange(async (value) => {
-    plugin.settings.hidePixelBannerFields = value;
-    if (!value) {
-      plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
-      const dependentToggle = hidePropertiesSection.components[0];
-      if (dependentToggle) {
-        dependentToggle.setValue(false);
-        dependentToggle.setDisabled(true);
-      }
-      hidePropertiesSection.settingEl.addClass("is-disabled");
-      plugin.app.workspace.iterateAllLeaves((leaf) => {
-        if (leaf.view instanceof import_obsidian5.MarkdownView && leaf.view.contentEl) {
-          const propertiesContainer = leaf.view.contentEl.querySelector(".metadata-container");
-          if (propertiesContainer) {
-            propertiesContainer.classList.remove("pixel-banner-hidden-section");
-            const hiddenFields = propertiesContainer.querySelectorAll(".pixel-banner-hidden-field");
-            hiddenFields.forEach((field) => {
-              field.classList.remove("pixel-banner-hidden-field");
-            });
-          }
-        }
-      });
-    } else {
-      const dependentToggle = hidePropertiesSection.components[0];
-      if (dependentToggle) {
-        dependentToggle.setDisabled(false);
-      }
-      hidePropertiesSection.settingEl.removeClass("is-disabled");
-    }
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
-    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
-    await plugin.saveSettings();
-    const mainToggle = hidePixelBannerFieldsSetting.components[0];
-    if (mainToggle) {
-      mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
-    }
-    const dependentToggle = hidePropertiesSection.components[0];
-    if (dependentToggle) {
-      dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
-      dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
-    }
-    hidePropertiesSection.settingEl.toggleClass("is-disabled", !DEFAULT_SETTINGS.hidePixelBannerFields);
-    plugin.updateAllBanners();
-  }));
-  const hidePropertiesSection = new import_obsidian5.Setting(hideSettingsGroup).setName("Hide Properties Section").setDesc("Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields").addToggle((toggle) => toggle.setValue(plugin.settings.hidePropertiesSectionIfOnlyBanner).setDisabled(!plugin.settings.hidePixelBannerFields).onChange(async (value) => {
-    plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
-    await plugin.saveSettings();
-    plugin.updateAllBanners();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
-    await plugin.saveSettings();
-    const toggle = hidePropertiesSection.components[0];
-    if (toggle) {
-      toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
-    }
-    plugin.updateAllBanners();
-  }));
-  hidePropertiesSection.settingEl.addClass("setting-dependent");
-  if (!plugin.settings.hidePixelBannerFields) {
-    hidePropertiesSection.settingEl.addClass("is-disabled");
-  }
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Size").setDesc("Set the default size for the banner icon").addSlider((slider) => slider.setLimits(10, 200, 1).setValue(plugin.settings.bannerIconSize).setDynamicTooltip().onChange(async (value) => {
-    plugin.settings.bannerIconSize = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
-    await plugin.saveSettings();
-    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-    sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    sliderInput.dispatchEvent(event);
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon X Position").setDesc("Set the default X position for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconXPosition).setDynamicTooltip().onChange(async (value) => {
-    plugin.settings.bannerIconXPosition = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
-    await plugin.saveSettings();
-    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-    sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    sliderInput.dispatchEvent(event);
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Opacity").setDesc("Set the default opacity for the banner icon (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconOpacity).setDynamicTooltip().onChange(async (value) => {
-    plugin.settings.bannerIconOpacity = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
-    await plugin.saveSettings();
-    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-    sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    sliderInput.dispatchEvent(event);
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Text Color").setDesc("Set the default text color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or white)").setValue(plugin.settings.bannerIconColor).onChange(async (value) => {
-    plugin.settings.bannerIconColor = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
-    await plugin.saveSettings();
-    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
-    textInput.value = DEFAULT_SETTINGS.bannerIconColor;
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    textInput.dispatchEvent(event);
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Font Weight").setDesc("Set the default font weight for the banner icon").addDropdown((dropdown) => {
-    dropdown.addOption("lighter", "Lighter").addOption("normal", "Normal").addOption("bold", "Bold").setValue(plugin.settings.bannerIconFontWeight || "normal").onChange(async (value) => {
-      plugin.settings.bannerIconFontWeight = value;
-      await plugin.saveSettings();
-    });
-    return dropdown;
-  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconFontWeight = DEFAULT_SETTINGS.bannerIconFontWeight;
-    await plugin.saveSettings();
-    const dropdownEl = button.extraSettingsEl.parentElement.querySelector("select");
-    dropdownEl.value = DEFAULT_SETTINGS.bannerIconFontWeight;
-    dropdownEl.dispatchEvent(new Event("change"));
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Background Color").setDesc("Set the default background color for the banner icon").addText((text) => text.setPlaceholder("Enter color (e.g., #ffffff or transparent)").setValue(plugin.settings.bannerIconBackgroundColor).onChange(async (value) => {
-    plugin.settings.bannerIconBackgroundColor = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
-    await plugin.saveSettings();
-    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
-    textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    textInput.dispatchEvent(event);
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Padding X").setDesc("Set the default padding X for the banner icon").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconPaddingX).setDynamicTooltip().onChange(async (value) => {
-    plugin.settings.bannerIconPaddingX = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconPaddingX = DEFAULT_SETTINGS.bannerIconPaddingX;
-    await plugin.saveSettings();
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Padding Y").setDesc("Set the default padding Y for the banner icon").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.bannerIconPaddingY).setDynamicTooltip().onChange(async (value) => {
-    plugin.settings.bannerIconPaddingY = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconPaddingY = DEFAULT_SETTINGS.bannerIconPaddingY;
-    await plugin.saveSettings();
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Border Radius").setDesc("Set the default border radius for the banner icon").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.bannerIconBorderRadius).setDynamicTooltip().onChange(async (value) => {
-    plugin.settings.bannerIconBorderRadius = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
-    await plugin.saveSettings();
-    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-    sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    sliderInput.dispatchEvent(event);
-  }));
-  new import_obsidian5.Setting(containerEl).setName("Default Banner Icon Vertical Offset").setDesc("Set the default vertical offset for the banner icon").addSlider((slider) => slider.setLimits(-100, 100, 1).setValue(plugin.settings.bannerIconVeritalOffset).setDynamicTooltip().onChange(async (value) => {
-    plugin.settings.bannerIconVeritalOffset = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.bannerIconVeritalOffset = DEFAULT_SETTINGS.bannerIconVeritalOffset;
-    await plugin.saveSettings();
-    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-    sliderInput.value = DEFAULT_SETTINGS.bannerIconVeritalOffset;
-    const event = new Event("input", { bubbles: true, cancelable: true });
-    sliderInput.dispatchEvent(event);
-  }));
-  const showReleaseNotesSetting = new import_obsidian5.Setting(containerEl).setName("Show Release Notes").setDesc("Show release notes after plugin updates").addToggle((toggle) => toggle.setValue(plugin.settings.showReleaseNotes).onChange(async (value) => {
-    plugin.settings.showReleaseNotes = value;
-    await plugin.saveSettings();
-  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
-    await plugin.saveSettings();
-    const toggleComponent = showReleaseNotesSetting.components[0];
-    if (toggleComponent) {
-      toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
-    }
   }));
 }
 
@@ -1593,6 +1587,7 @@ var DEFAULT_SETTINGS = {
   hideEmbeddedNoteTitles: false,
   hideEmbeddedNoteBanners: false,
   showSelectImageIcon: true,
+  selectImageIconFlag: "red",
   defaultSelectImagePath: "",
   useShortPath: true,
   bannerGap: 12,
@@ -1633,22 +1628,22 @@ var PixelBannerSettingTab = class extends import_obsidian6.PluginSettingTab {
     containerEl.addClass("pixel-banner-settings");
     const mainContent = containerEl.createEl("div", { cls: "pixel-banner-main-content" });
     const { tabsEl, tabContentContainer } = this.createTabs(mainContent, [
-      "General",
-      "Custom Field Names",
-      "Folder Images",
-      "API Settings",
-      "Examples"
+      "\u2699\uFE0F General",
+      "\u2728 Plus",
+      "\u{1F5FA}\uFE0F Custom Fields",
+      "\u{1F5C3}\uFE0F Folder Groups",
+      "\u{1F310} 3rd Party APIs"
     ]);
-    const generalTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "General" } });
+    const generalTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "\u2699\uFE0F General" } });
     createGeneralSettings(generalTab, this.plugin);
-    const customFieldsTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Custom Field Names" } });
+    const pixelBannerPlusTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "\u2728 Plus" } });
+    createPixelBannerPlusSettings(pixelBannerPlusTab, this.plugin);
+    const customFieldsTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "\u{1F5FA}\uFE0F Custom Fields" } });
     createCustomFieldsSettings(customFieldsTab, this.plugin);
-    const apiTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "API Settings" } });
+    const apiTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "\u{1F310} 3rd Party APIs" } });
     createAPISettings(apiTab, this.plugin);
-    const foldersTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Folder Images" } });
+    const foldersTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "\u{1F5C3}\uFE0F Folder Groups" } });
     createFolderSettings(foldersTab, this.plugin);
-    const examplesTab = tabContentContainer.createEl("div", { cls: "tab-content", attr: { "data-tab": "Examples" } });
-    createExampleSettings(examplesTab, this.plugin);
     tabsEl.firstChild.click();
   }
   createTabs(containerEl, tabNames) {
@@ -2279,6 +2274,7 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
             this.downloadHistory.addImage(imageId);
           }
           this.close();
+          new TargetPositionModal(this.app, this.plugin).open();
         });
       } else {
         throw new Error("Failed to generate image");
@@ -2868,6 +2864,7 @@ var GenerateAIBannerModal = class extends import_obsidian12.Modal {
       await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
       this.downloadHistory.addImage(img.getAttribute("imageid"));
       this.close();
+      new TargetPositionModal(this.app, this.plugin).open();
     });
     return imgWrapper;
   }
@@ -22610,9 +22607,10 @@ var EmojiSelectionModal = class extends import_obsidian14.Modal {
                 `
       }
     });
-    setBannerButton.addEventListener("click", () => {
-      this.onChoose(this.bannerIconInput.value);
+    setBannerButton.addEventListener("click", async () => {
+      await this.onChoose(this.bannerIconInput.value);
       this.close();
+      new TargetPositionModal(this.app, this.plugin).open();
     });
     contentEl.createEl("h5", { text: "Emoji Selector" });
     const searchContainer = contentEl.createDiv({ cls: "emoji-search-container" });
@@ -22810,16 +22808,43 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     modalEl.style.width = "max-content";
     modalEl.style.height = "max-content";
     bgEl.style.opacity = "0";
-    const mainContainer = contentEl.createDiv({ cls: "main-container" });
-    mainContainer.style.display = "flex";
-    mainContainer.style.flexDirection = "row";
-    mainContainer.style.gap = "20px";
-    mainContainer.style.alignItems = "stretch";
-    const controlPanel = mainContainer.createDiv({ cls: "control-panel" });
-    controlPanel.style.display = "flex";
-    controlPanel.style.flexDirection = "column";
-    controlPanel.style.gap = "10px";
-    controlPanel.style.flex = "0 auto";
+    const mainContainer = contentEl.createDiv({
+      cls: "main-container",
+      attr: {
+        style: `
+                    position: relative;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 20px;
+                    alignt-items: stretch;
+                `
+      }
+    });
+    const dragHandle = mainContainer.createDiv({
+      cls: "drag-handle",
+      attr: {
+        style: `
+                    cursor: move;
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    top: -23px;
+                    opacity: .8;
+                `
+      }
+    });
+    dragHandle.setText("\u22EE\u22EE\u22EE\u22EE\u22EE\u22EE\u22EE\u22EE\u22EE\u22EE");
+    const controlPanel = mainContainer.createDiv({
+      cls: "control-panel",
+      attr: {
+        style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    flex: 0 auto;
+                `
+      }
+    });
     const displaySelect = controlPanel.createEl("select", { cls: "display-mode-select" });
     ["cover", "auto", "contain", "cover-zoom"].forEach((mode) => {
       const option = displaySelect.createEl("option", {
@@ -23002,15 +23027,21 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     if (frontmatter == null ? void 0 : frontmatter[bannerIconField]) {
       bannerIconControlsContainer.style.display = "block";
     }
-    const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({ cls: "banner-icon-x-position-container" });
-    bannerIconXPositionContainer.style.display = "flex";
-    bannerIconXPositionContainer.style.flexDirection = "row";
-    bannerIconXPositionContainer.style.gap = "10px";
-    bannerIconXPositionContainer.style.alignItems = "center";
-    bannerIconXPositionContainer.style.minWidth = "60px";
-    bannerIconXPositionContainer.style.flex = "0 auto";
+    const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({
+      cls: "banner-icon-x-position-container",
+      attr: {
+        style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                `
+      }
+    });
     const bannerIconXPositionLabel = bannerIconXPositionContainer.createEl("div", {
-      text: "Icon X Position",
+      text: "\u2B50 Banner Icon X Position",
       cls: "banner-icon-x-position-label",
       attr: {
         style: `
@@ -23032,21 +23063,46 @@ var TargetPositionModal = class extends import_obsidian15.Modal {
     bannerIconXPositionSlider.style.flex = "1";
     bannerIconXPositionSlider.style.writingMode = "horizontal-tb";
     bannerIconXPositionSlider.style.direction = "ltr";
-    const bannerIconXPositionValue = bannerIconXPositionContainer.createDiv({ cls: "banner-icon-x-position-value" });
-    bannerIconXPositionValue.style.fontFamily = "var(--font-monospace)";
-    bannerIconXPositionValue.style.fontSize = "0.9em";
+    const bannerIconXPositionValue = bannerIconXPositionContainer.createDiv({
+      cls: "banner-icon-x-position-value",
+      attr: {
+        style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+      }
+    });
     bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}`);
     bannerIconXPositionSlider.addEventListener("input", () => {
       this.currentBannerIconXPosition = parseInt(bannerIconXPositionSlider.value);
       bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}`);
       this.updateBannerIconXPosition(this.currentBannerIconXPosition);
     });
-    const resetButton = contentEl.createEl("button", {
-      text: "Reset to Defaults",
-      cls: "mod-cta reset-button"
+    const buttonContainer = contentEl.createDiv({
+      cls: "button-container",
+      attr: {
+        style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    justify-content: center;
+                `
+      }
     });
-    resetButton.style.marginTop = "20px";
-    resetButton.style.width = "100%";
+    const resetButton = buttonContainer.createEl("button", {
+      text: "Reset to Defaults",
+      cls: "reset-button"
+    });
+    resetButton.style.flex = "1";
+    const closeSettingsButton = buttonContainer.createEl("button", {
+      text: "Close Settings",
+      cls: "mod-cta close-settings-button"
+    });
+    closeSettingsButton.style.flex = "1";
+    closeSettingsButton.addEventListener("click", () => {
+      this.close();
+    });
     resetButton.addEventListener("click", () => {
       displaySelect.value = "cover";
       zoomContainer.style.display = "none";
@@ -23196,10 +23252,21 @@ var SelectPixelBannerModal = class extends import_obsidian16.Modal {
   }
   onOpen() {
     const { contentEl } = this;
-    contentEl.createEl("h2", { text: "\u{1F6A9} Pixel Banner Selector", cls: "margin-top-0" });
+    const titleContainer = contentEl.createEl("h2", { cls: "margin-top-0 pixel-banner-selector-title" });
+    const flagImg = titleContainer.createEl("img", {
+      attr: {
+        src: flags[this.plugin.settings.selectImageIconFlag] || flags["red"],
+        alt: "Pixel Banner"
+      }
+    });
+    flagImg.style.width = "20px";
+    flagImg.style.height = "25px";
+    flagImg.style.verticalAlign = "middle";
+    flagImg.style.margin = "-5px 10px 0 20px";
+    titleContainer.appendChild(document.createTextNode("Pixel Banner Selector"));
     const buttonContainer = contentEl.createDiv({ cls: "pixel-banner-select-buttons" });
     const vaultButton = buttonContainer.createEl("button", {
-      text: "\u{1F3F7}\uFE0F Select a Banner from your Vault",
+      text: "\u{1F4BE} Select a Banner from your Vault",
       cls: "pixel-banner-select-button"
     });
     vaultButton.addEventListener("click", () => {
@@ -23214,6 +23281,7 @@ var SelectPixelBannerModal = class extends import_obsidian16.Modal {
               const bannerField = this.plugin.settings.customBannerField[0];
               frontmatter[bannerField] = `[[${file.path}]]`;
             });
+            new TargetPositionModal(this.app, this.plugin).open();
           }
         }
       ).open();
@@ -23476,6 +23544,7 @@ var PixelBannerStoreModal = class extends import_obsidian17.Modal {
               filename = filename.replace(/\s+/g, "-").substring(0, 47);
               await handlePinIconClick(data.base64Image, this.plugin, null, filename);
               this.close();
+              new TargetPositionModal(this.app, this.plugin).open();
             } catch (error) {
               console.error("Error fetching store image:", error);
             }
@@ -23497,6 +23566,7 @@ var PixelBannerStoreModal = class extends import_obsidian17.Modal {
             filename = filename.replace(/\s+/g, "-").substring(0, 47);
             await handlePinIconClick(data.base64Image, this.plugin, null, filename);
             this.close();
+            new TargetPositionModal(this.app, this.plugin).open();
           } catch (error) {
             console.error("Error fetching store image:", error);
           }
@@ -23560,7 +23630,7 @@ var PixelBannerStoreModal = class extends import_obsidian17.Modal {
                 border: 1px solid var(--table-border-color);
             }
             .pixel-banner-store-image-grid.-empty::after {
-                content: "Select an option, or click the Next Category button to cycle through them.";
+                content: "\u{1FA84} Select a Category above, or click the Next Category button to cycle through them. A wonderful selection of banners awaits!";
                 position: relative;
                 top: 40%;
                 max-width: 380px;
@@ -24242,7 +24312,7 @@ async function addPixelBanner(plugin, el, ctx) {
       selectImageIcon.style.left = `${leftOffset}px`;
       selectImageIcon.style.fontSize = "1.8em";
       selectImageIcon.style.cursor = "pointer";
-      selectImageIcon.innerHTML = "\u{1F6A9}";
+      selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags["red"]}" alt="Select Banner" style="width: 25px; height: 30px;">`;
       selectImageIcon._isPersistentSelectImage = true;
       selectImageIcon.onclick = () => plugin.handleBannerIconClick();
       container.appendChild(selectImageIcon);
@@ -24595,7 +24665,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         selectImageIcon.style.left = `${plugin.settings.bannerGap + 5}px`;
         selectImageIcon.style.fontSize = "1.8em";
         selectImageIcon.style.cursor = "pointer";
-        selectImageIcon.innerHTML = "\u{1F6A9}";
+        selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags["red"]}" alt="Select Banner" style="width: 25px; height: 30px;">`;
         selectImageIcon._isPersistentSelectImage = true;
         selectImageIcon.onclick = () => plugin.handleBannerIconClick();
         container.insertBefore(selectImageIcon, container.firstChild);
