@@ -162,6 +162,16 @@ export class TargetPositionModal extends Modal {
         mainContainer.style.gap = '20px';
         mainContainer.style.alignItems = 'stretch';
 
+        // add drag handle
+        const dragHandle = mainContainer.createDiv({ cls: 'drag-handle' });
+        dragHandle.style.backgroundColor = 'var(--background-modifier-border)';
+        dragHandle.style.cursor = 'move';
+        dragHandle.style.position = 'absolute';
+        dragHandle.style.left = '50%';
+        dragHandle.style.transform = 'translateX(-50%)';
+        dragHandle.style.top = '3';
+        dragHandle.setText('⋮⋮⋮⋮⋮⋮⋮⋮⋮⋮');
+
         // Create left panel for controls
         const controlPanel = mainContainer.createDiv({ cls: 'control-panel' });
         controlPanel.style.display = 'flex';
@@ -464,14 +474,40 @@ export class TargetPositionModal extends Modal {
             this.updateBannerIconXPosition(this.currentBannerIconXPosition);
         });
         
-        // Reset to defaults button
-        const resetButton = contentEl.createEl('button', {
-            text: 'Reset to Defaults',
-            cls: 'mod-cta reset-button'
+        // Create a container for buttons
+        const buttonContainer = contentEl.createDiv({
+            cls: 'button-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    justify-content: center;
+                `
+            }
         });
-        resetButton.style.marginTop = '20px';
-        resetButton.style.width = '100%';
 
+        // Reset to defaults button
+        const resetButton = buttonContainer.createEl('button', {
+            text: 'Reset to Defaults',
+            cls: 'reset-button'
+        });
+        resetButton.style.flex = '1';
+        
+        // Close Settings button
+        const closeSettingsButton = buttonContainer.createEl('button', {
+            text: 'Close Settings',
+            cls: 'mod-cta close-settings-button'
+        });
+        closeSettingsButton.style.flex = '1';
+
+        // Add event listener to close the modal when the button is clicked
+        closeSettingsButton.addEventListener('click', () => {
+            this.close();
+        });
+
+        // Add event listener to reset the modal when the button is clicked
         resetButton.addEventListener('click', () => {
             // Reset UI elements
             displaySelect.value = 'cover';
