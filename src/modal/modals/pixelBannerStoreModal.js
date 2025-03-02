@@ -226,8 +226,29 @@ export class PixelBannerStoreModal extends Modal {
                             await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                             this.close();
                             
-                            // Open the target position modal after setting the banner
-                            new TargetPositionModal(this.app, this.plugin).open();
+                            // Check if we should open the banner icon modal after selecting a banner
+                            if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                                // Import and use EmojiSelectionModal here
+                                const { EmojiSelectionModal } = require('../modals');
+                                new EmojiSelectionModal(
+                                    this.app, 
+                                    this.plugin,
+                                    async (emoji) => {
+                                        const activeFile = this.app.workspace.getActiveFile();
+                                        if (activeFile) {
+                                            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                                                const iconField = this.plugin.settings.customBannerIconField[0];
+                                                frontmatter[iconField] = emoji;
+                                            });
+                                        }
+                                    },
+                                    this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
+                                ).open();
+                            } 
+                            // If not opening the banner icon modal, check if we should open the targeting modal
+                            else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                new TargetPositionModal(this.app, this.plugin).open();
+                            }
                             
                         } catch (error) {
                             console.error('Error fetching store image:', error);
@@ -253,8 +274,29 @@ export class PixelBannerStoreModal extends Modal {
                         await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                         this.close();
                         
-                        // Open the target position modal after setting the banner
-                        new TargetPositionModal(this.app, this.plugin).open();
+                        // Check if we should open the banner icon modal after selecting a banner
+                        if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                            // Import and use EmojiSelectionModal here
+                            const { EmojiSelectionModal } = require('../modals');
+                            new EmojiSelectionModal(
+                                this.app, 
+                                this.plugin,
+                                async (emoji) => {
+                                    const activeFile = this.app.workspace.getActiveFile();
+                                    if (activeFile) {
+                                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                                            const iconField = this.plugin.settings.customBannerIconField[0];
+                                            frontmatter[iconField] = emoji;
+                                        });
+                                    }
+                                },
+                                this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
+                            ).open();
+                        } 
+                        // If not opening the banner icon modal, check if we should open the targeting modal
+                        else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                            new TargetPositionModal(this.app, this.plugin).open();
+                        }
                         
                     } catch (error) {
                         console.error('Error fetching store image:', error);

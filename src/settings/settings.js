@@ -76,6 +76,8 @@ const DEFAULT_SETTINGS = {
     bannerIconPaddingY: '0',
     bannerIconBorderRadius: '17',
     bannerIconVeritalOffset: '0',
+    openBannerIconModalAfterSelectingBanner: false,
+    openTargetingModalAfterSelectingBannerOrIcon: true,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {

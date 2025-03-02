@@ -7,11 +7,12 @@ import { TargetPositionModal } from "../modals";
 // -- Emoji Selection Modal --
 // ---------------------------
 export class EmojiSelectionModal extends Modal {
-    constructor(app, plugin, onChoose) {
+    constructor(app, plugin, onChoose, skipTargetingModal = false) {
         super(app);
         this.plugin = plugin;
         this.onChoose = onChoose;
         this.searchQuery = '';
+        this.skipTargetingModal = skipTargetingModal;
     }
 
     onOpen() {
@@ -64,11 +65,15 @@ export class EmojiSelectionModal extends Modal {
             await this.onChoose(this.bannerIconInput.value);
             this.close();
             
-            // Add a small delay to ensure frontmatter is fully updated
-            // before opening the target position modal
-            setTimeout(() => {
-                new TargetPositionModal(this.app, this.plugin).open();
-            }, 500);
+            // Only open the targeting modal if we're not skipping it
+            // and the setting is enabled
+            if (!this.skipTargetingModal && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                // Add a small delay to ensure frontmatter is fully updated
+                // before opening the target position modal
+                setTimeout(() => {
+                    new TargetPositionModal(this.app, this.plugin).open();
+                }, 500);
+            }
         });
 
         // Title

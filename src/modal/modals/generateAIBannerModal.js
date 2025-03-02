@@ -169,7 +169,37 @@ export class GenerateAIBannerModal extends Modal {
                     this.close();
                     
                     // Open the target position modal after setting the banner
-                    new TargetPositionModal(this.app, this.plugin).open();
+                    await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                        const bannerField = this.plugin.settings.customBannerField[0];
+                        frontmatter[bannerField] = `[[${savedFile.path}]]`;
+                    });
+                    
+                    // Check if we should open the banner icon modal after selecting a banner
+                    if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                        // Import and use EmojiSelectionModal here
+                        const { EmojiSelectionModal } = require('../modals');
+                        new EmojiSelectionModal(
+                            this.app, 
+                            this.plugin,
+                            async (emoji) => {
+                                if (activeFile) {
+                                    await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                                        const iconField = this.plugin.settings.customBannerIconField[0];
+                                        frontmatter[iconField] = emoji;
+                                    });
+                                    
+                                    // Check if we should open the targeting modal after setting the icon
+                                    if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                        new TargetPositionModal(this.app, this.plugin).open();
+                                    }
+                                }
+                            }
+                        ).open();
+                    } 
+                    // If not opening the banner icon modal, check if we should open the targeting modal
+                    else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                        new TargetPositionModal(this.app, this.plugin).open();
+                    }
                 });
             } else {
                 throw new Error('Failed to generate image');
@@ -834,7 +864,37 @@ export class GenerateAIBannerModal extends Modal {
             this.close();
             
             // Open the target position modal after setting the banner
-            new TargetPositionModal(this.app, this.plugin).open();
+            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                const bannerField = this.plugin.settings.customBannerField[0];
+                frontmatter[bannerField] = `[[${savedFile.path}]]`;
+            });
+            
+            // Check if we should open the banner icon modal after selecting a banner
+            if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                // Import and use EmojiSelectionModal here
+                const { EmojiSelectionModal } = require('../modals');
+                new EmojiSelectionModal(
+                    this.app, 
+                    this.plugin,
+                    async (emoji) => {
+                        if (activeFile) {
+                            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                                const iconField = this.plugin.settings.customBannerIconField[0];
+                                frontmatter[iconField] = emoji;
+                            });
+                            
+                            // Check if we should open the targeting modal after setting the icon
+                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                new TargetPositionModal(this.app, this.plugin).open();
+                            }
+                        }
+                    }
+                ).open();
+            } 
+            // If not opening the banner icon modal, check if we should open the targeting modal
+            else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                new TargetPositionModal(this.app, this.plugin).open();
+            }
         });
 
         return imgWrapper;

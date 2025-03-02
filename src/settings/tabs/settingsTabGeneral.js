@@ -160,6 +160,52 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
+    // Add the openBannerIconModalAfterSelectingBanner setting
+    const openBannerIconModalSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Open Banner Icon Modal after selecting a Banner')
+        .setDesc('Automatically open the Banner Icon selection modal after selecting a banner image')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.openBannerIconModalAfterSelectingBanner)
+            .onChange(async (value) => {
+                plugin.settings.openBannerIconModalAfterSelectingBanner = value;
+                await plugin.saveSettings();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.openBannerIconModalAfterSelectingBanner = DEFAULT_SETTINGS.openBannerIconModalAfterSelectingBanner;
+                await plugin.saveSettings();
+                
+                const toggleComponent = openBannerIconModalSetting.components[0];
+                if (toggleComponent) {
+                    toggleComponent.setValue(DEFAULT_SETTINGS.openBannerIconModalAfterSelectingBanner);
+                }
+            }));
+
+    // Add the openTargetingModalAfterSelectingBannerOrIcon setting
+    const openTargetingModalSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Open Targeting Modal after selecting a Banner or Icon')
+        .setDesc('Automatically open the Targeting Modal after selecting a banner image or icon')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.openTargetingModalAfterSelectingBannerOrIcon)
+            .onChange(async (value) => {
+                plugin.settings.openTargetingModalAfterSelectingBannerOrIcon = value;
+                await plugin.saveSettings();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.openTargetingModalAfterSelectingBannerOrIcon = DEFAULT_SETTINGS.openTargetingModalAfterSelectingBannerOrIcon;
+                await plugin.saveSettings();
+                
+                const toggleComponent = openTargetingModalSetting.components[0];
+                if (toggleComponent) {
+                    toggleComponent.setValue(DEFAULT_SETTINGS.openTargetingModalAfterSelectingBannerOrIcon);
+                }
+            }));
+
     // Image Vertical Position setting
     new Setting(containerEl)
         .setName('Image Vertical Position')

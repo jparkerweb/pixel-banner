@@ -53,8 +53,33 @@ export class SelectPixelBannerModal extends Modal {
                             frontmatter[bannerField] = `[[${file.path}]]`;
                         });
                         
-                        // Open the target position modal after setting the banner
-                        new TargetPositionModal(this.app, this.plugin).open();
+                        // Check if we should open the banner icon modal after selecting a banner
+                        if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                            new EmojiSelectionModal(
+                                this.app, 
+                                this.plugin,
+                                async (emoji) => {
+                                    const activeFile = this.app.workspace.getActiveFile();
+                                    if (activeFile) {
+                                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                                            const iconField = this.plugin.settings.customBannerIconField[0];
+                                            frontmatter[iconField] = emoji;
+                                        });
+                                        
+                                        // Check if we should open the targeting modal after setting the icon
+                                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                            new TargetPositionModal(this.app, this.plugin).open();
+                                        }
+                                    }
+                                },
+                                // Skip the targeting modal in the EmojiSelectionModal if we're going to open it here
+                                this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
+                            ).open();
+                        } 
+                        // If not opening the banner icon modal, check if we should open the targeting modal
+                        else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                            new TargetPositionModal(this.app, this.plugin).open();
+                        }
                     }
                 }
             ).open();
