@@ -122,6 +122,14 @@ export class SelectPixelBannerModal extends Modal {
             text: '🎯 Define the Position and Size of the Banner and Banner Icon',
             cls: 'pixel-banner-select-button'
         });
+
+        // Disable the button if no banner exists
+        if (!hasBanner) {
+            targetingIconButton.disabled = true;
+            targetingIconButton.classList.add('pixel-banner-button-disabled');
+            targetingIconButton.title = 'You need to add a banner first';
+        }
+
         targetingIconButton.addEventListener('click', () => {
             this.close();
             new TargetPositionModal(this.app, this.plugin).open();

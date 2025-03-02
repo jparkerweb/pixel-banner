@@ -80,7 +80,7 @@ export class ImageSelectionModal extends Modal {
         contentEl.empty();
 
         // Title
-        contentEl.createEl('h2', { text: '🏷️ Select Banner Image', cls: 'margin-top-0' });
+        contentEl.createEl('h2', { text: '💾 Select Banner Image', cls: 'margin-top-0' });
         // Description
         contentEl.createEl('div', {
             text: 'Select an image from your vault or upload a new one.',
