@@ -156,28 +156,47 @@ export class TargetPositionModal extends Modal {
         bgEl.style.opacity = "0";
 
         // Create main container with flex layout
-        const mainContainer = contentEl.createDiv({ cls: 'main-container' });
-        mainContainer.style.display = 'flex';
-        mainContainer.style.flexDirection = 'row';
-        mainContainer.style.gap = '20px';
-        mainContainer.style.alignItems = 'stretch';
+        const mainContainer = contentEl.createDiv({
+            cls: 'main-container',
+            attr: {
+                style: `
+                    position: relative;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 20px;
+                    alignt-items: stretch;
+                `
+            }
+        });
 
         // add drag handle
-        const dragHandle = mainContainer.createDiv({ cls: 'drag-handle' });
-        dragHandle.style.backgroundColor = 'var(--background-modifier-border)';
-        dragHandle.style.cursor = 'move';
-        dragHandle.style.position = 'absolute';
-        dragHandle.style.left = '50%';
-        dragHandle.style.transform = 'translateX(-50%)';
-        dragHandle.style.top = '3';
+        const dragHandle = mainContainer.createDiv({
+            cls: 'drag-handle',
+            attr: {
+                style: `
+                    cursor: move;
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    top: -23px;
+                    opacity: .8;
+                `
+            }
+        });
         dragHandle.setText('⋮⋮⋮⋮⋮⋮⋮⋮⋮⋮');
 
         // Create left panel for controls
-        const controlPanel = mainContainer.createDiv({ cls: 'control-panel' });
-        controlPanel.style.display = 'flex';
-        controlPanel.style.flexDirection = 'column';
-        controlPanel.style.gap = '10px';
-        controlPanel.style.flex = '0 auto';
+        const controlPanel = mainContainer.createDiv({
+            cls: 'control-panel',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    flex: 0 auto;
+                `
+            }
+        });
 
         // Display mode dropdown
         const displaySelect = controlPanel.createEl('select', { cls: 'display-mode-select' });
@@ -426,17 +445,23 @@ export class TargetPositionModal extends Modal {
         }
 
         // Banner Icon X Position control container
-        const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({ cls: 'banner-icon-x-position-container' });
-        bannerIconXPositionContainer.style.display = 'flex';
-        bannerIconXPositionContainer.style.flexDirection = 'row';
-        bannerIconXPositionContainer.style.gap = '10px';
-        bannerIconXPositionContainer.style.alignItems = 'center';
-        bannerIconXPositionContainer.style.minWidth = '60px';
-        bannerIconXPositionContainer.style.flex = '0 auto';
+        const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-x-position-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                `
+            }
+        });
 
         // Banner Icon X Position label
         const bannerIconXPositionLabel = bannerIconXPositionContainer.createEl('div', { 
-            text: 'Icon X Position',
+            text: '⭐ Banner Icon X Position',
             cls: 'banner-icon-x-position-label',
             attr: {
                 style: `
@@ -462,9 +487,15 @@ export class TargetPositionModal extends Modal {
         bannerIconXPositionSlider.style.direction = 'ltr';
 
         // Banner Icon X Position value display
-        const bannerIconXPositionValue = bannerIconXPositionContainer.createDiv({ cls: 'banner-icon-x-position-value' });
-        bannerIconXPositionValue.style.fontFamily = 'var(--font-monospace)';
-        bannerIconXPositionValue.style.fontSize = '0.9em';
+        const bannerIconXPositionValue = bannerIconXPositionContainer.createDiv({
+            cls: 'banner-icon-x-position-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
         bannerIconXPositionValue.setText(`${this.currentBannerIconXPosition}`);
 
         // Banner Icon X Position slider event listener

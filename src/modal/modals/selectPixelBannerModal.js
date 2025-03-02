@@ -52,6 +52,9 @@ export class SelectPixelBannerModal extends Modal {
                             const bannerField = this.plugin.settings.customBannerField[0];
                             frontmatter[bannerField] = `[[${file.path}]]`;
                         });
+                        
+                        // Open the target position modal after setting the banner
+                        new TargetPositionModal(this.app, this.plugin).open();
                     }
                 }
             ).open();

@@ -1,5 +1,6 @@
 import { Modal } from "obsidian";
 import { emojiData } from "../../resources/emojis.js";
+import { TargetPositionModal } from "../modals";
 
 
 // ---------------------------
@@ -59,9 +60,12 @@ export class EmojiSelectionModal extends Modal {
             }
         });
 
-        setBannerButton.addEventListener('click', () => {
-            this.onChoose(this.bannerIconInput.value);
+        setBannerButton.addEventListener('click', async () => {
+            await this.onChoose(this.bannerIconInput.value);
             this.close();
+            
+            // Open the target position modal after setting the banner icon
+            new TargetPositionModal(this.app, this.plugin).open();
         });
 
         // Title

@@ -1,6 +1,7 @@
 import { Modal, Setting } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
+import { TargetPositionModal } from '../modals';
 
 
 // ------------------------------------
@@ -225,6 +226,9 @@ export class PixelBannerStoreModal extends Modal {
                             await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                             this.close();
                             
+                            // Open the target position modal after setting the banner
+                            new TargetPositionModal(this.app, this.plugin).open();
+                            
                         } catch (error) {
                             console.error('Error fetching store image:', error);
                         }
@@ -248,6 +252,9 @@ export class PixelBannerStoreModal extends Modal {
                         filename = filename.replace(/\s+/g, '-').substring(0, 47);
                         await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                         this.close();
+                        
+                        // Open the target position modal after setting the banner
+                        new TargetPositionModal(this.app, this.plugin).open();
                         
                     } catch (error) {
                         console.error('Error fetching store image:', error);
@@ -313,7 +320,7 @@ export class PixelBannerStoreModal extends Modal {
                 border: 1px solid var(--table-border-color);
             }
             .pixel-banner-store-image-grid.-empty::after {
-                content: "Select an option, or click the Next Category button to cycle through them.";
+                content: "🪄 Select a Category above, or click the Next Category button to cycle through them. A wonderful selection of banners awaits!";
                 position: relative;
                 top: 40%;
                 max-width: 380px;

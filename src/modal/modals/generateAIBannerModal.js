@@ -2,6 +2,7 @@ import { Modal, Notice, requestUrl } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
 import { DownloadHistory } from '../../utils/downloadHistory';
+import { TargetPositionModal } from '../modals';
 
 // --------------------------
 // -- Generate Banner Modal --
@@ -166,6 +167,9 @@ export class GenerateAIBannerModal extends Modal {
                         this.downloadHistory.addImage(imageId);
                     }
                     this.close();
+                    
+                    // Open the target position modal after setting the banner
+                    new TargetPositionModal(this.app, this.plugin).open();
                 });
             } else {
                 throw new Error('Failed to generate image');
@@ -828,6 +832,9 @@ export class GenerateAIBannerModal extends Modal {
             await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
             this.downloadHistory.addImage(img.getAttribute('imageid'));
             this.close();
+            
+            // Open the target position modal after setting the banner
+            new TargetPositionModal(this.app, this.plugin).open();
         });
 
         return imgWrapper;
