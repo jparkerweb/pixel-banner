@@ -1,6 +1,5 @@
 .github
 .vscode
 node_modules
-.aider*
-./main.js
 .vault
+./main.js

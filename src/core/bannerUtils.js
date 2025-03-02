@@ -34,14 +34,21 @@ function getInputType(input) {
 }
 
 function getPathFromObsidianLink(link) {
+    // Remove surrounding quotes if they exist
+    let cleanLink = link.replace(/^["'](.*)["']$/, '$1');
+    
     // Remove the ! from the beginning if it exists (for render links)
-    let cleanLink = link.startsWith('!') ? link.slice(1) : link;
+    cleanLink = cleanLink.startsWith('!') ? cleanLink.slice(1) : cleanLink;
+    
     // Remove the [[ from the beginning
     let innerLink = cleanLink.startsWith('[[') ? cleanLink.slice(2) : cleanLink;
+    
     // Remove the ]] from the end if it exists
     innerLink = innerLink.endsWith(']]') ? innerLink.slice(0, -2) : innerLink;
+    
     // Split by '|' in case there's an alias
     const path = innerLink.split('|')[0];
+    
     // Resolve
     return this.app.metadataCache.getFirstLinkpathDest(path, '');
 }
