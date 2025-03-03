@@ -81,7 +81,10 @@ export class EmojiSelectionModal extends Modal {
             if (activeFile) {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (activeView) {
-                    await this.plugin.updateBanner(activeView, true);
+                    // Add a small delay to ensure frontmatter is updated
+                    setTimeout(async () => {
+                        await this.plugin.updateBanner(activeView, true);
+                    }, 100);
                 }
             }
             
