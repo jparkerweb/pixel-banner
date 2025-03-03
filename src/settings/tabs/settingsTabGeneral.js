@@ -460,22 +460,15 @@ export function createGeneralSettings(containerEl, plugin) {
     new Setting(containerEl)
         .setName('Border Radius')
         .setDesc('Set the default border radius of the banner image (0-50 pixels)')
-        .addText(text => {
-            text.setPlaceholder('17')
-                .setValue(String(plugin.settings.borderRadius))
-                .onChange(async (value) => {
-                    const numValue = Number(value);
-                    if (!isNaN(numValue)) {
-                        plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
-                        await plugin.saveSettings();
-                        plugin.updateAllBanners();
-                    }
-                });
-            text.inputEl.type = 'number';
-            text.inputEl.min = '0';
-            text.inputEl.max = '50';
-            text.inputEl.style.width = '50px';
-        })
+        .addSlider(slider => slider
+            .setLimits(0, 50, 1)
+            .setValue(plugin.settings.borderRadius)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+                plugin.settings.borderRadius = value;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
@@ -483,10 +476,10 @@ export function createGeneralSettings(containerEl, plugin) {
                 plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
                 await plugin.saveSettings();
                 plugin.updateAllBanners();
-                // Update the input value
-                const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
-                inputEl.value = DEFAULT_SETTINGS.borderRadius;
-                inputEl.dispatchEvent(new Event('input'));
+                // Update the slider value
+                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                sliderEl.value = DEFAULT_SETTINGS.borderRadius;
+                sliderEl.dispatchEvent(new Event('input'));
             }));
 
     // Banner Gap setting

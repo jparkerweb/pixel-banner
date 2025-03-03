@@ -66,7 +66,7 @@ async function addPixelBanner(plugin, el, ctx) {
     }
     // Else, add icons if settings allow
     else {
-        let leftOffset = plugin.settings.bannerGap + 5;
+        let leftOffset = plugin.settings.bannerGap + 15;
         // "Pixel Banner Icon"
         if (plugin.settings.showSelectImageIcon) {
             const selectImageIcon = createDiv({
