@@ -879,7 +879,7 @@
     flex-direction: column;
     gap: 10px;
     flex-grow: 1;
-    min-width: 300px;
+    min-width: 200px;
 }
 
 .target-position-modal .target-area {

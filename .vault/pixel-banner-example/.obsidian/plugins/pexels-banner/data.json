@@ -143,7 +143,7 @@
       "shuffleFolder": ""
     }
   ],
-  "contentStartPosition": 275,
+  "contentStartPosition": 355,
   "imageDisplay": "cover",
   "imageRepeat": false,
   "bannerHeight": 350,
@@ -156,7 +156,6 @@
   "lastVersion": "2.21.2",
   "showRefreshIcon": true,
   "showViewImageIcon": false,
-  "showSetTargetXYPosition": true,
   "hidePixelBannerFields": true,
   "hidePropertiesSectionIfOnlyBanner": true,
   "titleColor": "var(--inline-title-color)",
@@ -164,6 +163,7 @@
   "hideEmbeddedNoteTitles": true,
   "hideEmbeddedNoteBanners": false,
   "showSelectImageIcon": true,
+  "selectImageIconFlag": "red",
   "defaultSelectImagePath": "pixel-banner-images",
   "useShortPath": true,
   "bannerGap": 12,
@@ -177,6 +177,9 @@
   "bannerIconPaddingY": "0",
   "bannerIconBorderRadius": "17",
   "bannerIconVeritalOffset": "0",
+  "openBannerIconModalAfterSelectingBanner": true,
+  "openTargetingModalAfterSelectingBannerOrIcon": true,
+  "showSetTargetXYPosition": true,
   "pixelBannerPlusEnabled": true,
   "pixelBannerPlusEnabledURL": "https://stale-cloths-accept.loca.lt/",
   "customBannerIconPaddingField": [

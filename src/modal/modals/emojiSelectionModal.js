@@ -12,6 +12,8 @@ export class EmojiSelectionModal extends Modal {
         this.plugin = plugin;
         this.onChoose = onChoose;
         this.searchQuery = '';
+        // If true, this modal will NOT open the targeting modal automatically
+        // This is useful when the caller wants to handle opening the targeting modal itself
         this.skipTargetingModal = skipTargetingModal;
         this.closedByButton = false;
     }
@@ -20,6 +22,8 @@ export class EmojiSelectionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         contentEl.addClass('pixel-banner-emoji-select-modal');
+
+        console.log(`this.skipTargetingModal: ${this.skipTargetingModal}`)
         
         // Reset the closedByButton flag when the modal opens
         this.closedByButton = false;
@@ -67,7 +71,9 @@ export class EmojiSelectionModal extends Modal {
 
         setBannerButton.addEventListener('click', async () => {
             this.closedByButton = true;
-            await this.onChoose(this.bannerIconInput.value);
+            // Trim the input value before using it
+            const trimmedValue = this.bannerIconInput.value.trim();
+            await this.onChoose(trimmedValue);
             this.close();
             
             // Only open the targeting modal if we're not skipping it

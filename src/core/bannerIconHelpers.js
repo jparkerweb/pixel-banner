@@ -87,6 +87,30 @@ export async function handleSetBannerIcon(plugin) {
         plugin.app,
         plugin,
         async (selectedEmoji) => {
+            // If selectedEmoji is empty, use processFrontMatter to remove the field
+            if (!selectedEmoji) {
+                await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                    const bannerIconField = Array.isArray(plugin.settings.customBannerIconField) && 
+                        plugin.settings.customBannerIconField.length > 0 ? 
+                        plugin.settings.customBannerIconField[0] : 'banner-icon';
+                    
+                    // Remove the field from frontmatter
+                    delete frontmatter[bannerIconField];
+                });
+                
+                // Wait for metadata update
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Update the banner to remove the icon
+                const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                if (view) {
+                    await plugin.updateBanner(view, true);
+                }
+                
+                new Notice('Banner icon removed');
+                return;
+            }
+            
             let fileContent = await plugin.app.vault.read(activeFile);
             const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
             const hasFrontmatter = frontmatterRegex.test(fileContent);
@@ -188,7 +212,18 @@ export async function handleSetBannerIcon(plugin) {
 
                 new Notice('Banner icon updated');
             }
-        }
+
+            // After setting the emoji, check if we should open the targeting modal
+            if (plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                // Add a small delay to ensure frontmatter is updated
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                // Import and use TargetPositionModal
+                const { TargetPositionModal } = require('../modal/modals');
+                new TargetPositionModal(plugin.app, plugin).open();
+            }
+        },
+        true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
     ).open();
 }
 

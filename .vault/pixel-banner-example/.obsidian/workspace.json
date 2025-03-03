@@ -2575,6 +2575,96 @@
             "id": "dcb6555ab37f57a7",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "cda52912aed1e978",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d692d387f29e3b83",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "b99bfa7427f66d0a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5e3dd6dc99347837",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d9d04cc4e8c883d1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "657ec09f055c527e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "2a9300d332e1c627",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8fb107e552381ce6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a650527313448f05",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -2582,7 +2672,7 @@
             }
           }
         ],
-        "currentTab": 246
+        "currentTab": 255
       }
     ],
     "direction": "horizontal",
@@ -2602,23 +2692,23 @@
   },
   "active": "cec2ea06e17e62a7",
   "lastOpenFiles": [
+    "Untitled 1.md",
+    "Untitled.md",
+    "pixel-banner-images/beneath-the-vibrant-glow-of-a-towering-cinderel.jpg",
+    "pixel-banner-images/in-a-neofuturistic-cityscape-a-massive-clockwor-3.jpg",
+    "pixel-banner-images/in-a-neofuturistic-cityscape-a-massive-clockwor-2.jpg",
+    "pixel-banner-images/in-a-neofuturistic-cityscape-a-massive-clockwor-1.jpg",
+    "pixel-banner-images/whimsical-scene-of-a-medium-gray-hamster-perche.jpg",
+    "pixel-banner-images/a-gigantic-mechanical-spider-scuttles-through-a.jpg",
+    "pixel-banner-images/as-you-step-through-the-whimsical-gates-of-disn.jpg",
+    "pixel-banner-images/in-a-neofuturistic-cityscape-a-massive-clockwor.jpg",
     "Untitled 5.md",
     "Untitled 4.md",
     "Untitled 3.md",
     "Untitled 2.md",
-    "Untitled 1.md",
-    "Untitled.md",
     "🚩 Pixel-Banner.md",
     "pixel-banner-images/an-ethereal-underwater-library-its-glass-walls-.jpg",
     "pixel-banner-images/hot-bikinis-girls.jpg",
-    "pixel-banner-images/in-an-ethereal-underwater-world-a-colossal-octo.jpg",
-    "pixel-banner-images/frozen-rose-gold-lakeslided-across-forgotten-mi.jpg",
-    "pixel-banner-images/a-whimsical-hamster-village-nestled-in-the-root.jpg",
-    "pixel-banner-images/monkey-brains.jpg",
-    "pixel-banner-images/a-tiled-pattern-of-a-honeycomb.jpg",
-    "pixel-banner-images/a-tiled-pattern-of-grapes.jpg",
-    "pixel-banner-images/a-seamless-pattern-of-grapes.jpg",
-    "pixel-banner-images/repeating-pattern-of-grapes.jpg",
     "Random Shuffle/Disney Lorcana.md",
     "Monkey.md",
     "hello there.md",

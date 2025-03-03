@@ -324,8 +324,8 @@ function getFrontmatterValue(frontmatter, fieldNames) {
   return null;
 }
 async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
-  const activeFile2 = plugin.app.workspace.getActiveFile();
-  if (!activeFile2) return;
+  const activeFile = plugin.app.workspace.getActiveFile();
+  if (!activeFile) return;
   let imageReference = imagePath;
   if (plugin.settings.useShortPath) {
     const imageFile = plugin.app.vault.getAbstractFileByPath(imagePath);
@@ -335,7 +335,7 @@ async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
       imageReference = matchingFiles.length === 1 ? imageFile.name : imageFile.path;
     }
   }
-  let fileContent = await plugin.app.vault.read(activeFile2);
+  let fileContent = await plugin.app.vault.read(activeFile);
   const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
   const hasFrontmatter = frontmatterRegex.test(fileContent);
   const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && plugin.settings.customBannerField.length > 0 ? plugin.settings.customBannerField[0] : "banner");
@@ -364,7 +364,7 @@ ${cleanContent}`;
   }
   updatedContent = updatedContent.replace(/^\s+/, "");
   if (updatedContent !== fileContent) {
-    await plugin.app.vault.modify(activeFile2, updatedContent);
+    await plugin.app.vault.modify(activeFile, updatedContent);
     if (plugin.settings.useShortPath && imageReference === imagePath) {
       new import_obsidian11.Notice("Banner image pinned (full path used due to duplicate filenames)");
     } else {
@@ -387,13 +387,13 @@ async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedF
   if (!finalPath) {
     console.error("\u274C Failed to resolve valid file path");
     new Notice("Failed to save image - file not found");
-    return;
+    return null;
   }
   if (useAsBanner) {
     await updateNoteFrontmatter(finalPath, plugin, usedField);
     hidePinIcon();
   }
-  return "success";
+  return finalPath;
 }
 async function fetchImage(url) {
   const response = await fetch(url);
@@ -437,10 +437,10 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
     counter++;
   }
   const filePath = `${folderPath}/${fileName}`;
-  const savedFile2 = await vault.createBinary(filePath, arrayBuffer);
+  const savedFile = await vault.createBinary(filePath, arrayBuffer);
   return {
     initialPath: filePath,
-    file: savedFile2,
+    file: savedFile,
     useAsBanner: userInput.useAsBanner
   };
 }
@@ -672,45 +672,56 @@ var init_generateAIBannerModal = __esm({
             });
             const controls = this.imageContainer.createDiv({ cls: "pixel-banner-image-controls" });
             const useAsButton = controls.createEl("button", {
-              cls: "mod-cta",
+              cls: "mod-cta cursor-pointer",
               text: "\u{1F3F7}\uFE0F Download and Use as Banner"
             });
-            useAsButton.addEventListener("click", async () => {
+            const handleUseImage = async () => {
               var _a;
               const imageUrl = `data:image/jpeg;base64,${response.json.image}`;
               let filename = ((_a = this.prompt) == null ? void 0 : _a.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()) || "banner";
               filename = filename.replace(/\s+/g, "-").substring(0, 47);
-              const didSave = await handlePinIconClick(imageUrl, this.plugin, null, filename);
-              if (didSave === "success") {
-                const imageId = response.json.imageId;
-                this.downloadHistory.addImage(imageId);
-              }
+              const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename);
+              this.downloadHistory.addImage(response.json.imageId);
               this.close();
+              const activeFile = this.plugin.app.workspace.getActiveFile();
+              if (!activeFile || !savedPath) return;
               await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                 const bannerField = this.plugin.settings.customBannerField[0];
-                frontmatter[bannerField] = `[[${savedFile.path}]]`;
+                frontmatter[bannerField] = `[[${savedPath}]]`;
               });
               if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                const { EmojiSelectionModal: EmojiSelectionModal3 } = (init_modals(), __toCommonJS(modals_exports));
-                new EmojiSelectionModal3(
+                new EmojiSelectionModal(
                   this.app,
                   this.plugin,
                   async (emoji) => {
-                    if (activeFile) {
-                      await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                    const activeFile2 = this.plugin.app.workspace.getActiveFile();
+                    if (activeFile2) {
+                      await this.plugin.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
                         const iconField = this.plugin.settings.customBannerIconField[0];
-                        frontmatter[iconField] = emoji;
+                        if (emoji) {
+                          frontmatter[iconField] = emoji;
+                        } else {
+                          delete frontmatter[iconField];
+                        }
                       });
+                      const view = this.plugin.app.workspace.getActiveViewOfType(import_obsidian12.MarkdownView);
+                      if (view) {
+                        await this.plugin.updateBanner(view, true);
+                      }
                       if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                         new TargetPositionModal(this.app, this.plugin).open();
                       }
                     }
-                  }
+                  },
+                  true
+                  // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
                 ).open();
               } else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                 new TargetPositionModal(this.app, this.plugin).open();
               }
-            });
+            };
+            img.addEventListener("click", handleUseImage);
+            useAsButton.addEventListener("click", handleUseImage);
           } else {
             throw new Error("Failed to generate image");
           }
@@ -1296,29 +1307,41 @@ var init_generateAIBannerModal = __esm({
           const shouldDownload = await this.checkDownloadHistory(img);
           if (!shouldDownload) return;
           const filename = img.getAttribute("filename");
-          await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+          const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
           this.downloadHistory.addImage(img.getAttribute("imageid"));
           this.close();
+          const activeFile = this.plugin.app.workspace.getActiveFile();
+          if (!activeFile || !savedPath) return;
           await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
             const bannerField = this.plugin.settings.customBannerField[0];
-            frontmatter[bannerField] = `[[${savedFile.path}]]`;
+            frontmatter[bannerField] = `[[${savedPath}]]`;
           });
           if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-            const { EmojiSelectionModal: EmojiSelectionModal3 } = (init_modals(), __toCommonJS(modals_exports));
-            new EmojiSelectionModal3(
+            new EmojiSelectionModal(
               this.app,
               this.plugin,
               async (emoji) => {
-                if (activeFile) {
-                  await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                const activeFile2 = this.plugin.app.workspace.getActiveFile();
+                if (activeFile2) {
+                  await this.plugin.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
                     const iconField = this.plugin.settings.customBannerIconField[0];
-                    frontmatter[iconField] = emoji;
+                    if (emoji) {
+                      frontmatter[iconField] = emoji;
+                    } else {
+                      delete frontmatter[iconField];
+                    }
                   });
+                  const view = this.plugin.app.workspace.getActiveViewOfType(import_obsidian12.MarkdownView);
+                  if (view) {
+                    await this.plugin.updateBanner(view, true);
+                  }
                   if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                     new TargetPositionModal(this.app, this.plugin).open();
                   }
                 }
-              }
+              },
+              true
+              // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
             ).open();
           } else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
             new TargetPositionModal(this.app, this.plugin).open();
@@ -21041,13 +21064,13 @@ var init_emojis = __esm({
 });
 
 // src/modal/modals/emojiSelectionModal.js
-var import_obsidian14, EmojiSelectionModal2;
+var import_obsidian14, EmojiSelectionModal;
 var init_emojiSelectionModal = __esm({
   "src/modal/modals/emojiSelectionModal.js"() {
     import_obsidian14 = require("obsidian");
     init_emojis();
     init_modals();
-    EmojiSelectionModal2 = class extends import_obsidian14.Modal {
+    EmojiSelectionModal = class extends import_obsidian14.Modal {
       constructor(app, plugin, onChoose, skipTargetingModal = false) {
         super(app);
         this.plugin = plugin;
@@ -21061,9 +21084,10 @@ var init_emojiSelectionModal = __esm({
         const { contentEl } = this;
         contentEl.empty();
         contentEl.addClass("pixel-banner-emoji-select-modal");
+        console.log(`this.skipTargetingModal: ${this.skipTargetingModal}`);
         this.closedByButton = false;
-        const activeFile2 = this.app.workspace.getActiveFile();
-        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a.frontmatter;
+        const activeFile = this.app.workspace.getActiveFile();
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a.frontmatter;
         const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) ? this.plugin.settings.customBannerIconField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconField;
         this.currentBannerIconField = (frontmatter == null ? void 0 : frontmatter[bannerIconField]) || "";
         contentEl.createEl("h3", {
@@ -21096,14 +21120,15 @@ var init_emojiSelectionModal = __esm({
         setBannerButton.addEventListener("click", async () => {
           var _a2;
           this.closedByButton = true;
-          await this.onChoose(this.bannerIconInput.value);
+          const trimmedValue = this.bannerIconInput.value.trim();
+          await this.onChoose(trimmedValue);
           this.close();
           if (!this.skipTargetingModal && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
             await new Promise((resolve) => setTimeout(resolve, 1e3));
-            const activeFile3 = this.app.workspace.getActiveFile();
-            if (activeFile3) {
+            const activeFile2 = this.app.workspace.getActiveFile();
+            if (activeFile2) {
               await new Promise((resolve) => setTimeout(resolve, 200));
-              const frontmatter2 = (_a2 = this.app.metadataCache.getFileCache(activeFile3)) == null ? void 0 : _a2.frontmatter;
+              const frontmatter2 = (_a2 = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a2.frontmatter;
               const bannerIconField2 = Array.isArray(this.plugin.settings.customBannerIconField) ? this.plugin.settings.customBannerIconField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconField;
               new TargetPositionModal(this.app, this.plugin).open();
             }
@@ -21209,8 +21234,8 @@ var init_emojiSelectionModal = __esm({
       onClose() {
         const { contentEl } = this;
         contentEl.empty();
-        const activeFile2 = this.app.workspace.getActiveFile();
-        const hasBanner = activeFile2 ? this.plugin.hasBannerFrontmatter(activeFile2) : false;
+        const activeFile = this.app.workspace.getActiveFile();
+        const hasBanner = activeFile ? this.plugin.hasBannerFrontmatter(activeFile) : false;
         if (!this.closedByButton && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon && hasBanner) {
           setTimeout(() => {
             new TargetPositionModal(this.app, this.plugin).open();
@@ -21233,8 +21258,8 @@ var init_targetPositionModal = __esm({
         this.plugin = plugin;
         this.onPositionChange = onPositionChange;
         this.isDragging = false;
-        const activeFile2 = this.app.workspace.getActiveFile();
-        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a.frontmatter;
+        const activeFile = this.app.workspace.getActiveFile();
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a.frontmatter;
         const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) ? this.plugin.settings.customImageDisplayField[0].split(",")[0].trim() : this.plugin.settings.customImageDisplayField;
         this.currentDisplay = (frontmatter == null ? void 0 : frontmatter[displayField]) || this.plugin.settings.imageDisplay;
         const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
@@ -21257,53 +21282,53 @@ var init_targetPositionModal = __esm({
       }
       // Helper to update frontmatter with new display value
       updateDisplayMode(mode, zoom = null) {
-        const activeFile2 = this.app.workspace.getActiveFile();
-        if (!activeFile2) return;
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
         const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) ? this.plugin.settings.customImageDisplayField[0].split(",")[0].trim() : this.plugin.settings.customImageDisplayField;
         let newValue = mode;
         if (mode === "cover-zoom") {
           newValue = `${zoom}%`;
         }
-        this.app.fileManager.processFrontMatter(activeFile2, (fm) => {
+        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
           fm[displayField] = newValue;
         });
       }
       updateBannerHeight(height) {
-        const activeFile2 = this.app.workspace.getActiveFile();
-        if (!activeFile2) return;
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
         const heightField = Array.isArray(this.plugin.settings.customBannerHeightField) ? this.plugin.settings.customBannerHeightField[0].split(",")[0].trim() : this.plugin.settings.customBannerHeightField;
-        this.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
           frontmatter[heightField] = height;
         });
       }
       updateBannerContentStartPosition(position) {
-        const activeFile2 = this.app.workspace.getActiveFile();
-        if (!activeFile2) return;
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
         const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField) ? this.plugin.settings.customContentStartField[0].split(",")[0].trim() : this.plugin.settings.customContentStartField;
-        this.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
           frontmatter[contentStartPositionField] = position;
         });
       }
       updateBannerIconXPosition(position) {
-        const activeFile2 = this.app.workspace.getActiveFile();
-        if (!activeFile2) return;
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
         const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField) ? this.plugin.settings.customBannerIconXPositionField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconXPositionField;
-        this.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
           frontmatter[bannerIconXPositionField] = position;
         });
       }
       updateRepeatMode(repeat) {
-        const activeFile2 = this.app.workspace.getActiveFile();
-        if (!activeFile2) return;
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
         const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField) ? this.plugin.settings.customImageRepeatField[0].split(",")[0].trim() : this.plugin.settings.customImageRepeatField;
-        this.app.fileManager.processFrontMatter(activeFile2, (fm) => {
+        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
           fm[repeatField] = repeat;
         });
       }
       onPositionChange(x, y) {
-        const activeFile2 = this.app.workspace.getActiveFile();
-        if (!activeFile2) return;
-        this.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
           frontmatter.bannerTargetX = x;
           frontmatter.bannerTargetY = y;
         });
@@ -21438,24 +21463,34 @@ var init_targetPositionModal = __esm({
         targetContainer.style.flexDirection = "column";
         targetContainer.style.gap = "10px";
         targetContainer.style.flexGrow = "1";
-        const targetArea = targetContainer.createDiv({ cls: "target-area" });
-        targetArea.style.width = "300px";
-        targetArea.style.height = "300px";
-        targetArea.style.border = "2px solid var(--background-modifier-border)";
-        targetArea.style.position = "relative";
-        targetArea.style.backgroundColor = "var(--background-primary)";
-        targetArea.style.cursor = "crosshair";
-        targetArea.style.flexGrow = "1";
+        const targetArea = targetContainer.createDiv({
+          cls: "target-area",
+          attr: {
+            style: `
+                    width: 200px;
+                    height: 200px;
+                    border: 2px solid var(--background-modifier-border);
+                    position: relative;
+                    background-color: var(--background-primary);
+                    cursor: crosshair;
+                    flex-grow: 1;
+                `
+          }
+        });
         const verticalLine = targetArea.createDiv({ cls: "vertical-line" });
         const horizontalLine = targetArea.createDiv({ cls: "horizontal-line" });
         const positionIndicator = targetContainer.createEl("div", {
-          cls: "position-indicator"
+          cls: "position-indicator",
+          attr: {
+            style: `
+                    text-align: center;
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                    color: var(--text-muted);
+                    width: 200px;
+                `
+          }
         });
-        positionIndicator.style.textAlign = "center";
-        positionIndicator.style.fontFamily = "var(--font-monospace)";
-        positionIndicator.style.fontSize = "0.9em";
-        positionIndicator.style.color = "var(--text-muted)";
-        positionIndicator.style.width = "300px";
         positionIndicator.setText(`X: ${this.currentX}%, Y: ${this.currentY}%`);
         const updatePositionIndicator = () => {
           positionIndicator.setText(`X: ${this.currentX}%, Y: ${this.currentY}%`);
@@ -21530,8 +21565,8 @@ var init_targetPositionModal = __esm({
                 `
           }
         });
-        const activeFile2 = this.app.workspace.getActiveFile();
-        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a.frontmatter;
+        const activeFile = this.app.workspace.getActiveFile();
+        const frontmatter = (_a = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a.frontmatter;
         const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) ? this.plugin.settings.customBannerIconField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconField;
         const hasBannerIcon = frontmatter && frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== "";
         if (hasBannerIcon) {
@@ -21539,7 +21574,7 @@ var init_targetPositionModal = __esm({
         } else {
           setTimeout(() => {
             var _a2;
-            const refreshedFrontmatter = (_a2 = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a2.frontmatter;
+            const refreshedFrontmatter = (_a2 = this.app.metadataCache.getFileCache(activeFile)) == null ? void 0 : _a2.frontmatter;
             if (refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== "") {
               bannerIconControlsContainer.style.display = "block";
             }
@@ -21634,11 +21669,13 @@ var init_targetPositionModal = __esm({
           contentStartPositionValue.setText(`${this.plugin.settings.contentStartPosition}px`);
           bannerIconXPositionValue.setText(`${this.plugin.settings.bannerIconXPosition}`);
           toggleInput.checked = false;
-          verticalLine.style.left = "50%";
-          horizontalLine.style.top = "50%";
+          this.currentX = this.plugin.settings.xPosition;
+          this.currentY = this.plugin.settings.yPosition;
+          verticalLine.style.left = `${this.currentX}%`;
+          horizontalLine.style.top = `${this.currentY}%`;
           updatePositionIndicator();
-          const activeFile3 = this.app.workspace.getActiveFile();
-          this.app.fileManager.processFrontMatter(activeFile3, (frontmatter2) => {
+          const activeFile2 = this.app.workspace.getActiveFile();
+          this.app.fileManager.processFrontMatter(activeFile2, (frontmatter2) => {
             const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) ? this.plugin.settings.customImageDisplayField[0].split(",")[0].trim() : this.plugin.settings.customImageDisplayField;
             const heightField = Array.isArray(this.plugin.settings.customBannerHeightField) ? this.plugin.settings.customBannerHeightField[0].split(",")[0].trim() : this.plugin.settings.customBannerHeightField;
             const xField = Array.isArray(this.plugin.settings.customXPositionField) ? this.plugin.settings.customXPositionField[0].split(",")[0].trim() : this.plugin.settings.customXPositionField;
@@ -21791,8 +21828,8 @@ var init_selectPixelBannerModal = __esm({
           }
         });
         titleContainer.appendChild(document.createTextNode("Pixel Banner Selector"));
-        const activeFile2 = this.app.workspace.getActiveFile();
-        const hasBanner = activeFile2 ? this.plugin.hasBannerFrontmatter(activeFile2) : false;
+        const activeFile = this.app.workspace.getActiveFile();
+        const hasBanner = activeFile ? this.plugin.hasBannerFrontmatter(activeFile) : false;
         const mainContainer = contentEl.createDiv({ cls: "pixel-banner-main-container" });
         const bannerSourceSection = mainContainer.createDiv({ cls: "pixel-banner-section" });
         bannerSourceSection.createEl("h3", { text: "Select Banner Source", cls: "pixel-banner-section-title" });
@@ -21838,23 +21875,31 @@ var init_selectPixelBannerModal = __esm({
             this.app,
             this.plugin,
             async (file) => {
-              const activeFile3 = this.app.workspace.getActiveFile();
-              if (activeFile3) {
-                await this.plugin.app.fileManager.processFrontMatter(activeFile3, (frontmatter) => {
+              const activeFile2 = this.app.workspace.getActiveFile();
+              if (activeFile2) {
+                await this.plugin.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
                   const bannerField = this.plugin.settings.customBannerField[0];
                   frontmatter[bannerField] = `[[${file.path}]]`;
                 });
                 if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                  new EmojiSelectionModal2(
+                  new EmojiSelectionModal(
                     this.app,
                     this.plugin,
                     async (emoji) => {
-                      const activeFile4 = this.app.workspace.getActiveFile();
-                      if (activeFile4) {
-                        await this.plugin.app.fileManager.processFrontMatter(activeFile4, (frontmatter) => {
+                      const activeFile3 = this.app.workspace.getActiveFile();
+                      if (activeFile3) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile3, (frontmatter) => {
                           const iconField = this.plugin.settings.customBannerIconField[0];
-                          frontmatter[iconField] = emoji;
+                          if (emoji) {
+                            frontmatter[iconField] = emoji;
+                          } else {
+                            delete frontmatter[iconField];
+                          }
                         });
+                        const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                        if (view) {
+                          await this.plugin.updateBanner(view, true);
+                        }
                         if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                           new TargetPositionModal(this.app, this.plugin).open();
                         }
@@ -21891,15 +21936,19 @@ var init_selectPixelBannerModal = __esm({
         bannerIconButton.addEventListener("click", () => {
           if (!hasBanner) return;
           this.close();
-          new EmojiSelectionModal2(
+          new EmojiSelectionModal(
             this.app,
             this.plugin,
             async (emoji) => {
-              const activeFile3 = this.app.workspace.getActiveFile();
-              if (activeFile3) {
-                await this.plugin.app.fileManager.processFrontMatter(activeFile3, (frontmatter) => {
+              const activeFile2 = this.app.workspace.getActiveFile();
+              if (activeFile2) {
+                await this.plugin.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
                   const iconField = this.plugin.settings.customBannerIconField[0];
-                  frontmatter[iconField] = emoji;
+                  if (emoji) {
+                    frontmatter[iconField] = emoji;
+                  } else {
+                    delete frontmatter[iconField];
+                  }
                 });
               }
             }
@@ -22330,26 +22379,27 @@ var init_pixelBannerStoreModal = __esm({
                       this.app,
                       this.plugin,
                       async (emoji) => {
-                        const activeFile2 = this.app.workspace.getActiveFile();
-                        if (activeFile2) {
-                          await this.plugin.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
+                        const activeFile = this.app.workspace.getActiveFile();
+                        if (activeFile) {
+                          await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                             const iconField = this.plugin.settings.customBannerIconField[0];
                             frontmatter[iconField] = emoji;
                           });
                           if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                            await new Promise((resolve) => setTimeout(resolve, 200));
                             new TargetPositionModal(this.app, this.plugin).open();
                           }
                         }
                       },
-                      // Skip the targeting modal in the EmojiSelectionModal if we're going to open it here
-                      this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
+                      true
+                      // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
                     ).open();
                   } else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                     new TargetPositionModal(this.app, this.plugin).open();
                   }
                 } catch (error) {
                   console.error("Error purchasing image:", error);
-                  new Notice("Failed to purchase image. Please try again.");
+                  new import_obsidian17.Notice("Failed to purchase image. Please try again.");
                 }
               }, this.plugin).open();
             } else {
@@ -22370,20 +22420,24 @@ var init_pixelBannerStoreModal = __esm({
                 await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                 this.close();
                 if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                  const { EmojiSelectionModal: EmojiSelectionModal3 } = (init_modals(), __toCommonJS(modals_exports));
-                  new EmojiSelectionModal3(
+                  new EmojiSelectionModal(
                     this.app,
                     this.plugin,
                     async (emoji) => {
-                      const activeFile2 = this.app.workspace.getActiveFile();
-                      if (activeFile2) {
-                        await this.plugin.app.fileManager.processFrontMatter(activeFile2, (frontmatter) => {
+                      const activeFile = this.app.workspace.getActiveFile();
+                      if (activeFile) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                           const iconField = this.plugin.settings.customBannerIconField[0];
                           frontmatter[iconField] = emoji;
                         });
+                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                          await new Promise((resolve) => setTimeout(resolve, 200));
+                          new TargetPositionModal(this.app, this.plugin).open();
+                        }
                       }
                     },
-                    this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
+                    true
+                    // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
                   ).open();
                 } else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                   new TargetPositionModal(this.app, this.plugin).open();
@@ -22635,7 +22689,7 @@ var init_pixelBannerStoreModal = __esm({
 // src/modal/modals.js
 var modals_exports = {};
 __export(modals_exports, {
-  EmojiSelectionModal: () => EmojiSelectionModal2,
+  EmojiSelectionModal: () => EmojiSelectionModal,
   FolderSelectionModal: () => FolderSelectionModal,
   GenerateAIBannerModal: () => GenerateAIBannerModal,
   ImageSelectionModal: () => ImageSelectionModal,
@@ -24216,7 +24270,7 @@ var DEFAULT_SETTINGS = {
   customBannerIconBorderRadiusField: ["icon-border-radius"],
   customBannerIconVeritalOffsetField: ["icon-y"],
   folderImages: [],
-  contentStartPosition: 275,
+  contentStartPosition: 355,
   imageDisplay: "cover",
   imageRepeat: false,
   bannerHeight: 350,
@@ -24241,7 +24295,7 @@ var DEFAULT_SETTINGS = {
   useShortPath: true,
   bannerGap: 12,
   bannerIconSize: 70,
-  bannerIconXPosition: 25,
+  bannerIconXPosition: 75,
   bannerIconOpacity: 100,
   bannerIconColor: "",
   bannerIconFontWeight: "normal",
@@ -24411,16 +24465,29 @@ function shouldUpdateIconOverlay(plugin, existingOverlay, newIconState, viewType
   });
 }
 async function handleSetBannerIcon(plugin) {
-  const activeFile2 = plugin.app.workspace.getActiveFile();
-  if (!activeFile2) {
+  const activeFile = plugin.app.workspace.getActiveFile();
+  if (!activeFile) {
     new import_obsidian19.Notice("No active file");
     return;
   }
-  new EmojiSelectionModal2(
+  new EmojiSelectionModal(
     plugin.app,
     plugin,
     async (selectedEmoji) => {
-      let fileContent = await plugin.app.vault.read(activeFile2);
+      if (!selectedEmoji) {
+        await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+          const bannerIconField2 = Array.isArray(plugin.settings.customBannerIconField) && plugin.settings.customBannerIconField.length > 0 ? plugin.settings.customBannerIconField[0] : "banner-icon";
+          delete frontmatter[bannerIconField2];
+        });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const view = plugin.app.workspace.getActiveViewOfType(import_obsidian19.MarkdownView);
+        if (view) {
+          await plugin.updateBanner(view, true);
+        }
+        new import_obsidian19.Notice("Banner icon removed");
+        return;
+      }
+      let fileContent = await plugin.app.vault.read(activeFile);
       const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
       const hasFrontmatter = frontmatterRegex.test(fileContent);
       const bannerIconField = Array.isArray(plugin.settings.customBannerIconField) && plugin.settings.customBannerIconField.length > 0 ? plugin.settings.customBannerIconField[0] : "banner-icon";
@@ -24449,7 +24516,7 @@ ${cleanContent}`;
       }
       updatedContent = updatedContent.replace(/^\s+/, "");
       if (updatedContent !== fileContent) {
-        await plugin.app.vault.modify(activeFile2, updatedContent);
+        await plugin.app.vault.modify(activeFile, updatedContent);
         const metadataUpdated = new Promise((resolve) => {
           let eventRef = null;
           let resolved = false;
@@ -24467,7 +24534,7 @@ ${cleanContent}`;
             }
           }, 2e3);
           eventRef = plugin.app.metadataCache.on("changed", (file) => {
-            if (file.path === activeFile2.path && !resolved) {
+            if (file.path === activeFile.path && !resolved) {
               resolved = true;
               clearTimeout(timeoutId);
               cleanup();
@@ -24483,7 +24550,7 @@ ${cleanContent}`;
           const view = plugin.app.workspace.getActiveViewOfType(import_obsidian19.MarkdownView);
           if (view) {
             try {
-              const cache = plugin.app.metadataCache.getFileCache(activeFile2);
+              const cache = plugin.app.metadataCache.getFileCache(activeFile);
               if (!cache || !cache.frontmatter || cache.frontmatter[bannerIconField] !== selectedEmoji) {
                 await new Promise((resolve) => setTimeout(resolve, 100));
                 continue;
@@ -24506,7 +24573,14 @@ ${cleanContent}`;
         }
         new import_obsidian19.Notice("Banner icon updated");
       }
-    }
+      if (plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        const { TargetPositionModal: TargetPositionModal2 } = (init_modals(), __toCommonJS(modals_exports));
+        new TargetPositionModal2(plugin.app, plugin).open();
+      }
+    },
+    true
+    // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
   ).open();
 }
 function cleanupIconOverlay(plugin, view) {
@@ -24875,8 +24949,8 @@ async function addPixelBanner(plugin, el, ctx) {
       container.appendChild(viewImageIcon);
       leftOffset += 35;
     }
-    const activeFile2 = plugin.app.workspace.getActiveFile();
-    const hasBanner = activeFile2 && plugin.hasBannerFrontmatter(activeFile2);
+    const activeFile = plugin.app.workspace.getActiveFile();
+    const hasBanner = activeFile && plugin.hasBannerFrontmatter(activeFile);
   }
   if (!container._hasOverriddenSetChildrenInPlace) {
     const originalSetChildrenInPlace = container.setChildrenInPlace;
@@ -25235,6 +25309,33 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         mainOverlays.forEach((overlay) => overlay.remove());
       }
     });
+  }
+  if (!bannerIcon || typeof bannerIcon === "string" && !bannerIcon.trim()) {
+    if (isEmbedded) {
+      const embedContainer = contentEl.querySelector(".markdown-preview-sizer") || contentEl.querySelector(".markdown-embed-content") || contentEl;
+      const persistentOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+      persistentOverlays.forEach((overlay) => {
+        plugin.returnIconOverlay(overlay);
+        overlay.remove();
+      });
+    } else {
+      const previewContainer = contentEl.querySelector("div.markdown-preview-sizer");
+      const sourceContainer = contentEl.querySelector("div.cm-sizer");
+      if (previewContainer) {
+        const previewOverlays = previewContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+        previewOverlays.forEach((overlay) => {
+          plugin.returnIconOverlay(overlay);
+          overlay.remove();
+        });
+      }
+      if (sourceContainer) {
+        const sourceOverlays = sourceContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+        sourceOverlays.forEach((overlay) => {
+          plugin.returnIconOverlay(overlay);
+          overlay.remove();
+        });
+      }
+    }
   }
   if (bannerIcon && typeof bannerIcon === "string" && bannerIcon.trim()) {
     const cleanIcon = bannerIcon.trim();
@@ -25706,8 +25807,8 @@ async function handleModeChange(leaf) {
   }
 }
 async function handleSelectImage() {
-  const activeFile2 = this.app.workspace.getActiveFile();
-  if (!activeFile2) {
+  const activeFile = this.app.workspace.getActiveFile();
+  if (!activeFile) {
     new import_obsidian24.Notice("No active file");
     return;
   }
@@ -25721,7 +25822,7 @@ async function handleSelectImage() {
         const matchingFiles = allFiles.filter((f) => f.name === selectedFile.name);
         imageReference = matchingFiles.length === 1 ? selectedFile.name : selectedFile.path;
       }
-      let fileContent = await this.app.vault.read(activeFile2);
+      let fileContent = await this.app.vault.read(activeFile);
       const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
       const hasFrontmatter = frontmatterRegex.test(fileContent);
       const bannerField = Array.isArray(this.settings.customBannerField) && this.settings.customBannerField.length > 0 ? this.settings.customBannerField[0] : "banner";
@@ -25750,7 +25851,7 @@ ${cleanContent}`;
       }
       updatedContent = updatedContent.replace(/^\s+/, "");
       if (updatedContent !== fileContent) {
-        await this.app.vault.modify(activeFile2, updatedContent);
+        await this.app.vault.modify(activeFile, updatedContent);
         if (this.settings.useShortPath && imageReference === selectedFile.path) {
           new import_obsidian24.Notice("Banner image updated (full path used due to duplicate filenames)");
         } else {
@@ -26286,8 +26387,8 @@ var PixelBannerPlugin = class extends import_obsidian26.Plugin {
       id: "set-banner-position",
       name: "\u{1F3AF} Set Banner and Icon Positions",
       checkCallback: (checking) => {
-        const activeFile2 = this.app.workspace.getActiveFile();
-        const hasBanner = activeFile2 && this.hasBannerFrontmatter(activeFile2);
+        const activeFile = this.app.workspace.getActiveFile();
+        const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
         if (checking) {
           return hasBanner;
         }
@@ -26295,7 +26396,7 @@ var PixelBannerPlugin = class extends import_obsidian26.Plugin {
           new TargetPositionModal(
             this.app,
             this,
-            (position) => this.updateBannerPosition(activeFile2, position)
+            (position) => this.updateBannerPosition(activeFile, position)
           ).open();
           return true;
         }

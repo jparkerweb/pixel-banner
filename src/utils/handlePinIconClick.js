@@ -17,7 +17,7 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
     if (!finalPath) {
         console.error('❌ Failed to resolve valid file path');
         new Notice('Failed to save image - file not found');
-        return;
+        return null;
     }
     
     if (useAsBanner) {
@@ -25,7 +25,7 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
         hidePinIcon();
     }
 
-    return "success";
+    return finalPath;
 }
 
 // -----------------

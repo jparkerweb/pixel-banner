@@ -637,6 +637,41 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         });
     }
 
+    // Clean up existing persistent banner icon overlays if the icon field is removed or empty
+    if (!bannerIcon || (typeof bannerIcon === 'string' && !bannerIcon.trim())) {
+        // For embedded notes
+        if (isEmbedded) {
+            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
+                                    contentEl.querySelector('.markdown-embed-content') || 
+                                    contentEl;
+            const persistentOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+            persistentOverlays.forEach(overlay => {
+                plugin.returnIconOverlay(overlay);
+                overlay.remove();
+            });
+        } else {
+            // For main notes, clean up in both views
+            const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
+            const sourceContainer = contentEl.querySelector('div.cm-sizer');
+            
+            if (previewContainer) {
+                const previewOverlays = previewContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+                previewOverlays.forEach(overlay => {
+                    plugin.returnIconOverlay(overlay);
+                    overlay.remove();
+                });
+            }
+            
+            if (sourceContainer) {
+                const sourceOverlays = sourceContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+                sourceOverlays.forEach(overlay => {
+                    plugin.returnIconOverlay(overlay);
+                    overlay.remove();
+                });
+            }
+        }
+    }
+
     // Only proceed if we have a valid banner icon
     if (bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) {
         const cleanIcon = bannerIcon.trim();

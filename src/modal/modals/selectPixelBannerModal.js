@@ -113,8 +113,19 @@ export class SelectPixelBannerModal extends Modal {
                                     if (activeFile) {
                                         await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                                             const iconField = this.plugin.settings.customBannerIconField[0];
-                                            frontmatter[iconField] = emoji;
+                                            if (emoji) {
+                                                frontmatter[iconField] = emoji;
+                                            } else {
+                                                // If emoji is empty, remove the field from frontmatter
+                                                delete frontmatter[iconField];
+                                            }
                                         });
+                                        
+                                        // Ensure the banner is updated to reflect the changes
+                                        const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                                        if (view) {
+                                            await this.plugin.updateBanner(view, true);
+                                        }
                                         
                                         // Check if we should open the targeting modal after setting the icon
                                         if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
@@ -175,7 +186,12 @@ export class SelectPixelBannerModal extends Modal {
                     if (activeFile) {
                         await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                             const iconField = this.plugin.settings.customBannerIconField[0];
-                            frontmatter[iconField] = emoji;
+                            if (emoji) {
+                                frontmatter[iconField] = emoji;
+                            } else {
+                                // If emoji is empty, remove the field from frontmatter
+                                delete frontmatter[iconField];
+                            }
                         });
                     }
                 }

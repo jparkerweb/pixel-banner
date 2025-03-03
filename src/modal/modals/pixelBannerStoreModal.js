@@ -1,7 +1,7 @@
-import { Modal, Setting } from 'obsidian';
+import { Modal, Setting, Notice } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
-import { TargetPositionModal } from '../modals';
+import { TargetPositionModal, EmojiSelectionModal } from '../modals';
 import { flags } from '../../resources/flags.js';
 
 
@@ -242,12 +242,13 @@ export class PixelBannerStoreModal extends Modal {
                                             
                                             // Check if we should open the targeting modal after setting the icon
                                             if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                                // Add a small delay to ensure frontmatter is updated
+                                                await new Promise(resolve => setTimeout(resolve, 200));
                                                 new TargetPositionModal(this.app, this.plugin).open();
                                             }
                                         }
                                     },
-                                    // Skip the targeting modal in the EmojiSelectionModal if we're going to open it here
-                                    this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
+                                    true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
                                 ).open();
                             } 
                             // If not opening the banner icon modal, check if we should open the targeting modal
@@ -281,8 +282,7 @@ export class PixelBannerStoreModal extends Modal {
                         
                         // Check if we should open the banner icon modal after selecting a banner
                         if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                            // Import and use EmojiSelectionModal here
-                            const { EmojiSelectionModal } = require('../modals');
+                            // Use the imported EmojiSelectionModal
                             new EmojiSelectionModal(
                                 this.app, 
                                 this.plugin,
@@ -293,9 +293,16 @@ export class PixelBannerStoreModal extends Modal {
                                             const iconField = this.plugin.settings.customBannerIconField[0];
                                             frontmatter[iconField] = emoji;
                                         });
+                                        
+                                        // Check if we should open the targeting modal after setting the icon
+                                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                            // Add a small delay to ensure frontmatter is updated
+                                            await new Promise(resolve => setTimeout(resolve, 200));
+                                            new TargetPositionModal(this.app, this.plugin).open();
+                                        }
                                     }
                                 },
-                                this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
+                                true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
                             ).open();
                         } 
                         // If not opening the banner icon modal, check if we should open the targeting modal

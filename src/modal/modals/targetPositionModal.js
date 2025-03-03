@@ -305,14 +305,20 @@ export class TargetPositionModal extends Modal {
         targetContainer.style.flexGrow = '1';
 
         // Create container for the target area
-        const targetArea = targetContainer.createDiv({ cls: 'target-area' });
-        targetArea.style.width = '300px';
-        targetArea.style.height = '300px';
-        targetArea.style.border = '2px solid var(--background-modifier-border)';
-        targetArea.style.position = 'relative';
-        targetArea.style.backgroundColor = 'var(--background-primary)';
-        targetArea.style.cursor = 'crosshair';
-        targetArea.style.flexGrow = '1';
+        const targetArea = targetContainer.createDiv({
+            cls: 'target-area',
+            attr: {
+                style: `
+                    width: 200px;
+                    height: 200px;
+                    border: 2px solid var(--background-modifier-border);
+                    position: relative;
+                    background-color: var(--background-primary);
+                    cursor: crosshair;
+                    flex-grow: 1;
+                `
+            }
+        });
 
         // Create crosshair lines
         const verticalLine = targetArea.createDiv({ cls: 'vertical-line' });
@@ -320,13 +326,17 @@ export class TargetPositionModal extends Modal {
 
         // Position indicator
         const positionIndicator = targetContainer.createEl('div', { 
-            cls: 'position-indicator'
+            cls: 'position-indicator',
+            attr: {
+                style: `
+                    text-align: center;
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                    color: var(--text-muted);
+                    width: 200px;
+                `
+            }
         });
-        positionIndicator.style.textAlign = 'center';
-        positionIndicator.style.fontFamily = 'var(--font-monospace)';
-        positionIndicator.style.fontSize = '0.9em';
-        positionIndicator.style.color = 'var(--text-muted)';
-        positionIndicator.style.width = '300px';
         positionIndicator.setText(`X: ${this.currentX}%, Y: ${this.currentY}%`);
 
         const updatePositionIndicator = () => {
@@ -569,9 +579,15 @@ export class TargetPositionModal extends Modal {
             bannerIconXPositionValue.setText(`${this.plugin.settings.bannerIconXPosition}`);
             toggleInput.checked = false;
 
-            // Reset crosshair position
-            verticalLine.style.left = '50%';
-            horizontalLine.style.top = '50%';
+            // Reset crosshair position to default plugin settings
+            this.currentX = this.plugin.settings.xPosition;
+            this.currentY = this.plugin.settings.yPosition;
+            
+            // Update crosshair position visually
+            verticalLine.style.left = `${this.currentX}%`;
+            horizontalLine.style.top = `${this.currentY}%`;
+            
+            // Update position indicator with default values
             updatePositionIndicator();
 
             // Remove frontmatter fields to allow inheritance from plugin settings

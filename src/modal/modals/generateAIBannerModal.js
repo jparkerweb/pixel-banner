@@ -1,8 +1,8 @@
-import { Modal, Notice, requestUrl } from 'obsidian';
+import { Modal, Notice, requestUrl, MarkdownView } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
 import { DownloadHistory } from '../../utils/downloadHistory';
-import { TargetPositionModal } from '../modals';
+import { TargetPositionModal, EmojiSelectionModal } from '../modals';
 
 // --------------------------
 // -- Generate Banner Modal --
@@ -154,53 +154,71 @@ export class GenerateAIBannerModal extends Modal {
                 // Create controls
                 const controls = this.imageContainer.createDiv({ cls: 'pixel-banner-image-controls' });
                 const useAsButton = controls.createEl('button', {
-                    cls: 'mod-cta',
+                    cls: 'mod-cta cursor-pointer',
                     text: '🏷️ Download and Use as Banner'
                 });
-                useAsButton.addEventListener('click', async () => {
+                // Add click handler to both the image and the use button
+                const handleUseImage = async () => {
                     const imageUrl = `data:image/jpeg;base64,${response.json.image}`;
                     let filename = this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                     filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                    const didSave = await handlePinIconClick(imageUrl, this.plugin, null, filename);
-                    if (didSave === "success") {
-                        const imageId = response.json.imageId;
-                        this.downloadHistory.addImage(imageId);
-                    }
+                    const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename);
+                    this.downloadHistory.addImage(response.json.imageId);
                     this.close();
+                    
+                    // Get the active file
+                    const activeFile = this.plugin.app.workspace.getActiveFile();
+                    if (!activeFile || !savedPath) return;
                     
                     // Open the target position modal after setting the banner
                     await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                         const bannerField = this.plugin.settings.customBannerField[0];
-                        frontmatter[bannerField] = `[[${savedFile.path}]]`;
+                        frontmatter[bannerField] = `[[${savedPath}]]`;
                     });
                     
                     // Check if we should open the banner icon modal after selecting a banner
                     if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                        // Import and use EmojiSelectionModal here
-                        const { EmojiSelectionModal } = require('../modals');
+                        // Use the imported EmojiSelectionModal
                         new EmojiSelectionModal(
                             this.app, 
                             this.plugin,
                             async (emoji) => {
+                                // Get the active file again in case it changed
+                                const activeFile = this.plugin.app.workspace.getActiveFile();
                                 if (activeFile) {
                                     await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                                         const iconField = this.plugin.settings.customBannerIconField[0];
-                                        frontmatter[iconField] = emoji;
+                                        if (emoji) {
+                                            frontmatter[iconField] = emoji;
+                                        } else {
+                                            // If emoji is empty, remove the field from frontmatter
+                                            delete frontmatter[iconField];
+                                        }
                                     });
+                                    
+                                    // Ensure the banner is updated to reflect the changes
+                                    const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                                    if (view) {
+                                        await this.plugin.updateBanner(view, true);
+                                    }
                                     
                                     // Check if we should open the targeting modal after setting the icon
                                     if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                         new TargetPositionModal(this.app, this.plugin).open();
                                     }
                                 }
-                            }
+                            },
+                            true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
                         ).open();
                     } 
                     // If not opening the banner icon modal, check if we should open the targeting modal
                     else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                         new TargetPositionModal(this.app, this.plugin).open();
                     }
-                });
+                };
+
+                img.addEventListener('click', handleUseImage);
+                useAsButton.addEventListener('click', handleUseImage);
             } else {
                 throw new Error('Failed to generate image');
             }
@@ -859,36 +877,53 @@ export class GenerateAIBannerModal extends Modal {
             if (!shouldDownload) return;
             
             const filename = img.getAttribute('filename');
-            await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+            const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
             this.downloadHistory.addImage(img.getAttribute('imageid'));
             this.close();
+            
+            // Get the active file
+            const activeFile = this.plugin.app.workspace.getActiveFile();
+            if (!activeFile || !savedPath) return;
             
             // Open the target position modal after setting the banner
             await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                 const bannerField = this.plugin.settings.customBannerField[0];
-                frontmatter[bannerField] = `[[${savedFile.path}]]`;
+                frontmatter[bannerField] = `[[${savedPath}]]`;
             });
             
             // Check if we should open the banner icon modal after selecting a banner
             if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                // Import and use EmojiSelectionModal here
-                const { EmojiSelectionModal } = require('../modals');
+                // Use the imported EmojiSelectionModal
                 new EmojiSelectionModal(
                     this.app, 
                     this.plugin,
                     async (emoji) => {
+                        // Get the active file again in case it changed
+                        const activeFile = this.plugin.app.workspace.getActiveFile();
                         if (activeFile) {
                             await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                                 const iconField = this.plugin.settings.customBannerIconField[0];
-                                frontmatter[iconField] = emoji;
+                                if (emoji) {
+                                    frontmatter[iconField] = emoji;
+                                } else {
+                                    // If emoji is empty, remove the field from frontmatter
+                                    delete frontmatter[iconField];
+                                }
                             });
+                            
+                            // Ensure the banner is updated to reflect the changes
+                            const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                            if (view) {
+                                await this.plugin.updateBanner(view, true);
+                            }
                             
                             // Check if we should open the targeting modal after setting the icon
                             if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                 new TargetPositionModal(this.app, this.plugin).open();
                             }
                         }
-                    }
+                    },
+                    true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
                 ).open();
             } 
             // If not opening the banner icon modal, check if we should open the targeting modal
