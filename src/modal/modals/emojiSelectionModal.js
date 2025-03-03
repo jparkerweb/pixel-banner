@@ -1,4 +1,4 @@
-import { Modal } from "obsidian";
+import { Modal, MarkdownView } from "obsidian";
 import { emojiData } from "../../resources/emojis.js";
 import { TargetPositionModal } from "../modals";
 
@@ -75,6 +75,15 @@ export class EmojiSelectionModal extends Modal {
             const trimmedValue = this.bannerIconInput.value.trim();
             await this.onChoose(trimmedValue);
             this.close();
+            
+            // Refresh the banner to show the new icon
+            const activeFile = this.app.workspace.getActiveFile();
+            if (activeFile) {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (activeView) {
+                    await this.plugin.updateBanner(activeView, true);
+                }
+            }
             
             // Only open the targeting modal if we're not skipping it
             // and the setting is enabled

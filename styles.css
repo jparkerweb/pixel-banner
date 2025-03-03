@@ -1076,6 +1076,10 @@
     background-color: var(--interactive-accent-hover);
 }
 
+.suggestion-item {
+    cursor: pointer;
+}
+
 /* misc helper classes */
 .margin-top-0 { margin-top: 0px !important; }
 .margin-top-5 { margin-top: 5px !important; }
