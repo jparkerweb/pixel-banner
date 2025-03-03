@@ -21896,7 +21896,7 @@ var init_selectPixelBannerModal = __esm({
                             delete frontmatter[iconField];
                           }
                         });
-                        const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                        const view = this.plugin.app.workspace.getActiveViewOfType(import_obsidian16.MarkdownView);
                         if (view) {
                           await this.plugin.updateBanner(view, true);
                         }

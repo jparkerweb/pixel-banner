@@ -2669,6 +2669,26 @@
             "id": "031a063938db12fb",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "afba7b2af958ca6b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "fc6c75bee5d64a0f",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -2676,7 +2696,7 @@
             }
           }
         ],
-        "currentTab": 255
+        "currentTab": 257
       }
     ],
     "direction": "horizontal",
@@ -2694,10 +2714,12 @@
       "cmdr:Reload app without saving": false
     }
   },
-  "active": "cec2ea06e17e62a7",
+  "active": "fc6c75bee5d64a0f",
   "lastOpenFiles": [
-    "pixel-banner-images/amidst-the-colorful-chaos-of-disneyland-the-ico.jpg",
+    "pixel-banner-images/the-magnificent-disney-world-castle-stands-as-a.jpg",
     "Untitled.md",
+    "pixel-banner-images/studio-ghibli-meets-makoto-shinkai-aesthetic-a-.jpg",
+    "pixel-banner-images/amidst-the-colorful-chaos-of-disneyland-the-ico.jpg",
     "Untitled 1.md",
     "pixel-banner-images/beneath-the-vibrant-glow-of-a-towering-cinderel.jpg",
     "pixel-banner-images/in-a-neofuturistic-cityscape-a-massive-clockwor-3.jpg",
@@ -2712,8 +2734,6 @@
     "Untitled 3.md",
     "Untitled 2.md",
     "🚩 Pixel-Banner.md",
-    "pixel-banner-images/an-ethereal-underwater-library-its-glass-walls-.jpg",
-    "pixel-banner-images/hot-bikinis-girls.jpg",
     "Random Shuffle/Disney Lorcana.md",
     "Monkey.md",
     "hello there.md",
