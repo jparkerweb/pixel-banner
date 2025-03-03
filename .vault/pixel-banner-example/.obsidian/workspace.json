@@ -11,10 +11,14 @@
             "id": "cec2ea06e17e62a7",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Untitled.md",
+                "mode": "preview",
+                "source": true
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Untitled"
             }
           }
         ]
@@ -159,16 +163,6 @@
               },
               "icon": "lucide-list",
               "title": "Outline of Untitled"
-            }
-          },
-          {
-            "id": "7a171244ac9b4ac8",
-            "type": "leaf",
-            "state": {
-              "type": "calendar",
-              "state": {},
-              "icon": "calendar-with-checkmark",
-              "title": "Calendar"
             }
           },
           {
@@ -2665,6 +2659,16 @@
             "id": "a650527313448f05",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "031a063938db12fb",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -2692,8 +2696,9 @@
   },
   "active": "cec2ea06e17e62a7",
   "lastOpenFiles": [
-    "Untitled 1.md",
+    "pixel-banner-images/amidst-the-colorful-chaos-of-disneyland-the-ico.jpg",
     "Untitled.md",
+    "Untitled 1.md",
     "pixel-banner-images/beneath-the-vibrant-glow-of-a-towering-cinderel.jpg",
     "pixel-banner-images/in-a-neofuturistic-cityscape-a-massive-clockwor-3.jpg",
     "pixel-banner-images/in-a-neofuturistic-cityscape-a-massive-clockwor-2.jpg",
