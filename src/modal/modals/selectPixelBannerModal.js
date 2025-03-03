@@ -1,4 +1,4 @@
-import { Modal } from 'obsidian';
+import { Modal, MarkdownView } from 'obsidian';
 import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal, EmojiSelectionModal, TargetPositionModal } from '../modals';
 import { flags } from '../../resources/flags.js';
 
