@@ -8,13 +8,6 @@ import { flags } from '../resources/flags.js';
 // -- add pixel banner --
 // ----------------------
 async function addPixelBanner(plugin, el, ctx) {
-    // console.log("addPixelBanner called with:", { 
-    //     isEmbedded: el?.classList?.contains('internal-embed'),
-    //     hasFile: ctx?.file?.path,
-    //     bannerImage: ctx?.bannerImage,
-    //     isReadingView: ctx?.isReadingView
-    // });
-
     const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
@@ -76,12 +69,19 @@ async function addPixelBanner(plugin, el, ctx) {
         let leftOffset = plugin.settings.bannerGap + 5;
         // "Pixel Banner Icon"
         if (plugin.settings.showSelectImageIcon) {
-            const selectImageIcon = createDiv({ cls: 'select-image-icon' });
-            selectImageIcon.style.position = 'absolute';
-            selectImageIcon.style.top = '10px';
-            selectImageIcon.style.left = `${leftOffset}px`;
-            selectImageIcon.style.fontSize = '1.8em';
-            selectImageIcon.style.cursor = 'pointer';
+            const selectImageIcon = createDiv({
+                cls: 'select-image-icon',
+                attr: {
+                    style: `
+                        position: absolute;
+                        top: 10px;
+                        left: ${leftOffset}px;
+                        font-size: 1.8em;
+                        cursor: pointer;
+                    `   
+                }
+            });
+            selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
             selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
             selectImageIcon._isPersistentSelectImage = true;
 
@@ -92,13 +92,20 @@ async function addPixelBanner(plugin, el, ctx) {
 
         // "View image" icon
         if (bannerImage && plugin.settings.showViewImageIcon && !isEmbedded) {
-            const viewImageIcon = createDiv({ cls: 'view-image-icon' });
-            viewImageIcon.style.position = 'absolute';
-            viewImageIcon.style.top = '10px';
-            viewImageIcon.style.left = `${leftOffset}px`;
-            viewImageIcon.style.fontSize = '1.5em';
-            viewImageIcon.style.cursor = 'pointer';
-            viewImageIcon.style.display = 'none'; // hidden until we have an image
+            const viewImageIcon = createDiv({
+                cls: 'view-image-icon',
+                attr: {
+                    style: `
+                        display: none;
+                        position: absolute;
+                        top: 10px;
+                        left: ${leftOffset}px;
+                        font-size: 1.5em;
+                        cursor: pointer;
+                    `   
+                }
+            });
+            viewImageIcon.innerHTML = '🖼️';
             viewImageIcon._isPersistentViewImage = true;
             viewImageIcon.innerHTML = '🖼️';
 
@@ -293,12 +300,18 @@ async function addPixelBanner(plugin, el, ctx) {
 
                 // Refresh icon if it's a "keyword" banner
                 if (inputType === 'keyword' && plugin.settings.showRefreshIcon) {
-                    const refreshIcon = createDiv({ cls: 'refresh-icon' });
-                    refreshIcon.style.position = 'absolute';
-                    refreshIcon.style.top = '10px';
-                    refreshIcon.style.left = `${leftOffset}px`;
-                    refreshIcon.style.fontSize = '1.5em';
-                    refreshIcon.style.cursor = 'pointer';
+                    const refreshIcon = createDiv({
+                        cls: 'refresh-icon',
+                        attr: {
+                            style: `
+                                position: absolute;
+                                top: 10px;
+                                left: ${leftOffset}px;
+                                font-size: 1.5em;
+                                cursor: pointer;
+                            `   
+                        }
+                    });
                     refreshIcon.innerHTML = '🔄';
                     refreshIcon._isPersistentRefresh = true;
 
@@ -434,13 +447,6 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     if (!bannerImage) {
         bannerImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerField) || folderSpecific?.image;
     }
-    
-    // console.log("Banner state:", {
-    //     bannerImage,
-    //     isEmbedded,
-    //     hasFrontmatter: !!frontmatter,
-    //     hasExistingBanner: !!existingBanner
-    // });
     
     if (!isEmbedded && !bannerImage) {
         contentEl.classList.remove('pixel-banner');
@@ -585,12 +591,18 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         if (!isEmbedded && plugin.settings.showSelectImageIcon && container) {
             const existingSelectIcon = container.querySelector('.select-image-icon');
             if (!existingSelectIcon) {
-                const selectImageIcon = createDiv({ cls: 'select-image-icon' });
-                selectImageIcon.style.position = 'absolute';
-                selectImageIcon.style.top = '10px';
-                selectImageIcon.style.left = `${plugin.settings.bannerGap + 5}px`;
-                selectImageIcon.style.fontSize = '1.8em';
-                selectImageIcon.style.cursor = 'pointer';
+                const selectImageIcon = createDiv({
+                    cls: 'select-image-icon',
+                    attr: {
+                        style: `
+                            position: absolute;
+                            top: 10px;
+                            left: ${plugin.settings.bannerGap + 5}px;
+                            font-size: 1.8em;
+                            cursor: pointer;
+                        `   
+                    }
+                });
                 selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
                 selectImageIcon._isPersistentSelectImage = true;
                 selectImageIcon.onclick = () => plugin.handleBannerIconClick();
@@ -723,9 +735,9 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             bannerIconOverlay.dataset.persistent = 'true';
             bannerIconOverlay.textContent = cleanIcon;
             bannerIconOverlay._isPersistentBannerIcon = true;
-            bannerIconOverlay.style.display = 'block'; // Ensure visibility
-
+            
             // Apply styles
+            bannerIconOverlay.style.display = 'block'; // Ensure visibility
             bannerIconOverlay.style.fontSize = `${currentIconState.size}px`;
             bannerIconOverlay.style.left = `${currentIconState.xPosition}%`;
             bannerIconOverlay.style.opacity = `${currentIconState.opacity}%`;
