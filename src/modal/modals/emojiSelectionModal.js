@@ -76,14 +76,15 @@ export class EmojiSelectionModal extends Modal {
             await this.onChoose(trimmedValue);
             this.close();
             
-            // Refresh the banner to show the new icon
+            // Get the active file and view
             const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (activeView) {
                     // Add a small delay to ensure frontmatter is updated
                     setTimeout(async () => {
-                        await this.plugin.updateBanner(activeView, true);
+                        // Force a full banner update
+                        await this.plugin.updateBanner(activeView, true, this.plugin.UPDATE_MODE.FULL_UPDATE);
                     }, 100);
                 }
             }
