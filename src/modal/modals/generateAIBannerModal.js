@@ -3,6 +3,7 @@ import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
 import { DownloadHistory } from '../../utils/downloadHistory';
 import { TargetPositionModal, EmojiSelectionModal } from '../modals';
+import { SelectPixelBannerModal } from './selectPixelBannerModal';
 
 // --------------------------
 // -- Generate Banner Modal --
@@ -226,7 +227,10 @@ export class GenerateAIBannerModal extends Modal {
             console.error('Failed to generate image:', error);
             this.imageContainer.empty();
             const errorDiv = this.imageContainer.createDiv({ cls: 'pixel-banner-error' });
-            errorDiv.setText('Failed to generate image. Please try again.');
+            errorDiv.innerHTML = `
+                <p>😭 Failed to generate image, please try again.</p>
+                <p style="font-size: 0.8em; color: var(--text-muted);">Note that NSFW images are not allowed. You were not charged for this request.</p>
+            `;
         }
     }
 
@@ -520,7 +524,7 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         contentEl.createEl('p', {
-            text: 'Simply enter a prompt, select a width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 seed button.',
+            text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 seed button.',
             attr: {
                 'style': `
                     color: var(--text-muted); 
@@ -573,7 +577,7 @@ export class GenerateAIBannerModal extends Modal {
         inspirationFromSeedButton.addEventListener('click', () => this.getPromptInspirationFromSeed());
 
         // Width
-        const widthContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-control-row' });
+        const widthContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-control-row', attr: { style: 'padding-bottom: 0;' } });
         const widthInfo = widthContainer.createDiv({ cls: 'setting-item-info' });
         widthInfo.createDiv({ cls: 'setting-item-name', text: 'Width' });
         widthInfo.createDiv({ cls: 'setting-item-description', text: this.width });
@@ -624,7 +628,7 @@ export class GenerateAIBannerModal extends Modal {
         tokenCountSpan.classList.add('token-balance-animation');
         
         const generateButton = buttonContainer.createEl('button', {
-            cls: 'mod-cta cursor-pointer',
+            cls: 'mod-cta cursor-pointer radial-pulse-animation',
             text: '✨ Generate Image'
         });
         generateButton.addEventListener('click', async () => {
@@ -633,6 +637,24 @@ export class GenerateAIBannerModal extends Modal {
                 return;
             }
             await this.generateImage();
+        });
+
+        // add "Back to Main Menu" button
+        const backToMainButton = buttonContainer.createEl('button', {
+            text: '⇠ Main Menu',
+            cls: 'cursor-pointer',
+            attr: {
+                style: `
+                    width: max-content;
+                    min-width: auto;
+                `
+            }
+        });
+        
+        // on click of back to main menu button, close this modal and open the Pixel Banner Selector modal
+        backToMainButton.addEventListener('click', () => {
+            this.close();
+            new SelectPixelBannerModal(this.app, this.plugin).open();
         });
 
         // Image container

@@ -146,9 +146,6 @@ export class SelectPixelBannerModal extends Modal {
             ).open();
         });
 
-        // Divider
-        mainContainer.createEl('hr', { cls: 'pixel-banner-divider' });
-        
         // Customization section
         const customizationSection = mainContainer.createDiv({ cls: 'pixel-banner-section' });
         customizationSection.createEl('h3', { text: 'Customize Banner', cls: 'pixel-banner-section-title' });
@@ -329,14 +326,6 @@ export class SelectPixelBannerModal extends Modal {
                 hyphens: auto;
                 overflow-wrap: break-word;
                 max-width: 100%;
-            }
-            
-            .pixel-banner-divider {
-                margin: 0;
-                border: none;
-                height: 1px;
-                background-color: var(--background-modifier-border);
-                width: 100%;
             }
             
             .pixel-banner-customization-options {

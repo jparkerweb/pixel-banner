@@ -3,6 +3,7 @@ import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
 import { TargetPositionModal, EmojiSelectionModal } from '../modals';
 import { flags } from '../../resources/flags.js';
+import { SelectPixelBannerModal } from './selectPixelBannerModal';
 
 
 // ------------------------------------
@@ -102,7 +103,6 @@ export class PixelBannerStoreModal extends Modal {
         });
         // on click of next category button, load the next category
         nextCategoryButton.addEventListener('click', async () => {
-            // debugger;
             // if already at the last category, loop back to the first category
             if (this.selectedCategoryIndex === this.categories.length) {
                 this.selectedCategoryIndex = 1;
@@ -117,6 +117,18 @@ export class PixelBannerStoreModal extends Modal {
             this.categorySelect.selectedIndex = this.selectedCategoryIndex;
             this.selectedCategory = this.categorySelect.value;
             await this.loadCategoryImages();
+        });
+
+        // add "Back to Main Menu" button
+        const backToMainButton = selectContainer.createEl('button', {
+            text: '⇠ Main Menu',
+            cls: 'pixel-banner-store-back-to-main'
+        });
+        
+        // on click of back to main menu button, close this modal and open the Pixel Banner Selector modal
+        backToMainButton.addEventListener('click', () => {
+            this.close();
+            new SelectPixelBannerModal(this.app, this.plugin).open();
         });
 
         // Create container for images
@@ -354,6 +366,17 @@ export class PixelBannerStoreModal extends Modal {
                 background-color: var(--interactive-accent-hover) !important;
             }
             
+            .pixel-banner-store-back-to-main {
+                font-size: 14px;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                border: none;
+            }
+            .pixel-banner-store-back-to-main:hover {
+                background-color: var(--interactive-accent) !important;
+            }
+            
             .pixel-banner-store-error {
                 color: var(--text-error);
                 margin-top: 8px;
@@ -519,35 +542,67 @@ class ConfirmPurchaseModal extends Modal {
         });
 
         contentEl.createEl('p', {
-            text: `${this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim()}`,
+            text: `“${this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim()}”`,
             cls: 'pixel-banner-store-confirm-prompt',
             attr: {
                 'style': `
-                    font-size: 12px;
-                    color: var(--text-muted);
                     margin-top: -30px;
                     margin-bottom: 30px;
                     margin-left: auto;
                     margin-right: auto;
-                    max-width: 450px;
+                    max-width: 320px;
                     text-align: center;
+                    font-size: .9em;
+                    font-style: italic;
                 `
             }
         });
 
-        new Setting(contentEl)
-            .setDesc(`🪙 ${this.cost} Banner Token${this.cost > 1 ? 's' : ''} (this is not a monitary transaction). Once purchased, the banner will be added to your vault.`)
-            .addButton(btn => btn
-                .setButtonText('Cancel')
-                .onClick(() => this.close()))
-            .addButton(btn => btn
-                .setButtonText('🎉 Purchase Banner ')
-                .setCta()
-                .onClick(() => {
-                    this.close();
-                    this.onConfirm();
-                }));
+        // Button container
+        const buttonContainer = contentEl.createDiv({
+            cls: 'setting-item-control',
+            attr: {
+                style: `
+                    display: flex; 
+                    justify-content: flex-end; 
+                    gap: 8px;
+                    margin-top: 10px;
+                    align-items: flex-start;
+                `
+            }
+        });
+
+        // Purchase explanation text
+        const explanationText = buttonContainer.createEl('p', {
+            text: `🪙 ${this.cost} Banner Token${this.cost > 1 ? 's' : ''} (this is not a monitary transaction). Once purchased, the banner will be added to your vault, and will be free to download while listed in the store.`,
+            cls: 'setting-item-description',
+            attr: {
+                style: `
+                    text-align: left;
+                    margin: 0 20px 0 0;
+                    opacity: .8;
+                    font-size: .8em;
+                `
+            }
+        });
+
+        // Confirm button
+        const confirmButton = buttonContainer.createEl('button', {
+            text: '🪙 Purchase',
+            cls: 'mod-cta radial-pulse-animation'
+        });
+        confirmButton.addEventListener('click', () => {
+            this.close();
+            this.onConfirm();
+        });
+
+        // Cancel button
+        const cancelButton = buttonContainer.createEl('button', {
+            text: 'Cancel'
+        });
+        cancelButton.addEventListener('click', () => this.close());
     }
+        
 
     // Add styles for the preview image
     addStyle() {

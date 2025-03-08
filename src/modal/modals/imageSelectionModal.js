@@ -2,6 +2,7 @@ import { Modal, Notice, Setting } from "obsidian";
 import { GenerateAIBannerModal } from './generateAIBannerModal.js'
 import { FolderSelectionModal } from './folderSelectionModal.js';
 import { SaveImageModal } from './saveImageModal.js';
+import { SelectPixelBannerModal } from './selectPixelBannerModal';
 
 
 // ---------------------------
@@ -239,12 +240,19 @@ export class ImageSelectionModal extends Modal {
         this.gridContainer = contentEl.createDiv({ cls: 'pixel-banner-image-grid' });
         
         // Add pagination container
-        this.paginationContainer = contentEl.createDiv({ cls: 'pixel-banner-pagination' });
-        this.paginationContainer.style.display = 'flex';
-        this.paginationContainer.style.justifyContent = 'center';
-        this.paginationContainer.style.alignItems = 'center';
-        this.paginationContainer.style.marginTop = '1em';
-        this.paginationContainer.style.gap = '10px';
+        this.paginationContainer = contentEl.createDiv({
+            cls: 'pixel-banner-pagination',
+            attr: {
+                style: `
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                    margin-top: 1em;
+                `
+            }
+        });
         
         // Update grid with initial filter
         this.updateImageGrid();
@@ -368,12 +376,18 @@ export class ImageSelectionModal extends Modal {
         // Always show controls if we have any images in the vault
         if (this.imageFiles.length > 0) {
             // Create a flex container for sort and pagination
-            const controlsContainer = this.paginationContainer.createDiv({ cls: 'pixel-banner-controls' });
-            controlsContainer.style.display = 'flex';
-            controlsContainer.style.justifyContent = 'center';
-            controlsContainer.style.gap = '50px';
-            controlsContainer.style.alignItems = 'center';
-            controlsContainer.style.width = '100%';
+            const controlsContainer = this.paginationContainer.createDiv({
+                cls: 'pixel-banner-controls',
+                attr: {
+                    style: `
+                        display: flex;
+                        justify-content: center;
+                        gap: 50px;
+                        align-items: center;
+                        margin-left: auto;
+                    `
+                }
+            });
 
             // Add sort select on the left
             const sortContainer = controlsContainer.createDiv({ cls: 'pixel-banner-sort-container' });
@@ -445,7 +459,10 @@ export class ImageSelectionModal extends Modal {
             // Page info
             paginationDiv.createEl('span', {
                 text: `${this.currentPage} / ${totalPages}`,
-                cls: 'pixel-banner-pagination-info'
+                cls: 'pixel-banner-pagination-info',
+                attr: {
+                    style: 'white-space: nowrap;'
+                }
             });
 
             // Next page button
@@ -496,6 +513,24 @@ export class ImageSelectionModal extends Modal {
                                 (this.currentPage === totalPages && ['›', '»'].includes(button.textContent));
             });
         }
+
+        // Add "Back to Main Menu" button
+        const backToMainButton = this.paginationContainer.createEl('button', {
+            text: '⇠ Main Menu',
+            cls: 'pixel-banner-image-select-back-to-main',
+            attr: {
+                style: `
+                    margin-left: auto;
+                    cursor: pointer;
+                `
+            }
+        });
+                
+        // on click of back to main menu button, close this modal and open the Pixel Banner Selector modal
+        backToMainButton.addEventListener('click', () => {
+            this.close();
+            new SelectPixelBannerModal(this.app, this.plugin).open();
+        });
     }
 
     sortFiles(files) {
