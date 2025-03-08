@@ -1,4 +1,5 @@
 import { Modal } from 'obsidian';
+import getCurrentTheme from '../../utils/getCurrentTheme';
 
 
 // ---------------------------
@@ -120,6 +121,140 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
             frontmatter[bannerIconXPositionField] = position;
+        });
+    }
+
+    updateBannerIconSize(size) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
+            ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconSizeField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconSizeField] = size;
+        });
+    }
+
+    updateBannerIconColor(color) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField)
+            ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconColorField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconColorField] = color;
+        });
+    }
+
+    updateBannerIconFontWeight(fontWeight) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconFontWeightField = Array.isArray(this.plugin.settings.customBannerIconFontWeightField)
+            ? this.plugin.settings.customBannerIconFontWeightField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconFontWeightField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconFontWeightField] = fontWeight;
+        });
+    }
+
+    updateBannerIconBgColor(color, alpha) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconBgColorField = Array.isArray(this.plugin.settings.customBannerIconBackgroundColorField)
+            ? this.plugin.settings.customBannerIconBackgroundColorField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconBackgroundColorField;
+
+        // Convert hex to rgba if alpha is less than 100
+        let finalColor = color;
+        if (alpha < 100) {
+            // If it's a hex color, convert to rgba
+            if (color.startsWith('#')) {
+                const r = parseInt(color.slice(1, 3), 16);
+                const g = parseInt(color.slice(3, 5), 16);
+                const b = parseInt(color.slice(5, 7), 16);
+                finalColor = `rgba(${r}, ${g}, ${b}, ${alpha / 100})`;
+            }
+            // If it's a named color, we need to get its RGB value
+            else if (color && !color.startsWith('rgb')) {
+                // Create a temporary element to get the computed RGB value
+                const tempEl = document.createElement('div');
+                tempEl.style.color = color;
+                document.body.appendChild(tempEl);
+                const computedColor = window.getComputedStyle(tempEl).color;
+                document.body.removeChild(tempEl);
+                
+                // Parse the computed RGB value
+                const rgbMatch = computedColor.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+                if (rgbMatch) {
+                    const r = parseInt(rgbMatch[1]);
+                    const g = parseInt(rgbMatch[2]);
+                    const b = parseInt(rgbMatch[3]);
+                    finalColor = `rgba(${r}, ${g}, ${b}, ${alpha / 100})`;
+                }
+            }
+        }
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconBgColorField] = finalColor;
+        });
+    }
+
+    updateBannerIconPaddingX(paddingX) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconPaddingXField = Array.isArray(this.plugin.settings.customBannerIconPaddingXField)
+            ? this.plugin.settings.customBannerIconPaddingXField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconPaddingXField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconPaddingXField] = paddingX;
+        });
+    }
+
+    updateBannerIconPaddingY(paddingY) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconPaddingYField = Array.isArray(this.plugin.settings.customBannerIconPaddingYField)
+            ? this.plugin.settings.customBannerIconPaddingYField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconPaddingYField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconPaddingYField] = paddingY;
+        });
+    }
+
+    updateBannerIconBorderRadius(borderRadius) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField)
+            ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconBorderRadiusField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconBorderRadiusField] = borderRadius;
+        });
+    }
+
+    updateBannerIconVerticalOffset(verticalOffset) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const bannerIconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField)
+            ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconVeritalOffsetField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[bannerIconVerticalOffsetField] = verticalOffset;
         });
     }
 
@@ -465,6 +600,19 @@ export class TargetPositionModal extends Modal {
             }, 300);
         }
 
+        // Banner Icon header
+        const bannerIconHeader = bannerIconControlsContainer.createEl('div', {
+            text: '⭐ Banner Icon Settings',
+            cls: 'banner-icon-header',
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    margin-bottom: 10px;
+                `
+            }
+        });
+
         // Banner Icon X Position control container
         const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({
             cls: 'banner-icon-x-position-container',
@@ -482,7 +630,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon X Position label
         const bannerIconXPositionLabel = bannerIconXPositionContainer.createEl('div', { 
-            text: '⭐ Banner Icon X Position',
+            text: 'X Position',
             cls: 'banner-icon-x-position-label',
             attr: {
                 style: `
@@ -526,6 +674,704 @@ export class TargetPositionModal extends Modal {
             this.updateBannerIconXPosition(this.currentBannerIconXPosition);
         });
         
+        // Banner Icon Vertical Offset control container
+        const bannerIconVerticalOffsetContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-vertical-offset-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Vertical Offset label
+        const bannerIconVerticalOffsetLabel = bannerIconVerticalOffsetContainer.createEl('div', { 
+            text: 'Y Position',
+            cls: 'banner-icon-vertical-offset-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon vertical offset
+        const iconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField)
+            ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconVeritalOffsetField;
+        this.currentBannerIconVerticalOffset = frontmatter?.[iconVerticalOffsetField] || this.plugin.settings.bannerIconVeritalOffset;
+
+        // Banner Icon Vertical Offset slider
+        const bannerIconVerticalOffsetSlider = bannerIconVerticalOffsetContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-vertical-offset-slider',
+            attr: {
+                min: '-100',
+                max: '100',
+                step: '1',
+                value: this.currentBannerIconVerticalOffset
+            }
+        });
+        bannerIconVerticalOffsetSlider.style.flex = '1';
+        bannerIconVerticalOffsetSlider.style.writingMode = 'horizontal-tb';
+        bannerIconVerticalOffsetSlider.style.direction = 'ltr';
+
+        // Banner Icon Vertical Offset value display
+        const bannerIconVerticalOffsetValue = bannerIconVerticalOffsetContainer.createDiv({
+            cls: 'banner-icon-vertical-offset-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconVerticalOffsetValue.setText(`${this.currentBannerIconVerticalOffset}`);
+
+        // Banner Icon Vertical Offset slider event listener
+        bannerIconVerticalOffsetSlider.addEventListener('input', () => {
+            this.currentBannerIconVerticalOffset = parseInt(bannerIconVerticalOffsetSlider.value);
+            bannerIconVerticalOffsetValue.setText(`${this.currentBannerIconVerticalOffset}`);
+            this.updateBannerIconVerticalOffset(this.currentBannerIconVerticalOffset);
+        });
+        
+        // Banner Icon Size control container
+        const bannerIconSizeContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-size-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Size label
+        const bannerIconSizeLabel = bannerIconSizeContainer.createEl('div', { 
+            text: 'Size',
+            cls: 'banner-icon-size-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon size
+        const iconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
+            ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconSizeField;
+        this.currentBannerIconSize = frontmatter?.[iconSizeField] || this.plugin.settings.bannerIconSize;
+
+        // Banner Icon Size slider
+        const bannerIconSizeSlider = bannerIconSizeContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-size-slider',
+            attr: {
+                min: '10',
+                max: '200',
+                step: '1',
+                value: this.currentBannerIconSize
+            }
+        });
+        bannerIconSizeSlider.style.flex = '1';
+        bannerIconSizeSlider.style.writingMode = 'horizontal-tb';
+        bannerIconSizeSlider.style.direction = 'ltr';
+
+        // Banner Icon Size value display
+        const bannerIconSizeValue = bannerIconSizeContainer.createDiv({
+            cls: 'banner-icon-size-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconSizeValue.setText(`${this.currentBannerIconSize}`);
+
+        // Banner Icon Size slider event listener
+        bannerIconSizeSlider.addEventListener('input', () => {
+            this.currentBannerIconSize = parseInt(bannerIconSizeSlider.value);
+            bannerIconSizeValue.setText(`${this.currentBannerIconSize}`);
+            this.updateBannerIconSize(this.currentBannerIconSize);
+        });
+
+        // Banner Icon Color control container
+        const bannerIconColorContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-color-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Color label
+        const bannerIconColorLabel = bannerIconColorContainer.createEl('div', { 
+            text: 'Color',
+            cls: 'banner-icon-color-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon color
+        const iconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField)
+            ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconColorField;
+        
+        const currentTheme = getCurrentTheme();
+        let defaultColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
+
+        // Parse the current color value
+        let currentIconColor = defaultColor;
+        if (frontmatter?.[iconColorField] || this.plugin.settings.bannerIconColor) {
+            const colorValue = frontmatter?.[iconColorField] || this.plugin.settings.bannerIconColor;
+            
+            // Check if it's a hex color
+            if (typeof colorValue === 'string' && colorValue.startsWith('#')) {
+                currentIconColor = colorValue;
+            }
+            // Otherwise, if it's a string, use as is
+            else if (typeof colorValue === 'string' && colorValue.trim() !== '') {
+                currentIconColor = colorValue;
+            }
+        }
+        
+        this.currentBannerIconColor = currentIconColor;
+
+        // Banner Icon Color input
+        const bannerIconColorInput = bannerIconColorContainer.createEl('input', {
+            type: 'text',
+            cls: 'banner-icon-color-input',
+            attr: {
+                value: this.currentBannerIconColor || '',
+                placeholder: '#RRGGBB or color name'
+            }
+        });
+        bannerIconColorInput.style.flex = '1';
+        bannerIconColorInput.style.maxWidth = '120px';
+
+        // Banner Icon Color picker
+        const bannerIconColorPicker = bannerIconColorContainer.createEl('input', {
+            type: 'color',
+            cls: 'banner-icon-color-picker',
+            attr: {
+                value: this.currentBannerIconColor && this.currentBannerIconColor.startsWith('#') ? 
+                    this.currentBannerIconColor : ''
+            }
+        });
+
+        // Banner Icon Color input event listener
+        bannerIconColorInput.addEventListener('change', () => {
+            this.currentBannerIconColor = bannerIconColorInput.value;
+            if (this.currentBannerIconColor.startsWith('#')) {
+                bannerIconColorPicker.value = this.currentBannerIconColor;
+            }
+            this.updateBannerIconColor(this.currentBannerIconColor);
+        });
+
+        // Banner Icon Color picker event listener
+        bannerIconColorPicker.addEventListener('input', () => {
+            this.currentBannerIconColor = bannerIconColorPicker.value;
+            bannerIconColorInput.value = this.currentBannerIconColor;
+            this.updateBannerIconColor(this.currentBannerIconColor);
+        });
+
+        // Banner Icon Font Weight control container
+        const bannerIconFontWeightContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-font-weight-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Font Weight label
+        const bannerIconFontWeightLabel = bannerIconFontWeightContainer.createEl('div', { 
+            text: 'Font Weight',
+            cls: 'banner-icon-font-weight-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon font weight
+        const iconFontWeightField = Array.isArray(this.plugin.settings.customBannerIconFontWeightField)
+            ? this.plugin.settings.customBannerIconFontWeightField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconFontWeightField;
+        this.currentBannerIconFontWeight = frontmatter?.[iconFontWeightField] || this.plugin.settings.bannerIconFontWeight;
+
+        // Banner Icon Font Weight select
+        const bannerIconFontWeightSelect = bannerIconFontWeightContainer.createEl('select', {
+            cls: 'banner-icon-font-weight-select'
+        });
+        
+        ['lighter', 'normal', 'bold'].forEach(weight => {
+            const option = bannerIconFontWeightSelect.createEl('option', {
+                text: weight.charAt(0).toUpperCase() + weight.slice(1),
+                value: weight
+            });
+            if (weight === this.currentBannerIconFontWeight) {
+                option.selected = true;
+            }
+        });
+
+        // Banner Icon Font Weight select event listener
+        bannerIconFontWeightSelect.addEventListener('change', () => {
+            this.currentBannerIconFontWeight = bannerIconFontWeightSelect.value;
+            this.updateBannerIconFontWeight(this.currentBannerIconFontWeight);
+        });
+
+        // Banner Icon Background Color control container
+        const bannerIconBgColorContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-bg-color-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Background Color label
+        const bannerIconBgColorLabel = bannerIconBgColorContainer.createEl('div', { 
+            text: 'Background Color',
+            cls: 'banner-icon-bg-color-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Create color picker and alpha slider row
+        const colorPickerAndAlphaSliderRow = bannerIconBgColorContainer.createDiv({
+            cls: 'color-picker-and-alpha-slider-row',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    width: 100%;
+                `
+            }
+        });
+
+        // Create color picker row
+        const colorPickerRow = colorPickerAndAlphaSliderRow.createDiv({
+            cls: 'color-picker-row',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    width: 100%;
+                `
+            }
+        });
+
+        // Get current banner icon background color and opacity
+        const iconBgColorField = Array.isArray(this.plugin.settings.customBannerIconBackgroundColorField)
+            ? this.plugin.settings.customBannerIconBackgroundColorField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconBackgroundColorField;
+        
+        // Parse the current background color to extract color and alpha values
+        let currentColor = defaultColor;
+        let currentAlpha = 100;
+        
+        if (frontmatter?.[iconBgColorField] || this.plugin.settings.bannerIconBackgroundColor) {
+            const colorValue = frontmatter?.[iconBgColorField] || this.plugin.settings.bannerIconBackgroundColor;
+            
+            // Check if it's an rgba color
+            const rgbaMatch = colorValue?.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+            if (rgbaMatch) {
+                // Convert RGB to hex
+                const r = parseInt(rgbaMatch[1]);
+                const g = parseInt(rgbaMatch[2]);
+                const b = parseInt(rgbaMatch[3]);
+                currentColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                currentAlpha = Math.round(parseFloat(rgbaMatch[4]) * 100);
+            } 
+            // Check if it's a hex color
+            else if (colorValue?.startsWith('#')) {
+                currentColor = colorValue;
+            }
+            // Otherwise, use as is
+            else if (colorValue) {
+                currentColor = colorValue;
+            }
+        }
+        
+        this.currentBannerIconBgColor = currentColor;
+        this.currentBannerIconBgAlpha = currentAlpha;
+
+        // Banner Icon Background Color input
+        const bannerIconBgColorInput = colorPickerAndAlphaSliderRow.createEl('input', {
+            type: 'text',
+            cls: 'banner-icon-bg-color-input',
+            attr: {
+                value: this.currentBannerIconBgColor || '',
+                placeholder: '#RRGGBB or color name'
+            }
+        });
+        bannerIconBgColorInput.style.flex = '1';
+        bannerIconBgColorInput.style.maxWidth = '120px';
+
+        // Banner Icon Background Color picker
+        const bannerIconBgColorPicker = colorPickerAndAlphaSliderRow.createEl('input', {
+            type: 'color',
+            cls: 'banner-icon-bg-color-picker',
+            attr: {
+                value: this.currentBannerIconBgColor && this.currentBannerIconBgColor.startsWith('#') ? 
+                    this.currentBannerIconBgColor : defaultColor
+            }
+        });
+
+        // Create alpha slider row
+        const alphaSliderRow = colorPickerAndAlphaSliderRow.createDiv({
+            cls: 'alpha-slider-row',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    width: 100%;
+                    margin-top: 5px;
+                `
+            }
+        });
+
+        // Alpha slider label
+        const alphaLabel = colorPickerAndAlphaSliderRow.createEl('div', {
+            text: 'Opacity:',
+            cls: 'alpha-label',
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    min-width: 60px;
+                `
+            }
+        });
+
+        // Alpha slider
+        const alphaSlider = colorPickerAndAlphaSliderRow.createEl('input', {
+            type: 'range',
+            cls: 'alpha-slider',
+            attr: {
+                min: '0',
+                max: '100',
+                step: '1',
+                value: this.currentBannerIconBgAlpha
+            }
+        });
+        alphaSlider.style.flex = '1';
+
+        // Alpha value display
+        const alphaValue = colorPickerAndAlphaSliderRow.createDiv({
+            cls: 'alpha-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                    min-width: 40px;
+                    text-align: right;
+                `
+            }
+        });
+        alphaValue.setText(`${this.currentBannerIconBgAlpha}%`);
+
+        // Color preview
+        const colorPreview = colorPickerAndAlphaSliderRow.createDiv({
+            cls: 'color-preview',
+            attr: {
+                style: `
+                    width: 100%;
+                    height: 20px;
+                    border: 1px solid var(--background-modifier-border);
+                    border-radius: 4px;
+                    background-color: ${this.currentBannerIconBgColor};
+                    opacity: ${this.currentBannerIconBgAlpha / 100};
+                `
+            }
+        });
+
+        // Helper function to update the color preview
+        const updateColorPreview = () => {
+            colorPreview.style.backgroundColor = this.currentBannerIconBgColor;
+            colorPreview.style.opacity = this.currentBannerIconBgAlpha / 100;
+            
+            // Convert to rgba and update the frontmatter
+            this.updateBannerIconBgColor(this.currentBannerIconBgColor, this.currentBannerIconBgAlpha);
+        };
+
+        // Banner Icon Background Color input event listener
+        bannerIconBgColorInput.addEventListener('change', () => {
+            this.currentBannerIconBgColor = bannerIconBgColorInput.value;
+            if (this.currentBannerIconBgColor.startsWith('#')) {
+                bannerIconBgColorPicker.value = this.currentBannerIconBgColor;
+            }
+            updateColorPreview();
+        });
+
+        // Banner Icon Background Color picker event listener
+        bannerIconBgColorPicker.addEventListener('input', () => {
+            this.currentBannerIconBgColor = bannerIconBgColorPicker.value;
+            bannerIconBgColorInput.value = this.currentBannerIconBgColor;
+            updateColorPreview();
+        });
+
+        // Alpha slider event listener
+        alphaSlider.addEventListener('input', () => {
+            this.currentBannerIconBgAlpha = parseInt(alphaSlider.value);
+            alphaValue.setText(`${this.currentBannerIconBgAlpha}%`);
+            updateColorPreview();
+        });
+
+        // Banner Icon Padding X control container
+        const bannerIconPaddingXContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-padding-x-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Padding X label
+        const bannerIconPaddingXLabel = bannerIconPaddingXContainer.createEl('div', { 
+            text: 'Padding X',
+            cls: 'banner-icon-padding-x-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon padding X
+        const iconPaddingXField = Array.isArray(this.plugin.settings.customBannerIconPaddingXField)
+            ? this.plugin.settings.customBannerIconPaddingXField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconPaddingXField;
+        this.currentBannerIconPaddingX = frontmatter?.[iconPaddingXField] || this.plugin.settings.bannerIconPaddingX;
+
+        // Banner Icon Padding X slider
+        const bannerIconPaddingXSlider = bannerIconPaddingXContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-padding-x-slider',
+            attr: {
+                min: '0',
+                max: '100',
+                step: '1',
+                value: this.currentBannerIconPaddingX
+            }
+        });
+        bannerIconPaddingXSlider.style.flex = '1';
+        bannerIconPaddingXSlider.style.writingMode = 'horizontal-tb';
+        bannerIconPaddingXSlider.style.direction = 'ltr';
+
+        // Banner Icon Padding X value display
+        const bannerIconPaddingXValue = bannerIconPaddingXContainer.createDiv({
+            cls: 'banner-icon-padding-x-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconPaddingXValue.setText(`${this.currentBannerIconPaddingX}`);
+
+        // Banner Icon Padding X slider event listener
+        bannerIconPaddingXSlider.addEventListener('input', () => {
+            this.currentBannerIconPaddingX = parseInt(bannerIconPaddingXSlider.value);
+            bannerIconPaddingXValue.setText(`${this.currentBannerIconPaddingX}`);
+            this.updateBannerIconPaddingX(this.currentBannerIconPaddingX);
+        });
+
+        // Banner Icon Padding Y control container
+        const bannerIconPaddingYContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-padding-y-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Padding Y label
+        const bannerIconPaddingYLabel = bannerIconPaddingYContainer.createEl('div', { 
+            text: 'Padding Y',
+            cls: 'banner-icon-padding-y-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon padding Y
+        const iconPaddingYField = Array.isArray(this.plugin.settings.customBannerIconPaddingYField)
+            ? this.plugin.settings.customBannerIconPaddingYField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconPaddingYField;
+        this.currentBannerIconPaddingY = frontmatter?.[iconPaddingYField] || this.plugin.settings.bannerIconPaddingY;
+
+        // Banner Icon Padding Y slider
+        const bannerIconPaddingYSlider = bannerIconPaddingYContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-padding-y-slider',
+            attr: {
+                min: '0',
+                max: '100',
+                step: '1',
+                value: this.currentBannerIconPaddingY
+            }
+        });
+        bannerIconPaddingYSlider.style.flex = '1';
+        bannerIconPaddingYSlider.style.writingMode = 'horizontal-tb';
+        bannerIconPaddingYSlider.style.direction = 'ltr';
+
+        // Banner Icon Padding Y value display
+        const bannerIconPaddingYValue = bannerIconPaddingYContainer.createDiv({
+            cls: 'banner-icon-padding-y-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconPaddingYValue.setText(`${this.currentBannerIconPaddingY}`);
+
+        // Banner Icon Padding Y slider event listener
+        bannerIconPaddingYSlider.addEventListener('input', () => {
+            this.currentBannerIconPaddingY = parseInt(bannerIconPaddingYSlider.value);
+            bannerIconPaddingYValue.setText(`${this.currentBannerIconPaddingY}`);
+            this.updateBannerIconPaddingY(this.currentBannerIconPaddingY);
+        });
+
+        // Banner Icon Border Radius control container
+        const bannerIconBorderRadiusContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-border-radius-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Border Radius label
+        const bannerIconBorderRadiusLabel = bannerIconBorderRadiusContainer.createEl('div', { 
+            text: 'Border Radius',
+            cls: 'banner-icon-border-radius-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon border radius
+        const iconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField)
+            ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconBorderRadiusField;
+        this.currentBannerIconBorderRadius = frontmatter?.[iconBorderRadiusField] || this.plugin.settings.bannerIconBorderRadius;
+
+        // Banner Icon Border Radius slider
+        const bannerIconBorderRadiusSlider = bannerIconBorderRadiusContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-border-radius-slider',
+            attr: {
+                min: '0',
+                max: '50',
+                step: '1',
+                value: this.currentBannerIconBorderRadius
+            }
+        });
+        bannerIconBorderRadiusSlider.style.flex = '1';
+        bannerIconBorderRadiusSlider.style.writingMode = 'horizontal-tb';
+        bannerIconBorderRadiusSlider.style.direction = 'ltr';
+
+        // Banner Icon Border Radius value display
+        const bannerIconBorderRadiusValue = bannerIconBorderRadiusContainer.createDiv({
+            cls: 'banner-icon-border-radius-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconBorderRadiusValue.setText(`${this.currentBannerIconBorderRadius}`);
+
+        // Banner Icon Border Radius slider event listener
+        bannerIconBorderRadiusSlider.addEventListener('input', () => {
+            this.currentBannerIconBorderRadius = parseInt(bannerIconBorderRadiusSlider.value);
+            bannerIconBorderRadiusValue.setText(`${this.currentBannerIconBorderRadius}`);
+            this.updateBannerIconBorderRadius(this.currentBannerIconBorderRadius);
+        });
+
         // Create a container for buttons
         const buttonContainer = contentEl.createDiv({
             cls: 'button-container',
@@ -572,11 +1418,82 @@ export class TargetPositionModal extends Modal {
             contentStartPositionSlider.value = this.plugin.settings.contentStartPosition;
             bannerIconXPositionSlider.value = this.plugin.settings.bannerIconXPosition;
             
+            const currentTheme = getCurrentTheme();
+            let defaultColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
+
+            // Reset new banner icon controls
+            if (bannerIconSizeSlider) bannerIconSizeSlider.value = this.plugin.settings.bannerIconSize;
+            
+            // Reset Banner Icon Color
+            if (bannerIconColorInput) {
+                const defaultIconColor = this.plugin.settings.bannerIconColor || defaultColor;
+                bannerIconColorInput.value = defaultIconColor;
+                if (bannerIconColorPicker) {
+                    bannerIconColorPicker.value = defaultIconColor.startsWith('#') ? 
+                        defaultIconColor : defaultColor;
+                }
+                // Update the frontmatter with the default color
+                this.updateBannerIconColor(defaultIconColor);
+            }
+            
+            if (bannerIconFontWeightSelect) bannerIconFontWeightSelect.value = this.plugin.settings.bannerIconFontWeight;
+            if (bannerIconBgColorInput) {
+                // Parse the default background color
+                let defaultAlpha = 100;
+                
+                if (this.plugin.settings.bannerIconBackgroundColor) {
+                    const colorValue = this.plugin.settings.bannerIconBackgroundColor;
+                    
+                    // Check if it's an rgba color
+                    const rgbaMatch = colorValue.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+                    if (rgbaMatch) {
+                        // Convert RGB to hex
+                        const r = parseInt(rgbaMatch[1]);
+                        const g = parseInt(rgbaMatch[2]);
+                        const b = parseInt(rgbaMatch[3]);
+                        defaultColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                        defaultAlpha = Math.round(parseFloat(rgbaMatch[4]) * 100);
+                    } 
+                    // Check if it's a hex color
+                    else if (colorValue.startsWith('#')) {
+                        defaultColor = colorValue;
+                    }
+                    // Otherwise, use as is
+                    else if (colorValue) {
+                        defaultColor = colorValue;
+                    }
+                }
+                
+                bannerIconBgColorInput.value = defaultColor;
+                if (bannerIconBgColorPicker) bannerIconBgColorPicker.value = defaultColor.startsWith('#') ? defaultColor : '#ffffff';
+                if (alphaSlider) alphaSlider.value = defaultAlpha;
+                if (alphaValue) alphaValue.setText(`${defaultAlpha}%`);
+                if (colorPreview) {
+                    colorPreview.style.backgroundColor = defaultColor;
+                    colorPreview.style.opacity = defaultAlpha / 100;
+                }
+                
+                // Update the frontmatter with the default color and alpha
+                this.updateBannerIconBgColor(defaultColor, defaultAlpha);
+            }
+            if (bannerIconPaddingXSlider) bannerIconPaddingXSlider.value = this.plugin.settings.bannerIconPaddingX;
+            if (bannerIconPaddingYSlider) bannerIconPaddingYSlider.value = this.plugin.settings.bannerIconPaddingY;
+            if (bannerIconBorderRadiusSlider) bannerIconBorderRadiusSlider.value = this.plugin.settings.bannerIconBorderRadius;
+            if (bannerIconVerticalOffsetSlider) bannerIconVerticalOffsetSlider.value = this.plugin.settings.bannerIconVeritalOffset;
+            
             // Reset value displays
             zoomValue.setText('100%');
             heightValue.setText(`${this.plugin.settings.bannerHeight}px`);
             contentStartPositionValue.setText(`${this.plugin.settings.contentStartPosition}px`);
             bannerIconXPositionValue.setText(`${this.plugin.settings.bannerIconXPosition}`);
+            
+            // Reset new banner icon value displays
+            if (bannerIconSizeValue) bannerIconSizeValue.setText(`${this.plugin.settings.bannerIconSize}`);
+            if (bannerIconPaddingXValue) bannerIconPaddingXValue.setText(`${this.plugin.settings.bannerIconPaddingX}`);
+            if (bannerIconPaddingYValue) bannerIconPaddingYValue.setText(`${this.plugin.settings.bannerIconPaddingY}`);
+            if (bannerIconBorderRadiusValue) bannerIconBorderRadiusValue.setText(`${this.plugin.settings.bannerIconBorderRadius}`);
+            if (bannerIconVerticalOffsetValue) bannerIconVerticalOffsetValue.setText(`${this.plugin.settings.bannerIconVeritalOffset}`);
+            
             toggleInput.checked = false;
 
             // Reset crosshair position to default plugin settings
@@ -622,6 +1539,39 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
                     : this.plugin.settings.customImageRepeatField;
 
+                // New banner icon fields
+                const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
+                    ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconSizeField;
+                    
+                const bannerIconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField)
+                    ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconColorField;
+                    
+                const bannerIconFontWeightField = Array.isArray(this.plugin.settings.customBannerIconFontWeightField)
+                    ? this.plugin.settings.customBannerIconFontWeightField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconFontWeightField;
+                    
+                const bannerIconBgColorField = Array.isArray(this.plugin.settings.customBannerIconBackgroundColorField)
+                    ? this.plugin.settings.customBannerIconBackgroundColorField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconBackgroundColorField;
+                    
+                const bannerIconPaddingXField = Array.isArray(this.plugin.settings.customBannerIconPaddingXField)
+                    ? this.plugin.settings.customBannerIconPaddingXField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconPaddingXField;
+                    
+                const bannerIconPaddingYField = Array.isArray(this.plugin.settings.customBannerIconPaddingYField)
+                    ? this.plugin.settings.customBannerIconPaddingYField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconPaddingYField;
+                    
+                const bannerIconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField)
+                    ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconBorderRadiusField;
+                    
+                const bannerIconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField)
+                    ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconVeritalOffsetField;
+
                 // Remove fields
                 delete frontmatter[displayField];
                 delete frontmatter[heightField];
@@ -630,6 +1580,16 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[contentStartPositionField];
                 delete frontmatter[bannerIconXPositionField];
                 delete frontmatter[repeatField];
+                
+                // Remove new banner icon fields
+                delete frontmatter[bannerIconSizeField];
+                delete frontmatter[bannerIconColorField];
+                delete frontmatter[bannerIconFontWeightField];
+                delete frontmatter[bannerIconBgColorField];
+                delete frontmatter[bannerIconPaddingXField];
+                delete frontmatter[bannerIconPaddingYField];
+                delete frontmatter[bannerIconBorderRadiusField];
+                delete frontmatter[bannerIconVerticalOffsetField];
             });
         });
 
@@ -685,7 +1645,20 @@ export class TargetPositionModal extends Modal {
 
         modalEl.addEventListener('mousedown', (e) => {
             // Prevent dragging if the target is a slider
-            if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider || e.target === bannerIconXPositionSlider) return;
+            if (e.target === zoomSlider || 
+                e.target === heightSlider || 
+                e.target === contentStartPositionSlider || 
+                e.target === bannerIconXPositionSlider ||
+                e.target === bannerIconSizeSlider ||
+                e.target === bannerIconColorPicker ||
+                e.target === bannerIconColorInput ||
+                e.target === bannerIconPaddingXSlider ||
+                e.target === bannerIconPaddingYSlider ||
+                e.target === bannerIconBorderRadiusSlider ||
+                e.target === bannerIconVerticalOffsetSlider ||
+                e.target === alphaSlider ||
+                e.target === bannerIconBgColorPicker ||
+                e.target === bannerIconBgColorInput) return;
             isDragging = true;
             offsetX = e.clientX - modalEl.getBoundingClientRect().left;
             offsetY = e.clientY - modalEl.getBoundingClientRect().top;
