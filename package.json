@@ -5,10 +5,10 @@
         "clean": "npx rimraf node_modules package-lock.json && npm install"
     },
     "devDependencies": {
-        "builtin-modules": "4.0.0",
+        "builtin-modules": "^5.0.0",
         "esbuild": "0.25.0",
         "fs-extra": "^11.3.0",
-        "marked": "^14.1.4",
+        "marked": "^15.0.7",
         "emojilib": "^4.0.1"
     }
 }

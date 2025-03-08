@@ -21123,12 +21123,21 @@ var init_emojiSelectionModal = __esm({
           const trimmedValue = this.bannerIconInput.value.trim();
           await this.onChoose(trimmedValue);
           this.close();
+          const activeFile2 = this.app.workspace.getActiveFile();
+          if (activeFile2) {
+            const activeView = this.app.workspace.getActiveViewOfType(import_obsidian14.MarkdownView);
+            if (activeView) {
+              setTimeout(async () => {
+                await this.plugin.updateBanner(activeView, true, this.plugin.UPDATE_MODE.FULL_UPDATE);
+              }, 100);
+            }
+          }
           if (!this.skipTargetingModal && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
             await new Promise((resolve) => setTimeout(resolve, 1e3));
-            const activeFile2 = this.app.workspace.getActiveFile();
-            if (activeFile2) {
+            const activeFile3 = this.app.workspace.getActiveFile();
+            if (activeFile3) {
               await new Promise((resolve) => setTimeout(resolve, 200));
-              const frontmatter2 = (_a2 = this.app.metadataCache.getFileCache(activeFile2)) == null ? void 0 : _a2.frontmatter;
+              const frontmatter2 = (_a2 = this.app.metadataCache.getFileCache(activeFile3)) == null ? void 0 : _a2.frontmatter;
               const bannerIconField2 = Array.isArray(this.plugin.settings.customBannerIconField) ? this.plugin.settings.customBannerIconField[0].split(",")[0].trim() : this.plugin.settings.customBannerIconField;
               new TargetPositionModal(this.app, this.plugin).open();
             }
@@ -23884,26 +23893,17 @@ function createGeneralSettings(containerEl, plugin) {
     sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
     sliderEl.dispatchEvent(new Event("input"));
   }));
-  new import_obsidian4.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addText((text) => {
-    text.setPlaceholder("17").setValue(String(plugin.settings.borderRadius)).onChange(async (value) => {
-      const numValue = Number(value);
-      if (!isNaN(numValue)) {
-        plugin.settings.borderRadius = Math.max(0, Math.min(50, numValue));
-        await plugin.saveSettings();
-        plugin.updateAllBanners();
-      }
-    });
-    text.inputEl.type = "number";
-    text.inputEl.min = "0";
-    text.inputEl.max = "50";
-    text.inputEl.style.width = "50px";
-  }).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
+  new import_obsidian4.Setting(containerEl).setName("Border Radius").setDesc("Set the default border radius of the banner image (0-50 pixels)").addSlider((slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.borderRadius).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.borderRadius = value;
+    await plugin.saveSettings();
+    plugin.updateAllBanners();
+  })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
     plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
     await plugin.saveSettings();
     plugin.updateAllBanners();
-    const inputEl = button.extraSettingsEl.parentElement.querySelector("input");
-    inputEl.value = DEFAULT_SETTINGS.borderRadius;
-    inputEl.dispatchEvent(new Event("input"));
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.borderRadius;
+    sliderEl.dispatchEvent(new Event("input"));
   }));
   new import_obsidian4.Setting(containerEl).setName("Banner Gap").setDesc("Set the gap between the banner and the window edges (0-50 pixels)").addSlider(
     (slider) => slider.setLimits(0, 50, 1).setValue(plugin.settings.bannerGap).setDynamicTooltip().onChange(async (value) => {
@@ -24914,14 +24914,21 @@ async function addPixelBanner(plugin, el, ctx) {
   if (isEmbedded) {
     plugin.updateEmbeddedBannersVisibility();
   } else {
-    let leftOffset = plugin.settings.bannerGap + 5;
+    let leftOffset = plugin.settings.bannerGap + 15;
     if (plugin.settings.showSelectImageIcon) {
-      const selectImageIcon = createDiv({ cls: "select-image-icon" });
-      selectImageIcon.style.position = "absolute";
-      selectImageIcon.style.top = "10px";
-      selectImageIcon.style.left = `${leftOffset}px`;
-      selectImageIcon.style.fontSize = "1.8em";
-      selectImageIcon.style.cursor = "pointer";
+      const selectImageIcon = createDiv({
+        cls: "select-image-icon",
+        attr: {
+          style: `
+                        position: absolute;
+                        top: 10px;
+                        left: ${leftOffset}px;
+                        font-size: 1.8em;
+                        cursor: pointer;
+                    `
+        }
+      });
+      selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags["red"]}" alt="Select Banner" style="width: 25px; height: 30px;">`;
       selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags["red"]}" alt="Select Banner" style="width: 25px; height: 30px;">`;
       selectImageIcon._isPersistentSelectImage = true;
       selectImageIcon.onclick = () => plugin.handleBannerIconClick();
@@ -24929,13 +24936,20 @@ async function addPixelBanner(plugin, el, ctx) {
       leftOffset += 35;
     }
     if (bannerImage && plugin.settings.showViewImageIcon && !isEmbedded) {
-      const viewImageIcon = createDiv({ cls: "view-image-icon" });
-      viewImageIcon.style.position = "absolute";
-      viewImageIcon.style.top = "10px";
-      viewImageIcon.style.left = `${leftOffset}px`;
-      viewImageIcon.style.fontSize = "1.5em";
-      viewImageIcon.style.cursor = "pointer";
-      viewImageIcon.style.display = "none";
+      const viewImageIcon = createDiv({
+        cls: "view-image-icon",
+        attr: {
+          style: `
+                        display: none;
+                        position: absolute;
+                        top: 10px;
+                        left: ${leftOffset}px;
+                        font-size: 1.5em;
+                        cursor: pointer;
+                    `
+        }
+      });
+      viewImageIcon.innerHTML = "\u{1F5BC}\uFE0F";
       viewImageIcon._isPersistentViewImage = true;
       viewImageIcon.innerHTML = "\u{1F5BC}\uFE0F";
       viewImageIcon._updateVisibility = (newUrl) => {
@@ -25072,12 +25086,18 @@ async function addPixelBanner(plugin, el, ctx) {
         container.appendChild(pinIcon);
         leftOffset += 35;
         if (inputType === "keyword" && plugin.settings.showRefreshIcon) {
-          const refreshIcon = createDiv({ cls: "refresh-icon" });
-          refreshIcon.style.position = "absolute";
-          refreshIcon.style.top = "10px";
-          refreshIcon.style.left = `${leftOffset}px`;
-          refreshIcon.style.fontSize = "1.5em";
-          refreshIcon.style.cursor = "pointer";
+          const refreshIcon = createDiv({
+            cls: "refresh-icon",
+            attr: {
+              style: `
+                                position: absolute;
+                                top: 10px;
+                                left: ${leftOffset}px;
+                                font-size: 1.5em;
+                                cursor: pointer;
+                            `
+            }
+          });
           refreshIcon.innerHTML = "\u{1F504}";
           refreshIcon._isPersistentRefresh = true;
           refreshIcon.onclick = async () => {
@@ -25269,12 +25289,18 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     if (!isEmbedded && plugin.settings.showSelectImageIcon && container) {
       const existingSelectIcon = container.querySelector(".select-image-icon");
       if (!existingSelectIcon) {
-        const selectImageIcon = createDiv({ cls: "select-image-icon" });
-        selectImageIcon.style.position = "absolute";
-        selectImageIcon.style.top = "10px";
-        selectImageIcon.style.left = `${plugin.settings.bannerGap + 5}px`;
-        selectImageIcon.style.fontSize = "1.8em";
-        selectImageIcon.style.cursor = "pointer";
+        const selectImageIcon = createDiv({
+          cls: "select-image-icon",
+          attr: {
+            style: `
+                            position: absolute;
+                            top: 10px;
+                            left: ${plugin.settings.bannerGap + 5}px;
+                            font-size: 1.8em;
+                            cursor: pointer;
+                        `
+          }
+        });
         selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags["red"]}" alt="Select Banner" style="width: 25px; height: 30px;">`;
         selectImageIcon._isPersistentSelectImage = true;
         selectImageIcon.onclick = () => plugin.handleBannerIconClick();
