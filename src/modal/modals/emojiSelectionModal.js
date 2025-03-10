@@ -113,6 +113,17 @@ export class EmojiSelectionModal extends Modal {
             }
         });
 
+        // button to clearn the banner icon
+        const clearBannerIconButton = bannerIconContainer.createEl('button', {
+            text: 'Clear Icon',
+            cls: 'clear-banner-icon-button cursor-pointer'
+        });
+        clearBannerIconButton.addEventListener('click', () => {
+            this.bannerIconInput.value = '';
+            this.bannerIconInput.focus();
+        });
+
+
         // Title
         contentEl.createEl('h5', { text: 'Emoji Selector' });
 

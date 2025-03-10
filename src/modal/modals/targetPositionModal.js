@@ -1,5 +1,7 @@
 import { Modal } from 'obsidian';
 import getCurrentTheme from '../../utils/getCurrentTheme';
+import { EmojiSelectionModal } from '../modals';
+import { SelectPixelBannerModal } from './selectPixelBannerModal';
 
 
 // ---------------------------
@@ -290,6 +292,63 @@ export class TargetPositionModal extends Modal {
         modalEl.style.height = "max-content";
         bgEl.style.opacity = "0";
 
+
+        // add drag handle
+        const dragHandle = contentEl.createDiv({
+            cls: 'drag-handle',
+            attr: {
+                style: `
+                    cursor: move;
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    top: 7px;
+                    opacity: .8;
+                `
+            }
+        });
+        dragHandle.setText('⋮⋮⋮⋮⋮⋮⋮⋮⋮⋮');
+
+        // Banner Image header
+        const bannerImageHeader = contentEl.createEl('div', {
+            text: '🖼️ Banner Image Settings',
+            cls: 'banner-image-header',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    justify-content: space-between;
+                    color: var(--text-accent);
+                    font-size: 0.9em;
+                    font-weight: 600;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 10px;
+                `
+            }
+        });
+
+        // add button to bannerImageHeader
+        const bannerImageHeaderButton = bannerImageHeader.createEl('button', {
+            text: '✏️ Change Image',
+            cls: 'banner-image-header-button cursor-pointer',
+            attr: {
+                style: `
+                    margin-top: 15px;
+                    text-transform: uppercase;
+                    font-size: .8em;
+                `
+            }
+        });
+
+        // on click of back to main menu button, close this modal and open the Pixel Banner Selector modal
+        bannerImageHeaderButton.addEventListener('click', () => {
+            this.close();
+            new SelectPixelBannerModal(this.app, this.plugin).open();
+        });
+
         // Create main container with flex layout
         const mainContainer = contentEl.createDiv({
             cls: 'main-container',
@@ -303,22 +362,6 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
-
-        // add drag handle
-        const dragHandle = mainContainer.createDiv({
-            cls: 'drag-handle',
-            attr: {
-                style: `
-                    cursor: move;
-                    position: absolute;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    top: -23px;
-                    opacity: .8;
-                `
-            }
-        });
-        dragHandle.setText('⋮⋮⋮⋮⋮⋮⋮⋮⋮⋮');
 
         // Create left panel for controls
         const controlPanel = mainContainer.createDiv({
@@ -606,11 +649,54 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-header',
             attr: {
                 style: `
-                    color: var(--text-muted);
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    justify-content: space-between;
+                    color: var(--text-accent);
                     font-size: 0.9em;
+                    font-weight: 600;
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
                     margin-bottom: 10px;
                 `
             }
+        });
+
+        // add button to bannerIconHeader
+        const bannerIconHeaderButton = bannerIconHeader.createEl('button', {
+            text: '✏️ Edit Icon',
+            cls: 'banner-icon-header-button cursor-pointer',
+            attr: {
+                style: `
+                    margin-top: 15px;
+                    text-transform: uppercase;
+                    font-size: .8em;
+                `
+            }
+        });
+        // on click on emoji button, open emoji picker
+        bannerIconHeaderButton.addEventListener('click', () => {
+            this.close();
+            new EmojiSelectionModal(
+                this.app, 
+                this.plugin,
+                async (emoji) => {
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (activeFile) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                            const iconField = this.plugin.settings.customBannerIconField[0];
+                            if (emoji) {
+                                frontmatter[iconField] = emoji;
+                            } else {
+                                // If emoji is empty, remove the field from frontmatter
+                                delete frontmatter[iconField];
+                            }
+                        });
+                    }
+                }
+            ).open();
         });
 
         // Banner Icon X Position control container
