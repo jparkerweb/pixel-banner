@@ -14,6 +14,12 @@ export function getFrontmatterValue(frontmatter, fieldNames) {
     for (const field of fields) {
         if (frontmatter.hasOwnProperty(field)) {
             const value = frontmatter[field];
+            
+            // Explicitly handle 0 value to prevent it being treated as falsey
+            if (value === 0) {
+                return 0;
+            }
+            
             // Convert 'true' and 'false' strings to actual boolean values
             if (typeof value === 'string' && (value.toLowerCase() === 'true' || value.toLowerCase() === 'false')) {
                 return value.toLowerCase() === 'true';
