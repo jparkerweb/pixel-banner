@@ -339,6 +339,7 @@ export class GenerateAIBannerModal extends Modal {
                     padding: 20px;
                     width: var(--dialog-max-width);
                     top: unset !important;
+                    overflow-x: hidden;
                 }
 
                 .pixel-banner-ai-modal .modal-content {
@@ -412,19 +413,22 @@ export class GenerateAIBannerModal extends Modal {
                     position: relative;
                     cursor: pointer;
                     border-radius: 8px;
+                    border: 5px solid transparent;
                     overflow: hidden;
                     transition: transform 0.2s ease;
                     display: flex;
                     justify-content: center; /* Centers image inside the wrapper */
                     align-items: center;
-                    max-width: 200px;
-                    max-height: 200px;
+                    max-width: 300px;
+                    max-height: 300px;
                     animation: pixel-banner--fade-in 1300ms ease-in-out;
                 }
 
                 /* Hover effect */
                 .pixel-banner-history-image-wrapper:hover {
-                    transform: scale(1.05);
+                    transform: scale(1.25);
+                    z-index: 2;
+                    border-color: var(--background-modifier-border) !important;
                 }
 
                 /* Ensuring images keep aspect ratio */
@@ -890,7 +894,7 @@ export class GenerateAIBannerModal extends Modal {
         if (promptText.length > 70) {
             promptText = promptText.substring(0, 70) + '...';
         }
-        imgWrapper.setAttribute('aria-label', promptText);
+        imgWrapper.setAttribute('aria-label', `Download ⇢ ${promptText}`);
         imgWrapper.addClass('has-tooltip');
 
         // Add click handler to use this image

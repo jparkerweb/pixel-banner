@@ -416,7 +416,7 @@ export class PixelBannerStoreModal extends Modal {
                 flex-direction: column;
                 align-items: center;
                 padding: 12px 12px 7px 12px;
-                width: 224px;
+                width: 324px;
                 transition: transform 0.2s ease;
                 cursor: pointer;
                 height: max-content;
@@ -427,8 +427,8 @@ export class PixelBannerStoreModal extends Modal {
             }
 
             .pixel-banner-store-image-card img {
-                max-width: 200px;
-                max-height: 200px;
+                max-width: 300px;
+                max-height: 300px;
                 object-fit: cover;
             }
 

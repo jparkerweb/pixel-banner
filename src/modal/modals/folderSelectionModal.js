@@ -14,7 +14,7 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         this.modalEl.addClass('pixel-banner-folder-select-modal');
         
         const titleDiv = document.createElement("p");
-        titleDiv.textContent = "Choose Folder to save Banner Image";
+        titleDiv.textContent = "💾 Choose a folder to save the Banner Image";
         titleDiv.style.padding = "0 20px";
         titleDiv.style.color = "var(--text-accent)";
         this.modalEl.appendChild(titleDiv);
