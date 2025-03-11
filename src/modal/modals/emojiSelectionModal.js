@@ -23,8 +23,6 @@ export class EmojiSelectionModal extends Modal {
         contentEl.empty();
         contentEl.addClass('pixel-banner-emoji-select-modal');
 
-        console.log(`this.skipTargetingModal: ${this.skipTargetingModal}`)
-        
         // Reset the closedByButton flag when the modal opens
         this.closedByButton = false;
 
