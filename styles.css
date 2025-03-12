@@ -838,13 +838,11 @@
 /* -- banner icon overlay -- */
 /* ------------------------- */
 .banner-icon-overlay {
-    /* transform: translate(-50%, -15%); */
     --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
     transform: translate(var(--pixel-banner-icon-translate-x), -15%);
     position: absolute;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
-    /* margin-top: var(--pixel-banner-icon-vertical-offset, 0); */
     margin-top: calc(var(--pixel-banner-icon-vertical-offset, 0) * 1px);
     padding-top: var(--pixel-banner-icon-padding-y, 0) !important;
     padding-right: var(--pixel-banner-icon-padding-x, 0) !important;

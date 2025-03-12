@@ -719,6 +719,11 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             if (getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField) === 0) {
                 currentIconState.verticalOffset = 0;
             }
+
+            // if the border radius is 0, set it to 0 (fix for falsey value)
+            if (getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) === 0) {
+                currentIconState.borderRadius = 0;
+            }
             
             // Check if we already have a persistent icon overlay
             const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ? 
@@ -843,9 +848,16 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         plugin.settings.bannerIconPaddingY || 0;
 
     // Get banner-icon border radius
-    const bannerIconBorderRadius = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) || 
+    let bannerIconBorderRadius = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) || 
         folderSpecific?.bannerIconBorderRadius || 
         plugin.settings.bannerIconBorderRadius || 17;
+    if (getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) === 0) {
+        bannerIconBorderRadius = 0;
+    } else if (folderSpecific?.bannerIconBorderRadius === 0) {
+        bannerIconBorderRadius = 0;
+    } else if (plugin.settings.bannerIconBorderRadius === 0) {
+        bannerIconBorderRadius = 0;
+    }
 
     // Get banner-icon vertical offset
     let bannerIconVeritalOffset = Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)) ||

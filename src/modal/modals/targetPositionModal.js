@@ -389,18 +389,30 @@ export class TargetPositionModal extends Modal {
         });
 
         // Zoom slider container (initially hidden)
-        const zoomContainer = controlPanel.createDiv({ cls: 'zoom-container' });
-        zoomContainer.style.display = this.currentDisplay === 'cover-zoom' ? 'flex' : 'none';
-        zoomContainer.style.flexDirection = 'column';
-        zoomContainer.style.gap = '5px';
-        zoomContainer.style.alignItems = 'center';
-        zoomContainer.style.marginTop = '10px';
-        zoomContainer.style.height = '100%';
+        const zoomContainer = controlPanel.createDiv({
+            cls: 'zoom-container',
+            attr: {
+                style: `
+                    display: ${this.currentDisplay === 'cover-zoom' ? 'flex' : 'none'};
+                    flex-direction: column;
+                    gap: 5px;
+                    align-items: center;
+                    margin-top: 10px;
+                    height: 100%;
+                `
+            }
+        });
 
         // Zoom value display
-        const zoomValue = zoomContainer.createDiv({ cls: 'zoom-value' });
-        zoomValue.style.fontFamily = 'var(--font-monospace)';
-        zoomValue.style.fontSize = '0.9em';
+        const zoomValue = zoomContainer.createDiv({
+            cls: 'zoom-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
         zoomValue.setText(`${this.currentZoom}%`);
 
         // Zoom slider
@@ -411,12 +423,14 @@ export class TargetPositionModal extends Modal {
                 min: '0',
                 max: '500',
                 step: '10',
-                value: this.currentZoom
+                value: this.currentZoom,
+                style: `
+                    flex: 1;
+                    writing-mode: vertical-lr;
+                    direction: rtl;
+                `
             }
         });
-        zoomSlider.style.flex = '1';
-        zoomSlider.style.writingMode = 'vertical-lr';
-        zoomSlider.style.direction = 'rtl';
 
         // Event handlers for display mode and zoom
         displaySelect.addEventListener('change', () => {
@@ -432,26 +446,42 @@ export class TargetPositionModal extends Modal {
         });
 
         // Height control container
-        const heightContainer = mainContainer.createDiv({ cls: 'height-container' });
-        heightContainer.style.display = 'flex';
-        heightContainer.style.flexDirection = 'column';
-        heightContainer.style.gap = '10px';
-        heightContainer.style.alignItems = 'center';
-        heightContainer.style.minWidth = '60px';
-        heightContainer.style.flex = '0 auto';
+        const heightContainer = mainContainer.createDiv({
+            cls: 'height-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                `
+            }
+        });
 
         // Height label
         const heightLabel = heightContainer.createEl('div', { 
             text: 'Height',
-            cls: 'height-label' 
+            cls: 'height-label',
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                `
+            }
         });
-        heightLabel.style.color = 'var(--text-muted)';
-        heightLabel.style.fontSize = '0.9em';
 
         // Height value display
-        const heightValue = heightContainer.createDiv({ cls: 'height-value' });
-        heightValue.style.fontFamily = 'var(--font-monospace)';
-        heightValue.style.fontSize = '0.9em';
+        const heightValue = heightContainer.createDiv({
+            cls: 'height-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
         heightValue.setText(`${this.currentHeight}px`);
 
         // Height slider
@@ -462,12 +492,14 @@ export class TargetPositionModal extends Modal {
                 min: '0',
                 max: '1280',
                 step: '10',
-                value: this.currentHeight
+                value: this.currentHeight,
+                style: `
+                    flex: 1;
+                    writing-mode: vertical-lr;
+                    direction: rtl;
+                `
             }
         });
-        heightSlider.style.flex = '1';
-        heightSlider.style.writingMode = 'vertical-lr';
-        heightSlider.style.direction = 'rtl';
 
         heightSlider.addEventListener('input', () => {
             this.currentHeight = parseInt(heightSlider.value);
@@ -476,11 +508,17 @@ export class TargetPositionModal extends Modal {
         });
 
         // Create target container
-        const targetContainer = mainContainer.createDiv({ cls: 'target-container' });
-        targetContainer.style.display = 'flex';
-        targetContainer.style.flexDirection = 'column';
-        targetContainer.style.gap = '10px';
-        targetContainer.style.flexGrow = '1';
+        const targetContainer = mainContainer.createDiv({
+            cls: 'target-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    flex-grow: 1;
+                `
+            }
+        });
 
         // Create container for the target area
         const targetArea = targetContainer.createDiv({
@@ -561,13 +599,19 @@ export class TargetPositionModal extends Modal {
 
         
         // Content Start Position control container
-        const contentStartPositionContainer = mainContainer.createDiv({ cls: 'content-start-position-container' });
-        contentStartPositionContainer.style.display = 'flex';
-        contentStartPositionContainer.style.flexDirection = 'column';
-        contentStartPositionContainer.style.gap = '10px';
-        contentStartPositionContainer.style.alignItems = 'center';
-        contentStartPositionContainer.style.minWidth = '60px';
-        contentStartPositionContainer.style.flex = '0 auto';
+        const contentStartPositionContainer = mainContainer.createDiv({
+            cls: 'content-start-position-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                `
+            }
+        });
 
         // Content Start Position label
         const contentStartPositionLabel = contentStartPositionContainer.createEl('div', { 
@@ -584,9 +628,15 @@ export class TargetPositionModal extends Modal {
         });
 
         // Content Start Position value display
-        const contentStartPositionValue = contentStartPositionContainer.createDiv({ cls: 'content-start-position-value' });
-        contentStartPositionValue.style.fontFamily = 'var(--font-monospace)';
-        contentStartPositionValue.style.fontSize = '0.9em';
+        const contentStartPositionValue = contentStartPositionContainer.createDiv({
+            cls: 'content-start-position-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
         contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
 
         // Content Start Position slider
@@ -597,12 +647,14 @@ export class TargetPositionModal extends Modal {
                 min: '1',
                 max: '800',
                 step: '5',
-                value: this.currentContentStartPosition
+                value: this.currentContentStartPosition,
+                style: `
+                    flex: 1;
+                    writing-mode: vertical-lr;
+                    direction: rtl;
+                `
             }
         });
-        contentStartPositionSlider.style.flex = '1';
-        contentStartPositionSlider.style.writingMode = 'vertical-lr';
-        contentStartPositionSlider.style.direction = 'rtl';
 
         contentStartPositionSlider.addEventListener('input', () => {
             this.currentContentStartPosition = parseInt(contentStartPositionSlider.value);
@@ -734,12 +786,14 @@ export class TargetPositionModal extends Modal {
                 min: '1',
                 max: '99',
                 step: '1',
-                value: this.currentBannerIconXPosition
+                value: this.currentBannerIconXPosition,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
             }
         });
-        bannerIconXPositionSlider.style.flex = '1';
-        bannerIconXPositionSlider.style.writingMode = 'horizontal-tb';
-        bannerIconXPositionSlider.style.direction = 'ltr';
 
         // Banner Icon X Position value display
         const bannerIconXPositionValue = bannerIconXPositionContainer.createDiv({
@@ -802,12 +856,14 @@ export class TargetPositionModal extends Modal {
                 min: '-100',
                 max: '100',
                 step: '1',
-                value: this.currentBannerIconVerticalOffset
+                value: this.currentBannerIconVerticalOffset,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
             }
         });
-        bannerIconVerticalOffsetSlider.style.flex = '1';
-        bannerIconVerticalOffsetSlider.style.writingMode = 'horizontal-tb';
-        bannerIconVerticalOffsetSlider.style.direction = 'ltr';
 
         // Banner Icon Vertical Offset value display
         const bannerIconVerticalOffsetValue = bannerIconVerticalOffsetContainer.createDiv({
@@ -870,12 +926,14 @@ export class TargetPositionModal extends Modal {
                 min: '10',
                 max: '200',
                 step: '1',
-                value: this.currentBannerIconSize
+                value: this.currentBannerIconSize,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
             }
         });
-        bannerIconSizeSlider.style.flex = '1';
-        bannerIconSizeSlider.style.writingMode = 'horizontal-tb';
-        bannerIconSizeSlider.style.direction = 'ltr';
 
         // Banner Icon Size value display
         const bannerIconSizeValue = bannerIconSizeContainer.createDiv({
@@ -953,11 +1011,13 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-color-input',
             attr: {
                 value: this.currentBannerIconColor || '',
-                placeholder: '#RRGGBB or color name'
+                placeholder: '#RRGGBB or color name',
+                style: `
+                    flex: 1;
+                    max-width: 120px;
+                `
             }
         });
-        bannerIconColorInput.style.flex = '1';
-        bannerIconColorInput.style.maxWidth = '120px';
 
         // Banner Icon Color picker
         const bannerIconColorPicker = bannerIconColorContainer.createEl('input', {
@@ -1136,11 +1196,13 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-bg-color-input',
             attr: {
                 value: this.currentBannerIconBgColor || '',
-                placeholder: '#RRGGBB or color name'
+                placeholder: '#RRGGBB or color name',
+                style: `
+                    flex: 1;
+                    max-width: 120px;
+                `
             }
         });
-        bannerIconBgColorInput.style.flex = '1';
-        bannerIconBgColorInput.style.maxWidth = '120px';
 
         // Banner Icon Background Color picker
         const bannerIconBgColorPicker = colorPickerAndAlphaSliderRow.createEl('input', {
@@ -1188,10 +1250,12 @@ export class TargetPositionModal extends Modal {
                 min: '0',
                 max: '100',
                 step: '1',
-                value: this.currentBannerIconBgAlpha
+                value: this.currentBannerIconBgAlpha,
+                style: `
+                    flex: 1;
+                `
             }
         });
-        alphaSlider.style.flex = '1';
 
         // Alpha value display
         const alphaValue = colorPickerAndAlphaSliderRow.createDiv({
@@ -1296,12 +1360,14 @@ export class TargetPositionModal extends Modal {
                 min: '0',
                 max: '100',
                 step: '1',
-                value: this.currentBannerIconPaddingX
+                value: this.currentBannerIconPaddingX,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
             }
         });
-        bannerIconPaddingXSlider.style.flex = '1';
-        bannerIconPaddingXSlider.style.writingMode = 'horizontal-tb';
-        bannerIconPaddingXSlider.style.direction = 'ltr';
 
         // Banner Icon Padding X value display
         const bannerIconPaddingXValue = bannerIconPaddingXContainer.createDiv({
@@ -1364,12 +1430,14 @@ export class TargetPositionModal extends Modal {
                 min: '0',
                 max: '100',
                 step: '1',
-                value: this.currentBannerIconPaddingY
+                value: this.currentBannerIconPaddingY,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
             }
         });
-        bannerIconPaddingYSlider.style.flex = '1';
-        bannerIconPaddingYSlider.style.writingMode = 'horizontal-tb';
-        bannerIconPaddingYSlider.style.direction = 'ltr';
 
         // Banner Icon Padding Y value display
         const bannerIconPaddingYValue = bannerIconPaddingYContainer.createDiv({
@@ -1422,7 +1490,13 @@ export class TargetPositionModal extends Modal {
         const iconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField)
             ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconBorderRadiusField;
-        this.currentBannerIconBorderRadius = frontmatter?.[iconBorderRadiusField] || this.plugin.settings.bannerIconBorderRadius;
+        if (frontmatter?.[iconBorderRadiusField] === 0) {
+            this.currentBannerIconBorderRadius = 0;
+        } else if (this.plugin.settings.bannerIconBorderRadius === 0) {
+            this.currentBannerIconBorderRadius = 0;
+        } else {
+            this.currentBannerIconBorderRadius = frontmatter?.[iconBorderRadiusField] || this.plugin.settings.bannerIconBorderRadius;
+        }
 
         // Banner Icon Border Radius slider
         const bannerIconBorderRadiusSlider = bannerIconBorderRadiusContainer.createEl('input', {
@@ -1432,12 +1506,14 @@ export class TargetPositionModal extends Modal {
                 min: '0',
                 max: '50',
                 step: '1',
-                value: this.currentBannerIconBorderRadius
+                value: this.currentBannerIconBorderRadius,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
             }
         });
-        bannerIconBorderRadiusSlider.style.flex = '1';
-        bannerIconBorderRadiusSlider.style.writingMode = 'horizontal-tb';
-        bannerIconBorderRadiusSlider.style.direction = 'ltr';
 
         // Banner Icon Border Radius value display
         const bannerIconBorderRadiusValue = bannerIconBorderRadiusContainer.createDiv({
@@ -1475,16 +1551,24 @@ export class TargetPositionModal extends Modal {
         // Reset to defaults button
         const resetButton = buttonContainer.createEl('button', {
             text: 'Reset to Defaults',
-            cls: 'reset-button'
+            cls: 'reset-button',
+            attr: {
+                style: `
+                    flex: 1;
+                `
+            }
         });
-        resetButton.style.flex = '1';
         
         // Close Settings button
         const closeSettingsButton = buttonContainer.createEl('button', {
             text: 'Close Settings',
-            cls: 'mod-cta close-settings-button'
+            cls: 'mod-cta close-settings-button',
+            attr: {
+                style: `
+                    flex: 1;
+                `
+            }
         });
-        closeSettingsButton.style.flex = '1';
 
         // Add event listener to close the modal when the button is clicked
         closeSettingsButton.addEventListener('click', () => {
@@ -1658,16 +1742,16 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconVeritalOffsetField;
 
-                // Remove fields
+                // Remove benner image fields
                 delete frontmatter[displayField];
                 delete frontmatter[heightField];
                 delete frontmatter[xField];
                 delete frontmatter[yField];
                 delete frontmatter[contentStartPositionField];
-                delete frontmatter[bannerIconXPositionField];
                 delete frontmatter[repeatField];
                 
-                // Remove new banner icon fields
+                // Remove banner icon fields
+                delete frontmatter[bannerIconXPositionField];
                 delete frontmatter[bannerIconSizeField];
                 delete frontmatter[bannerIconColorField];
                 delete frontmatter[bannerIconFontWeightField];
@@ -1680,28 +1764,44 @@ export class TargetPositionModal extends Modal {
         });
 
         // Create repeat toggle container (initially hidden)
-        const repeatContainer = controlPanel.createDiv({ cls: 'repeat-container' });
-        repeatContainer.style.display = this.currentDisplay === 'contain' ? 'flex' : 'none';
-        repeatContainer.style.flexDirection = 'column';
-        repeatContainer.style.gap = '5px';
-        repeatContainer.style.alignItems = 'center';
-        repeatContainer.style.justifyContent = 'flex-start';
-        repeatContainer.style.marginTop = '10px';
-        repeatContainer.style.maxWidth = '70px';
-        repeatContainer.style.textAlign = 'center';
+        const repeatContainer = controlPanel.createDiv({
+            cls: 'repeat-container',
+            attr: {
+                style: `
+                    display: ${this.currentDisplay === 'contain' ? 'flex' : 'none'};
+                    flex-direction: column;
+                    gap: 5px;
+                    align-items: center;
+                    justify-content: flex-start;
+                    margin-top: 10px;
+                    max-width: 70px;
+                    text-align: center;
+                `
+            }
+        });
 
         // Repeat label
         const repeatLabel = repeatContainer.createEl('div', { 
             text: 'repeat banner image?',
-            cls: 'repeat-label'
+            cls: 'repeat-label',
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    margin-bottom: 20px;
+                `
+            }
         });
-        repeatLabel.style.color = 'var(--text-muted)';
-        repeatLabel.style.fontSize = '0.9em';
-        repeatLabel.style.marginBottom = '20px';
 
         // Repeat toggle
-        const repeatToggle = repeatContainer.createEl('div', { cls: 'repeat-toggle' });
-        repeatToggle.style.marginTop = '10px';
+        const repeatToggle = repeatContainer.createEl('div', {
+            cls: 'repeat-toggle',
+            attr: {
+                style: `
+                    margin-top: 10px;
+                `
+            }
+        });
 
         const toggleInput = repeatToggle.createEl('input', {
             type: 'checkbox',
