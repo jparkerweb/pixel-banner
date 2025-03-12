@@ -79,31 +79,50 @@ export class EmojiSelectionModal extends Modal {
             if (activeFile) {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (activeView) {
-                    // Add a small delay to ensure frontmatter is updated
-                    setTimeout(async () => {
-                        // Force a full banner update
-                        await this.plugin.updateBanner(activeView, true, this.plugin.UPDATE_MODE.FULL_UPDATE);
-                    }, 100);
+                    // Force a full banner update
+                    await this.plugin.updateBanner(activeView, true, this.plugin.UPDATE_MODE.FULL_UPDATE);
                 }
             }
             
             // Only open the targeting modal if we're not skipping it
             // and the setting is enabled
             if (!this.skipTargetingModal && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                // Add delay to ensure frontmatter is fully updated
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Get the active file and verify the banner icon is set in frontmatter
+                // Use metadataCache events instead of timeouts
                 const activeFile = this.app.workspace.getActiveFile();
                 if (activeFile) {
-                    // Wait a bit more for the cache to update
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                    
-                    // Get the updated frontmatter
-                    const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-                    const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
-                        ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconField;
+                    // Create a promise that resolves when the metadata is updated
+                    await new Promise(resolve => {
+                        // Store the current frontmatter state
+                        const initialFrontmatter = JSON.stringify(
+                            this.app.metadataCache.getFileCache(activeFile)?.frontmatter || {}
+                        );
+                        
+                        // Set up a one-time event listener for metadata changes
+                        const eventRef = this.app.metadataCache.on('changed', (file) => {
+                            // Only proceed if this is our active file
+                            if (file.path !== activeFile.path) return;
+                            
+                            // Get the updated frontmatter
+                            const updatedFrontmatter = JSON.stringify(
+                                this.app.metadataCache.getFileCache(file)?.frontmatter || {}
+                            );
+                            
+                            // If frontmatter has changed, we can proceed
+                            if (updatedFrontmatter !== initialFrontmatter) {
+                                // Remove the event listener
+                                this.app.metadataCache.off('changed', eventRef);
+                                
+                                // Resolve the promise
+                                resolve();
+                            }
+                        });
+                        
+                        // Set a timeout as a fallback in case the event doesn't fire
+                        setTimeout(() => {
+                            this.app.metadataCache.off('changed', eventRef);
+                            resolve();
+                        }, 500); // Reduced timeout as a fallback
+                    });
                     
                     // Open the targeting modal
                     new TargetPositionModal(this.app, this.plugin).open();
@@ -251,10 +270,49 @@ export class EmojiSelectionModal extends Modal {
         // 2. The setting is enabled
         // 3. The note has a banner
         if (!this.closedByButton && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon && hasBanner) {
-            // Add a small delay to ensure the current modal is fully closed
-            setTimeout(() => {
-                new TargetPositionModal(this.app, this.plugin).open();
-            }, 500);
+            const openTargetingModal = async () => {
+                if (activeFile) {
+                    // Create a promise that resolves when the metadata is updated or after a short timeout
+                    await new Promise(resolve => {
+                        // Store the current frontmatter state
+                        const initialFrontmatter = JSON.stringify(
+                            this.app.metadataCache.getFileCache(activeFile)?.frontmatter || {}
+                        );
+                        
+                        // Set up a one-time event listener for metadata changes
+                        const eventRef = this.app.metadataCache.on('changed', (file) => {
+                            // Only proceed if this is our active file
+                            if (file.path !== activeFile.path) return;
+                            
+                            // Get the updated frontmatter
+                            const updatedFrontmatter = JSON.stringify(
+                                this.app.metadataCache.getFileCache(file)?.frontmatter || {}
+                            );
+                            
+                            // If frontmatter has changed, we can proceed
+                            if (updatedFrontmatter !== initialFrontmatter) {
+                                // Remove the event listener
+                                this.app.metadataCache.off('changed', eventRef);
+                                
+                                // Resolve the promise
+                                resolve();
+                            }
+                        });
+                        
+                        // Set a timeout as a fallback in case the event doesn't fire
+                        setTimeout(() => {
+                            this.app.metadataCache.off('changed', eventRef);
+                            resolve();
+                        }, 300); // Shorter timeout as a fallback
+                    });
+                    
+                    // Open the targeting modal
+                    new TargetPositionModal(this.app, this.plugin).open();
+                }
+            };
+            
+            // Add a minimal delay to ensure the current modal is fully closed
+            setTimeout(openTargetingModal, 100);
         }
     }
 }

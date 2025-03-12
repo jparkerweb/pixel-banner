@@ -15,7 +15,7 @@ export class SaveImageModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
-        contentEl.createEl('h2', { text: 'Save Image' });
+        contentEl.createEl('h2', { text: 'Save Image', cls: 'margin-top-0' });
         contentEl.createEl('p', { text: 'Enter a name for the image file.' });
 
         const fileNameSetting = new Setting(contentEl)

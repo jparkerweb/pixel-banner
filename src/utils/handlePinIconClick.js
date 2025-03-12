@@ -166,6 +166,6 @@ async function waitForFileRename(file, plugin) {
                 return resolve(initialPath);
             }
             resolve(null);
-        }, 1500);
+        }, 100);
     });
 }
