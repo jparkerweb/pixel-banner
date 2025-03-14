@@ -942,7 +942,7 @@ export function createGeneralSettings(containerEl, plugin) {
         .setName('Default Banner Icon Border Radius')
         .setDesc('Set the default border radius for the banner icon')
         .addSlider(slider => slider
-            .setLimits(0, 50, 1)
+            .setLimits(0, 100, 1)
             .setValue(plugin.settings.bannerIconBorderRadius)
             .setDynamicTooltip()
             .onChange(async (value) => {

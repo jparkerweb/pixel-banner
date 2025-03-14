@@ -231,9 +231,12 @@ export async function handleSetBannerIcon(plugin) {
 export function cleanupIconOverlay(plugin, view) {
     if (!view || !view.contentEl) return;
     
-    const existingOverlay = view.contentEl.querySelector('.banner-icon-overlay');
-    if (existingOverlay) {
-        plugin.returnIconOverlay(existingOverlay);
-        existingOverlay.remove();
+    // Find all banner icon overlays, not just the first one
+    const existingOverlays = view.contentEl.querySelectorAll('.banner-icon-overlay');
+    if (existingOverlays.length > 0) {
+        existingOverlays.forEach(overlay => {
+            plugin.returnIconOverlay(overlay);
+            overlay.remove();
+        });
     }
 }

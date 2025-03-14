@@ -124,6 +124,15 @@ export class SelectPixelBannerModal extends Modal {
                                         // Ensure the banner is updated to reflect the changes
                                         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
                                         if (view) {
+                                            // Clean up any existing banner icon overlays before updating
+                                            const contentEl = view.contentEl;
+                                            if (contentEl) {
+                                                const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
+                                                existingOverlays.forEach(overlay => {
+                                                    this.plugin.returnIconOverlay(overlay);
+                                                });
+                                            }
+                                            
                                             await this.plugin.updateBanner(view, true);
                                         }
                                         

@@ -1504,7 +1504,7 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-border-radius-slider',
             attr: {
                 min: '0',
-                max: '50',
+                max: '100',
                 step: '1',
                 value: this.currentBannerIconBorderRadius,
                 style: `

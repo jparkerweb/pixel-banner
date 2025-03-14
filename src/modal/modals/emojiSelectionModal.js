@@ -79,6 +79,15 @@ export class EmojiSelectionModal extends Modal {
             if (activeFile) {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (activeView) {
+                    // Clean up any existing banner icon overlays before updating
+                    const contentEl = activeView.contentEl;
+                    if (contentEl) {
+                        const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
+                        existingOverlays.forEach(overlay => {
+                            this.plugin.returnIconOverlay(overlay);
+                        });
+                    }
+                    
                     // Force a full banner update
                     await this.plugin.updateBanner(activeView, true, this.plugin.UPDATE_MODE.FULL_UPDATE);
                 }
