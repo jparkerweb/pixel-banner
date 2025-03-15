@@ -81,7 +81,8 @@ async function addPixelBanner(plugin, el, ctx) {
                     `   
                 }
             });
-            selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
+            const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
+            selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
             selectImageIcon._isPersistentSelectImage = true;
 
             selectImageIcon.onclick = () => plugin.handleBannerIconClick();
@@ -602,7 +603,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                         `   
                     }
                 });
-                selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
+                const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
+                selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
                 selectImageIcon._isPersistentSelectImage = true;
                 selectImageIcon.onclick = () => plugin.handleBannerIconClick();
                 container.insertBefore(selectImageIcon, container.firstChild);

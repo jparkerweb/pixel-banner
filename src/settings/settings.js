@@ -41,6 +41,7 @@ const DEFAULT_SETTINGS = {
     customBannerIconPaddingYField: ['icon-padding-y'],
     customBannerIconBorderRadiusField: ['icon-border-radius'],
     customBannerIconVeritalOffsetField: ['icon-y'],
+    customFlagColorField: ['pixel-banner-flag-color'],
     folderImages: [],
     contentStartPosition: 355,
     imageDisplay: 'cover',

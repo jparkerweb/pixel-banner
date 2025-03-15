@@ -122,6 +122,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-shuffle, shuffle, random-banner'
         },
         {
+            setting: 'customFlagColorField',
+            name: 'Pixel Banner Flag Color Field Names',
+            desc: 'Set custom field names for the pixel banner flag color in frontmatter (comma-separated)',
+            values: 'red, blue, green, orange, purple, yellow',
+            placeholder: 'pixel-banner-flag-color, banner-flag-color, flag-color'
+        },
+        {
             setting: 'customBannerIconField',
             name: 'Banner Icon Field Names',
             desc: 'Set custom field names for the banner icon in frontmatter (comma-separated)',

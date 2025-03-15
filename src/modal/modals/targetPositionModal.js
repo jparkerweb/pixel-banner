@@ -2,6 +2,9 @@ import { Modal } from 'obsidian';
 import getCurrentTheme from '../../utils/getCurrentTheme';
 import { EmojiSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
+import { flags } from '../../resources/flags.js';
+import { getFrontmatterValue } from '../../utils/frontmatterUtils.js';
+import { MarkdownView } from 'obsidian';
 
 
 // ---------------------------
@@ -1534,6 +1537,129 @@ export class TargetPositionModal extends Modal {
             this.updateBannerIconBorderRadius(this.currentBannerIconBorderRadius);
         });
 
+        // Flag Color Selection Section
+        const flagColorSection = contentEl.createDiv({
+            cls: 'flag-color-section',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 5px;
+                    margin-top: 20px;
+                    padding: 15px;
+                    border-radius: 5px;
+                    background-color: var(--background-secondary);
+                `
+            }
+        });
+
+        // Flag Color Section Title
+        flagColorSection.createEl('span', {
+            text: 'Flag Color',
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Create a container for the radio buttons
+        const flagRadioContainer = flagColorSection.createDiv({
+            cls: 'pixel-banner-flag-radio-container'
+        });
+        
+        // Add style for the radio container
+        flagRadioContainer.style.display = 'flex';
+        flagRadioContainer.style.flexWrap = 'wrap';
+        flagRadioContainer.style.gap = '10px';
+        
+        // Get current flag color from frontmatter or default setting
+        const currentFlagColor = getFrontmatterValue(frontmatter, this.plugin.settings.customFlagColorField) || this.plugin.settings.selectImageIconFlag;
+        
+        // Create a radio button for each flag
+        Object.keys(flags).forEach(color => {
+            const radioContainer = flagRadioContainer.createDiv({
+                cls: 'pixel-banner-flag-radio',
+                attr: {
+                    style: `
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                    `
+                }
+            });
+            
+            // Create the radio input
+            const radio = radioContainer.createEl('input', {
+                type: 'radio',
+                attr: {
+                    id: `flag-${color}`,
+                    name: 'pixel-banner-flag',
+                    value: color,
+                    style: 'margin-right: 5px;'
+                }
+            });
+            
+            // Set checked state based on current setting
+            radio.checked = currentFlagColor === color;
+            
+            // Create the label with flag image
+            const label = radioContainer.createEl('label', {
+                attr: {
+                    for: `flag-${color}`,
+                    style: `
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                    `
+                }
+            });
+            
+            // Add the flag image to the label
+            label.createEl('img', {
+                attr: {
+                    src: flags[color],
+                    alt: color,
+                    style: `
+                        width: 15px;
+                        height: 20px;
+                        margin-right: 3px;
+                    `
+                }
+            });
+            
+            // Add the color name to the label
+            label.createEl('span', {
+                text: color.charAt(0).toUpperCase() + color.slice(1),
+                attr: {
+                    style: `
+                        display: none;
+                        font-size: 12px;
+                    `
+                }
+            });
+            
+            // Add change event listener
+            radio.addEventListener('change', async () => {
+                if (radio.checked) {
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (activeFile) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                            const flagColorField = this.plugin.settings.customFlagColorField[0];
+                            frontmatter[flagColorField] = color;
+                        });
+                        
+                        // Update the banner to reflect the changes
+                        const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                        if (view) {
+                            await this.plugin.updateBanner(view, true);
+                        }
+                    }
+                }
+            });
+        });
+
         // Create a container for buttons
         const buttonContainer = contentEl.createDiv({
             cls: 'button-container',
@@ -1544,6 +1670,10 @@ export class TargetPositionModal extends Modal {
                     gap: 10px;
                     align-items: center;
                     justify-content: center;
+                    position: sticky;
+                    bottom: -20px;
+                    background: var(--modal-background);
+                    padding: 20px 0;
                 `
             }
         });
@@ -1760,7 +1890,30 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[bannerIconPaddingYField];
                 delete frontmatter[bannerIconBorderRadiusField];
                 delete frontmatter[bannerIconVerticalOffsetField];
+                
+                // Remove flag color field (this ensures the note uses the global default flag color)
+                const flagColorField = Array.isArray(this.plugin.settings.customFlagColorField)
+                    ? this.plugin.settings.customFlagColorField[0].split(',')[0].trim()
+                    : this.plugin.settings.customFlagColorField;
+                console.log('Removing flag color field:', flagColorField);
+                delete frontmatter[flagColorField];
+                
+                // Update the flag color radio buttons to reflect the global default
+                const defaultColor = this.plugin.settings.selectImageIconFlag;
+                const radios = flagRadioContainer.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.checked = radio.value === defaultColor;
+                });
             });
+            
+            // After processing frontmatter, update the flag color radio buttons
+            if (flagRadioContainer) {
+                console.log('Updating flag radio buttons after reset');
+                const flagRadios = flagRadioContainer.querySelectorAll('input[type="radio"]');
+                flagRadios.forEach(radio => {
+                    radio.checked = radio.value === this.plugin.settings.selectImageIconFlag;
+                });
+            }
         });
 
         // Create repeat toggle container (initially hidden)
