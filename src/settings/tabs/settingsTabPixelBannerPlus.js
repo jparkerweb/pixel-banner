@@ -65,6 +65,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
             buttonEl.style.borderRadius = '5px';
             buttonEl.style.padding = '5px 10px';
             buttonEl.style.fontSize = '.9em';
+            buttonEl.style.cursor = 'pointer';
             
             // Set initial button HTML with emoji
             button.buttonEl.innerHTML = '⚡ Test Pixel Banner Plus API Key';
@@ -161,7 +162,8 @@ function updateSignupSection(containerEl, plugin) {
                 buttonEl.style.borderRadius = '5px';
                 buttonEl.style.padding = '5px 10px';
                 buttonEl.style.fontSize = '.9em';
-                
+                buttonEl.style.cursor = 'pointer';
+                buttonEl.classList.add('scale-up-down-animation');
                 button.buttonEl.innerHTML = '🚩 Signup for Free!';
                 button.setCta();
                 button.onClick(() => {
@@ -265,7 +267,11 @@ function updateAccountStatusSection(containerEl, plugin) {
                 buttonEl.style.borderRadius = '5px';
                 buttonEl.style.padding = '5px 10px';
                 buttonEl.style.fontSize = '.9em';
-                
+                buttonEl.style.backgroundColor = 'darkgreen';
+                buttonEl.style.color = 'papayawhip';
+                buttonEl.style.cursor = 'pointer';
+                buttonEl.classList.add('scale-up-down-animation');
+
                 button.buttonEl.innerHTML = '💵 Buy More Tokens';
                 button.setCta();
                 button.onClick(() => {

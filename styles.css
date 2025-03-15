@@ -778,6 +778,16 @@
     animation-name: radial-pulse;
 }
 
+/* animation for an element to scale up and down */
+@keyframes scale-up-down {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+.scale-up-down-animation {
+    animation: scale-up-down 3s ease-in-out infinite;
+}
+
 
 
 /* --------------------------- */
