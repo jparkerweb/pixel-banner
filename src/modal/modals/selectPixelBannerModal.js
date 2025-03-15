@@ -12,7 +12,17 @@ export class SelectPixelBannerModal extends Modal {
         const { contentEl } = this;
         
         // Create title with the selected flag icon
-        const titleContainer = contentEl.createEl('h2', { cls: 'margin-top-0 pixel-banner-selector-title' });
+        const titleContainer = contentEl.createEl('h2', {
+            cls: 'pixel-banner-selector-title',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    margin-top: 5px;
+                `
+            }
+        });
         
         // Add the flag image
         const flagImg = titleContainer.createEl('img', {
@@ -30,6 +40,45 @@ export class SelectPixelBannerModal extends Modal {
         
         // Add the text
         titleContainer.appendChild(document.createTextNode('Pixel Banner Selector'));
+
+        // Add settings button to the title container
+        const settingsButton = titleContainer.createEl('button', {
+            cls: 'pixel-banner-settings-button',
+            attr: {
+                style: `
+                    margin-left: auto;
+                    margin-right: 20px;
+                    padding: 4px 10px;
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 14px;
+                    text-transform: uppercase;
+                `
+            }
+        });
+        settingsButton.innerHTML = '⚙️ Settings';
+        settingsButton.title = 'Open Pixel Banner Settings';
+        settingsButton.addEventListener('click', () => {
+            this.close();
+            
+            // Open settings and navigate to Pixel Banner tab
+            const openSettings = async () => {
+                await this.app.setting.open();
+                await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+                
+                // Find and click the Pixel Banner item in the settings sidebar
+                const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+                for (const tab of settingsTabs) {
+                    if (tab.textContent.includes('Pixel Banner')) {
+                        tab.click();
+                        break;
+                    }
+                }
+            };
+            
+            openSettings();
+        });
 
         // Check if the current note has a banner
         const activeFile = this.app.workspace.getActiveFile();
@@ -395,6 +444,10 @@ export class SelectPixelBannerModal extends Modal {
                 color: var(--text-error);
                 font-size: 14px;
                 text-align: center;
+            }
+            
+            .pixel-banner-settings-button:hover {
+                opacity: 0.8;
             }
             
             @media (min-width: 400px) {

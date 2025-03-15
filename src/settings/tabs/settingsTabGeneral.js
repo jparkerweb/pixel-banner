@@ -5,7 +5,7 @@ import { flags } from '../../resources/flags.js';
 export function createGeneralSettings(containerEl, plugin) {
     // section callout
     const calloutEl = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
-    calloutEl.createEl('div', { text: '⚙️ Configure default settings for all notes. These can be overridden per folder or per note.' });
+    calloutEl.createEl('div', { text: '⚙️ Configure default settings for all notes.' });
 
     // Create a group for the select image icon settings
     const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });

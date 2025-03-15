@@ -229,6 +229,7 @@
     border-radius: 5px;
     padding: 20px;
     margin: 20px 0;
+    background-color: var(--background-secondary);
 }
 .setting-item.folder-image-setting .folder-image-delete-container {
     position: absolute;

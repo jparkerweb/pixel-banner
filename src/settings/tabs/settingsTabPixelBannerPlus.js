@@ -4,7 +4,12 @@ import { DEFAULT_SETTINGS } from '../settings';
 export function createPixelBannerPlusSettings(containerEl, plugin) {
     // section callout
     const calloutElPixelBannerPlus = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
-    calloutElPixelBannerPlus.createEl('h4', { text: '✨ Pixel Banner Plus ✨' });
+    calloutElPixelBannerPlus.createEl('h4', { 
+        text: '✨ Pixel Banner Plus ✨',
+        attr: {
+            style: 'margin-top: 5px;'
+        }
+    });
     calloutElPixelBannerPlus.createEl('div', { text: 'Pixel Banner Plus enhances your notes with AI-generated, high-quality banners. Using a token-based system, you can instantly create stunning, customized visuals—no design skills needed. Sign up for free to access the banner store, which includes a selection of zero-token banners at no cost. No subscription required—simply purchase tokens whenever you need AI-generated designs. Transform your Obsidian workspace with professional banners, starting for free and only adding tokens as needed.' });
 
     // Create a group for the Pixel Banner Plus Settings
