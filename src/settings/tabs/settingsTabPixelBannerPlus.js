@@ -1,5 +1,6 @@
 import { Setting, Notice } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../settings';
+import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 
 export function createPixelBannerPlusSettings(containerEl, plugin) {
     // section callout
@@ -91,12 +92,16 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                             
                             // Update the Account Status section to reflect new values
                             updateAccountStatusSection(accountStatusGroup, plugin);
+                            // Update the Signup section
+                            updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                         } else {
                             new Notice('❌ Invalid credentials');
                             plugin.pixelBannerPlusEnabled = false;
                             
                             // Update the Account Status section to reflect new values
                             updateAccountStatusSection(accountStatusGroup, plugin);
+                            // Update the Signup section
+                            updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                         }
                         // console.log(`data: ${JSON.stringify(data)}`);
                     } else {
@@ -105,6 +110,8 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                         
                         // Update the Account Status section to reflect new values
                         updateAccountStatusSection(accountStatusGroup, plugin);
+                        // Update the Signup section
+                        updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                     }
                 } catch (error) {
                     new Notice('❌ Connection failed. Please check the service URL.');
@@ -112,6 +119,8 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                     
                     // Update the Account Status section to reflect new values
                     updateAccountStatusSection(accountStatusGroup, plugin);
+                    // Update the Signup section
+                    updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                 }
 
                 button.buttonEl.innerHTML = '⚡ Test Pixel Banner Plus API Key';
@@ -119,12 +128,48 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
             });
         });
 
+    // Create the initial Signup section
+    updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
+
     // Account Status Section
     const accountStatusGroup = containerEl.createDiv({ cls: 'setting-group' });
     accountStatusGroup.createEl('h3', { text: 'Account Status' });
     
     // Create the initial Account Status section
     updateAccountStatusSection(accountStatusGroup, plugin);
+}
+
+// Helper function to update the Signup section
+function updateSignupSection(containerEl, plugin) {
+    // Find and remove existing signup setting if it exists
+    containerEl.querySelectorAll('.setting-item').forEach(el => {
+        if (el.querySelector('.setting-item-name')?.textContent === 'Signup') {
+            el.remove();
+        }
+    });
+    
+    // Only show signup button when not connected
+    if (!plugin.pixelBannerPlusEnabled) {
+        new Setting(containerEl)
+            .setName('Signup')
+            .setDesc('Create a free Pixel Banner Plus account to get started')
+            .addButton(button => {
+                const buttonEl = button.buttonEl;
+                buttonEl.style.textTransform = 'uppercase';
+                buttonEl.style.letterSpacing = '1px';
+                buttonEl.style.fontWeight = 'bold';
+                buttonEl.style.borderRadius = '5px';
+                buttonEl.style.padding = '5px 10px';
+                buttonEl.style.fontSize = '.9em';
+                
+                button.buttonEl.innerHTML = '🚩 Signup for Free!';
+                button.setCta();
+                button.onClick(() => {
+                    const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
+                    window.open(signupUrl, '_blank');
+                });
+            });
+    }
 }
 
 // Helper function to update the Account Status section
@@ -203,4 +248,29 @@ function updateAccountStatusSection(containerEl, plugin) {
             // Hide the input element
             text.inputEl.style.display = 'none';
         });
+    
+    // Buy Tokens button (only shown when connected and tokens = 0)
+    if (plugin.pixelBannerPlusEnabled && plugin.pixelBannerPlusBannerTokens === 0) {
+        new Setting(containerEl)
+            .setName('Buy Tokens')
+            .setDesc(createFragment(el => {
+                el.createEl('div', { text: 'Purchase tokens to download Banners from the Store or Generate them with AI ✨' });
+                el.createEl('div', { text: 'This greatly helps support the development of this plugin and keep the AI Servers running 🤗' });
+            }))
+            .addButton(button => {
+                const buttonEl = button.buttonEl;
+                buttonEl.style.textTransform = 'uppercase';
+                buttonEl.style.letterSpacing = '1px';
+                buttonEl.style.fontWeight = 'bold';
+                buttonEl.style.borderRadius = '5px';
+                buttonEl.style.padding = '5px 10px';
+                buttonEl.style.fontSize = '.9em';
+                
+                button.buttonEl.innerHTML = '💵 Buy More Tokens';
+                button.setCta();
+                button.onClick(() => {
+                    window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
+                });
+            });
+    }
 } 
