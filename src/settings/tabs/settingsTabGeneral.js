@@ -38,8 +38,8 @@ export function createGeneralSettings(containerEl, plugin) {
 
     // Add the selectImageIconFlag setting
     const selectImageIconFlagSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Select Pixel Banner Icon')
-        .setDesc('Choose which flag icon to use for the banner selector');
+        .setName('Select Pixel Banner Flag Color')
+        .setDesc('Choose which flag color to use for the banner selector');
         
     // Create a container for the radio buttons
     const flagRadioContainer = selectImageIconFlagSetting.controlEl.createDiv({

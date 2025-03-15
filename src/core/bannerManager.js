@@ -82,7 +82,6 @@ async function addPixelBanner(plugin, el, ctx) {
                 }
             });
             selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
-            selectImageIcon.innerHTML = `<img src="${flags[plugin.settings.selectImageIconFlag] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
             selectImageIcon._isPersistentSelectImage = true;
 
             selectImageIcon.onclick = () => plugin.handleBannerIconClick();
