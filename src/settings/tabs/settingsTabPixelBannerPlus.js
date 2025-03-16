@@ -153,7 +153,7 @@ function updateSignupSection(containerEl, plugin) {
     if (!plugin.pixelBannerPlusEnabled) {
         new Setting(containerEl)
             .setName('Signup')
-            .setDesc('Create a free Pixel Banner Plus account to get started')
+            .setDesc('Create a FREE Pixel Banner Plus account to get started. You will receive 🪙 5 FREE banner tokens at signup (no payment info required). This form can also be use to recover your account if you forget your API Key.')
             .addButton(button => {
                 const buttonEl = button.buttonEl;
                 buttonEl.style.textTransform = 'uppercase';
@@ -263,17 +263,17 @@ function updateAccountStatusSection(containerEl, plugin) {
                 const buttonEl = button.buttonEl;
                 buttonEl.style.textTransform = 'uppercase';
                 buttonEl.style.letterSpacing = '1px';
-                buttonEl.style.fontWeight = 'bold';
                 buttonEl.style.borderRadius = '5px';
+                buttonEl.style.border = '1px solid papayawhip';
                 buttonEl.style.padding = '5px 10px';
                 buttonEl.style.fontSize = '.9em';
+                buttonEl.style.lineHeight = '1';
                 buttonEl.style.backgroundColor = 'darkgreen';
                 buttonEl.style.color = 'papayawhip';
                 buttonEl.style.cursor = 'pointer';
                 buttonEl.classList.add('scale-up-down-animation');
 
                 button.buttonEl.innerHTML = '💵 Buy More Tokens';
-                button.setCta();
                 button.onClick(() => {
                     window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
                 });

@@ -80,6 +80,122 @@ export class ImageSelectionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
+        // Add styles for pagination
+        const style = document.createElement('style');
+        style.textContent = `
+            .pixel-banner-pagination-button {
+                padding: 4px 8px;
+                border-radius: 4px;
+                background: var(--background-secondary);
+                border: 1px solid var(--background-modifier-border);
+                cursor: pointer;
+                font-size: 14px;
+                line-height: 1;
+            }
+            
+            .pixel-banner-pagination-button:hover:not(.disabled) {
+                background: var(--background-modifier-hover);
+            }
+            
+            .pixel-banner-pagination-button.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            
+            .pixel-banner-pagination-info {
+                font-size: 14px;
+                color: var(--text-muted);
+            }
+            
+            .pixel-banner-image-container {
+                cursor: pointer;
+                border-radius: 6px;
+                overflow: hidden;
+                border: 1px solid var(--background-modifier-border);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                position: relative;
+            }
+            
+            .pixel-banner-image-container:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .pixel-banner-image-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+                margin-top: 15px;
+                max-height: 60vh;
+                overflow-y: auto;
+                padding: 5px;
+            }
+            
+            .pixel-banner-no-images {
+                width: 100%;
+                height: 200px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.2em;
+                color: var(--text-muted);
+                border: 1px dashed var(--background-modifier-border);
+                border-radius: 8px;
+                background-color: var(--background-secondary);
+                grid-column: 1 / -1;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .pixel-banner-image-thumbnail {
+                width: 100%;
+                height: 150px;
+                object-fit: cover;
+                display: block;
+            }
+            
+            .pixel-banner-image-info {
+                padding: 8px;
+                font-size: 12px;
+                background: var(--background-secondary);
+            }
+            
+            .pixel-banner-image-path {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-bottom: 4px;
+            }
+            
+            .pixel-banner-image-delete {
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+            
+            .pixel-banner-image-container:hover .pixel-banner-image-delete {
+                opacity: 1;
+            }
+            
+            .pixel-banner-image-delete svg {
+                width: 16px;
+                height: 16px;
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
+        this.style = style;
+
         // Title
         contentEl.createEl('h2', { text: '💾 Select Banner Image', cls: 'margin-top-0' });
         // Description
@@ -245,11 +361,11 @@ export class ImageSelectionModal extends Modal {
             attr: {
                 style: `
                     display: flex;
-                    justify-content: center;
+                    justify-content: space-between;
                     align-items: center;
                     gap: 10px;
                     flex-wrap: wrap;
-                    margin-top: 1em;
+                    margin-top: 15px;
                 `
             }
         });
@@ -285,6 +401,16 @@ export class ImageSelectionModal extends Modal {
 
         // Get current page's files
         const currentFiles = filteredFiles.slice(startIndex, endIndex);
+
+        // Show message if no images found
+        if (currentFiles.length === 0) {
+            const noImagesMessage = this.gridContainer.createEl('div', {
+                cls: 'pixel-banner-no-images',
+                text: filteredFiles.length === 0 ? 
+                    '🔍 No images found matching your search.' : 
+                    'No images on this page.'
+            });
+        }
 
         // Create image grid
         currentFiles.forEach(file => {
@@ -360,173 +486,186 @@ export class ImageSelectionModal extends Modal {
             const deleteBtn = imageContainer.createDiv({ cls: 'pixel-banner-image-delete' });
             const trashIcon = `<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
             deleteBtn.innerHTML = trashIcon;
-            
-            deleteBtn.addEventListener('click', async (e) => {
+            deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent image selection when clicking delete
-                await this.deleteImage(file);
+                this.deleteImage(file);
             });
-
-            // Add click handler
+            
+            // Add click handler for the image container
             imageContainer.addEventListener('click', () => {
                 this.onChoose(file);
                 this.close();
             });
         });
 
-        // Always show controls if we have any images in the vault
-        if (this.imageFiles.length > 0) {
-            // Create a flex container for sort and pagination
-            const controlsContainer = this.paginationContainer.createDiv({
-                cls: 'pixel-banner-controls',
-                attr: {
-                    style: `
-                        display: flex;
-                        justify-content: center;
-                        gap: 50px;
-                        align-items: center;
-                        margin-left: auto;
-                    `
-                }
-            });
-
-            // Add sort select on the left
-            const sortContainer = controlsContainer.createDiv({ cls: 'pixel-banner-sort-container' });
-            const sortSelect = sortContainer.createEl('select', { cls: 'dropdown' });
-            
-            const sortOptions = [
-                { value: 'name-asc', label: 'Name (A-Z)' },
-                { value: 'name-desc', label: 'Name (Z-A)' },
-                { value: 'date-desc', label: 'Date Modified (Newest)' },
-                { value: 'date-asc', label: 'Date Modified (Oldest)' },
-                { value: 'size-desc', label: 'Size (Largest)' },
-                { value: 'size-asc', label: 'Size (Smallest)' }
-            ];
-
-            sortOptions.forEach(option => {
-                const optionEl = sortSelect.createEl('option', {
-                    value: option.value,
-                    text: option.label
-                });
-                if (option.value === this.sortOrder) {
-                    optionEl.selected = true;
-                }
-            });
-
-            sortSelect.addEventListener('change', () => {
-                this.sortOrder = sortSelect.value;
-                this.currentPage = 1; // Reset to first page when sorting changes
-                this.updateImageGrid();
-            });
-
-            // Create pagination container on the right
-            const paginationDiv = controlsContainer.createDiv({ cls: 'pixel-banner-pagination-buttons' });
-            paginationDiv.style.display = 'flex';
-            paginationDiv.style.gap = '10px';
-            paginationDiv.style.alignItems = 'center';
-
-            // First page button
-            const firstButton = paginationDiv.createEl('button', {
-                text: '«',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    'aria-label': 'First page'
-                }
-            });
-            firstButton.disabled = this.currentPage === 1;
-            firstButton.onclick = () => {
-                if (this.currentPage !== 1) {
-                    this.currentPage = 1;
-                    this.updateImageGrid();
-                }
-            };
-
-            // Previous page button
-            const prevButton = paginationDiv.createEl('button', {
-                text: '‹',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    'aria-label': 'Previous page'
-                }
-            });
-            prevButton.disabled = this.currentPage === 1;
-            prevButton.onclick = () => {
-                if (this.currentPage > 1) {
-                    this.currentPage--;
-                    this.updateImageGrid();
-                }
-            };
-
-            // Page info
-            paginationDiv.createEl('span', {
-                text: `${this.currentPage} / ${totalPages}`,
-                cls: 'pixel-banner-pagination-info',
-                attr: {
-                    style: 'white-space: nowrap;'
-                }
-            });
-
-            // Next page button
-            const nextButton = paginationDiv.createEl('button', {
-                text: '›',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    'aria-label': 'Next page'
-                }
-            });
-            nextButton.disabled = this.currentPage === totalPages;
-            nextButton.onclick = () => {
-                if (this.currentPage < totalPages) {
-                    this.currentPage++;
-                    this.updateImageGrid();
-                }
-            };
-
-            // Last page button
-            const lastButton = paginationDiv.createEl('button', {
-                text: '»',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    'aria-label': 'Last page'
-                }
-            });
-            lastButton.disabled = this.currentPage === totalPages;
-            lastButton.onclick = () => {
-                if (this.currentPage !== totalPages) {
-                    this.currentPage = totalPages;
-                    this.updateImageGrid();
-                }
-            };
-
-            // Update page info and button states based on filtered results
-            const pageInfo = paginationDiv.querySelector('.pixel-banner-pagination-info');
-            if (pageInfo) {
-                pageInfo.textContent = filteredFiles.length > 0 ? 
-                    `${this.currentPage} / ${totalPages}` : 
-                    'No results';
+        // Create pagination buttons
+        const paginationContainer = this.paginationContainer;
+        paginationContainer.innerHTML = '';
+        paginationContainer.style.display = 'flex';
+        paginationContainer.style.alignItems = 'center';
+        paginationContainer.style.justifyContent = 'center';
+        paginationContainer.style.gap = '10px';
+        paginationContainer.style.marginTop = '15px';
+        
+        // Create a flex container for sort and pagination
+        const controlsContainer = paginationContainer.createDiv({
+            cls: 'pixel-banner-controls',
+            attr: {
+                style: `
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                    align-items: center;
+                    margin-left: auto;
+                    margin-right: auto;
+                `
             }
-
-            // Update button states
-            const buttons = paginationDiv.querySelectorAll('button');
-            buttons.forEach(button => {
-                button.disabled = filteredFiles.length === 0 || 
-                                (this.currentPage === 1 && ['«', '‹'].includes(button.textContent)) ||
-                                (this.currentPage === totalPages && ['›', '»'].includes(button.textContent));
+        });
+        
+        // Add sort dropdown on the left
+        const sortContainer = controlsContainer.createDiv({ cls: 'pixel-banner-sort-container' });
+        sortContainer.style.display = 'flex';
+        sortContainer.style.alignItems = 'center';
+        sortContainer.style.gap = '5px';
+        
+        const sortLabel = sortContainer.createEl('span', { 
+            text: 'Sort by:',
+            attr: {
+                style: 'font-size: 14px; color: var(--text-muted);'
+            }
+        });
+        
+        const sortSelect = sortContainer.createEl('select', { cls: 'dropdown' });
+        
+        const sortOptions = [
+            { value: 'name-asc', label: 'Name (A-Z)' },
+            { value: 'name-desc', label: 'Name (Z-A)' },
+            { value: 'date-desc', label: 'Date (Newest)' },
+            { value: 'date-asc', label: 'Date (Oldest)' },
+            { value: 'size-desc', label: 'Size (Largest)' },
+            { value: 'size-asc', label: 'Size (Smallest)' }
+        ];
+        
+        sortOptions.forEach(option => {
+            const optionEl = sortSelect.createEl('option', {
+                value: option.value,
+                text: option.label
             });
+            if (option.value === this.sortOrder) {
+                optionEl.selected = true;
+            }
+        });
+        
+        sortSelect.addEventListener('change', () => {
+            this.sortOrder = sortSelect.value;
+            this.currentPage = 1; // Reset to first page when sorting changes
+            this.updateImageGrid();
+        });
+        
+        // Create pagination container on the right
+        const paginationDiv = controlsContainer.createDiv({ cls: 'pixel-banner-pagination-buttons' });
+        paginationDiv.style.display = 'flex';
+        paginationDiv.style.gap = '10px';
+        paginationDiv.style.alignItems = 'center';
+        
+        // First page button
+        const firstButton = paginationDiv.createEl('button', {
+            text: '«',
+            cls: 'pixel-banner-pagination-button',
+            attr: {
+                'aria-label': 'First page'
+            }
+        });
+        firstButton.disabled = this.currentPage === 1 || totalImages === 0;
+        if (firstButton.disabled) {
+            firstButton.addClass('disabled');
         }
-
+        firstButton.onclick = () => {
+            if (this.currentPage !== 1) {
+                this.currentPage = 1;
+                this.updateImageGrid();
+            }
+        };
+        
+        // Previous page button
+        const prevButton = paginationDiv.createEl('button', {
+            text: '‹',
+            cls: 'pixel-banner-pagination-button',
+            attr: {
+                'aria-label': 'Previous page'
+            }
+        });
+        prevButton.disabled = this.currentPage === 1 || totalImages === 0;
+        if (prevButton.disabled) {
+            prevButton.addClass('disabled');
+        }
+        prevButton.onclick = () => {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.updateImageGrid();
+            }
+        };
+        
+        // Page info
+        const pageInfo = paginationDiv.createEl('span', {
+            text: `${this.currentPage} / ${totalPages}`,
+            cls: 'pixel-banner-pagination-info',
+            attr: {
+                style: 'white-space: nowrap;'
+            }
+        });
+        
+        // Next page button
+        const nextButton = paginationDiv.createEl('button', {
+            text: '›',
+            cls: 'pixel-banner-pagination-button',
+            attr: {
+                'aria-label': 'Next page'
+            }
+        });
+        nextButton.disabled = this.currentPage === totalPages || totalImages === 0;
+        if (nextButton.disabled) {
+            nextButton.addClass('disabled');
+        }
+        nextButton.onclick = () => {
+            if (this.currentPage < totalPages) {
+                this.currentPage++;
+                this.updateImageGrid();
+            }
+        };
+        
+        // Last page button
+        const lastButton = paginationDiv.createEl('button', {
+            text: '»',
+            cls: 'pixel-banner-pagination-button',
+            attr: {
+                'aria-label': 'Last page'
+            }
+        });
+        lastButton.disabled = this.currentPage === totalPages || totalImages === 0;
+        if (lastButton.disabled) {
+            lastButton.addClass('disabled');
+        }
+        lastButton.onclick = () => {
+            if (this.currentPage !== totalPages) {
+                this.currentPage = totalPages;
+                this.updateImageGrid();
+            }
+        };
+        
         // Add "Back to Main Menu" button
-        const backToMainButton = this.paginationContainer.createEl('button', {
+        const backToMainButton = paginationContainer.createEl('button', {
             text: '⇠ Main Menu',
             cls: 'pixel-banner-image-select-back-to-main',
             attr: {
                 style: `
-                    margin-left: auto;
+                    margin-right: 20px;
                     cursor: pointer;
                 `
             }
         });
                 
-        // on click of back to main menu button, close this modal and open the Pixel Banner Selector modal
+        // On click of back to main menu button, close this modal and open the Pixel Banner Selector modal
         backToMainButton.addEventListener('click', () => {
             this.close();
             new SelectPixelBannerModal(this.app, this.plugin).open();
@@ -568,5 +707,10 @@ export class ImageSelectionModal extends Modal {
     onClose() {
         const { contentEl } = this;
         contentEl.empty();
+        
+        // Remove the style element
+        if (this.style) {
+            this.style.remove();
+        }
     }
 }

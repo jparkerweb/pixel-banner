@@ -200,7 +200,8 @@ export class SelectPixelBannerModal extends Modal {
                             new TargetPositionModal(this.app, this.plugin).open();
                         }
                     }
-                }
+                },
+                this.plugin.settings.defaultSelectImagePath
             ).open();
         });
 
@@ -260,7 +261,7 @@ export class SelectPixelBannerModal extends Modal {
         const targetingIconContent = targetingIconButton.createDiv({ cls: 'pixel-banner-button-content' });
         targetingIconContent.createEl('span', { text: '🎯', cls: 'pixel-banner-button-icon' });
         targetingIconContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Adjust Position & Size', 
+            text: 'Adjust Position, Size, & Style', 
             cls: 'pixel-banner-button-text' 
         });
 

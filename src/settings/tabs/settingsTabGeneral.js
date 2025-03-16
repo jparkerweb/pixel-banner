@@ -1,5 +1,5 @@
-import { Setting, MarkdownView, Notice } from 'obsidian';
-import { DEFAULT_SETTINGS } from '../settings';
+import { Setting, MarkdownView } from 'obsidian';
+import { DEFAULT_SETTINGS, FolderSuggestModal } from '../settings';
 import { flags } from '../../resources/flags.js';
 
 export function createGeneralSettings(containerEl, plugin) {
