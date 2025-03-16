@@ -473,7 +473,7 @@ export class GenerateAIBannerModal extends Modal {
 
                 /* Error message styling */
                 .pixel-banner-history-container .pixel-banner-error {
-                    color: var(--text-error);
+                    color: var(--text-accent);
                     font-size: 12px;
                     text-align: center;
                     padding: 8px;

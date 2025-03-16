@@ -52,8 +52,8 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
 
     // Test API Key button
     new Setting(pixelBannerPlusSettingsGroup)
-        .setName('Test Connection')
-        .setDesc('Verify your Pixel Banner Plus credentials')
+        .setName('Establish Connection')
+        .setDesc('Establish a connection to your Pixel Banner Plus account')
         .addButton(button => {
             // Apply styles to the button element immediately
             const buttonEl = button.buttonEl;
@@ -68,7 +68,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
             buttonEl.style.cursor = 'pointer';
             
             // Set initial button HTML with emoji
-            button.buttonEl.innerHTML = '⚡ Test Pixel Banner Plus API Key';
+            button.buttonEl.innerHTML = '⚡ Refresh / Connect Account';
             button.setCta();
             button.onClick(async () => {
                 const email = plugin.settings.pixelBannerPlusEmail;
@@ -124,7 +124,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                     updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                 }
 
-                button.buttonEl.innerHTML = '⚡ Test Pixel Banner Plus API Key';
+                button.buttonEl.innerHTML = '⚡ Refresh / Connect Account';
                 button.setDisabled(false);
             });
         });
@@ -257,7 +257,7 @@ function updateAccountStatusSection(containerEl, plugin) {
             .setName('Buy Tokens')
             .setDesc(createFragment(el => {
                 el.createEl('div', { text: 'Purchase tokens to download Banners from the Store or Generate them with AI ✨' });
-                el.createEl('div', { text: 'This greatly helps support the development of this plugin and keep the AI Servers running 🤗' });
+                el.createEl('div').innerHTML = 'This greatly helps support the development of this plugin and keep the AI Servers running 🤗. In addition to buying tokens directly, any donation on our <a href="https://ko-fi.com/jparkerweb" target="_blank">Ko-fi page</a> will also add tokens to your account 💖';
             }))
             .addButton(button => {
                 const buttonEl = button.buttonEl;

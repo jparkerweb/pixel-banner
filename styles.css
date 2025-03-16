@@ -672,7 +672,7 @@
 }
 
 .pixel-banner-error {
-    color: var(--text-error);
+    color: var(--text-accent);
     text-align: center;
     padding: 20px;
 }
