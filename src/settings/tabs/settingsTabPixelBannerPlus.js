@@ -257,7 +257,7 @@ function updateAccountStatusSection(containerEl, plugin) {
             .setName('Buy Tokens')
             .setDesc(createFragment(el => {
                 el.createEl('div', { text: 'Purchase tokens to download Banners from the Store or Generate them with AI ✨' });
-                el.createEl('div').innerHTML = 'This greatly helps support the development of this plugin and keep the AI Servers running 🤗. In addition to buying tokens directly, any donation on our <a href="https://ko-fi.com/jparkerweb" target="_blank">Ko-fi page</a> will also add tokens to your account 💖';
+                el.createEl('div').innerHTML = 'This greatly helps support the development of this plugin and keep the AI Servers running 🤗. In addition to buying tokens directly, any donation on our <a href="https://ko-fi.com/jparkerweb" target="_blank" style="text-transform: uppercase;background: white;border: 1px solid green;color: black;font-size: 0.9em;font-weight: bold;padding: 0 3px;cursor: pointer;text-decoration: none;border-radius: 5px;">Ko-fi page</a> will also add tokens to your account 💖';
             }))
             .addButton(button => {
                 const buttonEl = button.buttonEl;
