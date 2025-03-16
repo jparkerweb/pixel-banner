@@ -42,6 +42,11 @@ export class PixelBannerStoreModal extends Modal {
         // Create and populate select element
         this.categorySelect = selectContainer.createEl('select', { 
             cls: 'pixel-banner-store-select',
+            attr: {
+                style: `
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
+                `
+            }
         });
 
         // Add default option
@@ -93,14 +98,24 @@ export class PixelBannerStoreModal extends Modal {
             console.error('Failed to fetch categories:', error);
             selectContainer.createEl('p', {
                 text: 'Failed to load categories. Please try again later.',
-                cls: 'pixel-banner-store-error'
+                cls: 'pixel-banner-store-error',
+                attr: {
+                    style: `
+                        display: ${this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
+                    `
+                }
             });
         }
 
         // add "Next Category" button
         const nextCategoryButton = selectContainer.createEl('button', {
             text: 'Next Category',
-            cls: 'pixel-banner-store-next-category'
+            cls: 'pixel-banner-store-next-category',
+            attr: {
+                style: `
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
+                `
+            }
         });
         // on click of next category button, load the next category
         nextCategoryButton.addEventListener('click', async () => {
@@ -133,7 +148,11 @@ export class PixelBannerStoreModal extends Modal {
         });
 
         // Create container for images
-        this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -empty' });
+        if (this.plugin.pixelBannerPlusEnabled) {
+            this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -empty' });
+        } else {
+            this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -not-connected' });
+        }
 
         // Pixel Banner Plus Account Status Section
         const pixelBannerPlusAccountStatus = contentEl.createDiv({
@@ -284,6 +303,7 @@ export class PixelBannerStoreModal extends Modal {
     displayImages(images) {
         if (images.length > 0) {
             this.imageContainer.removeClass('-empty');
+            this.imageContainer.removeClass('-not-connected');
         }
 
         const container = this.imageContainer;
@@ -478,13 +498,13 @@ export class PixelBannerStoreModal extends Modal {
             }
             
             .pixel-banner-store-error {
-                color: var(--text-error);
+                color: var(--text-accent);
                 margin-top: 8px;
             }
 
             .pixel-banner-store-image-grid {
-                gap: 16px;
-                padding: 16px;
+                gap: 18px;
+                padding: 22px;
                 margin-top: 20px;
                 display: flex;
                 flex-direction: row;
@@ -494,6 +514,7 @@ export class PixelBannerStoreModal extends Modal {
                 height: 800px;
                 max-height: 60vh;
                 overflow-y: auto;
+                overflow-x: hidden;
                 border: 1px solid var(--table-border-color);
             }
             .pixel-banner-store-image-grid.-empty::after {
@@ -507,9 +528,20 @@ export class PixelBannerStoreModal extends Modal {
                 text-align: center;
                 opacity: 0.7;
             }
+            .pixel-banner-store-image-grid.-not-connected::after {
+                content: "🪄 Please connect your Pixel Banner Plus account to the plugin to access the store. If you don't have an account, you can sign up for free using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
+                position: relative;
+                top: 40%;
+                max-width: 458px;
+                font-size: 1.3em;
+                color: var(--text-muted);
+                max-height: 80px;
+                text-align: center;
+                opacity: 0.7;
+            }
 
             .pixel-banner-store-image-card {
-                border: 1px solid var(--background-modifier-border);
+                border: 5px solid transparent;
                 border-radius: 8px;
                 overflow: hidden;
                 display: flex;
@@ -521,9 +553,12 @@ export class PixelBannerStoreModal extends Modal {
                 cursor: pointer;
                 height: max-content;
                 animation: pixel-banner--fade-in 1300ms ease-in-out;
+                background: var(--background-secondary);
             }
             .pixel-banner-store-image-card:hover {
-                transform: scale(1.05);
+                transform: scale(1.1);
+                border-color: var(--modal-border-color);
+                z-index: 2;
             }
 
             .pixel-banner-store-image-card img {

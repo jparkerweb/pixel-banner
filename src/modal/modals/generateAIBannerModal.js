@@ -438,7 +438,7 @@ export class GenerateAIBannerModal extends Modal {
                 .pixel-banner-history-image-wrapper:hover {
                     transform: scale(1.25);
                     z-index: 2;
-                    border-color: var(--background-modifier-border) !important;
+                    border-color: var(--modal-border-color) !important;
                 }
 
                 /* Ensuring images keep aspect ratio */
