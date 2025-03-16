@@ -334,6 +334,7 @@ export class GenerateAIBannerModal extends Modal {
     }
 
     async onOpen() {
+        await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         contentEl.empty();
 
@@ -536,7 +537,15 @@ export class GenerateAIBannerModal extends Modal {
                 `
             }
         });
-        contentEl.createEl('p', {
+        const promptAllowedSection = contentEl.createDiv({
+            cls: 'prompt-allowed-section',
+            attr: {
+                'style': `
+                    display: ${this.plugin.pixelBannerPlusBannerTokens === 0 ? 'none' : 'block'};
+                `
+            }
+        });
+        const promptDescription = promptAllowedSection.createEl('p', {
             text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 seed button.',
             attr: {
                 'style': `
@@ -549,7 +558,7 @@ export class GenerateAIBannerModal extends Modal {
         });
 
         // Prompt
-        const promptContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-prompt-container' });
+        const promptContainer = promptAllowedSection.createDiv({ cls: 'setting-item pixel-banner-ai-prompt-container' });
         promptContainer.createDiv({ cls: 'setting-item-name', text: 'Banner Prompt' });
         promptContainer.createDiv({
             cls: 'setting-item-description', 
@@ -590,7 +599,7 @@ export class GenerateAIBannerModal extends Modal {
         inspirationFromSeedButton.addEventListener('click', () => this.getPromptInspirationFromSeed());
 
         // Width
-        const widthContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-control-row', attr: { style: 'padding-bottom: 0;' } });
+        const widthContainer = promptAllowedSection.createDiv({ cls: 'setting-item pixel-banner-ai-control-row', attr: { style: 'padding-bottom: 0;' } });
         const widthInfo = widthContainer.createDiv({ cls: 'setting-item-info' });
         widthInfo.createDiv({ cls: 'setting-item-name', text: 'Width' });
         widthInfo.createDiv({ cls: 'setting-item-description', text: this.width });
@@ -609,7 +618,7 @@ export class GenerateAIBannerModal extends Modal {
         });
 
         // Height
-        const heightContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-ai-control-row' });
+        const heightContainer = promptAllowedSection.createDiv({ cls: 'setting-item pixel-banner-ai-control-row' });
         const heightInfo = heightContainer.createDiv({ cls: 'setting-item-info' });
         heightInfo.createDiv({ cls: 'setting-item-name', text: 'Height' });
         heightInfo.createDiv({ cls: 'setting-item-description', text: this.height });
@@ -627,10 +636,52 @@ export class GenerateAIBannerModal extends Modal {
             heightInfo.querySelector('.setting-item-description').textContent = this.height;
         });
 
+        // prompt disallowed section
+        const promptDisallowedSection = contentEl.createDiv({
+            cls: 'prompt-disallowed-section',
+            attr: {
+                'style': `
+                    display: ${(this.plugin.pixelBannerPlusBannerTokens === 0 || !this.plugin.pixelBannerPlusEnabled) ? 'block' : 'none'};
+                    max-width: 500px;
+                    margin-top: 20px;
+                `
+            }
+        });
+        promptDisallowedSection.createEl('p', {
+            text: 'You have no remaining banner tokens 😭. Please purchase more tokens to generate a banner. Your previous banners (if any) will still be available for download below.',
+            attr: {
+                'style': `
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
+                    color: var(--text-muted);
+                    font-size: 1.1em;
+                    text-align: center;
+                `
+            }
+        });
+        promptDisallowedSection.createEl('p', {
+            text: 'You do not have an active Pixel Banner Plus account. Please Signup for Free or connect to your account to generate awesome banners with AI 🤖.',
+            attr: {
+                'style': `
+                    display: ${!this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
+                    color: var(--text-muted);
+                    font-size: 1.1em;
+                    text-align: center;
+                `
+            }
+        });
+
         // Generate Button and Token Balance
-        const buttonContainer = contentEl.createDiv({ cls: 'setting-item pixel-banner-generate-btn-container pixel-banner-ai-control-row' });
+        const buttonContainer = contentEl.createDiv({
+            cls: 'setting-item pixel-banner-generate-btn-container pixel-banner-ai-control-row',
+            attr: {
+                'style': `
+                    justify-content: ${!this.plugin.pixelBannerPlusEnabled ? 'center !important' : 'space-between'};
+                `
+            }
+        });
         
         const tokenBalance = buttonContainer.createDiv({ cls: 'pixel-banner-plus-token-balance' });
+        tokenBalance.style.display = `${this.plugin.pixelBannerPlusEnabled ? 'inline-block' : 'none'}`;
         const tokenCountSpan = document.createElement('span');
         tokenCountSpan.style.color = 'var(--text-accent)';
         tokenCountSpan.style.fontWeight = 'bold';
@@ -640,9 +691,15 @@ export class GenerateAIBannerModal extends Modal {
         tokenBalance.appendChild(tokenCountSpan);
         tokenCountSpan.classList.add('token-balance-animation');
         
+        // Generate Button
         const generateButton = buttonContainer.createEl('button', {
             cls: 'mod-cta cursor-pointer radial-pulse-animation',
-            text: '✨ Generate Image'
+            text: '✨ Generate Image',
+            attr: {
+                'style': `
+                    display: ${this.plugin.pixelBannerPlusEnabled && this.plugin.pixelBannerPlusBannerTokens > 0 ? 'block' : 'none'};
+                `
+            }
         });
         generateButton.addEventListener('click', async () => {
             if (!this.prompt) {
@@ -650,6 +707,36 @@ export class GenerateAIBannerModal extends Modal {
                 return;
             }
             await this.generateImage();
+        });
+
+        // Buy Tokens Button
+        const buyTokensButton = buttonContainer.createEl('button', {
+            cls: 'mod-cta cursor-pointer radial-pulse-animation',
+            text: '💵 Buy More Tokens',
+            attr: {
+                'style': `
+                    display: ${(this.plugin.pixelBannerPlusEnabled && this.plugin.pixelBannerPlusBannerTokens === 0) ? 'block' : 'none'};
+                `
+            }
+        });
+        buyTokensButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
+        });
+        // Signup Button
+        const signupButton = buttonContainer.createEl('button', {
+            cls: 'mod-cta cursor-pointer radial-pulse-animation',
+            text: '🚩 Signup for Free!',
+            attr: {
+                'style': `
+                    display: ${!this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
+                `
+            }
+        });
+        signupButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
+            window.open(signupUrl, '_blank');
         });
 
         // add "Back to Main Menu" button
@@ -671,13 +758,23 @@ export class GenerateAIBannerModal extends Modal {
         });
 
         // Image container
-        this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-image-container' });
+        this.imageContainer = contentEl.createDiv({
+            cls: 'pixel-banner-image-container',
+            attr: {
+                'style': `
+                    display: ${this.plugin.pixelBannerPlusEnabled && this.plugin.pixelBannerPlusBannerTokens > 0 ? 'block' : 'none'};
+                `
+            }
+        });
 
         // History container
         contentEl.createEl('h5', {
             text: '⏳ Previous AI Generated Banners',
             attr: {
-                'style': 'margin-bottom: -20px;'
+                'style': `
+                    margin-bottom: -20px;
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
+                `
             }
         });
         // History Contianer Description
@@ -685,19 +782,41 @@ export class GenerateAIBannerModal extends Modal {
             text: `Click an image to download and use as a banner. These downloads are always FREE as you have already paid to generate them.`,
             cls: 'pixel-banner-history-description',
             attr: {
-                'style': 'font-size: 12px; color: var(--text-muted); padding-top: 10px; margin-bottom: -10px;'
+                style: `
+                    font-size: 12px; 
+                    color: var(--text-muted); 
+                    padding-top: 10px; 
+                    margin-bottom: -10px;
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
+                `
             }
         });
         historyContainerDescription.innerHTML = historyContainerDescription.innerHTML.replace(/FREE/g, '<span style="color: var(--color-green); font-weight: bold;">FREE</span>');
 
 
-        const historyContainer = contentEl.createDiv({ cls: 'pixel-banner-history-container' });
+        const historyContainer = contentEl.createDiv({
+            cls: 'pixel-banner-history-container',
+            attr: {
+                'style': `
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'flex' : 'none'};
+                `
+            }
+        });
         
         // Add pagination container after history container
-        const paginationContainer = contentEl.createDiv({ cls: 'ai-banner-pagination' });
+        const paginationContainer = contentEl.createDiv({
+            cls: 'ai-banner-pagination',
+            attr: {
+                'style': `
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'flex' : 'none'};
+                `
+            }
+        });
         
         // Initial load of history with pagination
-        await this.refreshHistoryContainer();
+        if (this.plugin.pixelBannerPlusEnabled) {
+            await this.refreshHistoryContainer();
+        }
     }
 
     async getPromptInspiration() {
