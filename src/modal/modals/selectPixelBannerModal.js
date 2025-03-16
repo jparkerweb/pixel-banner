@@ -9,7 +9,8 @@ export class SelectPixelBannerModal extends Modal {
         this.plugin = plugin;
     }
 
-    onOpen() {
+    async onOpen() {
+        await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         
         // Create title with the selected flag icon
@@ -325,7 +326,8 @@ export class SelectPixelBannerModal extends Modal {
         
         // Connection Status        
         const isConnected = this.plugin.pixelBannerPlusEnabled;
-        const statusText = isConnected ? '✅ Connected' : '❌ Not Connected';
+        const isServerOnline = this.plugin.pixelBannerPlusServerOnline;
+        const statusText = isServerOnline ? (isConnected ? '✅ Authorized' : '❌ Not Authorized') : '🚨 Servers Offline 🚨';
         const statusBorderColor = isConnected ? '#20bf6b' : '#FF0000';
         
         statusContainer.createEl('span', {
@@ -346,7 +348,7 @@ export class SelectPixelBannerModal extends Modal {
             attr: {
                 style: `
                     border: 1px solid #F3B93B;
-                    display: ${this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
+                    display: ${isServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
                 `
             }
         });
@@ -381,7 +383,7 @@ export class SelectPixelBannerModal extends Modal {
         statusContainer.addEventListener('click', openPlusSettings);            
         
         // Show Buy Tokens button if connected
-        if (isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
+        if (isServerOnline && isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
             const buyTokensButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
                 text: '💵 Buy More Tokens'
@@ -393,7 +395,7 @@ export class SelectPixelBannerModal extends Modal {
             });
         } 
         // Show Signup button if not connected
-        else if (!isConnected) {
+        else if (isServerOnline && !isConnected) {
             const signupButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-signup-button',
                 text: '🚩 Signup for Free!'

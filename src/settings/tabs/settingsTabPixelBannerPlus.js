@@ -79,7 +79,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                     return;
                 }
 
-                button.buttonEl.innerHTML = 'Testing...';
+                button.buttonEl.innerHTML = 'Verifying Account...';
                 button.setDisabled(true);
 
                 try {
@@ -88,6 +88,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                         if (data.verified) {
                             new Notice(`✅ Pixel Banner Plus connection successful\n🪙 Banner Tokens Remaining: ${data.bannerTokens}`);
                             // Update plugin state with new data
+                            plugin.pixelBannerPlusServerOnline = data.serverOnline;
                             plugin.pixelBannerPlusEnabled = true;
                             plugin.pixelBannerPlusBannerTokens = data.bannerTokens;
                             
@@ -96,8 +97,14 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                             // Update the Signup section
                             updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                         } else {
-                            new Notice('❌ Invalid credentials');
+                            if (data.serverOnline) {
+                                new Notice('❌ Invalid credentials');
+                            } else {
+                                new Notice('❌ Cannot connect to Pixel Banner Plus servers. Please try again later.');
+                            }
+                            plugin.pixelBannerPlusServerOnline = data.serverOnline;
                             plugin.pixelBannerPlusEnabled = false;
+                            plugin.pixelBannerPlusBannerTokens = 0;
                             
                             // Update the Account Status section to reflect new values
                             updateAccountStatusSection(accountStatusGroup, plugin);
@@ -106,8 +113,10 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                         }
                         // console.log(`data: ${JSON.stringify(data)}`);
                     } else {
-                        new Notice('❌ Invalid credentials');
+                        new Notice('❌ Cannot connect to Pixel Banner Plus servers. Please try again later.');
+                        plugin.pixelBannerPlusServerOnline = false;
                         plugin.pixelBannerPlusEnabled = false;
+                        plugin.pixelBannerPlusBannerTokens = 0;
                         
                         // Update the Account Status section to reflect new values
                         updateAccountStatusSection(accountStatusGroup, plugin);
@@ -115,7 +124,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                         updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                     }
                 } catch (error) {
-                    new Notice('❌ Connection failed. Please check the service URL.');
+                    new Notice('❌ Connection failed.');
                     plugin.pixelBannerPlusEnabled = false;
                     
                     // Update the Account Status section to reflect new values
@@ -124,7 +133,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                     updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
                 }
 
-                button.buttonEl.innerHTML = '⚡ Refresh / Connect Account';
+                button.buttonEl.innerHTML = '⚡ Refresh / Authorize Account';
                 button.setDisabled(false);
             });
         });
@@ -150,7 +159,7 @@ function updateSignupSection(containerEl, plugin) {
     });
     
     // Only show signup button when not connected
-    if (!plugin.pixelBannerPlusEnabled) {
+    if (!plugin.pixelBannerPlusEnabled && plugin.pixelBannerPlusServerOnline) {
         new Setting(containerEl)
             .setName('Signup')
             .setDesc('Create a FREE Pixel Banner Plus account to get started. You will receive 🪙 5 FREE banner tokens at signup (no payment info required). This form can also be use to recover your account if you forget your API Key.')
@@ -185,7 +194,7 @@ function updateAccountStatusSection(containerEl, plugin) {
         .setName('Connection Status')
         .setDesc('Current status of your Pixel Banner Plus account')
         .addText(text => {
-            const statusText = plugin.pixelBannerPlusEnabled ? '✅ Connected' : '❌ Not Connected';
+            const statusText = plugin.pixelBannerPlusServerOnline ? (plugin.pixelBannerPlusEnabled ? '✅ Authorized' : '❌ Not Authorized') : '🚨 Servers Offline 🚨';
             
             // Check if Obsidian is in light mode
             const isLightMode = document.body.classList.contains('theme-light');

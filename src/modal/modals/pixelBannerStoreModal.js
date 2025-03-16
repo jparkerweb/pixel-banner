@@ -353,6 +353,14 @@ export class PixelBannerStoreModal extends Modal {
                                 throw new Error('Failed to fetch image');
                             }
 
+                            // verify account
+                            await this.plugin.verifyPixelBannerPlusCredentials();
+
+                            // update the image card with a cost of 0
+                            card.setAttribute('data-image-cost', '0');
+                            card.querySelector('.pixel-banner-store-cost').classList.add('free');
+                            card.querySelector('.pixel-banner-store-cost').textContent = 'FREE';
+
                             const data = await response.json();
                             let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                             filename = filename.replace(/\s+/g, '-').substring(0, 47);

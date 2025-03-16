@@ -18,14 +18,15 @@ async function verifyPixelBannerPlusCredentials(plugin) {
         if (response.status === 200) {
             const data = response.json;
             return {
+                serverOnline: true,
                 verified: data.success,
                 bannerTokens: data.banner_tokens
             };
         }
-        return { verified: false, bannerTokens: 0 };
+        return { serverOnline: true, verified: false, bannerTokens: 0 };
     } catch (error) {
         console.error('Failed to verify Pixel Banner Plus credentials:', error);
-        return { verified: false, bannerTokens: 0 };
+        return { serverOnline: false, verified: false, bannerTokens: 0 };
     }
 }
 

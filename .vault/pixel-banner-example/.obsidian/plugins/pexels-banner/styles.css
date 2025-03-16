@@ -229,6 +229,7 @@
     border-radius: 5px;
     padding: 20px;
     margin: 20px 0;
+    background-color: var(--background-secondary);
 }
 .setting-item.folder-image-setting .folder-image-delete-container {
     position: absolute;
@@ -591,7 +592,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
-    padding: 1rem;
+    padding: 0 1rem;
     overflow-y: auto;
     max-height: 60vh;
 }
@@ -671,7 +672,7 @@
 }
 
 .pixel-banner-error {
-    color: var(--text-error);
+    color: var(--text-accent);
     text-align: center;
     padding: 20px;
 }
@@ -777,6 +778,16 @@
     animation-name: radial-pulse;
 }
 
+/* animation for an element to scale up and down */
+@keyframes scale-up-down {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+.scale-up-down-animation {
+    animation: scale-up-down 3s ease-in-out infinite;
+}
+
 
 
 /* --------------------------- */
@@ -838,18 +849,17 @@
 /* -- banner icon overlay -- */
 /* ------------------------- */
 .banner-icon-overlay {
-    /* transform: translate(-50%, -15%); */
     --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
     transform: translate(var(--pixel-banner-icon-translate-x), -15%);
     position: absolute;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
-    margin-top: var(--pixel-banner-icon-vertical-offset, 0);
+    margin-top: calc(var(--pixel-banner-icon-vertical-offset, 0) * 1px);
     padding-top: var(--pixel-banner-icon-padding-y, 0) !important;
     padding-right: var(--pixel-banner-icon-padding-x, 0) !important;
     padding-bottom: var(--pixel-banner-icon-padding-y, 0) !important;
     padding-left: var(--pixel-banner-icon-padding-x, 0) !important;
-    line-height: normal;
+    line-height: 1.38;
     opacity: var(--pixel-banner-icon-opacity, 100%);
     color: var(--pixel-banner-icon-color, var(--text-normal));
     font-size: var(--pixel-banner-icon-size, 70px);
