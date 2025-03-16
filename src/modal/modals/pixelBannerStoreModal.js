@@ -24,6 +24,7 @@ export class PixelBannerStoreModal extends Modal {
     // -- Open Modal --
     // ----------------
     async onOpen() {
+        await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         contentEl.empty();
         
@@ -133,6 +134,105 @@ export class PixelBannerStoreModal extends Modal {
 
         // Create container for images
         this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -empty' });
+
+        // Pixel Banner Plus Account Status Section
+        const pixelBannerPlusAccountStatus = contentEl.createDiv({
+            cls: 'pixel-banner-store-account-status',
+            attr: {
+                'style': `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    justify-content: flex-start;
+                    margin-bottom: -10px;
+                    margin-top: 5px;
+                    font-size: .9em;
+                `
+            }
+        });
+        // Connection Status        
+        const isConnected = this.plugin.pixelBannerPlusEnabled;
+        const statusText = isConnected ? '✅ Connected' : '❌ Not Connected';
+        const statusBorderColor = isConnected ? '#20bf6b' : '#FF0000';
+        
+        const connectionStatusEl = pixelBannerPlusAccountStatus.createEl('span', {
+            text: statusText,
+            cls: 'pixel-banner-status-value',
+            attr: {
+                style: `border: 1px solid ${statusBorderColor};`
+            }
+        });
+        
+        // Available Tokens        
+        const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined ? 
+            `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` : '❓ Unknown';
+        
+        const tokenCountEl = pixelBannerPlusAccountStatus.createEl('span', {
+            text: tokenCount,
+            cls: 'pixel-banner-status-value',
+            attr: {
+                style: `
+                    border: 1px solid #F3B93B;
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
+                `
+            }
+        });
+
+        // Open settings and navigate to Pixel Banner tab
+        const openPlusSettings = async () => {
+            this.close();
+            await this.app.setting.open();
+            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+            
+            // Find and click the Pixel Banner item in the settings sidebar
+            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+            for (const tab of settingsTabs) {
+                if (tab.textContent.includes('Pixel Banner')) {
+                    tab.click();
+                    break;
+                }
+            }
+            
+            // Find and click the Pixel Banner Plus item in the settings sidebar
+            const pixelBannerSettingsTabs = document.querySelectorAll('.pixel-banner-settings-tabs > button.pixel-banner-settings-tab');
+            for (const tab of pixelBannerSettingsTabs) {
+                if (tab.textContent.includes('Plus')) {
+                    tab.click();
+                    break;
+                }
+            }
+
+        };
+        // Plus Settings Listener for `accountTitle` and `statusContainer`
+        connectionStatusEl.addEventListener('click', openPlusSettings);
+        tokenCountEl.addEventListener('click', openPlusSettings);            
+        
+        // Show Buy Tokens button if connected
+        if (isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
+            const buyTokensButton = pixelBannerPlusAccountStatus.createEl('button', {
+                cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
+                text: '💵 Buy More Tokens'
+            });
+            
+            buyTokensButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
+            });
+        } 
+        // Show Signup button if not connected
+        else if (!isConnected) {
+            const signupButton = pixelBannerPlusAccountStatus.createEl('button', {
+                cls: 'pixel-banner-account-button pixel-banner-signup-button',
+                text: '🚩 Signup for Free!'
+            });
+            
+            signupButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
+                window.open(signupUrl, '_blank');
+            });
+        }
 
         this.addStyle();
     }
@@ -478,6 +578,44 @@ export class PixelBannerStoreModal extends Modal {
             @keyframes pixel-banner-store-spin {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
+            }
+
+            .pixel-banner-status-value {
+                padding: 3px 7px;
+                border-radius: 0px;
+                font-size: .8em;
+                letter-spacing: 1px;
+                background-color: var(--background-primary);
+                display: inline-flex;
+                align-items: center;
+                cursor: help;
+            }
+            
+            .pixel-banner-account-button {
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-size: .7em;
+                transition: all 0.2s ease;
+                border: 1px solid var(--background-modifier-border);
+            }
+            
+            .pixel-banner-account-button:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+            
+            .pixel-banner-buy-tokens-button {
+                background-color: darkgreen !important;
+                color: papayawhip !important;
+                opacity: 0.7;
+            }
+            
+            .pixel-banner-signup-button {
+                background-color: var(--interactive-accent) !important;
+                color: var(--text-on-accent) !important;
             }
         `;
         document.head.appendChild(style);

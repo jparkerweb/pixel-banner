@@ -344,7 +344,10 @@ export class SelectPixelBannerModal extends Modal {
             text: tokenCount,
             cls: 'pixel-banner-status-value',
             attr: {
-                style: 'border: 1px solid #F3B93B;'
+                style: `
+                    border: 1px solid #F3B93B;
+                    display: ${this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
+                `
             }
         });
 
@@ -378,7 +381,7 @@ export class SelectPixelBannerModal extends Modal {
         statusContainer.addEventListener('click', openPlusSettings);            
         
         // Show Buy Tokens button if connected
-        if (isConnected) {
+        if (isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
             const buyTokensButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
                 text: '💵 Buy More Tokens'
@@ -390,7 +393,7 @@ export class SelectPixelBannerModal extends Modal {
             });
         } 
         // Show Signup button if not connected
-        else {
+        else if (!isConnected) {
             const signupButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-signup-button',
                 text: '🚩 Signup for Free!'
@@ -572,7 +575,7 @@ export class SelectPixelBannerModal extends Modal {
             .pixel-banner-account-info {
                 display: flex;
                 flex-direction: row;
-                justify-content: space-around;
+                justify-content: flex-start;
                 align-items: center;
                 flex-wrap: wrap;
                 gap: 10px;
