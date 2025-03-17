@@ -229,14 +229,16 @@ export class ImageSelectionModal extends Modal {
         const controlsRow = searchContainer.createDiv({ cls: 'controls-row' });
 
         // Generate with AI button
-        const pixelBannerPlusGenAIButton = controlsRow.createEl('button');
-        pixelBannerPlusGenAIButton.addClass('radial-pulse-animation');
-        const sparkleSpan = pixelBannerPlusGenAIButton.createSpan({ cls: 'twinkle-animation', text: '✨ ' });
-        pixelBannerPlusGenAIButton.createSpan({ cls:'margin-left-5', text: 'AI Banners' });
-        pixelBannerPlusGenAIButton.addEventListener('click', () => {
-            this.close();
-            new GenerateAIBannerModal(this.app, this.plugin).open();
-        });
+        if (this.plugin.pixelBannerPlusServerOnline) {
+            const pixelBannerPlusGenAIButton = controlsRow.createEl('button');
+            pixelBannerPlusGenAIButton.addClass('radial-pulse-animation');
+            const sparkleSpan = pixelBannerPlusGenAIButton.createSpan({ cls: 'twinkle-animation', text: '✨ ' });
+            pixelBannerPlusGenAIButton.createSpan({ cls:'margin-left-5', text: 'AI Banners' });
+            pixelBannerPlusGenAIButton.addEventListener('click', () => {
+                this.close();
+                new GenerateAIBannerModal(this.app, this.plugin).open();
+            });
+        }
 
         // Upload button
         const uploadButton = controlsRow.createEl('button', {

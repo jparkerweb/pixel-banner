@@ -692,7 +692,7 @@ export class PixelBannerPlugin extends Plugin {
     // ------------------------------------------
     async verifyPixelBannerPlusCredentials() {
         const result = await verifyPixelBannerPlusCredentials(this);
-        console.log('🔍 verifyPixelBannerPlusCredentials result:', result);
+        // console.log('🔍 verifyPixelBannerPlusCredentials result:', result);
         this.pixelBannerPlusServerOnline = result.serverOnline;
         this.pixelBannerPlusEnabled = result.verified;
         this.pixelBannerPlusBannerTokens = result.bannerTokens;

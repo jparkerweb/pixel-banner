@@ -94,17 +94,29 @@ export class SelectPixelBannerModal extends Modal {
         bannerSourceSection.createEl('h3', { text: 'Select Banner Source', cls: 'pixel-banner-section-title' });
         
         // Banner source buttons container
-        const bannerSourceButtons = bannerSourceSection.createDiv({ cls: 'pixel-banner-source-buttons' });
+        const bannerSourceButtons = bannerSourceSection.createDiv({
+            cls: 'pixel-banner-source-buttons',
+            attr: {
+                style: `
+                    display: ${this.plugin.pixelBannerPlusServerOnline ? 'flex !important' : 'flex'};
+                `
+            }
+        });
         
         // AI Generation Button
         const aiButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button'
+            cls: 'pixel-banner-source-button',
+            attr: {
+                style: `
+                    display: ${this.plugin.pixelBannerPlusServerOnline ? 'flex' : 'none'};
+                `
+            }
         });
         const aiButtonContent = aiButton.createDiv({ cls: 'pixel-banner-button-content' });
         aiButtonContent.createEl('span', { text: '✨', cls: 'pixel-banner-button-icon' });
         aiButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
             text: 'Generate with AI', 
-            cls: 'pixel-banner-button-text' 
+            cls: 'pixel-banner-button-text'
         });
         // AI Generation Button Click Event
         aiButton.addEventListener('click', () => {
@@ -114,7 +126,12 @@ export class SelectPixelBannerModal extends Modal {
         
         // Store Button
         const storeButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button'
+            cls: 'pixel-banner-source-button',
+            attr: {
+                style: `
+                    display: ${this.plugin.pixelBannerPlusServerOnline ? 'flex' : 'none'};
+                `
+            }
         });
         const storeButtonContent = storeButton.createDiv({ cls: 'pixel-banner-button-content' });
         storeButtonContent.createEl('span', { text: '🏪', cls: 'pixel-banner-button-icon' });
@@ -326,8 +343,8 @@ export class SelectPixelBannerModal extends Modal {
         
         // Connection Status        
         const isConnected = this.plugin.pixelBannerPlusEnabled;
-        const isServerOnline = this.plugin.pixelBannerPlusServerOnline;
-        const statusText = isServerOnline ? (isConnected ? '✅ Authorized' : '❌ Not Authorized') : '🚨 Servers Offline 🚨';
+        const pixelBannerPlusServerOnline = this.plugin.pixelBannerPlusServerOnline;
+        const statusText = pixelBannerPlusServerOnline ? (isConnected ? '✅ Authorized' : '❌ Not Authorized') : '🚨 Servers Offline 🚨';
         const statusBorderColor = isConnected ? '#20bf6b' : '#FF0000';
         
         statusContainer.createEl('span', {
@@ -348,7 +365,7 @@ export class SelectPixelBannerModal extends Modal {
             attr: {
                 style: `
                     border: 1px solid #F3B93B;
-                    display: ${isServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
+                    display: ${pixelBannerPlusServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
                 `
             }
         });
@@ -383,7 +400,7 @@ export class SelectPixelBannerModal extends Modal {
         statusContainer.addEventListener('click', openPlusSettings);            
         
         // Show Buy Tokens button if connected
-        if (isServerOnline && isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
+        if (pixelBannerPlusServerOnline && isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
             const buyTokensButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
                 text: '💵 Buy More Tokens'
@@ -395,7 +412,7 @@ export class SelectPixelBannerModal extends Modal {
             });
         } 
         // Show Signup button if not connected
-        else if (isServerOnline && !isConnected) {
+        else if (pixelBannerPlusServerOnline && !isConnected) {
             const signupButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-signup-button',
                 text: '🚩 Signup for Free!'
