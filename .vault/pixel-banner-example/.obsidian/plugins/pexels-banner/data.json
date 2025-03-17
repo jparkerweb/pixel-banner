@@ -81,6 +81,9 @@
   "customBannerIconVeritalOffsetField": [
     "icon-y"
   ],
+  "customFlagColorField": [
+    "pixel-banner-flag-color"
+  ],
   "folderImages": [
     {
       "folder": "notes",
@@ -163,7 +166,7 @@
   "hideEmbeddedNoteTitles": true,
   "hideEmbeddedNoteBanners": false,
   "showSelectImageIcon": true,
-  "selectImageIconFlag": "red",
+  "selectImageIconFlag": "pink",
   "defaultSelectImagePath": "pixel-banner-images",
   "useShortPath": true,
   "bannerGap": 12,

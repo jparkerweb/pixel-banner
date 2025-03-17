@@ -1,6 +1,6 @@
 ---
-banner: "[[tunnel-entrance-floating-above-a-burning-ocean-.jpg]]"
-icon: 🏰
+banner: "[[pixel-banner-images/an-ethereal-garden-where-time-stands-still-peta.jpg]]"
+pixel-banner-flag-color: red-fade-light
 ---
 
-# Walt Disney World is Awesome.... :)
+# Spring is Near

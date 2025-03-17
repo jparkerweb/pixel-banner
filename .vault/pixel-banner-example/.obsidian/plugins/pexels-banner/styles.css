@@ -1091,6 +1091,8 @@
 }
 
 /* misc helper classes */
+.display-none { display: none !important; }
+
 .margin-top-0 { margin-top: 0px !important; }
 .margin-top-5 { margin-top: 5px !important; }
 .margin-top-10 { margin-top: 10px !important; }
