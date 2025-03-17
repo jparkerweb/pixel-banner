@@ -161,7 +161,7 @@ function getRandomImageFromFolder(folderPath) {
         if (!folder || !folder.children) return null;
 
         const imageFiles = folder.children.filter(file => 
-            file.extension && ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(file.extension.toLowerCase())
+            file.extension && ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'avif'].includes(file.extension.toLowerCase())
         );
 
         if (imageFiles.length === 0) return null;

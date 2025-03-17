@@ -1549,6 +1549,7 @@ export class TargetPositionModal extends Modal {
                     padding: 15px;
                     border-radius: 5px;
                     background-color: var(--background-secondary);
+                    max-width: 510px;
                 `
             }
         });
@@ -1566,7 +1567,12 @@ export class TargetPositionModal extends Modal {
 
         // Create a container for the radio buttons
         const flagRadioContainer = flagColorSection.createDiv({
-            cls: 'pixel-banner-flag-radio-container'
+            cls: 'pixel-banner-flag-radio-container',
+            attr: {
+                style: `
+                    max-width: 600px;
+                `
+            }
         });
         
         // Add style for the radio container

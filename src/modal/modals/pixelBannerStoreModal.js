@@ -179,7 +179,7 @@ export class PixelBannerStoreModal extends Modal {
             text: statusText,
             cls: 'pixel-banner-status-value',
             attr: {
-                style: `border: 1px solid ${statusBorderColor};`
+                style: `border: 1px dotted ${statusBorderColor};`
             }
         });
         
@@ -192,7 +192,7 @@ export class PixelBannerStoreModal extends Modal {
             cls: 'pixel-banner-status-value',
             attr: {
                 style: `
-                    border: 1px solid #F3B93B;
+                    border: 1px dotted #F3B93B;
                     display: ${this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
                 `
             }

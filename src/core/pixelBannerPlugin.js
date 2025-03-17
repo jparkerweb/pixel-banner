@@ -591,7 +591,7 @@ export class PixelBannerPlugin extends Plugin {
             }
 
             // Define common image extensions
-            const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'];
+            const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg', 'avif'];
             
             const pinnedImages = pinnedFolder.children
                 .filter(file => imageExtensions.includes(file.extension.toLowerCase()))

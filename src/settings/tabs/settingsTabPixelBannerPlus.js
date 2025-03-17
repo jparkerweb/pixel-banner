@@ -210,7 +210,7 @@ function updateAccountStatusSection(containerEl, plugin) {
                     style: `
                         color: ${statusColor};
                         background-color: ${statusBGColor};
-                        border: 1px solid ${statusBorderColor};
+                        border: 1px dotted ${statusBorderColor};
                         padding: 5px 10px;
                         border-radius: 0px;
                         text-transform: uppercase;
@@ -246,7 +246,7 @@ function updateAccountStatusSection(containerEl, plugin) {
                         font-weight: bold; 
                         color: ${tokenColor}; 
                         background-color: ${tokenBGColor}; 
-                        border: 1px solid #F3B93B; 
+                        border: 1px dotted #F3B93B; 
                         padding: 5px 10px; 
                         border-radius: 0px; 
                         text-transform: uppercase; 
@@ -260,8 +260,8 @@ function updateAccountStatusSection(containerEl, plugin) {
             text.inputEl.style.display = 'none';
         });
     
-    // Buy Tokens button (only shown when connected and tokens = 0)
-    if (plugin.pixelBannerPlusEnabled && plugin.pixelBannerPlusBannerTokens === 0) {
+    // Buy Tokens button (only shown when connected)
+    if (plugin.pixelBannerPlusServerOnline && plugin.pixelBannerPlusEnabled) {
         new Setting(containerEl)
             .setName('Buy Tokens')
             .setDesc(createFragment(el => {

@@ -19,7 +19,7 @@ export class ImageSelectionModal extends Modal {
         this.imagesPerPage = 20;
         this.sortOrder = 'name-asc';
         this.imageFiles = this.app.vault.getFiles()
-            .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp)$/));
+            .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/));
     }
 
     debounce(func, wait) {

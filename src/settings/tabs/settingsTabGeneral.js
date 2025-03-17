@@ -43,7 +43,12 @@ export function createGeneralSettings(containerEl, plugin) {
         
     // Create a container for the radio buttons
     const flagRadioContainer = selectImageIconFlagSetting.controlEl.createDiv({
-        cls: 'pixel-banner-flag-radio-container'
+        cls: 'pixel-banner-flag-radio-container',
+        attr: {
+            style: `
+                max-width: 600px;
+            `
+        }
     });
     
     // Add style for the radio container
