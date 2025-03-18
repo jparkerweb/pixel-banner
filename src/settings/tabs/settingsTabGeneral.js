@@ -10,14 +10,16 @@ export function createGeneralSettings(containerEl, plugin) {
     // Create a group for the select image icon settings
     const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
 
-    // Add the showSelectImageIcon setting
-    const showSelectImageIconSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Show Select Pixel Banner Icon')
-        .setDesc('Show an icon to select banner image in the top-left corner')
-        .addToggle(toggle => toggle
-            .setValue(plugin.settings.showSelectImageIcon)
+    // Add the selectImageIconOpacity setting
+    const selectImageIconOpacitySetting = new Setting(SelectImageSettingsGroup)
+        .setName('Pixel Banner Icon Opacity')
+        .setDesc('Set the opacity of the banner selector icon in the top-left corner (0-100)')
+        .addSlider(slider => slider
+            .setLimits(0, 100, 1)
+            .setValue(plugin.settings.selectImageIconOpacity)
+            .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.showSelectImageIcon = value;
+                plugin.settings.selectImageIconOpacity = value;
                 await plugin.saveSettings();
                 plugin.updateAllBanners();
             }))
@@ -25,13 +27,12 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+                plugin.settings.selectImageIconOpacity = DEFAULT_SETTINGS.selectImageIconOpacity;
                 await plugin.saveSettings();
                 
-                const toggleComponent = showSelectImageIconSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
-                }
+                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                sliderEl.value = DEFAULT_SETTINGS.selectImageIconOpacity;
+                sliderEl.dispatchEvent(new Event('input'));
                 
                 plugin.updateAllBanners();
             }));

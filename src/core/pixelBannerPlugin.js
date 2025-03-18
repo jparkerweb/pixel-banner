@@ -318,8 +318,15 @@ export class PixelBannerPlugin extends Plugin {
         // Add command for selecting banner image
         this.addCommand({
             id: 'set-banner-image',
-            name: '🏷️ Select Banner from Vault',
+            name: '💾 Select Banner from Vault',
             callback: () => this.handleSelectImage()
+        });
+
+        // Add command for opening the banner store
+        this.addCommand({
+            id: 'open-banner-store',
+            name: '🏪 Open Pixel Banner Plus Store',
+            callback: () => this.openBannerStore()
         });
 
         // Add command for setting banner icon
@@ -355,7 +362,7 @@ export class PixelBannerPlugin extends Plugin {
         // Add command to open targeting modal
         this.addCommand({
             id: 'set-banner-position',
-            name: '🎯 Set Banner and Icon Positions',
+            name: '🎯 Adjust Position, Size, & Style',
             checkCallback: (checking) => {
                 const activeFile = this.app.workspace.getActiveFile();
                 const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
@@ -697,5 +704,12 @@ export class PixelBannerPlugin extends Plugin {
         this.pixelBannerPlusEnabled = result.verified;
         this.pixelBannerPlusBannerTokens = result.bannerTokens;
         return result;
+    }
+
+    // --------------------------
+    // -- open the banner store --
+    // --------------------------
+    openBannerStore() {
+        new SelectPixelBannerModal(this.app, this).open();
     }
 }

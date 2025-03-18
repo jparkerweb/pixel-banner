@@ -279,7 +279,7 @@ export class SelectPixelBannerModal extends Modal {
         const bannerIconContent = bannerIconButton.createDiv({ cls: 'pixel-banner-button-content' });
         bannerIconContent.createEl('span', { text: '⭐', cls: 'pixel-banner-button-icon' });
         bannerIconContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Select Banner Icon', 
+            text: 'Set Banner Icon', 
             cls: 'pixel-banner-button-text' 
         });
         

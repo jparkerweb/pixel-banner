@@ -806,7 +806,7 @@
 .pin-icon:hover,
 .refresh-icon:hover,
 .view-image-icon:hover {
-    opacity: 1;
+    opacity: 1 !important;
     cursor: pointer;
     transform: scale(1.2);
 }

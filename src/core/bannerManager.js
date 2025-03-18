@@ -68,27 +68,27 @@ async function addPixelBanner(plugin, el, ctx) {
     else {
         let leftOffset = plugin.settings.bannerGap + 15;
         // "Pixel Banner Icon"
-        if (plugin.settings.showSelectImageIcon) {
-            const selectImageIcon = createDiv({
-                cls: 'select-image-icon',
-                attr: {
-                    style: `
-                        position: absolute;
-                        top: 10px;
-                        left: ${leftOffset}px;
-                        font-size: 1.8em;
-                        cursor: pointer;
-                    `   
-                }
-            });
-            const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
-            selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
-            selectImageIcon._isPersistentSelectImage = true;
+        const opacity = plugin.settings.selectImageIconOpacity / 100;
+        const selectImageIcon = createDiv({
+            cls: 'select-image-icon',
+            attr: {
+                style: `
+                    position: absolute;
+                    top: 10px;
+                    left: ${leftOffset}px;
+                    font-size: 1.8em;
+                    cursor: pointer;
+                    opacity: ${opacity};
+                `   
+            }
+        });
+        const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
+        selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
+        selectImageIcon._isPersistentSelectImage = true;
 
-            selectImageIcon.onclick = () => plugin.handleBannerIconClick();
-            container.appendChild(selectImageIcon);
-            leftOffset += 35;
-        }
+        selectImageIcon.onclick = () => plugin.handleBannerIconClick();
+        container.appendChild(selectImageIcon);
+        leftOffset += 35;
 
         // "View image" icon
         if (bannerImage && plugin.settings.showViewImageIcon && !isEmbedded) {
@@ -588,7 +588,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach(el => el.remove());
 
         // Only add select image icon if not embedded
-        if (!isEmbedded && plugin.settings.showSelectImageIcon && container) {
+        if (!isEmbedded && container) {
+            const opacity = plugin.settings.selectImageIconOpacity / 100;
             const existingSelectIcon = container.querySelector('.select-image-icon');
             if (!existingSelectIcon) {
                 const selectImageIcon = createDiv({
@@ -600,6 +601,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                             left: ${plugin.settings.bannerGap + 5}px;
                             font-size: 1.8em;
                             cursor: pointer;
+                            opacity: ${opacity};
                         `   
                     }
                 });
@@ -608,11 +610,6 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 selectImageIcon._isPersistentSelectImage = true;
                 selectImageIcon.onclick = () => plugin.handleBannerIconClick();
                 container.insertBefore(selectImageIcon, container.firstChild);
-            }
-        } else if (!plugin.settings.showSelectImageIcon && container) {
-            const existingSelectIcon = container.querySelector('.select-image-icon');
-            if (existingSelectIcon) {
-                existingSelectIcon.remove();
             }
         }
 
