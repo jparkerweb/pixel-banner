@@ -22,7 +22,7 @@ export class SelectPixelBannerModal extends Modal {
             console.error('Error initializing modal:', error);
             this.hideLoadingSpinner();
             contentEl.createEl('p', {
-                text: 'Failed to load Pixel Banner Selector. Please try again later.',
+                text: 'Failed to load Pixel Banner Menu. Please try again later.',
                 cls: 'pixel-banner-error'
             });
         });
@@ -82,7 +82,7 @@ export class SelectPixelBannerModal extends Modal {
         });
         
         // Add the text
-        titleContainer.appendChild(document.createTextNode('Pixel Banner Selector'));
+        titleContainer.appendChild(document.createTextNode('Pixel Banner'));
 
         // Add settings button to the title container
         const settingsButton = titleContainer.createEl('button', {

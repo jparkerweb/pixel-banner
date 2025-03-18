@@ -308,7 +308,7 @@ export class PixelBannerPlugin extends Plugin {
 
         this.addCommand({
             id: 'open-pixel-banner-select',
-            name: '🚩 Pixel Banner Selector',
+            name: '🚩 Pixel Banner Menu',
             callback: () => {
                 // new SelectPixelBannerModal(this.app, this).open();
                 this.handleBannerIconClick();
@@ -411,7 +411,7 @@ export class PixelBannerPlugin extends Plugin {
             })
         );
 
-        this.addRibbonIcon('flag', 'Pixel Banner Selector', () => {
+        this.addRibbonIcon('flag', '🚩 Pixel Banner Menu', () => {
             this.handleBannerIconClick();
         });
     }

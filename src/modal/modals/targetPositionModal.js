@@ -359,7 +359,7 @@ export class TargetPositionModal extends Modal {
             }
         });
 
-        // on click of back to main menu button, close this modal and open the Pixel Banner Selector modal
+        // on click of back to main menu button, close this modal and open the Pixel Banner Menu modal
         bannerImageHeaderButton.addEventListener('click', () => {
             this.close();
             new SelectPixelBannerModal(this.app, this.plugin).open();
@@ -1584,14 +1584,13 @@ export class TargetPositionModal extends Modal {
             attr: {
                 style: `
                     max-width: 600px;
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    gap: 10px;
                 `
             }
         });
-        
-        // Add style for the radio container
-        flagRadioContainer.style.display = 'flex';
-        flagRadioContainer.style.flexWrap = 'wrap';
-        flagRadioContainer.style.gap = '10px';
         
         // Get current flag color from frontmatter or default setting
         const currentFlagColor = getFrontmatterValue(frontmatter, this.plugin.settings.customFlagColorField) || this.plugin.settings.selectImageIconFlag;
@@ -1616,7 +1615,10 @@ export class TargetPositionModal extends Modal {
                     id: `flag-${color}`,
                     name: 'pixel-banner-flag',
                     value: color,
-                    style: 'margin-right: 5px;'
+                    style: `
+                        margin-right: 5px;
+                        cursor: pointer;
+                    `
                 }
             });
             

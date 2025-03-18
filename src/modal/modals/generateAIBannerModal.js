@@ -814,7 +814,7 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         
-        // on click of back to main menu button, close this modal and open the Pixel Banner Selector modal
+        // on click of back to main menu button, close this modal and open the Pixel Banner Menu modal
         backToMainButton.addEventListener('click', () => {
             this.close();
             new SelectPixelBannerModal(this.app, this.plugin).open();
