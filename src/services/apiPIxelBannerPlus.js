@@ -2,6 +2,10 @@ import { PIXEL_BANNER_PLUS } from '../resources/constants.js';
 import { makeRequest } from './apiService.js';
 
 async function verifyPixelBannerPlusCredentials(plugin) {
+    if (!plugin.settings.pixelBannerPlusEmail || !plugin.settings.pixelBannerPlusApiKey ) {
+        return { serverOnline: true, verified: false, bannerTokens: 0 };
+    }
+
     try {
         const response = await makeRequest(
             `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.VERIFY}`,
