@@ -1,6 +1,6 @@
 # 🚩 Pixel Banner for Obsidian
 
-Pixel Banner is a plugin for Obsidian that allows you to automatically add beautiful banner images to your notes using various images providers APIs, direct URLs, or local images with folder-specific settings supported. Enhance your note-taking experience with visually appealing headers that provide context and improve the overall aesthetics of your notes.
+Pixel Banner is a powerful Obsidian plugin that transforms your notes with customizable banner images, creating visually stunning headers that enhance your knowledge workspace. Go beyond simple note-taking with banners that provide visual context and improved aesthetics.
 
 ### Maintained by
 <a href="https://www.equilllabs.com">
@@ -12,43 +12,40 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 
 ![pixel-banner](img/pixel-banner.jpg)
 
-## Highlights
+## Key Features
 
-- Seamless integration with Obsidian's interface
-- Popular **images providers** supported such as [Pexels](https://www.pexels.com/), [Pixabay](https://pixabay.com/), [Flickr](https://www.flickr.com/), and [Unsplash](https://unsplash.com/), automatically fetch and display banner images based on keywords
-- Use **direct URLs** for custom banner images
-- Use **local images** from your vault
-- Use **Obsidian internal links** to images
-- **Customize banner appearance** globally, per folder, or per note by plugin settings and [properties](https://help.obsidian.md/Editing+and+formatting/Properties) of note
+### Smart Banner Creation
+- AI-Generated Banners: Create stunning, custom banners using AI generation without design skills
+- Banner Store: Browse and use professional banner images from the integrated store, including free options
+- Local Image Support: Use images from your vault as banners with advanced customization options
+- Direct URL Banners: Apply banners from any web URL for maximum flexibility
+- Note Properties Integration: Control all banner aspects through Obsidian's properties feature
 
-### Main Features
+### Visual Customization
+- Position Control: Fine-tune banner placement with precise vertical and horizontal positioning for perfect alignment
+- Appearance Options: Customize transparency, border radius, animation effects, and spacing for seamless integration
+- Display Flexibility: Choose between display modes (cover, auto, contain) with options for repetition and sizing
+- Banner Icons: Add and customize decorative icons with control over size, position, color, background, and style
+- Title Integration: Style inline titles with custom colors that complement your banner designs
 
-- **Banner Image selection** modal, local image picker with sort options
-- Control **select, pin, and refresh banner via commands** from command palette and hotkeys
-- Adjust **vertical position** of the banner image
-- Set **banner height** (1-1280 pixels) as well as **content start position** of note
-- Set the banner **image display** to cover, auto, or contain
-- Control **banner fade** transparency (-1500 to 100)
-- Banner image **border radius** customization
-- Set **banner gap** between banner and the window edges
-- Customize **inline title color** (requires Obsidian's "Show inline title" setting enabled)
-- Control **Titles and Banners embedded note**
-- Option to **hide Pixel Banner fields** at frontmatter (properties) in Reading mode
-- **Customize frontmatter field names** for per note appearance
+### Efficient Workflow
+- Banner Selection Modal: Quick visual picker for local images with sorting options
+- Command Integration: Access all banner functions via command palette and hotkeys
+- Quick Action Icons: Select, pin, refresh, and view banners with convenient UI controls
+- Custom Field Names: Rename any banner property field to fit your workflow
 
-### Other Features
+### Smart Organization
+- Folder-Specific Settings: Configure default banner behavior per folder
+- Image Shuffling: Automatically rotate through images in specified folders
+- Direct Children Option: Apply settings only to immediate folder contents
 
-- Option to display fast **select banner icon**, open Banner Image selection modal to select local image
-- Option to display **view banner icon**, immersive view full image
-- Set **default folder path** when opening the Banner Image selection modal
-- Automatically **show release notes** after plugin updates
-- Option to display **pin icon**, save banner image from API to local folder
-- Option to display **refresh icon**, get new random image
-- Set **pinned images folder** path to save pinned image for permanent banner
-- **Clean orphaned images**, clean unlinked images in pinned images folder
-- Select **size and orientation** of images when fetch from images providers
-- Choose **number of images** when fetch from images providers
-- Set **default keywords** for fetch when no specific keyword is provided
+### Premium Features (Pixel Banner Plus)
+- Token-Based System: Generate AI banners with a flexible pay-as-you-go model
+- Banner History: Access your previously generated banners
+- Prompt Inspiration: Get AI assistance with banner ideas
+- No Subscription Required: Purchase tokens only when needed
+
+Enhance your Obsidian experience with beautiful, intelligent banners that make your notes visually distinctive and organized. Whether you prefer AI-generated art, professional designs from the store, or your own images, Pixel Banner helps create a visually cohesive knowledge base.
 
 ## Installation
 
@@ -57,138 +54,7 @@ Pixel Banner is a plugin for Obsidian that allows you to automatically add beaut
 3. Click on Browse and search for "Pixel Banner"
 4. Install the plugin and enable it
 
-### Manual Installation
-- Unzip the [latest release](https://github.com/jparkerweb/pixel-banner/releases/latest) into your `<vault>/.obsidian/plugins/` folder.
 
-## Usage
-
-1. Obtain a free API key from [Pexels](https://www.pexels.com/api/), [Pixabay](https://pixabay.com/api/docs/), [Flickr](https://www.flickr.com/services/api/), or [Unsplash](https://unsplash.com/oauth/applications) (requires account to generate API)
-2. In Obsidian, go to Settings > Pixel Banner > API Settings and enter your API key(s)
-3. In any note, add a `banner` field to the frontmatter with keywords for the desired image, a direct URL, a path to a local image, or an Obsidian internal link:
-
-```yaml
----
-banner: blue turtle
----
-
-### Or use a direct URL:
-
----
-banner: https://example.com/image.jpg
----
-
-### Or use a local image:
-
----
-banner: /path/to/local/image.jpg
----
-
-### Or use an Obsidian internal link:
-
----
-banner: [[path/to/internal/image.jpg]]
----
-
-### All settings can be overridden per note:
-
----
-banner: ocean
-banner-y: 30
-content-start: 90
-banner-display: contain
-banner-repeat: true
-banner-height: 500
-banner-fade: -75
-banner-radius: 50
-banner-title-color: "#FF5733"
----
-```
-
-### Custom Field Names
-
-You can customize the frontmatter field names used for each setting, and even define multiple names for each field. For example, if you set the banner field names to "banner, header-image, cover" and the Y-position field names to "banner-y, y-pos", you could use any 
-of these variations in your frontmatter:
-
-```yaml
----
-header-image: sunset
-y-pos: 22
----
-
----
-banner-y: 60
-y-pos: 60
----
-
----
-header-image: sunset
-banner-y: 30
----
-```
-
-Field names must follow these rules:
-- Only letters, numbers, dashes, and underscores are allowed
-- No spaces within field names (spaces after commas are fine)
-- Names must be unique across all fields
-
-### API Settings
-
-In the API settings, you can customize:
-
-- API Provider (Pexels/Pixabay/Flickr/Unsplash)
-  - Test your API keys directly in settings with the "Test API" button
-  - Get immediate feedback if your API key is valid
-- Image size (small, medium, large)
-- Image orientation (landscape, portrait, square)
-- Number of images to fetch (1-50)
-- Show pin/refresh icon
-- Default keywords for when no specific keyword is provided
-
-#### Pin API Images
-
-When using random images from images providers, you'll see a pin icon (📌) in the top left corner of the banner. Click this to:
-1. Save the image to your vault
-2. Update your note's frontmatter to use the local image
-3. Never lose that perfect banner image again!
-
-You can configure the save location and manage orphaned pins in settings.
-
-### Folder-Specific Banners
-
-You can set default banner images for entire folders:
-
-1. Go to Settings > Pixel Banner
-2. Open "Folder Images" page
-3. Click "Add Folder Image Setting"
-4. Configure the folder settings:
-   - Folder path
-   - Enable Image Shuffle option: Randomly select an image from a specified folder each time the note loads
-   - Y-position (0-100)
-   - Banner height (0-1280 pixels)
-   - Fade effect (-1500 to 100)
-   - Border radius
-   - Inline title color
-   - Display mode and repeat settings
-   - Direct Children Only: Enable this option to apply the banner settings only to the direct children of the specified folder, excluding subfolders.
-5. Repeat for additional folders as needed
-
-Folder-specific settings will apply to all notes in that folder (and subfolders) that don't have their own banner specified in the frontmatter, unless the "Direct Children Only" option is enabled.
-
-## Example Note Screenshot
-
-![example](example.jpg)
-
-## Settings Screenshot
-
-![settings-1](img/settings-1.jpg)
-
-![settings-2](img/settings-2.jpg)
-
-![settings-3](img/settings-3.jpg)
-
-![settings-4](img/settings-4.jpg)
-
-![settings-4](img/settings-5.jpg)
 
 ## Appreciation
 If you enjoy this plugin please consider sending me a tip to support my work 😀
