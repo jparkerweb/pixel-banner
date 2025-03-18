@@ -410,6 +410,10 @@ export class PixelBannerPlugin extends Plugin {
                 }
             })
         );
+
+        this.addRibbonIcon('flag', 'Pixel Banner Selector', () => {
+            this.handleBannerIconClick();
+        });
     }
 
 
