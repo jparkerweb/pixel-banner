@@ -1170,6 +1170,7 @@ var init_generateAIBannerModal = __esm({
         this.imageContainer = null;
         this.modalEl.addClass("pixel-banner-ai-modal");
         this.downloadHistory = new DownloadHistory();
+        this.isLoading = true;
         this.currentPage = 1;
         this.totalPages = 1;
         this.itemsPerPage = 10;
@@ -1228,9 +1229,50 @@ var init_generateAIBannerModal = __esm({
                 left: 50%;
                 transform: translate(-50%, -50%);
             }
+            
+            .pixel-banner-loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: var(--background-primary);
+                z-index: 100;
+                animation: pixel-banner-fade-in 0.3s ease-in-out;
+            }
+            
+            .pixel-banner-spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid var(--background-modifier-border);
+                border-top: 4px solid var(--text-accent);
+                border-radius: 50%;
+                animation: pixel-banner-spin 1s linear infinite;
+            }
         `;
         document.head.appendChild(styleEl);
         this.styleEl = styleEl;
+      }
+      // Show loading spinner
+      showLoadingSpinner(container) {
+        this.isLoading = true;
+        this.loadingOverlay = container.createDiv({
+          cls: "pixel-banner-loading-overlay"
+        });
+        this.loadingOverlay.createDiv({
+          cls: "pixel-banner-spinner"
+        });
+      }
+      // Hide loading spinner
+      hideLoadingSpinner() {
+        this.isLoading = false;
+        if (this.loadingOverlay) {
+          this.loadingOverlay.remove();
+          this.loadingOverlay = null;
+        }
       }
       async generateImage() {
         if (!this.imageContainer) return;
@@ -1436,9 +1478,22 @@ var init_generateAIBannerModal = __esm({
         }
       }
       async onOpen() {
-        await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         contentEl.empty();
+        this.showLoadingSpinner(contentEl);
+        this.initializeModal().catch((error) => {
+          console.error("Error initializing modal:", error);
+          this.hideLoadingSpinner();
+          contentEl.createEl("p", {
+            text: "Failed to load AI banner generator. Please try again later.",
+            cls: "pixel-banner-error"
+          });
+        });
+      }
+      // Initialize modal content
+      async initializeModal() {
+        await this.plugin.verifyPixelBannerPlusCredentials();
+        const { contentEl } = this;
         const styleTag = contentEl.createEl("style", {
           text: `
                 /* AI Banner Generation Modal */
@@ -1531,7 +1586,7 @@ var init_generateAIBannerModal = __esm({
                     align-items: center;
                     max-width: 300px;
                     max-height: 300px;
-                    animation: pixel-banner--fade-in 1300ms ease-in-out;
+                    animation: pixel-banner-fade-in 1300ms ease-in-out;
                 }
 
                 /* Hover effect */
@@ -1879,6 +1934,7 @@ var init_generateAIBannerModal = __esm({
         if (this.plugin.pixelBannerPlusEnabled) {
           await this.refreshHistoryContainer();
         }
+        this.hideLoadingSpinner();
       }
       async getPromptInspiration() {
         var _a;
@@ -2221,6 +2277,9 @@ var init_generateAIBannerModal = __esm({
         contentEl.empty();
         if (this.styleEl) {
           this.styleEl.remove();
+        }
+        if (this.loadingOverlay) {
+          this.loadingOverlay.remove();
         }
       }
     };
@@ -23829,17 +23888,74 @@ var init_pixelBannerStoreModal = __esm({
         this.plugin = plugin;
         this.categories = [];
         this.selectedCategory = null;
+        this.selectedCategoryIndex = 0;
         this.imageContainer = null;
         this.loadingEl = null;
         this.modalEl.addClass("pixel-banner-store-modal");
+        this.isLoading = true;
       }
       // ----------------
       // -- Open Modal --
       // ----------------
       async onOpen() {
-        await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         contentEl.empty();
+        this.showLoadingSpinner(contentEl);
+        this.initializeModal().catch((error) => {
+          console.error("Error initializing modal:", error);
+          this.hideLoadingSpinner();
+          contentEl.createEl("p", {
+            text: "Failed to load store. Please try again later.",
+            cls: "pixel-banner-store-error"
+          });
+        });
+      }
+      // Show loading spinner
+      showLoadingSpinner(container) {
+        this.isLoading = true;
+        this.loadingOverlay = container.createDiv({
+          cls: "pixel-banner-store-loading-overlay",
+          attr: {
+            style: `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: var(--background-primary);
+                    z-index: 100;
+                `
+          }
+        });
+        this.loadingOverlay.createDiv({
+          cls: "pixel-banner-store-spinner",
+          attr: {
+            style: `
+                    width: 40px;
+                    height: 40px;
+                    border: 4px solid var(--background-modifier-border);
+                    border-top: 4px solid var(--text-accent);
+                    border-radius: 50%;
+                    animation: pixel-banner-spin 1s linear infinite;
+                `
+          }
+        });
+      }
+      // Hide loading spinner
+      hideLoadingSpinner() {
+        this.isLoading = false;
+        if (this.loadingOverlay) {
+          this.loadingOverlay.remove();
+          this.loadingOverlay = null;
+        }
+      }
+      // Initialize modal content
+      async initializeModal() {
+        await this.plugin.verifyPixelBannerPlusCredentials();
+        const { contentEl } = this;
         contentEl.createEl("h3", { text: "\u{1F3EA} Pixel Banner Plus Store", cls: "margin-top-0" });
         contentEl.createEl("p", {
           text: `Browse the Pixel Banner Plus Store to find the perfect banner for your needs. Banner Token prices are displayed on each card below (FREE or 1 Banner Token). Previous purchases will be listed as FREE.`,
@@ -23889,6 +24005,7 @@ var init_pixelBannerStoreModal = __esm({
           });
           this.categorySelect.addEventListener("change", async (e) => {
             this.selectedCategory = e.target.value;
+            this.selectedCategoryIndex = e.target.selectedIndex;
             await this.loadCategoryImages();
           });
         } catch (error) {
@@ -23913,13 +24030,10 @@ var init_pixelBannerStoreModal = __esm({
           }
         });
         nextCategoryButton.addEventListener("click", async () => {
-          if (this.selectedCategoryIndex === this.categories.length) {
+          if (this.selectedCategoryIndex >= this.categories.length) {
             this.selectedCategoryIndex = 1;
           } else {
             this.selectedCategoryIndex++;
-          }
-          if (isNaN(this.selectedCategoryIndex)) {
-            this.selectedCategoryIndex = 1;
           }
           this.categorySelect.selectedIndex = this.selectedCategoryIndex;
           this.selectedCategory = this.categorySelect.value;
@@ -23935,6 +24049,14 @@ var init_pixelBannerStoreModal = __esm({
         });
         if (this.plugin.pixelBannerPlusEnabled) {
           this.imageContainer = contentEl.createDiv({ cls: "pixel-banner-store-image-grid -empty" });
+          setTimeout(async () => {
+            if (this.categorySelect.selectedIndex === 0) {
+              this.categorySelect.selectedIndex = 1;
+              this.selectedCategoryIndex = 1;
+              this.selectedCategory = this.categorySelect.value;
+              await this.loadCategoryImages();
+            }
+          }, 50);
         } else {
           this.imageContainer = contentEl.createDiv({ cls: "pixel-banner-store-image-grid -not-connected" });
         }
@@ -24016,6 +24138,7 @@ var init_pixelBannerStoreModal = __esm({
           });
         }
         this.addStyle();
+        this.hideLoadingSpinner();
       }
       // --------------------------
       // -- Load Category Images --
@@ -24052,6 +24175,10 @@ var init_pixelBannerStoreModal = __esm({
       // -- Display Images --
       // --------------------
       displayImages(images) {
+        if (this.loadingEl) {
+          this.loadingEl.remove();
+          this.loadingEl = null;
+        }
         if (images.length > 0) {
           this.imageContainer.removeClass("-empty");
           this.imageContainer.removeClass("-not-connected");
@@ -24188,7 +24315,7 @@ var init_pixelBannerStoreModal = __esm({
                 top: unset !important;
                 width: var(--dialog-max-width);
                 max-width: 1100px;
-                animation: pixel-banner--fade-in 1300ms ease-in-out;
+                animation: pixel-banner-fade-in 1300ms ease-in-out;
             }
 
             .pixel-banner-store-select-container {
@@ -24249,18 +24376,19 @@ var init_pixelBannerStoreModal = __esm({
                 border: 1px solid var(--table-border-color);
             }
             .pixel-banner-store-image-grid.-empty::after {
-                content: "\u{1FA84} Select a Category above, or click the Next Category button to cycle through them. A wonderful selection of banners awaits!";
-                position: relative;
-                top: 40%;
-                max-width: 380px;
-                font-size: 1.3em;
-                color: var(--text-muted);
-                max-height: 80px;
-                text-align: center;
-                opacity: 0.7;
+                display: none;
+                // content: "\u{1FA84} Select a Category above, or click the Next Category button to cycle through them. A wonderful selection of banners awaits! The '\u2747\uFE0F Featured' category is updated often, and will be automatically displayed shortly if a selection is not made.";
+                // position: relative;
+                // top: 40%;
+                // max-width: 380px;
+                // font-size: 1.3em;
+                // color: var(--text-muted);
+                // max-height: 80px;
+                // text-align: center;
+                // opacity: 0.7;
             }
             .pixel-banner-store-image-grid.-not-connected::after {
-                content: "\u{1FA84} Please connect your Pixel Banner Plus account to the plugin to access the store. If you don't have an account, you can sign up for free using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
+                content: "\u26A1 Please connect your Pixel Banner Plus account to the plugin to access the store. If you don't have an account, you can sign up for free using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
                 position: relative;
                 top: 40%;
                 max-width: 458px;
@@ -24283,7 +24411,7 @@ var init_pixelBannerStoreModal = __esm({
                 transition: transform 0.2s ease;
                 cursor: pointer;
                 height: max-content;
-                animation: pixel-banner--fade-in 1300ms ease-in-out;
+                animation: pixel-banner-fade-in 1300ms ease-in-out;
                 background: var(--background-secondary);
             }
             .pixel-banner-store-image-card:hover {
@@ -24338,12 +24466,21 @@ var init_pixelBannerStoreModal = __esm({
                 border: 4px solid var(--background-modifier-border);
                 border-top: 4px solid var(--text-accent);
                 border-radius: 50%;
-                animation: pixel-banner-store-spin 1s linear infinite;
+                animation: pixel-banner-spin 1s linear infinite;
             }
 
-            @keyframes pixel-banner-store-spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
+            .pixel-banner-store-loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: var(--background-primary);
+                z-index: 100;
+                animation: pixel-banner-fade-in 0.3s ease-in-out;
             }
 
             .pixel-banner-status-value {
@@ -24392,6 +24529,9 @@ var init_pixelBannerStoreModal = __esm({
         if (this.style) {
           this.style.remove();
         }
+        if (this.loadingOverlay) {
+          this.loadingOverlay.remove();
+        }
       }
     };
     ConfirmPurchaseModal = class extends import_obsidian18.Modal {
@@ -24432,7 +24572,7 @@ var init_pixelBannerStoreModal = __esm({
           }
         });
         contentEl.createEl("p", {
-          text: `\u201C${(_a = this.prompt) == null ? void 0 : _a.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()}\u201D`,
+          text: `"${(_a = this.prompt) == null ? void 0 : _a.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()}"`,
           cls: "pixel-banner-store-confirm-prompt",
           attr: {
             "style": `

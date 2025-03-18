@@ -7,9 +7,50 @@ export class SelectPixelBannerModal extends Modal {
     constructor(app, plugin) {
         super(app);
         this.plugin = plugin;
+        this.isLoading = true; // Track loading state
     }
 
     async onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        
+        // Show loading spinner immediately
+        this.showLoadingSpinner(contentEl);
+        
+        // Continue with initialization in the background
+        this.initializeModal().catch(error => {
+            console.error('Error initializing modal:', error);
+            this.hideLoadingSpinner();
+            contentEl.createEl('p', {
+                text: 'Failed to load Pixel Banner Selector. Please try again later.',
+                cls: 'pixel-banner-error'
+            });
+        });
+    }
+    
+    // Show loading spinner
+    showLoadingSpinner(container) {
+        this.isLoading = true;
+        this.loadingOverlay = container.createDiv({ 
+            cls: 'pixel-banner-loading-overlay'
+        });
+        
+        this.loadingOverlay.createDiv({
+            cls: 'pixel-banner-spinner'
+        });
+    }
+    
+    // Hide loading spinner
+    hideLoadingSpinner() {
+        this.isLoading = false;
+        if (this.loadingOverlay) {
+            this.loadingOverlay.remove();
+            this.loadingOverlay = null;
+        }
+    }
+    
+    // Initialize modal content
+    async initializeModal() {
         await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         
@@ -427,6 +468,9 @@ export class SelectPixelBannerModal extends Modal {
 
         // Add styles
         this.addStyle();
+        
+        // Hide loading spinner when everything is loaded
+        this.hideLoadingSpinner();
     }
 
     addStyle() {
@@ -638,6 +682,30 @@ export class SelectPixelBannerModal extends Modal {
                 color: var(--text-on-accent) !important;
             }
             
+            /* Loading spinner styles */
+            .pixel-banner-loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: var(--background-primary);
+                z-index: 100;
+                animation: pixel-banner-fade-in 0.3s ease-in-out;
+            }
+            
+            .pixel-banner-spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid var(--background-modifier-border);
+                border-top: 4px solid var(--text-accent);
+                border-radius: 50%;
+                animation: pixel-banner-spin 1s linear infinite;
+            }
+            
             @media (min-width: 400px) {
                 .pixel-banner-source-buttons,
                 .pixel-banner-customization-options {
@@ -679,6 +747,10 @@ export class SelectPixelBannerModal extends Modal {
         this.contentEl.empty();
         if (this.style) {
             this.style.remove();
+        }
+        // Remove loading overlay if it exists
+        if (this.loadingOverlay) {
+            this.loadingOverlay.remove();
         }
     }
 } 

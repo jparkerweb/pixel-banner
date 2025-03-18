@@ -15,18 +15,83 @@ export class PixelBannerStoreModal extends Modal {
         this.plugin = plugin;
         this.categories = [];
         this.selectedCategory = null;
+        this.selectedCategoryIndex = 0;
         this.imageContainer = null;
         this.loadingEl = null;
         this.modalEl.addClass('pixel-banner-store-modal');
+        this.isLoading = true; // Track loading state
     }
 
     // ----------------
     // -- Open Modal --
     // ----------------
     async onOpen() {
-        await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         contentEl.empty();
+        
+        // Show loading spinner immediately
+        this.showLoadingSpinner(contentEl);
+        
+        // Continue with initialization in the background
+        this.initializeModal().catch(error => {
+            console.error('Error initializing modal:', error);
+            this.hideLoadingSpinner();
+            contentEl.createEl('p', {
+                text: 'Failed to load store. Please try again later.',
+                cls: 'pixel-banner-store-error'
+            });
+        });
+    }
+    
+    // Show loading spinner
+    showLoadingSpinner(container) {
+        this.isLoading = true;
+        this.loadingOverlay = container.createDiv({ 
+            cls: 'pixel-banner-store-loading-overlay',
+            attr: {
+                style: `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: var(--background-primary);
+                    z-index: 100;
+                `
+            }
+        });
+        
+        this.loadingOverlay.createDiv({
+            cls: 'pixel-banner-store-spinner',
+            attr: {
+                style: `
+                    width: 40px;
+                    height: 40px;
+                    border: 4px solid var(--background-modifier-border);
+                    border-top: 4px solid var(--text-accent);
+                    border-radius: 50%;
+                    animation: pixel-banner-spin 1s linear infinite;
+                `
+            }
+        });
+    }
+    
+    // Hide loading spinner
+    hideLoadingSpinner() {
+        this.isLoading = false;
+        if (this.loadingOverlay) {
+            this.loadingOverlay.remove();
+            this.loadingOverlay = null;
+        }
+    }
+    
+    // Initialize modal content
+    async initializeModal() {
+        await this.plugin.verifyPixelBannerPlusCredentials();
+        const { contentEl } = this;
         
         contentEl.createEl('h3', { text: '🏪 Pixel Banner Plus Store', cls: 'margin-top-0' });
         contentEl.createEl('p', {
@@ -91,6 +156,7 @@ export class PixelBannerStoreModal extends Modal {
             // Add change event listener
             this.categorySelect.addEventListener('change', async (e) => {
                 this.selectedCategory = e.target.value;
+                this.selectedCategoryIndex = e.target.selectedIndex;
                 await this.loadCategoryImages();
             });
 
@@ -120,14 +186,10 @@ export class PixelBannerStoreModal extends Modal {
         // on click of next category button, load the next category
         nextCategoryButton.addEventListener('click', async () => {
             // if already at the last category, loop back to the first category
-            if (this.selectedCategoryIndex === this.categories.length) {
+            if (this.selectedCategoryIndex >= this.categories.length) {
                 this.selectedCategoryIndex = 1;
             } else {
                 this.selectedCategoryIndex++;
-            }
-            // if this.selectedCategoryIndex is undefined or NaN, set it to 0
-            if (isNaN(this.selectedCategoryIndex)) {
-                this.selectedCategoryIndex = 1;
             }
             // update select box with the new category  
             this.categorySelect.selectedIndex = this.selectedCategoryIndex;
@@ -150,6 +212,16 @@ export class PixelBannerStoreModal extends Modal {
         // Create container for images
         if (this.plugin.pixelBannerPlusEnabled) {
             this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -empty' });
+            // add an async delay that will select the first option in the category select element
+            setTimeout(async () => {
+                // abort if the category select element no longer has the first option selected (the user may have changed the category)
+                if (this.categorySelect.selectedIndex === 0) {
+                    this.categorySelect.selectedIndex = 1;
+                    this.selectedCategoryIndex = 1;
+                    this.selectedCategory = this.categorySelect.value;
+                    await this.loadCategoryImages();
+                }
+            }, 50);
         } else {
             this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -not-connected' });
         }
@@ -254,6 +326,9 @@ export class PixelBannerStoreModal extends Modal {
         }
 
         this.addStyle();
+        
+        // Hide loading spinner when everything is loaded
+        this.hideLoadingSpinner();
     }
 
 
@@ -301,6 +376,12 @@ export class PixelBannerStoreModal extends Modal {
     // -- Display Images --
     // --------------------
     displayImages(images) {
+        // Remove loading spinner if it exists
+        if (this.loadingEl) {
+            this.loadingEl.remove();
+            this.loadingEl = null;
+        }
+        
         if (images.length > 0) {
             this.imageContainer.removeClass('-empty');
             this.imageContainer.removeClass('-not-connected');
@@ -465,7 +546,7 @@ export class PixelBannerStoreModal extends Modal {
                 top: unset !important;
                 width: var(--dialog-max-width);
                 max-width: 1100px;
-                animation: pixel-banner--fade-in 1300ms ease-in-out;
+                animation: pixel-banner-fade-in 1300ms ease-in-out;
             }
 
             .pixel-banner-store-select-container {
@@ -526,18 +607,19 @@ export class PixelBannerStoreModal extends Modal {
                 border: 1px solid var(--table-border-color);
             }
             .pixel-banner-store-image-grid.-empty::after {
-                content: "🪄 Select a Category above, or click the Next Category button to cycle through them. A wonderful selection of banners awaits!";
-                position: relative;
-                top: 40%;
-                max-width: 380px;
-                font-size: 1.3em;
-                color: var(--text-muted);
-                max-height: 80px;
-                text-align: center;
-                opacity: 0.7;
+                display: none;
+                // content: "🪄 Select a Category above, or click the Next Category button to cycle through them. A wonderful selection of banners awaits! The '❇️ Featured' category is updated often, and will be automatically displayed shortly if a selection is not made.";
+                // position: relative;
+                // top: 40%;
+                // max-width: 380px;
+                // font-size: 1.3em;
+                // color: var(--text-muted);
+                // max-height: 80px;
+                // text-align: center;
+                // opacity: 0.7;
             }
             .pixel-banner-store-image-grid.-not-connected::after {
-                content: "🪄 Please connect your Pixel Banner Plus account to the plugin to access the store. If you don't have an account, you can sign up for free using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
+                content: "⚡ Please connect your Pixel Banner Plus account to the plugin to access the store. If you don't have an account, you can sign up for free using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
                 position: relative;
                 top: 40%;
                 max-width: 458px;
@@ -560,7 +642,7 @@ export class PixelBannerStoreModal extends Modal {
                 transition: transform 0.2s ease;
                 cursor: pointer;
                 height: max-content;
-                animation: pixel-banner--fade-in 1300ms ease-in-out;
+                animation: pixel-banner-fade-in 1300ms ease-in-out;
                 background: var(--background-secondary);
             }
             .pixel-banner-store-image-card:hover {
@@ -615,12 +697,21 @@ export class PixelBannerStoreModal extends Modal {
                 border: 4px solid var(--background-modifier-border);
                 border-top: 4px solid var(--text-accent);
                 border-radius: 50%;
-                animation: pixel-banner-store-spin 1s linear infinite;
+                animation: pixel-banner-spin 1s linear infinite;
             }
 
-            @keyframes pixel-banner-store-spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
+            .pixel-banner-store-loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: var(--background-primary);
+                z-index: 100;
+                animation: pixel-banner-fade-in 0.3s ease-in-out;
             }
 
             .pixel-banner-status-value {
@@ -669,6 +760,9 @@ export class PixelBannerStoreModal extends Modal {
         this.contentEl.empty();
         if (this.style) {
             this.style.remove();
+        }
+        if (this.loadingOverlay) {
+            this.loadingOverlay.remove();
         }
     }
 }
@@ -723,7 +817,7 @@ class ConfirmPurchaseModal extends Modal {
         });
 
         contentEl.createEl('p', {
-            text: `“${this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim()}”`,
+            text: `"${this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim()}"`,
             cls: 'pixel-banner-store-confirm-prompt',
             attr: {
                 'style': `

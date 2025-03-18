@@ -1,9 +1,41 @@
 /* ============================ */
 /* == 🚩 Pixel Banner Styles == */
 /* ============================ */
-@keyframes pixel-banner--fade-in {
+@keyframes pixel-banner-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pixel-banner-fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes pixel-banner-icon-fade-in {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to { opacity: 0.35; }
+}
+
+@keyframes pixel-banner-twinkle {
+    0% { opacity: 1; transform: scale(1) rotate(0deg); }
+    20% { opacity: 0.8; transform: scale(1.3) rotate(10deg); }
+    40% { opacity: 1; transform: scale(1.1) rotate(5deg); }
+    60% { opacity: 0.8; transform: scale(1.3) rotate(-5deg); }
+    80% { opacity: 1; transform: scale(1.1) rotate(-10deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes pixel-banner-radial-pulse {
+    0% { box-shadow: 0 0; }
+    60% { box-shadow: 0 0 hsla(var(--accent-h), var(--accent-s), var(--accent-l), 1); }
+    90% { box-shadow: 0 0 0 4px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.5); }
+    100% { box-shadow: 0 0 0 2px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.2); }
+}
+
+@keyframes pixel-banner-scale-up-down {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .pixel-banner-image {
@@ -19,7 +51,7 @@
 	height: var(--pixel-banner-height, 350px);
     border-radius: var(--pixel-banner-radius, 17px) !important;
 	pointer-events: none;
-	animation: pixel-banner--fade-in var(--pixel-banner-fade-in-animation-duration, 300ms) ease-in-out;
+	animation: pixel-banner-fade-in var(--pixel-banner-fade-in-animation-duration, 300ms) ease-in-out;
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
@@ -555,17 +587,8 @@
 }
 
 .pixel-banner-search-container .twinkle-animation {
-    animation: pixel-banner-search-container-twinkle 2s infinite;
+    animation: pixel-banner-twinkle 2s infinite;
     display: inline-block;
-}
-
-@keyframes pixel-banner-search-container-twinkle {
-    0% { opacity: 1; transform: scale(1) rotate(0deg); }
-    20% { opacity: 0.8; transform: scale(1.3) rotate(10deg); }
-    40% { opacity: 1; transform: scale(1.1) rotate(5deg); }
-    60% { opacity: 0.8; transform: scale(1.3) rotate(-5deg); }
-    80% { opacity: 1; transform: scale(1.1) rotate(-10deg); }
-    100% { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
 .pixel-banner-search-container input {
@@ -653,7 +676,7 @@
     width: auto;
     height: auto;
     display: block;
-    animation: pixel-banner--fade-in 1300ms ease-in-out;
+    animation: pixel-banner-fade-in 1300ms ease-in-out;
     margin: 0 auto;
 }
 
@@ -687,7 +710,7 @@
     background-color: var(--text-accent);
     color: var(--text-accent);
     box-shadow: 9999px 0 0 -4px;
-    animation: dot-pulse 1.5s infinite linear;
+    animation: pixel-banner-dot-pulse 1.5s infinite linear;
     animation-delay: 0.25s;
 }
 
@@ -705,87 +728,63 @@
 
 .dot-pulse::before {
     box-shadow: 9984px 0 0 -4px;
-    animation: dot-pulse-before 1.5s infinite linear;
+    animation: pixel-banner-dot-pulse-before 1.5s infinite linear;
     animation-delay: 0s;
 }
 
 .dot-pulse::after {
     box-shadow: 10014px 0 0 -4px;
-    animation: dot-pulse-after 1.5s infinite linear;
+    animation: pixel-banner-dot-pulse-after 1.5s infinite linear;
     animation-delay: 0.5s;
 }
 
-@keyframes dot-pulse-before {
+@keyframes pixel-banner-dot-pulse-before {
     0% { box-shadow: 9984px 0 0 -4px; }
     30% { box-shadow: 9984px 0 0 2px; }
     60%, 100% { box-shadow: 9984px 0 0 -4px; }
 }
 
-@keyframes dot-pulse {
+@keyframes pixel-banner-dot-pulse {
     0% { box-shadow: 9999px 0 0 -4px; }
     30% { box-shadow: 9999px 0 0 2px; }
     60%, 100% { box-shadow: 9999px 0 0 -4px; }
 }
 
-@keyframes dot-pulse-after {
+@keyframes pixel-banner-dot-pulse-after {
     0% { box-shadow: 10014px 0 0 -4px; }
     30% { box-shadow: 10014px 0 0 2px; }
     60%, 100% { box-shadow: 10014px 0 0 -4px; }
 }
 
-/* Token Balance Animation */
-@keyframes token-bounce {
+@keyframes pixel-banner-token-bounce {
     0% { transform: scale(1); }
     50% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
 
-@keyframes token-glow {
+@keyframes pixel-banner-token-glow {
     0% { text-shadow: 0 0 0px rgba(255, 215, 0, 0); }
     50% { text-shadow: 0 0 15px var(--text-accent-hover); }
     100% { text-shadow: 0 0 0px rgba(255, 215, 0, 0); }
 }
 
 .token-balance-animation {
-    animation: token-bounce 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275), token-glow 0.7s ease-in-out;
+    animation: pixel-banner-token-bounce 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275), pixel-banner-token-glow 0.7s ease-in-out;
     display: inline-block;
 }
 
-
-@keyframes radial-pulse {
-    0% {
-        box-shadow: 0 0;
-    }
-
-    60% {
-        box-shadow: 0 0 hsla(var(--accent-h), var(--accent-s), var(--accent-l), 1);
-    }
-
-    90% {
-        box-shadow: 0 0 0 4px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.5);
-    }
-
-    100% {
-        box-shadow: 0 0 0 2px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.2);
-    }
-}
 .radial-pulse-animation {
     box-shadow: 0 0;
     animation-delay: 0ms;
     animation-duration: 3.4s;
     animation-direction: normal;
     animation-iteration-count: infinite;
-    animation-name: radial-pulse;
+    animation-name: pixel-banner-radial-pulse;
 }
 
 /* animation for an element to scale up and down */
-@keyframes scale-up-down {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-.scale-up-down-animation {
-    animation: scale-up-down 3s ease-in-out infinite;
+.pixel-banner-scale-up-down-animation {
+    animation: pixel-banner-scale-up-down 3s ease-in-out infinite;
 }
 
 
@@ -793,12 +792,6 @@
 /* --------------------------- */
 /* -- top left icon buttons -- */
 /* --------------------------- */
-@keyframes pixel-banner--icon-fade-in {
-    from { opacity: 0; }
-    to { opacity: 0.35; }
-}
-
-
 .select-image-icon,
 .pin-icon,
 .refresh-icon,
@@ -806,7 +799,7 @@
     z-index: var(--layer-modal);
     opacity: 0.35;
     transition: all 0.4s ease-in-out;
-    animation: pixel-banner--icon-fade-in 0.4s ease-in-out;
+    animation: pixel-banner-icon-fade-in 0.4s ease-in-out;
     width: unset !important;
 }
 .select-image-icon:hover,

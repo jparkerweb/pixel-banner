@@ -18,6 +18,7 @@ export class GenerateAIBannerModal extends Modal {
         this.imageContainer = null;
         this.modalEl.addClass('pixel-banner-ai-modal');
         this.downloadHistory = new DownloadHistory();
+        this.isLoading = true; // Track loading state
         
         // Add pagination state
         this.currentPage = 1;
@@ -81,9 +82,53 @@ export class GenerateAIBannerModal extends Modal {
                 left: 50%;
                 transform: translate(-50%, -50%);
             }
+            
+            .pixel-banner-loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: var(--background-primary);
+                z-index: 100;
+                animation: pixel-banner-fade-in 0.3s ease-in-out;
+            }
+            
+            .pixel-banner-spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid var(--background-modifier-border);
+                border-top: 4px solid var(--text-accent);
+                border-radius: 50%;
+                animation: pixel-banner-spin 1s linear infinite;
+            }
         `;
         document.head.appendChild(styleEl);
         this.styleEl = styleEl;
+    }
+    
+    // Show loading spinner
+    showLoadingSpinner(container) {
+        this.isLoading = true;
+        this.loadingOverlay = container.createDiv({ 
+            cls: 'pixel-banner-loading-overlay'
+        });
+        
+        this.loadingOverlay.createDiv({
+            cls: 'pixel-banner-spinner'
+        });
+    }
+    
+    // Hide loading spinner
+    hideLoadingSpinner() {
+        this.isLoading = false;
+        if (this.loadingOverlay) {
+            this.loadingOverlay.remove();
+            this.loadingOverlay = null;
+        }
     }
 
     async generateImage() {
@@ -334,9 +379,27 @@ export class GenerateAIBannerModal extends Modal {
     }
 
     async onOpen() {
-        await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         contentEl.empty();
+        
+        // Show loading spinner immediately
+        this.showLoadingSpinner(contentEl);
+        
+        // Continue with initialization in the background
+        this.initializeModal().catch(error => {
+            console.error('Error initializing modal:', error);
+            this.hideLoadingSpinner();
+            contentEl.createEl('p', {
+                text: 'Failed to load AI banner generator. Please try again later.',
+                cls: 'pixel-banner-error'
+            });
+        });
+    }
+    
+    // Initialize modal content
+    async initializeModal() {
+        await this.plugin.verifyPixelBannerPlusCredentials();
+        const { contentEl } = this;
 
         // add style tag
         const styleTag = contentEl.createEl('style', {
@@ -431,7 +494,7 @@ export class GenerateAIBannerModal extends Modal {
                     align-items: center;
                     max-width: 300px;
                     max-height: 300px;
-                    animation: pixel-banner--fade-in 1300ms ease-in-out;
+                    animation: pixel-banner-fade-in 1300ms ease-in-out;
                 }
 
                 /* Hover effect */
@@ -817,6 +880,9 @@ export class GenerateAIBannerModal extends Modal {
         if (this.plugin.pixelBannerPlusEnabled) {
             await this.refreshHistoryContainer();
         }
+        
+        // Hide loading spinner when everything is loaded
+        this.hideLoadingSpinner();
     }
 
     async getPromptInspiration() {
@@ -1241,6 +1307,10 @@ export class GenerateAIBannerModal extends Modal {
         // Remove styles when modal closes
         if (this.styleEl) {
             this.styleEl.remove();
+        }
+        // Remove loading overlay if it exists
+        if (this.loadingOverlay) {
+            this.loadingOverlay.remove();
         }
     }
 }

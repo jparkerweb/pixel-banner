@@ -4889,6 +4889,216 @@
             "id": "745633c017d5477d",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5c485bca7abb5672",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "1e62d1fa9bdcd4f2",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "64c0cff689962243",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8fd79e55d2bdd95b",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "c1eaed82d46396e1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "55b16cf7448b025a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "094521d6fe2fdbb4",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8c57d33a4ac49c6a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "7baabf6798313872",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "6fd2a7f9b4444d20",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "d82ead0ff1207206",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "919c6d1a8a960f76",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8391169a66c49ca1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "977f5dcd4991d4a6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "cbeb16267803a6a0",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "3eee4bb5638e0aff",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "508b998df0194ec6",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "360e982ec2807b3e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "8d81f1934cee19ca",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "5b31c02abe70be9a",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "f4503ae6bc16bb5a",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -4896,7 +5106,7 @@
             }
           }
         ],
-        "currentTab": 477
+        "currentTab": 498
       }
     ],
     "direction": "horizontal",
@@ -4914,10 +5124,11 @@
       "cmdr:Reload app without saving": false
     }
   },
-  "active": "cec2ea06e17e62a7",
+  "active": "73ecac294db5a0af",
   "lastOpenFiles": [
     "Untitled.md",
     "Untitled 1.md",
+    "pixel-banner-images/in-the-shadowy-twilight-of-the-enchanted-forest.jpg",
     "pixel-banner-images/an-ethereal-garden-where-time-stands-still-peta.jpg",
     "pixel-banner-images/hato.profile0.8bpc.yuv420.no-cdef.avif",
     "pixel-banner-images/tunnel-entrance-floating-above-a-burning-ocean-.jpg",
@@ -4925,7 +5136,6 @@
     "pixel-banner-images/futuristic-city-with-an-ancient-tree-radiating-.jpg",
     "pixel-banner-images/glistening-tendrils-of-vibrant-aurora-borealis-.jpg",
     "pixel-banner-images/majestic-mechanical-spider-prowls-enchanted-for.jpg",
-    "pixel-banner-images/in-the-shadowy-twilight-of-the-enchanted-forest.jpg",
     "pixel-banner-images/a-gigantic-mechanical-spider-scuttles-through-a.jpg",
     "pixel-banner-images/an-underground-tavern-bustling-with-the-boister.jpg",
     "Untitled 5.md",

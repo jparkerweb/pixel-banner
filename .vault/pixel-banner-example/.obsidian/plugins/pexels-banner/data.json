@@ -166,7 +166,7 @@
   "hideEmbeddedNoteTitles": true,
   "hideEmbeddedNoteBanners": false,
   "showSelectImageIcon": true,
-  "selectImageIconFlag": "pink",
+  "selectImageIconFlag": "bee",
   "defaultSelectImagePath": "pixel-banner-images",
   "useShortPath": true,
   "bannerGap": 12,
