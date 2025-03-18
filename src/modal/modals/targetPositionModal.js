@@ -263,6 +263,19 @@ export class TargetPositionModal extends Modal {
         });
     }
 
+    updateTitleColor(color) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        const titleColorField = Array.isArray(this.plugin.settings.customTitleColorField)
+            ? this.plugin.settings.customTitleColorField[0].split(',')[0].trim()
+            : this.plugin.settings.customTitleColorField;
+
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+            frontmatter[titleColorField] = color;
+        });
+    }
+
     updateRepeatMode(repeat) {
         const activeFile = this.app.workspace.getActiveFile();
         if (!activeFile) return;
@@ -1666,6 +1679,106 @@ export class TargetPositionModal extends Modal {
             });
         });
 
+        // Title Color Section - only show if inline title is enabled
+        const inlineTitleEnabled = this.app.vault.config.showInlineTitle;
+        const titleColorSection = contentEl.createDiv({
+            cls: 'title-color-section',
+            attr: {
+                style: `
+                    display: ${inlineTitleEnabled ? 'flex' : 'none'};
+                    flex-direction: row;
+                    gap: 10px;
+                    margin-top: 20px;
+                    padding: 15px;
+                    border-radius: 5px;
+                    background-color: var(--background-secondary);
+                    max-width: 510px;
+                    align-items: center;
+                `
+            }
+        });
+
+        // Title Color Section Label
+        titleColorSection.createEl('span', {
+            text: 'Inline Title Color',
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    min-width: 120px;
+                `
+            }
+        });
+
+        // Get current title color from frontmatter or settings
+        const titleColorField = Array.isArray(this.plugin.settings.customTitleColorField)
+            ? this.plugin.settings.customTitleColorField[0].split(',')[0].trim()
+            : this.plugin.settings.customTitleColorField;
+        
+        // Parse current title color
+        let currentTitleColor = frontmatter?.[titleColorField] || this.plugin.settings.titleColor;
+        
+        // If the color is a CSS variable, try to compute its value
+        if (currentTitleColor && currentTitleColor.startsWith('var(--')) {
+            const tempEl = document.createElement('div');
+            tempEl.style.color = currentTitleColor;
+            document.body.appendChild(tempEl);
+            const computedColor = window.getComputedStyle(tempEl).color;
+            document.body.removeChild(tempEl);
+            
+            // Parse RGB values
+            const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+            if (rgbMatch) {
+                const [_, r, g, b] = rgbMatch;
+                currentTitleColor = '#' + 
+                    parseInt(r).toString(16).padStart(2, '0') +
+                    parseInt(g).toString(16).padStart(2, '0') +
+                    parseInt(b).toString(16).padStart(2, '0');
+            }
+        }
+        
+        this.currentTitleColor = currentTitleColor || (getCurrentTheme() === 'dark' ? '#ffffff' : '#000000');
+
+        // Title color input
+        const titleColorInput = titleColorSection.createEl('input', {
+            type: 'text',
+            cls: 'title-color-input',
+            attr: {
+                value: this.currentTitleColor || '',
+                placeholder: '#RRGGBB or color name',
+                style: `
+                    flex: 1;
+                    max-width: 120px;
+                `
+            }
+        });
+
+        // Title color picker
+        const titleColorPicker = titleColorSection.createEl('input', {
+            type: 'color',
+            cls: 'title-color-picker',
+            attr: {
+                value: this.currentTitleColor && this.currentTitleColor.startsWith('#') ? 
+                    this.currentTitleColor : (getCurrentTheme() === 'dark' ? '#ffffff' : '#000000')
+            }
+        });
+
+        // Title color input event listener
+        titleColorInput.addEventListener('change', () => {
+            this.currentTitleColor = titleColorInput.value;
+            if (this.currentTitleColor.startsWith('#')) {
+                titleColorPicker.value = this.currentTitleColor;
+            }
+            this.updateTitleColor(this.currentTitleColor);
+        });
+
+        // Title color picker event listener
+        titleColorPicker.addEventListener('input', () => {
+            this.currentTitleColor = titleColorPicker.value;
+            titleColorInput.value = this.currentTitleColor;
+            this.updateTitleColor(this.currentTitleColor);
+        });
+
         // Create a container for buttons
         const buttonContainer = contentEl.createDiv({
             cls: 'button-container',
@@ -1920,6 +2033,47 @@ export class TargetPositionModal extends Modal {
                     radio.checked = radio.value === this.plugin.settings.selectImageIconFlag;
                 });
             }
+
+            // Reset title color if inline title is enabled
+            if (inlineTitleEnabled && titleColorInput) {
+                // Convert default title color if it's a CSS variable
+                let defaultTitleColor = this.plugin.settings.titleColor;
+                if (defaultTitleColor.startsWith('var(--')) {
+                    const tempEl = document.createElement('div');
+                    tempEl.style.color = defaultTitleColor;
+                    document.body.appendChild(tempEl);
+                    const computedColor = window.getComputedStyle(tempEl).color;
+                    document.body.removeChild(tempEl);
+                    
+                    const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                    if (rgbMatch) {
+                        const [_, r, g, b] = rgbMatch;
+                        defaultTitleColor = '#' + 
+                            parseInt(r).toString(16).padStart(2, '0') +
+                            parseInt(g).toString(16).padStart(2, '0') +
+                            parseInt(b).toString(16).padStart(2, '0');
+                    }
+                }
+                
+                titleColorInput.value = defaultTitleColor;
+                if (titleColorPicker) {
+                    titleColorPicker.value = defaultTitleColor.startsWith('#') ? 
+                        defaultTitleColor : (getCurrentTheme() === 'dark' ? '#ffffff' : '#000000');
+                }
+                // Update the frontmatter with the default color
+                this.updateTitleColor(defaultTitleColor);
+            }
+            
+            // Reset the banner position
+            this.currentX = this.plugin.settings.xPosition;
+            this.currentY = this.plugin.settings.yPosition;
+            
+            // Update crosshair position visually
+            verticalLine.style.left = `${this.currentX}%`;
+            horizontalLine.style.top = `${this.currentY}%`;
+            
+            // Update position indicator with default values
+            updatePositionIndicator();
         });
 
         // Create repeat toggle container (initially hidden)
@@ -2003,7 +2157,9 @@ export class TargetPositionModal extends Modal {
                 e.target === bannerIconVerticalOffsetSlider ||
                 e.target === alphaSlider ||
                 e.target === bannerIconBgColorPicker ||
-                e.target === bannerIconBgColorInput) return;
+                e.target === bannerIconBgColorInput ||
+                e.target === titleColorPicker ||
+                e.target === titleColorInput) return;
             isDragging = true;
             offsetX = e.clientX - modalEl.getBoundingClientRect().left;
             offsetY = e.clientY - modalEl.getBoundingClientRect().top;
