@@ -23,7 +23,7 @@ export class GenerateAIBannerModal extends Modal {
         // Add pagination state
         this.currentPage = 1;
         this.totalPages = 1;
-        this.itemsPerPage = 10;
+        this.itemsPerPage = 9;
         this.totalItems = 0;
 
         // Add styles to document
@@ -177,7 +177,7 @@ export class GenerateAIBannerModal extends Modal {
                 tokenCountSpan.style.color = 'var(--text-accent)';
                 tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
                 if (!tokenCountSpan.parentElement) {
-                    pixelBannerPlusBalanceEl.innerText = '🪙 Remaining Banner Tokens: ';
+                    pixelBannerPlusBalanceEl.innerText = '🪙 Remaining Tokens: ';
                     pixelBannerPlusBalanceEl.appendChild(tokenCountSpan);
                 }
                 tokenCountSpan.classList.remove('token-balance-animation');
@@ -750,7 +750,7 @@ export class GenerateAIBannerModal extends Modal {
         tokenCountSpan.style.fontWeight = 'bold';
         tokenCountSpan.style.letterSpacing = '1px';
         tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
-        tokenBalance.setText('🪙 Remaining Banner Tokens: ');
+        tokenBalance.setText('🪙 Remaining Tokens: ');
         tokenBalance.appendChild(tokenCountSpan);
         tokenCountSpan.classList.add('token-balance-animation');
         

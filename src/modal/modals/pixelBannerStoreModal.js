@@ -20,6 +20,11 @@ export class PixelBannerStoreModal extends Modal {
         this.loadingEl = null;
         this.modalEl.addClass('pixel-banner-store-modal');
         this.isLoading = true; // Track loading state
+        this.currentPage = 1;
+        this.totalPages = 1;
+        this.searchTerm = '';
+        this.isSearchMode = false;
+        this.itemsPerPage = 9;
     }
 
     // ----------------
@@ -104,6 +109,54 @@ export class PixelBannerStoreModal extends Modal {
         // Create select container
         const selectContainer = contentEl.createDiv({ cls: 'pixel-banner-store-select-container' });
         
+        // Create the search UI elements (initially hidden)
+        if (this.plugin.pixelBannerPlusEnabled) {
+            // Search input (initially hidden)
+            this.searchContainer = selectContainer.createDiv({ 
+                cls: 'pixel-banner-store-search-container',
+                attr: {
+                    style: `
+                        display: none;
+                        align-items: center;
+                        gap: 5px;
+                        margin: 0 0 0 auto;
+                    `
+                }
+            });
+            
+            this.searchInput = this.searchContainer.createEl('input', {
+                type: 'text',
+                placeholder: 'Search banners...',
+                cls: 'pixel-banner-store-search-input'
+            });
+            
+            this.searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.searchBanners();
+                }
+            });
+            
+            // Search button (initially hidden)
+            this.searchButton = this.searchContainer.createEl('button', {
+                text: 'Search',
+                cls: 'pixel-banner-store-search-button'
+            });
+            
+            this.searchButton.addEventListener('click', () => {
+                this.searchBanners();
+            });
+            
+            // Stop searching button (initially hidden)
+            this.stopSearchButton = this.searchContainer.createEl('button', {
+                text: 'Stop Searching',
+                cls: 'pixel-banner-store-stop-search-button'
+            });
+            
+            this.stopSearchButton.addEventListener('click', () => {
+                this.toggleSearchMode(false);
+            });
+        }
+        
         // Create and populate select element
         this.categorySelect = selectContainer.createEl('select', { 
             cls: 'pixel-banner-store-select',
@@ -173,8 +226,20 @@ export class PixelBannerStoreModal extends Modal {
             });
         }
 
-        // add "Next Category" button
-        const nextCategoryButton = selectContainer.createEl('button', {
+        // Create the category controls container for better grouping
+        this.categoryControlsContainer = selectContainer.createDiv({
+            cls: 'pixel-banner-store-category-controls',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                `
+            }
+        });
+
+        // Next Category button
+        this.nextCategoryButton = this.categoryControlsContainer.createEl('button', {
             text: 'Next Category',
             cls: 'pixel-banner-store-next-category',
             attr: {
@@ -183,27 +248,40 @@ export class PixelBannerStoreModal extends Modal {
                 `
             }
         });
-        // on click of next category button, load the next category
-        nextCategoryButton.addEventListener('click', async () => {
-            // if already at the last category, loop back to the first category
+        
+        // On click of Next Category button, load the next category
+        this.nextCategoryButton.addEventListener('click', async () => {
+            // If already at the last category, loop back to the first category
             if (this.selectedCategoryIndex >= this.categories.length) {
                 this.selectedCategoryIndex = 1;
             } else {
                 this.selectedCategoryIndex++;
             }
-            // update select box with the new category  
+            // Update select box with the new category  
             this.categorySelect.selectedIndex = this.selectedCategoryIndex;
             this.selectedCategory = this.categorySelect.value;
             await this.loadCategoryImages();
         });
 
-        // add "Back to Main Menu" button
+        // Search All button (initially visible)
+        if (this.plugin.pixelBannerPlusEnabled) {
+            this.searchAllButton = this.categoryControlsContainer.createEl('button', {
+                text: '🔍 Search All',
+                cls: 'pixel-banner-store-search-all-button'
+            });
+            
+            this.searchAllButton.addEventListener('click', () => {
+                this.toggleSearchMode(true);
+            });
+        }
+
+        // Back to Main Menu button
         const backToMainButton = selectContainer.createEl('button', {
             text: '⇠ Main Menu',
             cls: 'pixel-banner-store-back-to-main'
         });
         
-        // on click of back to main menu button, close this modal and open the Pixel Banner Menu modal
+        // On click of Back to Main Menu button, close this modal and open the Pixel Banner Menu modal
         backToMainButton.addEventListener('click', () => {
             this.close();
             new SelectPixelBannerModal(this.app, this.plugin).open();
@@ -212,9 +290,9 @@ export class PixelBannerStoreModal extends Modal {
         // Create container for images
         if (this.plugin.pixelBannerPlusEnabled) {
             this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -empty' });
-            // add an async delay that will select the first option in the category select element
+            // Add an async delay that will select the first option in the category select element
             setTimeout(async () => {
-                // abort if the category select element no longer has the first option selected (the user may have changed the category)
+                // Abort if the category select element no longer has the first option selected (the user may have changed the category)
                 if (this.categorySelect.selectedIndex === 0) {
                     this.categorySelect.selectedIndex = 1;
                     this.selectedCategoryIndex = 1;
@@ -226,8 +304,24 @@ export class PixelBannerStoreModal extends Modal {
             this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -not-connected' });
         }
 
+        // Bottom controls container (for account status and pagination)
+        const bottomControlsContainer = contentEl.createDiv({
+            cls: 'pixel-banner-store-bottom-controls',
+            attr: {
+                'style': `
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: 15px;
+                    border-top: 1px solid var(--background-modifier-border);
+                    padding-top: 10px;
+                `
+            }
+        });
+
         // Pixel Banner Plus Account Status Section
-        const pixelBannerPlusAccountStatus = contentEl.createDiv({
+        const pixelBannerPlusAccountStatus = bottomControlsContainer.createDiv({
             cls: 'pixel-banner-store-account-status',
             attr: {
                 'style': `
@@ -236,12 +330,23 @@ export class PixelBannerStoreModal extends Modal {
                     gap: 10px;
                     align-items: center;
                     justify-content: flex-start;
-                    margin-bottom: -10px;
-                    margin-top: 5px;
                     font-size: .9em;
                 `
             }
         });
+        
+        // Create pagination container (initially empty)
+        this.paginationContainer = bottomControlsContainer.createDiv({
+            cls: 'pixel-banner-store-pagination-container',
+            attr: {
+                'style': `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                `
+            }
+        });
+
         // Connection Status        
         const isConnected = this.plugin.pixelBannerPlusEnabled;
         const statusText = isConnected ? '✅ Connected' : '❌ Not Connected';
@@ -337,6 +442,10 @@ export class PixelBannerStoreModal extends Modal {
     // --------------------------
     async loadCategoryImages() {
         if (!this.selectedCategory) return;
+        
+        // Reset search mode when loading by category
+        this.isSearchMode = false;
+        this.currentPage = 1;
 
         // Clear previous images
         this.imageContainer.empty();
@@ -370,16 +479,138 @@ export class PixelBannerStoreModal extends Modal {
             });
         }
     }
+    
+    // -----------------
+    // -- Search Banners --
+    // -----------------
+    async searchBanners(page = 1) {
+        this.searchTerm = this.searchInput.value.trim();
+        
+        if (!this.searchTerm) {
+            new Notice('Please enter a search term');
+            return;
+        }
+        
+        // Set search mode active
+        this.isSearchMode = true;
+        this.currentPage = page;
+        
+        // Clear previous images
+        this.imageContainer.empty();
+        
+        // Show loading spinner
+        this.loadingEl = this.imageContainer.createDiv({ cls: 'pixel-banner-store-loading' });
+        this.loadingEl.innerHTML = `<div class="pixel-banner-store-spinner"></div>`;
+        
+        try {
+            const response = await fetch(
+                `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_SEARCH}`, 
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                        'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        searchTerm: this.searchTerm,
+                        page: this.currentPage,
+                        limit: this.itemsPerPage,
+                        sort: 'date_added',
+                        order: 'desc'
+                    })
+                }
+            );
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            
+            // Debug: log the actual response structure
+            console.log('Search API response:', data);
+            
+            // Update pagination info
+            this.totalPages = data.totalPages || data.total_pages || 1;
+            
+            // Handle different response structures
+            let imagesArray = [];
+            
+            if (data.images && Array.isArray(data.images)) {
+                // Format: { images: [...] }
+                imagesArray = data.images;
+            } else if (data.banners && Array.isArray(data.banners)) {
+                // Format: { banners: [...] }
+                imagesArray = data.banners;
+            } else if (data.results && Array.isArray(data.results)) {
+                // Format: { results: [...] }
+                imagesArray = data.results;
+            } else if (Array.isArray(data)) {
+                // Format: directly an array
+                imagesArray = data;
+            } else if (data.image) {
+                // Single image response
+                imagesArray = [data.image];
+            } else if (data.banner) {
+                // Single banner response
+                imagesArray = [data.banner];
+            } else if (typeof data === 'object' && data !== null) {
+                // Might be a single result object
+                imagesArray = [data];
+            }
+            
+            // Check if we have a valid array now
+            if (!Array.isArray(imagesArray)) {
+                console.error('Failed to extract images array from response:', data);
+                throw new Error('Invalid response format: could not extract images array');
+            }
+            
+            if (imagesArray.length === 0) {
+                this.imageContainer.empty();
+                this.imageContainer.createEl('p', {
+                    text: `No results found for "${this.searchTerm}"`,
+                    cls: 'pixel-banner-store-no-results',
+                    attr: {
+                        style: `
+                            text-align: center;
+                            margin-top: 100px;
+                            font-size: 16px;
+                        `
+                    }
+                });
+                return;
+            }
+            
+            this.displayImages(imagesArray, true);
+        } catch (error) {
+            console.error('Failed to search images:', error);
+            this.imageContainer.empty();
+            this.imageContainer.createEl('p', {
+                text: `Failed to search images: ${error.message}. Please try again.`,
+                cls: 'pixel-banner-store-error'
+            });
+        }
+    }
 
 
     // --------------------
     // -- Display Images --
     // --------------------
-    displayImages(images) {
+    displayImages(images, isSearchResult = false) {
         // Remove loading spinner if it exists
         if (this.loadingEl) {
             this.loadingEl.remove();
             this.loadingEl = null;
+        }
+        
+        // Ensure we have an array to work with
+        if (!Array.isArray(images)) {
+            console.error('displayImages received non-array:', images);
+            this.imageContainer.createEl('p', {
+                text: 'Error displaying images: Invalid data format',
+                cls: 'pixel-banner-store-error'
+            });
+            return;
         }
         
         if (images.length > 0) {
@@ -390,37 +621,120 @@ export class PixelBannerStoreModal extends Modal {
         const container = this.imageContainer;
         container.empty();
         
+        // Display images
         images.forEach(image => {
-            const card = container.createEl('div', {
-                cls: 'pixel-banner-store-image-card',
-                attr: {
-                    'data-image-id': image.id,
-                    'data-image-cost': image.cost
+            try {
+                // Skip invalid entries
+                if (!image || typeof image !== 'object') {
+                    console.warn('Skipping invalid image entry:', image);
+                    return;
                 }
-            });
-
-            const imgEl = card.createEl('img', {
-                attr: {
-                    src: image.base64Image,
-                    alt: image.prompt
-                }
-            });
-
-            const details = card.createDiv({ cls: 'pixel-banner-store-image-details' });
-            const truncatedPrompt = image.prompt.length > 85 ? image.prompt.slice(0, 85) + '...' : image.prompt;
-            details.createEl('p', { text: truncatedPrompt, cls: 'pixel-banner-store-prompt' });
-            const costText = image.cost === 0 ? 'FREE' : `🪙`;
-            const costEl = details.createEl('p', { text: costText, cls: 'pixel-banner-store-cost' });
-            if (image.cost === 0) {
-                costEl.addClass('free');
-            }
-
-            // Add click handler
-            card.addEventListener('click', async () => {
-                const cost = parseInt(card.getAttribute('data-image-cost'));
                 
-                if (cost > 0) {
-                    new ConfirmPurchaseModal(this.app, cost, image.prompt, image.base64Image, async () => {
+                // Get image ID with fallbacks
+                const imageId = image.id || image.imageId || image.bannerId || 'unknown';
+                
+                // Get image cost with fallbacks
+                const imageCost = typeof image.cost !== 'undefined' ? image.cost : 
+                                  (image.premium ? 1 : 0);
+                
+                const card = container.createEl('div', {
+                    cls: 'pixel-banner-store-image-card',
+                    attr: {
+                        'data-image-id': imageId,
+                        'data-image-cost': imageCost
+                    }
+                });
+
+                // Get image source with fallbacks
+                const imageSource = image.base64Image || image.base64 || image.url || image.src || '';
+                
+                const imgEl = card.createEl('img', {
+                    attr: {
+                        src: imageSource,
+                        alt: image.prompt || image.description || 'Banner image'
+                    }
+                });
+
+                const details = card.createDiv({ cls: 'pixel-banner-store-image-details' });
+                
+                // Get prompt with fallbacks
+                const promptText = image.prompt || image.description || image.title || 'No description';
+                const truncatedPrompt = promptText.length > 85 ? promptText.slice(0, 85) + '...' : promptText;
+                
+                details.createEl('p', { text: truncatedPrompt, cls: 'pixel-banner-store-prompt' });
+                const costText = imageCost === 0 ? 'FREE' : `🪙`;
+                const costEl = details.createEl('p', { text: costText, cls: 'pixel-banner-store-cost' });
+                if (imageCost === 0) {
+                    costEl.addClass('free');
+                }
+
+                // Add click handler
+                card.addEventListener('click', async () => {
+                    const cost = parseInt(card.getAttribute('data-image-cost'));
+                    
+                    if (cost > 0) {
+                        new ConfirmPurchaseModal(this.app, cost, image.prompt, image.base64Image, async () => {
+                            try {
+                                const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
+                                    headers: {
+                                        'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                                        'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                                        'Accept': 'application/json'
+                                    }
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error('Failed to fetch image');
+                                }
+
+                                // verify account
+                                await this.plugin.verifyPixelBannerPlusCredentials();
+
+                                // update the image card with a cost of 0
+                                card.setAttribute('data-image-cost', '0');
+                                card.querySelector('.pixel-banner-store-cost').classList.add('free');
+                                card.querySelector('.pixel-banner-store-cost').textContent = 'FREE';
+
+                                const data = await response.json();
+                                let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
+                                filename = filename.replace(/\s+/g, '-').substring(0, 47);
+                                await handlePinIconClick(data.base64Image, this.plugin, null, filename);
+                                this.close();
+                                
+                                // Check if we should open the banner icon modal after selecting a banner
+                                if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                                    new EmojiSelectionModal(
+                                        this.app, 
+                                        this.plugin,
+                                        async (emoji) => {
+                                            const activeFile = this.app.workspace.getActiveFile();
+                                            if (activeFile) {
+                                                await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                                                    const iconField = this.plugin.settings.customBannerIconField[0];
+                                                    frontmatter[iconField] = emoji;
+                                                });
+                                                
+                                                // Check if we should open the targeting modal after setting the icon
+                                                if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                                    // Add a small delay to ensure frontmatter is updated
+                                                    await new Promise(resolve => setTimeout(resolve, 200));
+                                                    new TargetPositionModal(this.app, this.plugin).open();
+                                                }
+                                            }
+                                        },
+                                        true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
+                                    ).open();
+                                } 
+                                // If not opening the banner icon modal, check if we should open the targeting modal
+                                else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                    new TargetPositionModal(this.app, this.plugin).open();
+                                }
+                            } catch (error) {
+                                console.error('Error purchasing image:', error);
+                                new Notice('Failed to purchase image. Please try again.');
+                            }
+                        }, this.plugin).open();
+                    } else {
                         try {
                             const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
                                 headers: {
@@ -434,14 +748,6 @@ export class PixelBannerStoreModal extends Modal {
                                 throw new Error('Failed to fetch image');
                             }
 
-                            // verify account
-                            await this.plugin.verifyPixelBannerPlusCredentials();
-
-                            // update the image card with a cost of 0
-                            card.setAttribute('data-image-cost', '0');
-                            card.querySelector('.pixel-banner-store-cost').classList.add('free');
-                            card.querySelector('.pixel-banner-store-cost').textContent = 'FREE';
-
                             const data = await response.json();
                             let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                             filename = filename.replace(/\s+/g, '-').substring(0, 47);
@@ -450,6 +756,7 @@ export class PixelBannerStoreModal extends Modal {
                             
                             // Check if we should open the banner icon modal after selecting a banner
                             if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                                // Use the imported EmojiSelectionModal
                                 new EmojiSelectionModal(
                                     this.app, 
                                     this.plugin,
@@ -476,66 +783,99 @@ export class PixelBannerStoreModal extends Modal {
                             else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                 new TargetPositionModal(this.app, this.plugin).open();
                             }
+                            
                         } catch (error) {
-                            console.error('Error purchasing image:', error);
-                            new Notice('Failed to purchase image. Please try again.');
+                            console.error('Error fetching store image:', error);
                         }
-                    }, this.plugin).open();
-                } else {
-                    try {
-                        const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
-                            headers: {
-                                'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
-                                'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
-                                'Accept': 'application/json'
-                            }
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch image');
-                        }
-
-                        const data = await response.json();
-                        let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
-                        filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                        await handlePinIconClick(data.base64Image, this.plugin, null, filename);
-                        this.close();
-                        
-                        // Check if we should open the banner icon modal after selecting a banner
-                        if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                            // Use the imported EmojiSelectionModal
-                            new EmojiSelectionModal(
-                                this.app, 
-                                this.plugin,
-                                async (emoji) => {
-                                    const activeFile = this.app.workspace.getActiveFile();
-                                    if (activeFile) {
-                                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                            const iconField = this.plugin.settings.customBannerIconField[0];
-                                            frontmatter[iconField] = emoji;
-                                        });
-                                        
-                                        // Check if we should open the targeting modal after setting the icon
-                                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                            // Add a small delay to ensure frontmatter is updated
-                                            await new Promise(resolve => setTimeout(resolve, 200));
-                                            new TargetPositionModal(this.app, this.plugin).open();
-                                        }
-                                    }
-                                },
-                                true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                            ).open();
-                        } 
-                        // If not opening the banner icon modal, check if we should open the targeting modal
-                        else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                            new TargetPositionModal(this.app, this.plugin).open();
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error fetching store image:', error);
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Error rendering image card:', error, image);
+            }
+        });
+        
+        // Add pagination for search results if needed
+        if (this.isSearchMode && this.totalPages > 1) {
+            this.addPaginationControls();
+        } else {
+            // Hide pagination if not in search mode or only one page
+            this.paginationContainer.style.display = 'none';
+        }
+    }
+    
+    // Toggle between search mode and category browsing mode
+    toggleSearchMode(enableSearch) {
+        if (enableSearch) {
+            // Switch to search mode
+            this.categorySelect.style.display = 'none';
+            this.nextCategoryButton.style.display = 'none';
+            this.searchAllButton.style.display = 'none';
+            this.searchContainer.style.display = 'flex';
+            this.searchInput.value = '';
+            this.searchInput.focus();
+            this.isSearchMode = true;
+        } else {
+            // Switch back to category mode
+            this.searchContainer.style.display = 'none';
+            this.categorySelect.style.display = 'block';
+            this.nextCategoryButton.style.display = 'inline-flex';
+            this.searchAllButton.style.display = 'inline-flex';
+            this.isSearchMode = false;
+            
+            // Hide pagination when returning to category mode
+            this.paginationContainer.style.display = 'none';
+            
+            // If a category was previously selected, reload its images
+            if (this.selectedCategory) {
+                this.loadCategoryImages();
+            }
+        }
+    }
+    
+    // --------------------------
+    // -- Add Pagination Controls --
+    // --------------------------
+    addPaginationControls() {
+        // Clear the pagination container
+        this.paginationContainer.empty();
+        
+        // Show the pagination container
+        this.paginationContainer.style.display = 'flex';
+        
+        // Previous button
+        const prevButton = this.paginationContainer.createEl('button', {
+            text: '← Previous',
+            cls: 'pixel-banner-store-pagination-button',
+            attr: {
+                disabled: this.currentPage === 1 ? 'disabled' : null
+            }
+        });
+        
+        prevButton.addEventListener('click', () => {
+            if (this.currentPage > 1) {
+                this.searchBanners(this.currentPage - 1);
+            }
+        });
+        
+        // Page indicator
+        this.paginationContainer.createEl('span', {
+            text: `Page ${this.currentPage} of ${this.totalPages}`,
+            cls: 'pixel-banner-store-pagination-info'
+        });
+        
+        // Next button
+        const nextButton = this.paginationContainer.createEl('button', {
+            text: 'Next →',
+            cls: 'pixel-banner-store-pagination-button',
+            attr: {
+                disabled: this.currentPage === this.totalPages ? 'disabled' : null
+            }
+        });
+        
+        nextButton.addEventListener('click', () => {
+            if (this.currentPage < this.totalPages) {
+                this.searchBanners(this.currentPage + 1);
+            }
         });
     }
 
@@ -554,12 +894,107 @@ export class PixelBannerStoreModal extends Modal {
                 flex-direction: row;
                 gap: 10px;
                 align-items: center;
-                justify-content: end;
+                justify-content: flex-end;
+            }
+            
+            .pixel-banner-store-category-controls {
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
             
             .pixel-banner-store-select {
                 width: max-content;
                 font-size: 14px;
+            }
+            
+            /* Search Styles */
+            .pixel-banner-store-search-container {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                margin: 0 0 0 auto;
+            }
+            
+            .pixel-banner-store-search-input {
+                width: 200px;
+                font-size: 14px;
+                padding: 5px 10px;
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 4px;
+            }
+            
+            .pixel-banner-store-search-button,
+            .pixel-banner-store-stop-search-button,
+            .pixel-banner-store-search-all-button {
+                font-size: 14px;
+                padding: 6px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                border: none;
+                white-space: nowrap;
+            }
+            
+            .pixel-banner-store-search-button,
+            .pixel-banner-store-search-all-button {
+                background-color: var(--interactive-accent) !important;
+                color: var(--text-on-accent) !important;
+            }
+            
+            .pixel-banner-store-search-button:hover,
+            .pixel-banner-store-search-all-button:hover {
+                background-color: var(--interactive-accent-hover) !important;
+            }
+            
+            .pixel-banner-store-stop-search-button {
+                background-color: var(--background-modifier-error) !important;
+                color: var(--text-on-accent) !important;
+                opacity: 0.8;
+            }
+            
+            .pixel-banner-store-stop-search-button:hover {
+                opacity: 1;
+            }
+            
+            /* Pagination Styles */
+            .pixel-banner-store-bottom-controls {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                margin-top: 15px;
+                border-top: 1px solid var(--background-modifier-border);
+                padding-top: 10px;
+            }
+            
+            .pixel-banner-store-pagination-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .pixel-banner-store-pagination-button {
+                font-size: 12px;
+                padding: 4px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+                background-color: var(--interactive-normal);
+                border: none;
+            }
+            
+            .pixel-banner-store-pagination-button:not([disabled]):hover {
+                background-color: var(--interactive-hover);
+            }
+            
+            .pixel-banner-store-pagination-button[disabled] {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            
+            .pixel-banner-store-pagination-info {
+                font-size: 12px;
+                color: var(--text-normal);
+                white-space: nowrap;
             }
 
             .pixel-banner-store-next-category {
@@ -593,7 +1028,7 @@ export class PixelBannerStoreModal extends Modal {
 
             .pixel-banner-store-image-grid {
                 gap: 18px;
-                padding: 22px;
+                padding: 18px;
                 margin-top: 20px;
                 display: flex;
                 flex-direction: row;
@@ -605,6 +1040,7 @@ export class PixelBannerStoreModal extends Modal {
                 overflow-y: auto;
                 overflow-x: hidden;
                 border: 1px solid var(--table-border-color);
+                position: relative; /* For the sticky pagination */
             }
             .pixel-banner-store-image-grid.-empty::after {
                 display: none;
@@ -714,7 +1150,7 @@ export class PixelBannerStoreModal extends Modal {
                 animation: pixel-banner-fade-in 0.3s ease-in-out;
             }
 
-            .pixel-banner-status-value {
+            .pixel-banner-store-status-value {
                 padding: 3px 7px;
                 border-radius: 0px;
                 font-size: .8em;

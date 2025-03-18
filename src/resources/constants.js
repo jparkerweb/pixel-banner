@@ -13,6 +13,7 @@ export const PIXEL_BANNER_PLUS = {
         STORE_CATEGORIES: 'store-categories',
         STORE_CATEGORY_IMAGES: 'store-category-images',
         STORE_IMAGE_BY_ID: 'store-image-by-id',
+        STORE_IMAGE_SEARCH: 'store-search',
         SIGNUP: 'signup',
     },
     SHOP_URL: 'https://ko-fi.com/s/7ce609ff2c',
