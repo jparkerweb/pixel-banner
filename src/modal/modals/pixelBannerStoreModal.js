@@ -148,7 +148,7 @@ export class PixelBannerStoreModal extends Modal {
             
             // Stop searching button (initially hidden)
             this.stopSearchButton = this.searchContainer.createEl('button', {
-                text: 'Stop Searching',
+                text: 'Back to Categories',
                 cls: 'pixel-banner-store-stop-search-button'
             });
             
@@ -936,24 +936,16 @@ export class PixelBannerStoreModal extends Modal {
             }
             
             .pixel-banner-store-search-button,
+            .pixel-banner-store-stop-search-button,
             .pixel-banner-store-search-all-button {
                 background-color: var(--interactive-accent) !important;
                 color: var(--text-on-accent) !important;
             }
             
             .pixel-banner-store-search-button:hover,
+            .pixel-banner-store-stop-search-button:hover,
             .pixel-banner-store-search-all-button:hover {
                 background-color: var(--interactive-accent-hover) !important;
-            }
-            
-            .pixel-banner-store-stop-search-button {
-                background-color: var(--background-modifier-error) !important;
-                color: var(--text-on-accent) !important;
-                opacity: 0.8;
-            }
-            
-            .pixel-banner-store-stop-search-button:hover {
-                opacity: 1;
             }
             
             /* Pagination Styles */
@@ -978,17 +970,20 @@ export class PixelBannerStoreModal extends Modal {
                 padding: 4px 10px;
                 border-radius: 4px;
                 cursor: pointer;
-                background-color: var(--interactive-normal);
+                background-color: var(--interactive-accent) !important;
+                color: var(--text-on-accent) !important;
                 border: none;
             }
             
             .pixel-banner-store-pagination-button:not([disabled]):hover {
-                background-color: var(--interactive-hover);
+                background-color: var(--interactive-accent-hover) !important;
             }
             
             .pixel-banner-store-pagination-button[disabled] {
                 opacity: 0.5;
                 cursor: not-allowed;
+                color: var(--text-color);
+                background-color: var(--interactive-normal);
             }
             
             .pixel-banner-store-pagination-info {

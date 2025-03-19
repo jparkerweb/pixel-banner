@@ -639,7 +639,7 @@ export class GenerateAIBannerModal extends Modal {
             cls: 'full-width-input',
             attr: {
                 id: 'ai-banner-prompt',
-                rows: 4
+                rows: 7
             }
         });
         promptInput.value = this.prompt;
@@ -655,11 +655,18 @@ export class GenerateAIBannerModal extends Modal {
             text: '💡'
         });
         inspirationButton.addEventListener('click', () => this.getPromptInspiration());
+        
         const inspirationFromSeedButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-from-seed-button',
             text: '🌱'
         });
         inspirationFromSeedButton.addEventListener('click', () => this.getPromptInspirationFromSeed());
+        
+        const inspirationClearButton = promptInspirationContainer.createEl('button', {
+            cls: 'pixel-banner-inspiration-clear-button',
+            text: '🗑️'
+        });
+        inspirationClearButton.addEventListener('click', () => this.clearPromptInspiration());
 
         // Width
         const widthContainer = promptAllowedSection.createDiv({ cls: 'setting-item pixel-banner-ai-control-row', attr: { style: 'padding-bottom: 0;' } });
@@ -966,6 +973,14 @@ export class GenerateAIBannerModal extends Modal {
         }
     }
 
+    async clearPromptInspiration() {
+        const promptTextarea = this.contentEl.querySelector('#ai-banner-prompt');
+        if (promptTextarea) {
+            promptTextarea.value = '';
+            promptTextarea.focus();
+        }
+    }
+    
     async refreshHistoryContainer() {
         // add style tag to the contentEl
         const styleTag = this.contentEl.createEl('style', {

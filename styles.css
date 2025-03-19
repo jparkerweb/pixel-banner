@@ -673,7 +673,7 @@
 }
 
 .pixel-banner-generated-image {
-    width: auto;
+    width: inherit;
     height: auto;
     display: block;
     animation: pixel-banner-fade-in 1300ms ease-in-out;
