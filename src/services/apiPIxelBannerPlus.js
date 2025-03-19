@@ -30,7 +30,22 @@ async function verifyPixelBannerPlusCredentials(plugin) {
         return { serverOnline: true, verified: false, bannerTokens: 0 };
     } catch (error) {
         console.error('Failed to verify Pixel Banner Plus credentials:', error);
-        return { serverOnline: false, verified: false, bannerTokens: 0 };
+        
+        // Check for connection/network errors specifically
+        const isConnectionError = error.name === 'TypeError' || 
+                                  error.message.includes('Network Error') ||
+                                  error.message.includes('Failed to fetch') ||
+                                  error.message.includes('network') ||
+                                  !navigator.onLine;
+
+        // console.log(`error.message: ${error.message}`);
+        // console.log(`isConnectionError: ${isConnectionError}`);
+        
+        return { 
+            serverOnline: !isConnectionError, 
+            verified: false, 
+            bannerTokens: 0
+        };
     }
 }
 
