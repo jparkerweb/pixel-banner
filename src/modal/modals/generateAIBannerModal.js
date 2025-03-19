@@ -722,7 +722,6 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         promptDisallowedSection.createEl('p', {
-            text: 'You do not have an active Pixel Banner Plus account. Please Signup for Free or connect to your account to generate awesome banners with AI 🤖.',
             attr: {
                 'style': `
                     display: ${!this.plugin.pixelBannerPlusEnabled ? 'block' : 'none'};
@@ -731,7 +730,7 @@ export class GenerateAIBannerModal extends Modal {
                     text-align: center;
                 `
             }
-        });
+        }).innerHTML = 'You do not have an active <span style="color: var(--text-accent); font-weight: bold;">Pixel Banner Plus</span> account. Please <span style="color: var(--text-accent); font-weight: bold;">Signup for Free</span> or connect to your account in Settings to generate awesome banners with AI 🤖.';
 
         // Generate Button and Token Balance
         const buttonContainer = contentEl.createDiv({

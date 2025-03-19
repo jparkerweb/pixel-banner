@@ -1055,7 +1055,7 @@ export class PixelBannerStoreModal extends Modal {
                 // opacity: 0.7;
             }
             .pixel-banner-store-image-grid.-not-connected::after {
-                content: "⚡ Please connect your Pixel Banner Plus account to the plugin to access the store. If you don't have an account, you can sign up for free using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
+                content: "⚡ Please connect your Pixel Banner Plus account in Settings to access the store. If you don't have an account, you can sign up for FREE using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
                 position: relative;
                 top: 40%;
                 max-width: 458px;
