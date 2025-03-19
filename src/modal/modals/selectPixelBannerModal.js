@@ -32,11 +32,36 @@ export class SelectPixelBannerModal extends Modal {
     showLoadingSpinner(container) {
         this.isLoading = true;
         this.loadingOverlay = container.createDiv({ 
-            cls: 'pixel-banner-loading-overlay'
+            cls: 'pixel-banner-loading-overlay',
+            attr: {
+                style: `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: var(--background-primary);
+                    z-index: 100;
+                    animation: pixel-banner-fade-in 0.3s ease-in-out;
+                `
+            }
         });
         
         this.loadingOverlay.createDiv({
-            cls: 'pixel-banner-spinner'
+            cls: 'pixel-banner-spinner',
+            attr: {
+                style: `
+                width: 40px;
+                    height: 40px;
+                    border: 4px solid var(--background-modifier-border);
+                    border-top: 4px solid var(--text-accent);
+                    border-radius: 50%;
+                    animation: pixel-banner-spin 1s linear infinite;
+                `
+            }
         });
     }
     
@@ -475,7 +500,7 @@ export class SelectPixelBannerModal extends Modal {
 
     addStyle() {
         const style = document.createElement('style');
-        style.textContent = `
+        style.textContent = `            
             .pixel-banner-main-container {
                 display: flex;
                 flex-direction: column;
@@ -695,15 +720,6 @@ export class SelectPixelBannerModal extends Modal {
                 background-color: var(--background-primary);
                 z-index: 100;
                 animation: pixel-banner-fade-in 0.3s ease-in-out;
-            }
-            
-            .pixel-banner-spinner {
-                width: 40px;
-                height: 40px;
-                border: 4px solid var(--background-modifier-border);
-                border-top: 4px solid var(--text-accent);
-                border-radius: 50%;
-                animation: pixel-banner-spin 1s linear infinite;
             }
             
             @media (min-width: 400px) {

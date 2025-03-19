@@ -56,8 +56,8 @@ const DEFAULT_SETTINGS = {
     lastVersion: null,
     showRefreshIcon: false,
     showViewImageIcon: false,
-    hidePixelBannerFields: false,
-    hidePropertiesSectionIfOnlyBanner: false,
+    hidePixelBannerFields: true,
+    hidePropertiesSectionIfOnlyBanner: true,
     titleColor: 'var(--inline-title-color)',
     enableImageShuffle: false,
     hideEmbeddedNoteTitles: false,
@@ -77,7 +77,7 @@ const DEFAULT_SETTINGS = {
     bannerIconPaddingY: '0',
     bannerIconBorderRadius: '17',
     bannerIconVeritalOffset: '0',
-    openBannerIconModalAfterSelectingBanner: false,
+    openBannerIconModalAfterSelectingBanner: true,
     openTargetingModalAfterSelectingBannerOrIcon: true,
 };
 
