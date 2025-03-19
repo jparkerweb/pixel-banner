@@ -54,11 +54,36 @@ Enhance your Obsidian experience with beautiful, intelligent banners that make y
 3. Click on Browse and search for "Pixel Banner"
 4. Install the plugin and enable it
 
+## Basic Workflow
 
+1. Open a note and click the `Banner Flag` in the top left corner of your Note  
+
+    ![1](./img/1.jpg)
+
+2. Select a `Source` for your Banner (the AI and Store options require you to first create a FREE Pixel Banner Plus account at: https://pixel-banner.online)  
+
+    ![2](./img/2.jpg)
+
+3. _Optionally_ select `Banner Icon` text (this can be any text, but it is advised to use an Emoji 🤣)
+
+    ![3](./img/3.jpg)
+
+4. _Optionally_ change the `postion`, `size`, `color`, and various other `properites` for both the `Banner Image` and `Banner Icon` of the note (by default they will inherit the General settings in Pixel Banner's main setting page, but are customizable per note)
+
+    ![4](./img/4.jpg)
+
+5. Click the `Banner Flag` icon anytime to adjust any of these settings (`Banner Image`, `Banner icon`, `Display Properties`)
+
+    ![5](./img/5.jpg)
+
+### 🎉 Happy Pixel Bannering 🤣
+
+---
 
 ## Appreciation
-If you enjoy this plugin please consider sending me a tip to support my work 😀
+If you enjoy `Pixel Banner` please consider sending me a tip to support my work 😀
 # [🍵 tip me here](https://ko-fi.com/jparkerweb)
+Any `ko-fi` donator automatically recieves free `Tokens` to spend in Pixel Banner Plus!
 
 ## Feedback and Support
 
