@@ -13,32 +13,32 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 
 ## Key Features
 
-### Smart Banner Creation
+### ✨ Smart Banner Creation
 - AI-Generated Banners: Create stunning, custom banners using AI generation without design skills
 - Banner Store: Browse and use professional banner images from the integrated store, including free options
 - Local Image Support: Use images from your vault as banners with advanced customization options
 - Direct URL Banners: Apply banners from any web URL for maximum flexibility
 - Note Properties Integration: Control all banner aspects through Obsidian's properties feature
 
-### Visual Customization
+### 🎨 Visual Customization
 - Position Control: Fine-tune banner placement with precise vertical and horizontal positioning for perfect alignment
 - Appearance Options: Customize transparency, border radius, animation effects, and spacing for seamless integration
 - Display Flexibility: Choose between display modes (cover, auto, contain) with options for repetition and sizing
 - Banner Icons: Add and customize decorative icons with control over size, position, color, background, and style
 - Title Integration: Style inline titles with custom colors that complement your banner designs
 
-### Efficient Workflow
+### ⚡ Efficient Workflow
 - Banner Selection Modal: Quick visual picker for local images with sorting options
 - Command Integration: Access all banner functions via command palette and hotkeys
 - Quick Action Icons: Select, pin, refresh, and view banners with convenient UI controls
 - Custom Field Names: Rename any banner property field to fit your workflow
 
-### Smart Organization
+### 📂 Smart Organization
 - Folder-Specific Settings: Configure default banner behavior per folder
 - Image Shuffling: Automatically rotate through images in specified folders
 - Direct Children Option: Apply settings only to immediate folder contents
 
-### Premium Features (Pixel Banner Plus)
+### 💎 Premium Features (Pixel Banner Plus)
 - Token-Based System: Generate AI banners with a flexible pay-as-you-go model
 - Banner History: Access your previously generated banners
 - Prompt Inspiration: Get AI assistance with banner ideas
@@ -46,14 +46,14 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 
 Enhance your Obsidian experience with beautiful, intelligent banners that make your notes visually distinctive and organized. Whether you prefer AI-generated art, professional designs from the store, or your own images, Pixel Banner helps create a visually cohesive knowledge base.
 
-## Installation
+## 🔧 Installation
 
 1. Open Obsidian and go to Settings
 2. Navigate to Community Plugins and disable Safe Mode
 3. Click on Browse and search for "Pixel Banner"
 4. Install the plugin and enable it
 
-## Basic Workflow
+## 🚀 Basic Workflow
 
 1. Open a note and click the `Banner Flag` in the top left corner of your Note  
 
