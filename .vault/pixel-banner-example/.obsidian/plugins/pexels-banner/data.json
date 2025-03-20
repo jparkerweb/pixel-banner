@@ -1,4 +1,6 @@
 {
+  "pixelBannerPlusEmail": "jparkerweb@gmail.com",
+  "pixelBannerPlusApiKey": "437044b6-e86e-493d-8e2d-c48df6a6f941",
   "apiProvider": "all",
   "pexelsApiKey": "RoKgyYgLEu0BEzqw5Z4LMnknOquciriNYvtfEe2yHh0sbVLG422J58qq",
   "pixabayApiKey": "",
@@ -79,6 +81,9 @@
   "customBannerIconVeritalOffsetField": [
     "icon-y"
   ],
+  "customFlagColorField": [
+    "pixel-banner-flag-color"
+  ],
   "folderImages": [
     {
       "folder": "notes",
@@ -141,7 +146,7 @@
       "shuffleFolder": ""
     }
   ],
-  "contentStartPosition": 150,
+  "contentStartPosition": 355,
   "imageDisplay": "cover",
   "imageRepeat": false,
   "bannerHeight": 350,
@@ -151,17 +156,17 @@
   "showPinIcon": true,
   "pinnedImageFolder": "pixel-banner-images",
   "showReleaseNotes": true,
-  "lastVersion": "2.21.2",
-  "showRefreshIcon": true,
-  "showViewImageIcon": true,
-  "showSetTargetXYPosition": true,
+  "lastVersion": "3.0.0",
+  "showRefreshIcon": false,
+  "showViewImageIcon": false,
   "hidePixelBannerFields": true,
   "hidePropertiesSectionIfOnlyBanner": true,
   "titleColor": "var(--inline-title-color)",
   "enableImageShuffle": false,
-  "hideEmbeddedNoteTitles": true,
+  "hideEmbeddedNoteTitles": false,
   "hideEmbeddedNoteBanners": false,
-  "showSelectImageIcon": true,
+  "selectImageIconOpacity": 40,
+  "selectImageIconFlag": "blue",
   "defaultSelectImagePath": "pixel-banner-images",
   "useShortPath": true,
   "bannerGap": 12,
@@ -175,6 +180,12 @@
   "bannerIconPaddingY": "0",
   "bannerIconBorderRadius": "17",
   "bannerIconVeritalOffset": "0",
+  "openBannerIconModalAfterSelectingBanner": true,
+  "openTargetingModalAfterSelectingBannerOrIcon": true,
+  "showSelectImageIcon": true,
+  "showSetTargetXYPosition": true,
+  "pixelBannerPlusEnabled": true,
+  "pixelBannerPlusEnabledURL": "https://stale-cloths-accept.loca.lt/",
   "customBannerIconPaddingField": [
     "icon-padding"
   ],

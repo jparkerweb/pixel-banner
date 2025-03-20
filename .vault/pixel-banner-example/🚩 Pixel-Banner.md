@@ -1,12 +1,8 @@
 ---
-banner: "[[forest.jpg]]"
-icon: 🌲
-content-start: 350
-icon-size: "100"
-banner-x: 50
-banner-y: 50
-banner-display: cover
-banner-height: 350
+banner: "[[pixel-banner-images/glistening-tendrils-of-vibrant-aurora-borealis-.jpg]]"
+icon: 💫
+icon-size: 94
+content-start: 341
 ---
 # 🚩 Pixel-Banner 
 🐙 [GitHub](https://github.com/jparkerweb/pixel-banner)

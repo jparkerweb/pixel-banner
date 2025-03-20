@@ -4,7 +4,7 @@
   "switcher": true,
   "graph": false,
   "backlink": true,
-  "canvas": false,
+  "canvas": true,
   "outgoing-link": true,
   "tag-pane": true,
   "properties": true,

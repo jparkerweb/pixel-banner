@@ -1,0 +1,402 @@
+# Inventory of `/src` Directory
+
+Below is a concise overview of all files and their primary functions or methods. This document should help future developers quickly locate and understand the key points in the codebase. If any changes are made to the codebase, please update this inventory file accordingly.
+
+---
+
+## `/src/main.js`
+**Exports**:  
+- **default (PixelBannerPlugin)**  
+  This file simply exports the main plugin class (from `src/core/pixelBannerPlugin`) as the default export.
+
+---
+
+## `/src/core/pixelBannerPlugin.js`
+**Class**: `PixelBannerPlugin` (extends Obsidian's `Plugin`)  
+**Key Responsibilities**:  
+- Main entry point for the plugin, handling initialization, command registration, event listening, and cleanup.  
+- Coordinates banner logic and API calls, caching, and updating banners across open notes.
+
+**Notable Methods**:
+1. **onload()**  
+   Initializes the plugin: loads settings, checks version, registers commands/events, sets up watchers.
+2. **onunload()**  
+   Cleans up observers, frees resources, and clears the icon overlay pool.
+3. **verifyPixelBannerPlusCredentials()**  
+   Confirms credentials with the external "Pixel Banner Plus" service.
+4. **checkVersion()**  
+   Shows release notes if the plugin has been updated to a new version.
+5. **getReleaseNotes(version)**  
+   Retrieves or returns release notes content for the given version.
+6. **debouncedEnsureBanner()**  
+   Debounced function that re-checks and updates the banner display if needed.
+7. Plus many "bound" methods that delegate to helpers (e.g. `updateBanner()`, `cleanupCache()`, etc.) after binding them to `this`.
+
+---
+
+## `/src/core/bannerIconHelpers.js`
+Provides utility methods for managing the "icon overlay" feature on banners.
+
+**Methods**:
+1. **normalizeColor(color)**  
+   Returns a normalized/cleaned color string (lowercase, no spaces) for consistency.
+2. **getIconOverlay(plugin)**  
+   Obtains a banner icon overlay from the pool or creates a new overlay `<div>` if none are available.
+3. **returnIconOverlay(plugin, overlay)**  
+   Resets and returns an icon overlay to the pool for later reuse.
+4. **shouldUpdateIconOverlay(plugin, existingOverlay, newIconState, viewType)**  
+   Checks whether the existing icon overlay's styling or state differs from the desired icon state and thus needs an update.
+5. **handleSetBannerIcon(plugin)**  
+   Opens an emoji selection modal and updates frontmatter with the chosen banner icon.
+6. **cleanupIconOverlay(plugin, view)**  
+   Removes any non-persistent icon overlays from the specified view.
+
+---
+
+## `/src/core/bannerManager.js`
+Handles adding and updating "pixel banners" (the large images at the top of notes).
+
+**Methods**:
+1. **addPixelBanner(plugin, el, ctx)**  
+   Creates or updates a banner `<div>` in the specified element, adds icons (e.g. view, pin, refresh, set icon).
+2. **updateBanner(plugin, view, isContentChange, updateMode)**  
+   Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates.
+3. **applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded)**  
+   Applies style-based settings: fade, size, border radius, etc., to the banner `<div>`.
+4. **applyContentStartPosition(plugin, el, contentStartPosition)**  
+   Sets the vertical offset at which the note content begins below the banner.
+5. **applyBannerWidth(plugin, el)**  
+   Ensures the banner matches the width of the note's container.
+6. **updateAllBanners(plugin)**  
+   Iterates through all workspace leaves and updates banners in each markdown view.
+7. **updateBannerPosition(plugin, file, position)**  
+   Updates the note's frontmatter for custom X/Y positions (used by "Target Position" modals).
+
+---
+
+## `/src/core/bannerUtils.js`
+General-purpose utilities for processing banner-related inputs and folder-based overrides.
+
+**Methods**:
+1. **getInputType(input)**  
+   Figures out if the banner input is a local vault path, an Obsidian link, a direct URL, or a keyword for API usage.
+2. **getPathFromObsidianLink(link)**  
+   Resolves an internal link `[[...]]` to the corresponding file in the vault.
+3. **getVaultImageUrl(path)**  
+   Reads an image from the vault, returns a `blob:` URL to display in the banner.
+4. **preloadImage(url)**  
+   Preloads or "fetches" an image so it can be cached or validated.
+5. **getFolderPath(filePath)**  
+   Returns just the folder portion (directory path) from a file path.
+6. **getFolderSpecificImage(filePath)**  
+   Checks the plugin's folder-based overrides for a matching path and merges any configured image settings.
+7. **getFolderSpecificSetting(filePath, settingName)**  
+   Returns a specific override setting if defined for the folder in question.
+8. **getRandomImageFromFolder(folderPath)**  
+   Picks a random image from the specified vault folder.
+9. **getActiveApiProvider()**  
+   Chooses an image-hosting provider, or picks one randomly if the user has selected "all".
+10. **hasBannerFrontmatter(file)**  
+   Checks the file's frontmatter for the presence of a banner field.
+11. **createFolderImageSettings(folderImage)**  
+   Creates or merges the folder-specific image settings, optionally randomizing if shuffle is enabled.
+
+---
+
+## `/src/core/cacheHelpers.js`
+Implements caching logic to speed up banner loads and reduce repeated API calls.
+
+**Methods**:
+1. **generateCacheKey(filePath, leafId, isShuffled)**  
+   Produces a unique cache key for a note and leaf, plus shuffle state if relevant.
+2. **getCacheEntriesForFile(filePath)**  
+   Fetches all cache objects associated with a given file path.
+3. **cleanupCache(force = false)**  
+   Removes stale or excessive entries from the banner cache, optionally forced.
+4. **invalidateLeafCache(leafId)**  
+   Finds and removes any cache entries related to the specified leaf.
+
+---
+
+## `/src/core/domManager.js`
+Manages DOM observers and watchers to keep banners in sync when Obsidian reflows or modifies the document.
+
+**Methods**:
+1. **setupMutationObserver()**  
+   Watches for large-scale DOM changes (like banner removal) and triggers re-check if needed.
+2. **setupResizeObserver(viewContent)**  
+   Attaches a `ResizeObserver` to adjust banner width dynamically when the container changes size.
+3. **updateFieldVisibility(view)**  
+   Hides banner-related frontmatter fields in preview mode if plugin settings require it.
+4. **updateEmbeddedTitlesVisibility()**  
+   Toggles whether embedded note titles are displayed or hidden in embeds.
+5. **updateEmbeddedBannersVisibility()**  
+   Toggles whether embedded banners are displayed in embedded notes.
+6. **cleanupPreviousLeaf(previousLeaf)**  
+   Removes pixel banner elements, pinned overlays, and blob URLs from a leaf that the user navigated away from.
+
+---
+
+## `/src/core/eventHandler.js`
+Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode changes).
+
+**Methods**:
+1. **handleActiveLeafChange(leaf)**  
+   Cleans up the previous leaf's banner resources, updates or shuffles the new leaf's banner, and caches state.
+2. **handleLayoutChange()**  
+   Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed.
+3. **handleModeChange(leaf)**  
+   Re-renders or hides frontmatter fields if the user toggles between preview/edit modes.
+4. **handleSelectImage()**  
+   Opens a modal to select or upload a new banner image from the vault, then modifies frontmatter.
+5. **handleBannerIconClick()**  
+   Opens the Select Pixel Banner modal for choosing between different banner selection methods.
+
+---
+
+## `/src/core/settings.js`
+Functions for loading and saving plugin settings to disk.
+
+**Functions**:
+1. **loadSettings(plugin)**  
+   Reads the plugin's data, merges with defaults, ensures array-based fields.  
+2. **saveSettings(plugin)**  
+   Persists setting changes, then triggers a re-check of banners to apply updates.
+
+---
+
+## `/src/modal/modals/emojiSelectionModal.js`
+**Class**: `EmojiSelectionModal` (extends `Modal`)  
+Lets users pick from an emoji list to set the banner icon.
+
+**Key Methods**:
+- **onOpen()**: Renders the modal's search box, emoji grid, and "Set Banner Icon" button.  
+- **updateEmojiGrid()**: Filters and shows emojis in a grid by category.  
+- **getEmojiDescription(emoji)**: Retrieves a textual description from an internal map.  
+- **onClose()**: Cleans up.
+
+---
+
+## `/src/modal/modals/folderSelectionModal.js`
+**Class**: `FolderSelectionModal` (extends `FuzzySuggestModal`)  
+Prompts the user to pick a folder from the vault.
+
+**Key Methods**:
+- **getItems()**, **getItemText()**, **onChooseItem()**: Standard fuzzy search overrides.  
+- **onOpen()**: Pre-populates the input with a default folder.
+
+---
+
+## `/src/modal/modals/generateAIBannerModal.js`
+**Class**: `GenerateAIBannerModal`  
+Provides an interface to call "Pixel Banner Plus" AI to generate a banner image.
+
+**Key Methods**:
+1. **generateImage()**  
+   Sends the prompt and desired size to the AI endpoint, updates the UI upon success or failure.  
+2. **checkDownloadHistory(img)**  
+   Checks if the user already downloaded that image previously.  
+3. **onOpen()**  
+   Builds the entire form (prompt, width/height sliders, "Generate Image" button, plus a "Recently Generated" history).  
+4. **getPromptInspiration() & getPromptInspirationFromSeed()**  
+   Calls an endpoint for random or seed-based new prompt suggestions.  
+5. **refreshHistoryContainer()**  
+   Reloads the recent images from the service.  
+6. **updateHistoryContent()**  
+   Updates the history container with images using pagination.  
+7. **updatePaginationUI()**  
+   Updates the pagination UI with buttons for navigating through the history.  
+8. **onClose()**  
+   Clears the modal content.
+
+---
+
+## `/src/modal/modals/imageSelectionModal.js`
+**Class**: `ImageSelectionModal`  
+Lists user's images from the vault to pick from, or to upload a new one.
+
+**Key Methods**:
+1. **confirmDelete(file)** and **deleteImage(file)**  
+   Confirms and performs deletion of an image from the vault.  
+2. **onOpen()**  
+   Renders search box, upload button, sorting/pagination, image grid.  
+3. **updateImageGrid()**  
+   Filters, sorts, and paginates the displayed image files.  
+4. **sortFiles(files)**, **formatFileSize(bytes)**, **formatDate(time)**  
+   Utility methods for sorting and pretty-displaying file data.  
+5. **onClose()**  
+   Clears UI.
+
+---
+
+## `/src/modal/modals/pixelBannerStoreModal.js`
+**Class**: `PixelBannerStoreModal` (extends `Modal`)  
+Provides interface to browse and select banners from the Pixel Banner Plus store.
+
+**Key Methods**:
+1. **onOpen()**  
+   Renders the store interface with a category dropdown selector and prepares the image grid container.
+2. **loadCategoryImages()**  
+   Fetches images for the selected category from the API, showing a loading spinner during the request.
+3. **displayImages(images)**  
+   Renders the returned images in a responsive grid, showing prompts and token costs for each image.
+4. **addStyle()**  
+   Injects custom styling for the store modal layout and animations.
+5. **onClose()**  
+   Cleans up the modal content and styles.
+
+The modal uses the Pixel Banner Plus API endpoints to fetch categories and their associated images, displaying them in a responsive grid layout with cost information and truncated prompts.
+
+---
+
+## `/src/modal/modals/imageViewModal.js`
+**Class**: `ImageViewModal`  
+Shows a single image at larger size in a centered modal.
+
+**Key Methods**:
+- **onOpen()**: Embeds the image in the modal, plus a close button.
+- **onClose()**: Cleans up.
+
+---
+
+## `/src/modal/modals/releaseNotesModal.js`
+**Class**: `ReleaseNotesModal`  
+Displays release notes (when the plugin updates).
+
+**Key Methods**:
+- **onOpen()**: Builds the release notes UI.  
+- **onClose()**: Empties the modal.
+
+---
+
+## `/src/modal/modals/saveImageModal.js`
+**Class**: `SaveImageModal`  
+Lets the user specify a file name for a new image being saved to the vault.
+
+**Key Methods**:
+- **onOpen()**: Shows a text field for the file name and a toggle for "use as banner."  
+- **onClose()**: Empties out the modal.
+
+---
+
+## `/src/modal/modals/targetPositionModal.js`
+**Class**: `TargetPositionModal`  
+Helps visually set or tweak the X/Y offsets for the banner and icon.
+
+**Key Methods**:
+1. **updateDisplayMode(mode, zoom?)**  
+   Updates frontmatter for display type (cover, contain, or custom zoom).  
+2. **updateBannerHeight(height)**, **updateBannerContentStartPosition(pos)**, **updateBannerIconXPosition(pos)**, **updateRepeatMode(repeat)**  
+   Tweaks frontmatter for banner dimensions, display and icon offset.  
+3. **onOpen()**  
+   Draws a draggable or clickable target box to set X/Y.  
+4. **addStyle()**  
+   Injects styles for crosshair lines, etc.  
+5. **onClose()**  
+   Removes the style element.
+
+---
+
+## `/src/modal/modals/selectPixelBannerModal.js`
+**Class**: `SelectPixelBannerModal` (extends `Modal`)  
+Provides a central hub for accessing different banner selection methods.
+
+**Key Methods**:
+- **onOpen()**: Renders three large buttons for different banner selection methods
+- **addStyle()**: Adds custom styling for the modal buttons
+- **onClose()**: Cleans up the modal content and styles
+
+---
+
+## `/src/modal/modals.js`
+Exports all modals from the `modal/modals` directory.
+
+---
+
+## `/src/resources/constants.js`
+**Exports**:  
+- `PIXEL_BANNER_PLUS`: Holds API-related URL endpoints and defaults for the optional advanced service.
+
+---
+
+## `/src/resources/emojis.js`
+**Exports**:  
+- `emojiList`: Organized categories of emojis, used in `EmojiSelectionModal`.  
+- `emojiDescriptions`: Mappings of emoji to descriptive text for search.
+
+---
+
+## `/src/resources/flags.js`
+**Exports**:
+- `flags`: Variouls colored flags to be used as the Pixel Banner icon.
+
+---
+
+## `/src/services/apiPIxelBannerPlus.js`
+**Methods**:
+1. **verifyPixelBannerPlusCredentials(plugin)**  
+   Performs an HTTP GET to validate the user's email/API key with the Pixel Banner Plus service.
+
+---
+
+## `/src/services/apiService.js`
+Provides helper functions for fetching random images from various image provider APIs.
+
+**Methods**:
+1. **makeRequest(url, options)**  
+   A low-level request function with a simple rate limiter.  
+2. **fetchPexelsImage(plugin, keyword)**  
+   Pulls a random image from Pexels by keyword, falling back to default keywords.  
+3. **fetchPixabayImage(plugin, keyword)**  
+   Pulls images from Pixabay, attempts multiple times/fallback keywords.  
+4. **fetchFlickrImage(plugin, keyword)**  
+   Pulls images from Flickr, randomly picks from the results.  
+5. **fetchUnsplashImage(plugin, keyword)**  
+   Pulls from Unsplash, also tries fallback keywords if no results.
+
+---
+
+## `/src/settings/settings.js`
+Contains global **DEFAULT_SETTINGS** object, plus a settings tab class.
+
+**Key Exports**:
+1. **DEFAULT_SETTINGS**  
+   An object holding all default plugin options (banner fields, API keys, flags).  
+2. **FolderSuggestModal**  
+   A fuzzy folder selector for user-chosen folder settings.  
+3. **PixelBannerSettingTab** (extends `PluginSettingTab`)  
+   Builds the plugin's settings UI with various categories/tabs.  
+4. **debounce(func, wait)** and **random20characters()**  
+   Utility functions for delayed calls and random string generation.
+
+---
+
+## `/src/settings/tabs/`
+Contains multiple small modules for organizing plugin settings sub-UI, mostly used by the main `PixelBannerSettingTab`.
+
+- **settingsTabAPISettings.js**  
+  Creates or loads API-related fields (API keys, test buttons).  
+- **settingsTabCustomFieldNames.js**  
+  Lets users define custom frontmatter field names for banners, X/Y positions, and more.  
+- **settingsTabFolderImages.js**  
+  Manages settings for folder-specific banner overrides.  
+- **settingsTabGeneral.js**  
+  Configures general plugin options.  
+- **settingsTabPixelBannerPlus.js**  
+  Contains settings for Pixel Banner Plus authentication and API connection.
+
+---
+
+## `/src/utils/`
+Various helper scripts:
+
+- **handlePinIconClick.js**  
+  A function that handles "pinning" a random banner image by saving it to the vault and updating frontmatter.  
+- **downloadHistory.js**  
+  A simple class that tracks previously downloaded AI images, so the user can avoid duplicates.  
+- **frontmatterUtils.js**  
+  Typically includes something like `getFrontmatterValue(frontmatter, fields)` to retrieve relevant frontmatter fields.
+
+(Implementation details for some of these are not shown in the opened files, but references exist throughout the plugin.)
+
+---
