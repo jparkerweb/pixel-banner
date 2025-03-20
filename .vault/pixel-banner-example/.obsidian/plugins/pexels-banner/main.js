@@ -32,21 +32,21 @@ var init_flags = __esm({
   "src/resources/flags.js"() {
     flags = {
       "red": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAB3RJTUUH6QMBFCMRzbWhYAAAAm9JREFUWIXt1Eto03AcwPHfPy21r6WZ2JOKrN2jrV3b6ZAWHxQcXpwOvDkUD4MdnDfdSPAQi+JBUG8TRMGDrOrwAeKiUCHIYBE8zR3s1sdBkYEwpgOXf5v272WW1dKtaZMepH8IhF8eny9/SIAQAoQQGDh0IPz3vBkHih4Mhe+cOzXnpO2rP3+vM1efvY28+jAngc6LunTisOCk7QAAjMNqgfHBqKA3CgBA7d7pYDYP9u1qZya9HvZIR0dYV9hAoYrhiMXMJxhaSPh97EhXpy4BVJW5GSHEHDWZ+Mk2u/AtFCB3vR42ouEuVINLAQDAOCkKLlrM/HuGFmb8PvZ8Z+O7sB1cFmFAiDluMvEPaLuQCvayN3q66w5QA5cCAIDZazDw4zarsNYXJNP7fewZt1tVRD1wWYAJITi9w8THHW3CfMB/hatxFxqBKyJ6jMbr12xWYaUvSB75POyg21U1Qiu4LMCGEJw1m/nnDlr4FPCzl7u7KgK0hisieo1G/qbdJvwIBcl9r4eNbnySesJlATSF4ILFzL9rdwgnXa6wsQlwaSUVJfZYxuKbTEbSHV4nBGZyeS4uy+LrdEa6tTHXDc4UCtwTGYux5KI0DADD/1zXFFYAIIFz3JSMxafptBTb4l5N4O+FAjeNc+LEl6Q0BABDNTxTN0wIgdl8novjnPhwKSVNqHxeNbxSLMILnOPiMhZns1lpQO0L1MIf8woXl2Xx3lJKGgOAsTrBmuBfRQIvMeamZCyK2ax0rEFsW/izokBcxpHbi0vSKACMaghuCffPL6B+HbDNqxn/6hbcglvwfwobF74uw/LqWtlwTxPgP3n3GrlhLVHIAAAAAElFTkSuQmCC",
+      "checkers": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAC5klEQVRYhe2WS0hUYRTHf8fX+EpnfPQwKXIT9iKLYsSNRLZSgkoICgKJWiTVJopaRFRCENFrkVEbF0G1yAiyaGMGWZARPcQMsjDKMHN0SjOz0+J+l3vV66Q4uvLAcL//+ebO77zudwdVRVVZv3ZV0F5Px0eKV68Mntle1pidlhrq6ev3H7lxr7C2ofEJU2wxlRuK6rLTUgH86clJHCgtrptqKEDM/Ix0v9uxMCvgR+QQIsEpBcfGyChnHlQVwaOpDCDGy9kF8g3igKNA3XkRPSdyJZpBxHk5e8w1AIk5kPjGktuuw9ZmkdpjcBHVSQ2gZ8a2hQF1ZOIySCmHLUDdZNvgmXE6kAb8sYnALKDTkr7T4HsJJ2ogjIj/BbR9grulqpXjBXtm/AvIdGk/kOPSYeAnxJotPsCiftiDSCciV8cD9sx4wFzjTWS2zgJ6gd9G+4BB4K/R+ZCVDBVNIhXAyztQX6a6z4sRscdJQKpLx464IdkEZ1sr8N6RK17B3nqR74hUjwucg9XXXqDLrDOAr1htyDNBdWNVY44JYMj4/EAQOAwUQ2AT7Lotoog8R2Q/jFHqNKDfpRMB9zEzaCDufXcGfcBHl35ogt0IBUABIsme4BZXAAlAyGifqUa70cvN2t6PB1JwZiAfKMSqGsAD6A1BfblqlSfYtniskto2G1js0l+AHy6dy/DpH8KqDtAMXCtRPWnveYIzgYAr0gScnts3peCccHOBeUCb0ceBEgi3wi1Ud3gxPMEhnPJhgoh1aWH4NHfjHDbAuyXQEFTd6fXbEcH24ASwnlE7s2ysqTbl4ylWjwesM+U+quUAmyMRI4Ft0xF6AU65ARLgcxc8toETMU/wUuAtTvkuYQ1Nk/OVZ0BNgeqFgokSI4EHsV4KthUDPmuIbzLGERgVcKu5ngLWQcsaqEb1bDSAEcHGLh9U3R1N2P/BqqP/iEXZIr6dZsAz4BnwDDiSxb1u76AjFB7mzJ0G8D/kvRAp7yYAQQAAAABJRU5ErkJggg==",
       "blue": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACMElEQVRYhWP4//8/w////xlczIwsYGx6YEYHYwOLvhjf46J8PB8+fvsuUL1qh+WGQ8dPMNAYMOW4WW8X5eNhYGBgEODn4mQo9XHYTmtLGRgYGJikhfgFkAXkRQQFfCLX7tD3n55CU4uZmRgxBB9IOLozKQTOiopau8MhcCZNHMCCTfAnExvDTyY2xkviju6s/365qRZ/ma36bOfOJ99erbm0MXMONSxmwif5k4mN4QsLDyMDAwPDIwlHd2aFwFkRUWt32AVQHgpYfYzLET+Z2BivQEMhNXp9yKvvr9dsXJdGVggQbTG6A46L2cOjQf/5zp1Pv71ec3xDBtGOINlidAcwMDAw3ICGQlL0Wv8X399u3EZEKJBtMTZHnBJz9GH998tbtfjLbO3nO3c++/Z6zSkcoYA3cZHjAFhivCPu6P5bPmBWfPS6He5YsiRVfIzLET+Z2BjPijnA04Lms507H397teb8xsw5NLMY3QEMDAwM9yQgacHMfwbtfIwNmL46sPPFt9drtm/MoL2PGRgYGHSh2W0+UkKjmcV2L3bvfPX99ZrN69LmMDAEY8hT3WJDqO/mEihMqGKx44vdO19/f71mPQ7fUd1i0+c7dz77/mbNrPXpJJfXZFmsDs2PyyioIom22PzFrp3Pv71es3d9OtHBSZHFsNJmCZUaAAQtVrq3NHUnlXxHtMW3e3kYGRjSaWIhDFC1dhq1eNTiUYtHlsUsVx6/YHjx4TOKoAwdLAYATv0+zO4Wc9kAAAAASUVORK5CYII=",
       "green": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACOUlEQVRYhe2VzWsTQRjG39kMQaW0UcxJQWIbQSQbtVprE6RKmz3Y4kkQ8ag3r0Vt7+1uD/4BaY6CKAMqHrpDBSWI8ZJEiIjamBz8aEqVrBaVhd0ZL90S7SZu404v5oWF5Z3D73medz6Acw6ccxgZODro/G/Fh4b7Dw/evDSeC3d3GV9//AxN3dVP3s/mnoPgkq6mEvPh7i4AgFDPju0wMTY8LxoKACDt2dUTamzs270zdEbt1Q9ci1wWCg5IaEPzbZwpVhKlz2l9+okb+4UIwG5NEwOYmKO8bCtBC6XCC5G5Q3mJfqwzsqhVM36ApVaLJgZY3cYRAEA5zhQ7idLjWp9+3IcUWoLdRBRlW/kyBOmLs1E9NdnbtgDXqP8mwMQcZWPW+hiOFQJ0qc7IC7XieQyeHbsJcMZQkm3lWwLSF7Tow9MeU9i042YiTMzRU9kaC1robHghMnckL9Elg5GS6r4Z23bcTICTwqs4U74nUPr8bFQ/5ZKCL46biTAxR7mGvSCvHcnXWjUjDPynAACAN3GmBC2Uil2PiHPsVokSpssGI0/UinjHAAD9hQD9VLfJHXVxfaMJA48UMV0xGHk0/S4DoxvXfQcPrF0mtxvcuZUvYKWI6WeDE3267OrOd/BQIUBrBiO3Zlq78w0cy0v0Q52RB1q57SfSMzhZwHTZsMmzmYrnOP8J7Nw297TNx9kW+OBj6Uq2yVEQBl4ZrSJRQKd8fZ064A64A/6/wPjl+xrUjNXfmnu3APwLyT02r9kBUpoAAAAASUVORK5CYII=",
-      "orange": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABTElEQVRYhWP4//8/w////xlczIwsYGx6YEYHYwOLvhjf46J8PB8+fvsuUL1qh+WGQ8dPMNAYMOW4WW8X5eNhYGBgEODn4mQo9XHYTmtLGRgYGJikhfgFkAXkRQQFflSqVvyoVLWgqcXMTIzYxOsZGBi209IBLDjEOaC4noGBofxHpaoAAwNDJQMDwwGO9ttUiX8mAvIcDAwMAlA2VUOBkMXYHEEVB+AKakIOoDgaSPExNgcIQNmwUCghNhTI8TEuR3AwMDA0MzAw/CAmFCjxMS4HCEDZeNMCtXyMyxE40wK1fYzLAQJQNiwULGjpY2ygkQHqY3pZjJHQaGkx3lRNC4uJKkyoZTHJJRelFpNdY5FrMcVVJCkWU7U+JsZiqlpIjMWW1LaMoMUc7bexNsSoCehRVo9aPGrxqMXD1GKWK49fMLz48BlFUIYOFgMAyz/KBzK6zGkAAAAASUVORK5CYII=",
       "pink": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABSUlEQVRYhe2WsUrEQBCGv4tXRDnuVvEqBV9BFCSHzRVipXB18BEsFRWLQ+x9jCus0sVSbM4H8A1srjwR1G5tNqC4e9kkuykkAwvDpPj+f3bYCVJKpJQc7O1EWV7HaQ13t6O7k+Npv9uZv318iuv7h0HyNH3GcwSnh/tpv9sBEL2VZc6PhqlvKECwsdYTPwtb66uCOLkkTiKv4KWgpauPgdSngLahHqozBi6IEwFcAY9MRk7uP8j5HgJC5U67kAfWiXAiwNTqPAGVr6GIY50AofKsC2e2XSjj2CQiBG6BL5suVHFsEiBUvnAWXDk2iTDOgmvHJgFC5VkXIp+OdXGDclwX+M+g+QQvnGofYKvHxBW48MtVFVx6Y5UFV16RRcBO97EN2CnQBjxwDcsHT0baHzGXUcdb3YAbcAP+p+D2y+uM2fz9V3GzBvA3IcG57wVt5SkAAAAASUVORK5CYII=",
-      "purple": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABPElEQVRYhe3WPUvDQByA8aexQ5TSnmInBafsomBTXDqIk34DP4KjguIg4u4HcXKLo7jU7G4dXTpWBM12LhVivKR5+V8GyUHguOX3JHccQWuN1pqDvR3/Z17H0xrtbvt3J8fjfrcze//8Ulf3j8OH5/ELlodzergf9LsdANVbWeb8aBTYRgGcjbWeii9sra+q0IsuQi/yrcJLTsu0fg0ENgOclHUXULEALR2RBicDQPgrLIJNESIBReC0gFLbUAZOBhCLOMsb0K4AJyNc4BaIQi9SwCXwNJi4xsuoyhunBaj5PPMsSMOmCONZsAknA4hF+FJ7nHfcMN/3uuA/B80mnHmqbcCZoDScC5OEC4NV4dJgGbgyVhQWBfPAQ2lsITyYuMYfMclRx13dwA3cwP8Ubr++TZnOPn4tbtYAfwMBYNJpfZpdcwAAAABJRU5ErkJggg==",
       "yellow": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABPklEQVRYhe3Wv0rDQBzA8W9jKVVKexE7KfgKoiApLiWIk76Bj+CooDiIuPsgTm5xKuJSH8A3cOmWiqCS5VwqxHhJ8+d3GaQHgeOWzze54whaa7TW7O9uez/zOp7GcGfLuz0+Gve7nenbx6e6vHsY3D+Nn7E8nJODvaDf7QCo3soyZ4fDwDYK4Kyv9lR8YXPNVWHkn4eR71mFl5yGaf0KCGwGOCnrbUDFArR0RBqcDADhrzAPNkWIBBSB0wJKbUMZOBlALOI0b0CzApyMaAM3wFcY+Qq4AB7d1sh4GVV547QANZtnngVp2BRhPAs24WQAsQhPao/zjmtm+14X/Oeg2YQzT7UNOBOUhnNhknBhsCpcGiwDV8aKwqJgHnggjc2F3dbI+CMmOeq4qxfwAl7A/xRuvrxOmEzffy1u1AB/A5cP1WBzW154AAAAAElFTkSuQmCC",
+      "orange": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABTElEQVRYhWP4//8/w////xlczIwsYGx6YEYHYwOLvhjf46J8PB8+fvsuUL1qh+WGQ8dPMNAYMOW4WW8X5eNhYGBgEODn4mQo9XHYTmtLGRgYGJikhfgFkAXkRQQFflSqVvyoVLWgqcXMTIzYxOsZGBi209IBLDjEOaC4noGBofxHpaoAAwNDJQMDwwGO9ttUiX8mAvIcDAwMAlA2VUOBkMXYHEEVB+AKakIOoDgaSPExNgcIQNmwUCghNhTI8TEuR3AwMDA0MzAw/CAmFCjxMS4HCEDZeNMCtXyMyxE40wK1fYzLAQJQNiwULGjpY2ygkQHqY3pZjJHQaGkx3lRNC4uJKkyoZTHJJRelFpNdY5FrMcVVJCkWU7U+JsZiqlpIjMWW1LaMoMUc7bexNsSoCehRVo9aPGrxqMXD1GKWK49fMLz48BlFUIYOFgMAyz/KBzK6zGkAAAAASUVORK5CYII=",
+      "purple": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABPElEQVRYhe3WPUvDQByA8aexQ5TSnmInBafsomBTXDqIk34DP4KjguIg4u4HcXKLo7jU7G4dXTpWBM12LhVivKR5+V8GyUHguOX3JHccQWuN1pqDvR3/Z17H0xrtbvt3J8fjfrcze//8Ulf3j8OH5/ELlodzergf9LsdANVbWeb8aBTYRgGcjbWeii9sra+q0IsuQi/yrcJLTsu0fg0ENgOclHUXULEALR2RBicDQPgrLIJNESIBReC0gFLbUAZOBhCLOMsb0K4AJyNc4BaIQi9SwCXwNJi4xsuoyhunBaj5PPMsSMOmCONZsAknA4hF+FJ7nHfcMN/3uuA/B80mnHmqbcCZoDScC5OEC4NV4dJgGbgyVhQWBfPAQ2lsITyYuMYfMclRx13dwA3cwP8Ubr++TZnOPn4tbtYAfwMBYNJpfZpdcwAAAABJRU5ErkJggg==",
       "white": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABJklEQVRYhe3WsUrDQBjA8X9jB5XSnmImBV9BLEiKSwdxsm/gIzgqKA4i7j6IU7d0LC7tA/gGLh0rgo7nFDjjxV6S724o+SAQvuX3JzlC0Fqjtebs5DjJ7kNcrWH/KHm+HM3ibmf58fWt7l8mg/HrbI7nia7OT9O42wFQve0tbi6GqW8UINrf7Slzcbi3o4BbIPEKb0Qt2/4BSH0GRAX7TUAZAVo6ogjOB4DwU1gF2yJEAsrARQGVXkMVOB+AEXHtGlAHtkU84fgUpOB8AKw4C9KwLcJ6FnzC+QCMiKQdADbnEZgC81DwXQZmC5/wH8wcH/C/oDTshEnCpcG6cGWwClwbKwuLgi7wQBpzga0/YpIT4lvdwA3cwGsKt9/eFyyWn7+WBwHgH/UUmOp6KmdeAAAAAElFTkSuQmCC",
       "black": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABLElEQVRYhe3Wv2rCUBTH8d9NHbSI3oqZWvAVpEKJuDiIk76Bj+DYQksHKe59kE5ucZQu+gB9AxdHi6DjcQpc05vm37l3kBwIhLN8viSXEBARiAiDp0cvuLdxiX6n7X1Oxmu3Vt3/Hk/y/WvZXXyvNzA8znTY891aFQBk/baCl1HfN40CgHPfqEt10WreSSHEqxDCMwrfOEK3nwHwTQY4EfsyAKkEEHdEFBwOAJifQhysi2AJSANHBWR6DVngcACUiOekAXlgXcQcCZ8CFxwOAGLOAjesi9CeBZNwOABKhFeyAKvzAWBFRBtb8FsABguT8B9MHRPwvyA3nAjjhFODeeHMYBY4N5YWZgWTwF1uLBYmIu2PGOfY+FYXcAEX8JXCpZ/tDrv94WL5YAE+A0hLuhQ62ZsRAAAAAElFTkSuQmCC",
+      "finish-line": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAADyklEQVRYhe2WTUgjZxjHf0mcfJqYafyciqW5aIyWpsUS8SLS9FIloBUWWhCWsj10aU/FQg9FbBcEKavtwS3txUPB9tAFobZ40S10FRoq2hVNwQ8izYImxkRN4pikBzuzys4Gt9U9+cDA/J933vf3vM/7zDNDoVCgUCjw+muv+JX7Z3Hp2l992f/FO133Kxylib3DtPOT739uvXvv/hyXbPqbb7RNVThKAZxlVgsfdbZPXTYUQP/8c2XO044XykUn8DHgv1SwQa97zOl2u2+1tbX9epkB6LWcsVhMt7OzUwJ8CkyNjo4WRkZGvrnIIEq0nHt7ewCIomiWJMn84MEDgLcnJiauLS8v3x0YGPgK+F8FqAlWLJVKUSgUFGluamrC6/W+BbwJDAEz/zUATXBZWRkOh4Pj4+MTotmM3W5ne3sbwDQ8PGxaXFz8bHx8PAU4FxYW1re2tn7q7Oy8eV6w5hlnMhlcLpeqnU4nkiSpOpVKcXBwYACcABsbGy+m0+n3gW3g2/OANXeczWYBEAQBvV6v6vLycpLJJEdHRwCYTCZkWSafzwPg8XjKrVbr9VAodB1YnJycnOnq6vrw3DtWzGKxUFpaqmqDwYBe/2iK1WpFEARVh8Nh1tbWFPnS0tLSBzMzM3Hgzrl2LEkS8XicTCYDnJyx1WolHo8D4Ha7iUajpNNpAKqqqojH4+RyOeDkaBoaGpibmwMQu7u7b/T19d0IBoN/AOPAbU2ww+FQF1XAOt2jRiPLsgpRxk9n4vDwkM3NTVXPzs7idrsJBoM+wAdYNcErKytqAEajkUQiAZycqSRJRCIRAJqbm4lEIuq4IAjYbDa1BjweD62trcRiMQCmp6eTiURipre391bR91gQBCwWi6orKyupr69XdTQaZX9/X9W1tbVnqj+XyyHLMsAy8F0gEPhcGdMEu1wuRFFUIzUajZjNZpLJ5MmkkhJsNpva4aqrq6mpqWF9fR2AwcFBAoFAKhwO/wj0aTE0wYlEQk0fgCiKGAwGVet0ujPVvLu7qzYb4K/GxsZ7fr//Xa21i4KVwhFFkXw+r+6soqKCTCajpI/5+XkikQjZbDYF/AL0AvT09BRjPhms2Kk+DUBdXZ2abgCj0fh3LBb7TQE+jWmCvV4vq6uravrGxsaQJIlQKKQ88jsw7vP5vvT5fE/LfDJYlmXsdruq29vbMZlMUeAHQLMFXgg4HA4DMDQ0REdHx0pLS8sd4PZFAIuC/7Wv+/v737tI2HnAj/+IXbAV/Tpdga/AV+ArcDEr+TPykIeJ1Bln7TMA/wOG1Kb5w4e1ggAAAABJRU5ErkJggg==",
+      "bee": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAD+UlEQVRYhe2WXUxbZRjHf+f0uytQoB2sEvEjMTEmaOfYSgyOGVyauO4CcXPOj2wxbGTLZqJbjMZwMbcLLwwGL0RYXFhC4mAbyjaqF0pYIqC4JroYFxIxOvvByRBaKF/tOV6ctYXspLKs7Ip/0qT/5+05v/6f9zlvi6IoKIpC7eaNntT7+/ESap5+yvPxq75BZ75tcio+a3//nL+qZ2BwiFWWeHj7M33OfBuAvcBq4diOmr7VhgKIDxQV2JcWyh2F9oDf9W7A7/KsJlivE4U7ir5946ccRbrkF7g+APrd3mDOWy9qFSejsjA5JeuBJqDveGOBcuxgQXsuu6DXKl49XwrA1vqI2VksmrtbnQB7vx2Yffmzs3k9B1/L+/Reu6CZOKWZWRlFSVvzo+WGdbXVlnqg717nQDNx9YthbFaRkcsbAPDsDGO1CHz3ZQmAqeP8jGl0bPHDE+/YYwG/y37jj8WxcUm+cqTp1uGVgjUTLyxAQX5mKc8m4CzWpX08LjM7p+gAO0Awknx4bkE5FPC7pIDfdXolYM3Ew73qHlfuCCEKQtpv2x1hJi7zY6/aiS2+MImkws9XVF/XIDnMJmF/Z4trP/DLwPBc/9GmiaMrTpyS2ShgtWQeN50IopDxZpOAXpfxf91M8E8ombIVo2OJI20fOSYCflfrihJv3xshGlMY+lpN6tkZxmwS6O8qAcC3bxxpQmboK3W9dk+EqZjMyO3kz9aHeahMT0ezA6Dw7RP/NvgGixpqqswBoMPtDTZrgm1Wkfl5Oe2NRlgSlEQCZFlZsi4s68TcvEJoPJ2ca78uULZBR02V2Q24A36XVRN8oc0JQHVdGL1BYKBbTbbFF8ZZLNJ3dj0AuxolwlIyvV65I4TFLKRnoK5BouJxI9+fUzs1dG0+GptR+o+fnDilCU5JrxcwGzNJiuwi5WWZS6QJmfhsJnmJQ7ds+mUZEgkF4Degs/G9WyfT99YCbtsVIc8mpL/pZl8Ik0Hg6gU12aYX1GSpE+75VyI4CnVcOqN2oq1zGs9GU6yn3XnR7Q2+oRlKqxiblolNZ3y+TURcMv+CoHYjpWhMIZFM7+noIw/qB15/S3pT695Zwanp3FofQVaUdLLndkdYWFT46ZK6fv3GImEpyXBvaQz4xu0NvgTg9mZDZgGnpKAs86XrdczEMzW9nuBUVP4hBbwbaYLrD0j8eTORPqu7L8dxFot0tjhSHxkBOvYcklruFpgVnEjCOktmUzdVGDEYhBDQ5fYGNY/AnIB72tXn+EzXNJVPmn5/4jFDq9sbbM4FMCv4tj7/5HT0QC5h/wt2e4N3/hHLsbL+Oq2B18Br4DVwNumv/x0mPBlbViy7D+D/APJpt+laKOEtAAAAAElFTkSuQmCC",
       "red-fade-light": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACmElEQVRYhe2VS2sTURSAv5NJm7bWvNrYYiv5ByIVpFIXFWpBUNGVLsSdICq6UTddCIorwYUIIv4D3eimdVEQRGgXQheKC0ERWmkCsaaW2qRJ5riYRyaPThNtusodZrhz7p3zndc9g6qiqkwcGRl15rtxy/jhQ6OPLp6eS4R7s6t/NqJTL94cffVubp4Wj8D1ybGZRLgXIBrp6eb2qfGZVkMBAkPxSNQrSPbHokuDg6nlkZGnLQUbAakRltLpgc2FhSuLw32aPjE23RKw36ICxfTyydSxg/rz0tkfq1M3nrQc3DUxgQgIgAilTGZ/8euXa9mrF/LrD+68bhk4NzsLCOzpARRsI6RQ6tSVzJmNuzc1//je938FB31XOzoJBIKAYvQPQH7dDgEgApuFZOHZQzUiMQLxviKT5zoaBfvmmEIeM58jEItDIWfJ1L6tB4iiAqoaZP6t8nlB/xssoS4oljBXViitZl0u4QjEE0hiEMSrwmYuflN+ZZT8Ru6fwJrPoWbJzq8BhmFFen0NYyiJZlJgKqJuGByTrXclhCdGDYNREOcTNcEsWXPTpPjxgxtydVuBtyfU9AfHgN/be4xUpBO19KmrVsu1hmejKKjWYQOwF8j551hsjVJ23dGnKiBiG1GJdz/eusy6tg21o7Ami6K2QFDUXlN3f52x6bgB251j8RzbKp1lI7TCwOrVrazwB1folLK5HvfFvqowJrF+w0+1P7hOkhSsKhYPX+wiGz1ev5yaBatUVSt2nVkz+weiBM5fbhjYEFjc41RboRLqzIZu3Y81C2wI7Emky408f9m0d82D7ZYk3T1r+6bfh3cC2BD4wFJmR7xrGJxUbRnQGf6dqw1ug9vgNthnBD8tpkhl1yqEw7sA/gs0rjmZ1qf2MwAAAABJRU5ErkJggg==",
       "blue-fade-light": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACwElEQVRYhe2Vy08TURTGvzPToYXwmFYQBSLRuHGlQUMwLsQETYyPxL1/gIlsXLhy4daFceFGl65d+NiIC1csxEQWmmhiSAxECUKIUKlCO+3M52LundvSMmkJZdWTTHvvmen5ne+cc6cgCZKYGB0Z0+v9uGT89KmxRzevzfR1d2b/bG65956/PftqeuYDmmzW5KVzU33dnQDg9nS04+7V8almQwHAGsz0uOWO4d60e+j94vLI7K8nTQXbllQ5Vzy//9Nf79ax6R+88nHpTTPAiVpOAUB1rXj+5YmZRR5td5aGkomX908cmNwLsFXLSQAX0ymzIbDm+QPzm97tO59XCw/n1l43BQwA79bzAICOhAUIQAIiAp9B23rRv/7g228+/Z5d2C04ttRtlsAWABT0JW14PsO7DO+XyOFnC1n2ODZcxy5dONjh1AveUTEAeAGR9wnXERQCqqozyk4ACCRMlEjMruU5l/O4a7D+ZUoEAYn1YoBcKQBAiABdjoWMY6M3acNSbQAAUQdkaavIbDFgIWC+IbCoKx8QPqE0ISw7gH+lAIdTCawWfHUfpj8qgoTlScIckPoUc9uaAAKG5IDA141ClCD1q0CVHyAoOqOqsBuxircHigQpin4m7LkhUMkXIFRdbV0A8rE9NnwJfTqamPRFnzUw/NaDzxr1NZbacaqNolBVhQKKKXMUXtRTelvRdADwYMYn/hxHIk3nQFhRVlqx6KMlyhv2BCJWuYYKqwneXiJqzaKn1fQ1GsSotAICgevYdq3YseDyDAhAygfKfKB8RSHOpFM11dUNjkotqswSKqSWFk1y2OEbg111A2PBrNpVx3UsyU4ez6QbBcaCtZkCG/Djk/0Nq2sYrEvbblu5F6MD3XsBrAs8f/7InqirG8zx4aYBtcX+H7fALXAL3ALHWeLLz2UsZ3MVzqF9AP8HvhlcMbOYSC0AAAAASUVORK5CYII=",
-      "green-fade-light": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAC0UlEQVRYhe2UTU8TURSG3zPT0iLQKSARkEiif4BAYjDESCLRmCAmrkz0B5DI1o/EnyAhunKjK1mxUTfiwpWJQTfowgRjWOAX1KhtaSO2M8y8LubOdFqmpRjKqje5k3vPvbnPec+cc0ASJDFxcnjUWx/ElPGRodG5axeXehLt2c2tv8k7Cy9OPX219AYNHtrMubHFnkQ7ACSNQ624MTm+2GgoAGhHu4xk0DB4uDPZ9+1samTjyoOGgnVNdhhTdvrIsvlx+sSXMU6tX33eCHAkzCggqNY/7F8Xzn+/zOORgfWBaP+TO123Z/YDrIUZCWAiPgpROwGRdjL9a9bn6zd/3irey9x/1hAwALwsvAUAtEkrAFETsGG3ZJ3M1Gx6lo9yD9f+F1wl1ABARCUKXdMBEt16FyynCNB1QgSwuD04n5+noSWQ1I3t0/Ez0XrBVUNNABYtFGgiqRmwaAbOqBwkhJ7Fibwzl7lqfWLYm3WBPdUxicF2HGScTeScPCCACNGhdSCpdaJb74YGHRAVBbrMDXudOWeTJouFPYMJQZEmbLEh6mENGgjBlvMHvZFe/LbTcMQGSPhlIF4+EABigQDWBwZVQP1HCYc2BIQDByvmiroX6AMi/l0GEtLX4s5cbbCou4JAVYs/xXeOakeQAIQQX1/o7+4AUAgFi/qW2BI8gO+KiBJJ99Aj7myGlSNeJaul1L2k7MD9sFRyXn4DgFDKQl+h10SgIYTWsQ+vhGqeMvfXu5kcuBOuNNRatVcD6nHxjaUNpZQdlc659xxDM/RQN2qBWSqH0FOP5608R4diw7v/3VpgkCqiKpRSspOyo0om2y7VDawN9sPKshYJ8aBEi7Rkp43pzr0Ca4IDOe2q9oMJzPXc3bO6usEu0B0E0Srx/ELf48R+AGuCPbWrx17vi7r6wYPvGwb0RvVe3QQ3wU1wE7zLiHz4mkIqmy8zDhwA+B9wM2HlwVz5QQAAAABJRU5ErkJggg==",
       "red-fade-dark": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACWElEQVRYhe2UzWsTURTFz518zCSZSVMxtdWQUBDcSiTS4qaLICrqP6B7Bd24cKP/gyuxiPsuXOnGiBQEXdRFoQRKQdwEYjDNQtIkZmYyyVwXyWgymUw+yHSVAwkz9713f+e8eTwwM5gZ2avpDev5NH60deXyxov7d/biUbl60lRjz99+3Hz3Ze8bPJbw+Pq1XDwqA0BsKRzC09tbOa+hACBcOLMU6y+kzi7Hfq6uln+l09uegn0CDRU7x8fnWgcHD78T8WEy+cET8LgJRrF48ysRf04kSp8ymZeeg6VsduBdLZXO/97ff/RGFPXX6+vvPQNru7vdCYoCALA+iNlqBU8KhbvPiPhJJFKYOxgAIIogvw8AICWTAwYAQG82U/eI+AYRbwYCxvzAug6zqSKwsoKOqgIAuDdkP5Kddtt/kYjjRIwJ5HcbpFAIbBgwKhW0+ury2hp8soxIOIzG0RHIMAbMSERsAAiIoq5pmuTU2zUxqyrQbnebCgLI3/X5p1JBIpNBKZ9HxzD+7YI9qq7rIhExOeyCO7ivGZsmuGeCzQ7yOztDILKtHRjrGVAUpTYWPHy1/K+RQ23U9+9Xo9FQJEnSxl4gdhD3/hjuCd2kaZo0Fmx1d2tsmXDaBUvBYLDFzMTMBIw51S4+RhqwP1sguxwTD8x0iep0uAiAIAim2ZfOSY6JnVhuSam35ocLaCKwmxknU7kpgFOD7ZIUpfqqVluedf3U4AczpJsZ7JPl+q16PToP4ETgS3NKNzE45SHQ0vibawFegBfgBXiE/IfFMsrV+kAxcQrgv2BEIMc8VIzqAAAAAElFTkSuQmCC",
-      "blue-fade-dark": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAC0klEQVRYhe2Uu08UURTGvzM77A6wu+waUVEQLUwsjUSDscFoiBr0H8DCCk2ksbDRxMpY2hlDrLWwURvZxsZHMGJMSNRoYoGCumqCCzvAvI/F7B1mhtlxMLtUe5J93DNn5vd959y5YGYwM04cPjgo/m/Gh4YGDgzeOndmqjufrSyurBauPSgdefRs6hWaHNL48NHJ7nwWAApdHe24MjI02WwoAEi7tnQV/In+rcVCz8v58sD0jztNBackWpcsG/b2t6p+kUqfeHfp/ZNmgOWoJDEAIjAYc6vGKbr3nHthft8B6+H06PB4I8BSVJIJOF5UXAG1mF/Wdr75uXApc+OuvvfmxOOmgAHg6R8NTEBedkvEQAzbSc8uLJ6lC1e58/zl2f8Fx7QayEgSUjViX7YdX9UlnwRgxTD6aWSUUVmAXK1Y5sxUW1Jw3VYzA7rtYMVmbFPasGrZYXkAxCwYlm3J1LePqdDNSBCRjgGACFBkgqkDvzQT0AwP0pPPItueQkexEx8+qjCJABDc7QhQWmFYJjLpNl3TNCWxY8B1rFmAxa4BiQiyJAFE+K0u49CeXsx8+QbTsgFmDwqqqQZD1/UMETERretCJFiU+asdZliOA4BhsYP7r2cCFSxmz2IPBM8HISCXyy0B9Vrt3Rs1LgLVCtiXgeeYg4pDoapqTlEUrW6rKaTaWzODxbOFSQH1In5/aZqmRO9q/73ky9W+KVAYFAhGuMsAgHQ6bTAzMbuzqLur3cf5cSLnU0IUuOKtee1VE6BwxB4grvNQE8XcKSyJvVpJkhzbcVJxpiLBnkYm+KfNCO94rxAAgec+R7pLDBZGyNfVtTOK1tXxi1JiYCyYyA8KX3R/ckqmsjRxu7hRYCw4zGHfiq+PbdhdcjAL1y4yK6eq1bHT+UYAY8FMNacn9zfEXXLwsf6mAUXUPTJb4Ba4BW6B/xXyu7kyypVqINm7CeC/dmFnE+0zAOgAAAAASUVORK5CYII=",
-      "green-fade-dark": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACuElEQVRYhe2Uy2sTYRTFz51JM9M0SVO1rbalRRF0JVqptuii0CIqPraC7hV048KN/g+uRBH3LgRBN1YEEXTRLpRaCUIRpFirsWjpI3ZmkpkcF5NJJo9JU2y6yoVkJne+nN89373zgSRIYvzY4LB3vx0fGT16ePjulfOTnfHo8sq6kbjz5OXIs7eTU2hwKDdOnZjojEcBINEeacWtc6MTjYYCgNK7oz3hTwzs6kjs/j6WGvx56UFDwaoiFclfzlL3dGb2msweYn9y/EVDwNXThIAAgPls6oy8O8i+NycXhl5dvNdgsGBMHy4UAQA/jMWe90ufrmuP9ll7Hx5/3iAw8NqcggCIKW0uXtyCMjk7PLcyf0Fud7HtZu/cFoMJQhCGBlVUAIJ+vQcAAd9IrFvGgFyOU063smUkkv1vsEAAEBYsGDkLXS07YTiGV5O3qCRsxw7JfpXSqRB1RKhaknnlVtGQZQaL2T9Axi7Q9kS7EVU1RNrC+JxOIiu2rxhCdCGygNaiWaZp6ptw7AoYtGDDcReKipCoAIDFv78x1HcEMwtJ2I4NkGVb4SpYlqWJCEWkYheqggn6fwAgcszBpuvMoYPHM08hBAL3teyBV0AsFlsNBPt9VyiJ/3FZrmA6uM3pdDqm67pZA+yJ5jsu+aFj8TFFiuXVNVJumKapBx4g7rfXLwFZ1gI/j4XKSv7vj3A4nCEppHsiVJ3qElGgdOsqNFl2Lb33QOURMNXME/ICdF1LOZVVKhFAUZQcc0V31SLgPfZBfYKBbcwv5xcnEFQX2FXxe2axmYWm+lZPGHUDNwALROhzXvIOARDE9Ojy6v2vHZsFbgD25CvnmFe/bdpd3eAi0B2qqBpZWzv7Ib4VwJpgeqf1gY9b4q5+8MB0w4Be1Dgym+AmuAlugmtHKDmfQmp5rSTZtw3gf01oT5Sd1LDIAAAAAElFTkSuQmCC",
-      "bee": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAD+UlEQVRYhe2WXUxbZRjHf+f0uytQoB2sEvEjMTEmaOfYSgyOGVyauO4CcXPOj2wxbGTLZqJbjMZwMbcLLwwGL0RYXFhC4mAbyjaqF0pYIqC4JroYFxIxOvvByRBaKF/tOV6ctYXspLKs7Ip/0qT/5+05v/6f9zlvi6IoKIpC7eaNntT7+/ESap5+yvPxq75BZ75tcio+a3//nL+qZ2BwiFWWeHj7M33OfBuAvcBq4diOmr7VhgKIDxQV2JcWyh2F9oDf9W7A7/KsJlivE4U7ir5946ccRbrkF7g+APrd3mDOWy9qFSejsjA5JeuBJqDveGOBcuxgQXsuu6DXKl49XwrA1vqI2VksmrtbnQB7vx2Yffmzs3k9B1/L+/Reu6CZOKWZWRlFSVvzo+WGdbXVlnqg717nQDNx9YthbFaRkcsbAPDsDGO1CHz3ZQmAqeP8jGl0bPHDE+/YYwG/y37jj8WxcUm+cqTp1uGVgjUTLyxAQX5mKc8m4CzWpX08LjM7p+gAO0Awknx4bkE5FPC7pIDfdXolYM3Ew73qHlfuCCEKQtpv2x1hJi7zY6/aiS2+MImkws9XVF/XIDnMJmF/Z4trP/DLwPBc/9GmiaMrTpyS2ShgtWQeN50IopDxZpOAXpfxf91M8E8ombIVo2OJI20fOSYCflfrihJv3xshGlMY+lpN6tkZxmwS6O8qAcC3bxxpQmboK3W9dk+EqZjMyO3kz9aHeahMT0ezA6Dw7RP/NvgGixpqqswBoMPtDTZrgm1Wkfl5Oe2NRlgSlEQCZFlZsi4s68TcvEJoPJ2ca78uULZBR02V2Q24A36XVRN8oc0JQHVdGL1BYKBbTbbFF8ZZLNJ3dj0AuxolwlIyvV65I4TFLKRnoK5BouJxI9+fUzs1dG0+GptR+o+fnDilCU5JrxcwGzNJiuwi5WWZS6QJmfhsJnmJQ7ds+mUZEgkF4Degs/G9WyfT99YCbtsVIc8mpL/pZl8Ik0Hg6gU12aYX1GSpE+75VyI4CnVcOqN2oq1zGs9GU6yn3XnR7Q2+oRlKqxiblolNZ3y+TURcMv+CoHYjpWhMIZFM7+noIw/qB15/S3pT695Zwanp3FofQVaUdLLndkdYWFT46ZK6fv3GImEpyXBvaQz4xu0NvgTg9mZDZgGnpKAs86XrdczEMzW9nuBUVP4hBbwbaYLrD0j8eTORPqu7L8dxFot0tjhSHxkBOvYcklruFpgVnEjCOktmUzdVGDEYhBDQ5fYGNY/AnIB72tXn+EzXNJVPmn5/4jFDq9sbbM4FMCv4tj7/5HT0QC5h/wt2e4N3/hHLsbL+Oq2B18Br4DVwNumv/x0mPBlbViy7D+D/APJpt+laKOEtAAAAAElFTkSuQmCC"
+      "blue-fade-dark": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAjCAYAAACD1LrRAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAC0klEQVRYhe2Uu08UURTGvzM77A6wu+waUVEQLUwsjUSDscFoiBr0H8DCCk2ksbDRxMpY2hlDrLWwURvZxsZHMGJMSNRoYoGCumqCCzvAvI/F7B1mhtlxMLtUe5J93DNn5vd959y5YGYwM04cPjgo/m/Gh4YGDgzeOndmqjufrSyurBauPSgdefRs6hWaHNL48NHJ7nwWAApdHe24MjI02WwoAEi7tnQV/In+rcVCz8v58sD0jztNBackWpcsG/b2t6p+kUqfeHfp/ZNmgOWoJDEAIjAYc6vGKbr3nHthft8B6+H06PB4I8BSVJIJOF5UXAG1mF/Wdr75uXApc+OuvvfmxOOmgAHg6R8NTEBedkvEQAzbSc8uLJ6lC1e58/zl2f8Fx7QayEgSUjViX7YdX9UlnwRgxTD6aWSUUVmAXK1Y5sxUW1Jw3VYzA7rtYMVmbFPasGrZYXkAxCwYlm3J1LePqdDNSBCRjgGACFBkgqkDvzQT0AwP0pPPItueQkexEx8+qjCJABDc7QhQWmFYJjLpNl3TNCWxY8B1rFmAxa4BiQiyJAFE+K0u49CeXsx8+QbTsgFmDwqqqQZD1/UMETERretCJFiU+asdZliOA4BhsYP7r2cCFSxmz2IPBM8HISCXyy0B9Vrt3Rs1LgLVCtiXgeeYg4pDoapqTlEUrW6rKaTaWzODxbOFSQH1In5/aZqmRO9q/73ky9W+KVAYFAhGuMsAgHQ6bTAzMbuzqLur3cf5cSLnU0IUuOKtee1VE6BwxB4grvNQE8XcKSyJvVpJkhzbcVJxpiLBnkYm+KfNCO94rxAAgec+R7pLDBZGyNfVtTOK1tXxi1JiYCyYyA8KX3R/ckqmsjRxu7hRYCw4zGHfiq+PbdhdcjAL1y4yK6eq1bHT+UYAY8FMNacn9zfEXXLwsf6mAUXUPTJb4Ba4BW6B/xXyu7kyypVqINm7CeC/dmFnE+0zAOgAAAAASUVORK5CYII="
     };
   }
 });
@@ -56,8 +56,8 @@ var PIXEL_BANNER_PLUS;
 var init_constants = __esm({
   "src/resources/constants.js"() {
     PIXEL_BANNER_PLUS = {
-      // API_URL: 'https://pixel-banner.online/',
-      API_URL: "http://localhost:3000/",
+      API_URL: "https://pixel-banner.online/",
+      // API_URL: 'http://localhost:3000/',
       ENDPOINTS: {
         VERIFY: "verify",
         GENERATE: "generate",
@@ -70,6 +70,7 @@ var init_constants = __esm({
         STORE_CATEGORIES: "store-categories",
         STORE_CATEGORY_IMAGES: "store-category-images",
         STORE_IMAGE_BY_ID: "store-image-by-id",
+        STORE_IMAGE_SEARCH: "store-search",
         SIGNUP: "signup"
       },
       SHOP_URL: "https://ko-fi.com/s/7ce609ff2c",
@@ -563,8 +564,66 @@ var init_selectPixelBannerModal = __esm({
       constructor(app, plugin) {
         super(app);
         this.plugin = plugin;
+        this.isLoading = true;
       }
       async onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        this.showLoadingSpinner(contentEl);
+        this.initializeModal().catch((error) => {
+          console.error("Error initializing modal:", error);
+          this.hideLoadingSpinner();
+          contentEl.createEl("p", {
+            text: "Failed to load Pixel Banner Menu. Please try again later.",
+            cls: "pixel-banner-error"
+          });
+        });
+      }
+      // Show loading spinner
+      showLoadingSpinner(container) {
+        this.isLoading = true;
+        this.loadingOverlay = container.createDiv({
+          cls: "pixel-banner-loading-overlay",
+          attr: {
+            style: `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: var(--background-primary);
+                    z-index: 100;
+                    animation: pixel-banner-fade-in 0.3s ease-in-out;
+                `
+          }
+        });
+        this.loadingOverlay.createDiv({
+          cls: "pixel-banner-spinner",
+          attr: {
+            style: `
+                width: 40px;
+                    height: 40px;
+                    border: 4px solid var(--background-modifier-border);
+                    border-top: 4px solid var(--text-accent);
+                    border-radius: 50%;
+                    animation: pixel-banner-spin 1s linear infinite;
+                `
+          }
+        });
+      }
+      // Hide loading spinner
+      hideLoadingSpinner() {
+        this.isLoading = false;
+        if (this.loadingOverlay) {
+          this.loadingOverlay.remove();
+          this.loadingOverlay = null;
+        }
+      }
+      // Initialize modal content
+      async initializeModal() {
         await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         const titleContainer = contentEl.createEl("h2", {
@@ -590,7 +649,7 @@ var init_selectPixelBannerModal = __esm({
                 `
           }
         });
-        titleContainer.appendChild(document.createTextNode("Pixel Banner Selector"));
+        titleContainer.appendChild(document.createTextNode("Pixel Banner"));
         const settingsButton = titleContainer.createEl("button", {
           cls: "pixel-banner-settings-button",
           attr: {
@@ -744,7 +803,7 @@ var init_selectPixelBannerModal = __esm({
         const bannerIconContent = bannerIconButton.createDiv({ cls: "pixel-banner-button-content" });
         bannerIconContent.createEl("span", { text: "\u2B50", cls: "pixel-banner-button-icon" });
         bannerIconContent.createEl("div", { cls: "pixel-banner-button-text-container" }).createEl("span", {
-          text: "Select Banner Icon",
+          text: "Set Banner Icon",
           cls: "pixel-banner-button-text"
         });
         if (!hasBanner) {
@@ -894,10 +953,11 @@ var init_selectPixelBannerModal = __esm({
           });
         }
         this.addStyle();
+        this.hideLoadingSpinner();
       }
       addStyle() {
         const style = document.createElement("style");
-        style.textContent = `
+        style.textContent = `            
             .pixel-banner-main-container {
                 display: flex;
                 flex-direction: column;
@@ -1104,6 +1164,21 @@ var init_selectPixelBannerModal = __esm({
                 color: var(--text-on-accent) !important;
             }
             
+            /* Loading spinner styles */
+            .pixel-banner-loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: var(--background-primary);
+                z-index: 100;
+                animation: pixel-banner-fade-in 0.3s ease-in-out;
+            }
+            
             @media (min-width: 400px) {
                 .pixel-banner-source-buttons,
                 .pixel-banner-customization-options {
@@ -1145,6 +1220,9 @@ var init_selectPixelBannerModal = __esm({
         if (this.style) {
           this.style.remove();
         }
+        if (this.loadingOverlay) {
+          this.loadingOverlay.remove();
+        }
       }
     };
   }
@@ -1173,7 +1251,7 @@ var init_generateAIBannerModal = __esm({
         this.isLoading = true;
         this.currentPage = 1;
         this.totalPages = 1;
-        this.itemsPerPage = 10;
+        this.itemsPerPage = 9;
         this.totalItems = 0;
         this.addStyles();
       }
@@ -1311,7 +1389,7 @@ var init_generateAIBannerModal = __esm({
             tokenCountSpan.style.color = "var(--text-accent)";
             tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
             if (!tokenCountSpan.parentElement) {
-              pixelBannerPlusBalanceEl.innerText = "\u{1FA99} Remaining Banner Tokens: ";
+              pixelBannerPlusBalanceEl.innerText = "\u{1FA99} Remaining Tokens: ";
               pixelBannerPlusBalanceEl.appendChild(tokenCountSpan);
             }
             tokenCountSpan.classList.remove("token-balance-animation");
@@ -1727,7 +1805,7 @@ var init_generateAIBannerModal = __esm({
           cls: "full-width-input",
           attr: {
             id: "ai-banner-prompt",
-            rows: 4
+            rows: 7
           }
         });
         promptInput.value = this.prompt;
@@ -1745,6 +1823,11 @@ var init_generateAIBannerModal = __esm({
           text: "\u{1F331}"
         });
         inspirationFromSeedButton.addEventListener("click", () => this.getPromptInspirationFromSeed());
+        const inspirationClearButton = promptInspirationContainer.createEl("button", {
+          cls: "pixel-banner-inspiration-clear-button",
+          text: "\u{1F5D1}\uFE0F"
+        });
+        inspirationClearButton.addEventListener("click", () => this.clearPromptInspiration());
         const widthContainer = promptAllowedSection.createDiv({ cls: "setting-item pixel-banner-ai-control-row", attr: { style: "padding-bottom: 0;" } });
         const widthInfo = widthContainer.createDiv({ cls: "setting-item-info" });
         widthInfo.createDiv({ cls: "setting-item-name", text: "Width" });
@@ -1799,7 +1882,6 @@ var init_generateAIBannerModal = __esm({
           }
         });
         promptDisallowedSection.createEl("p", {
-          text: "You do not have an active Pixel Banner Plus account. Please Signup for Free or connect to your account to generate awesome banners with AI \u{1F916}.",
           attr: {
             "style": `
                     display: ${!this.plugin.pixelBannerPlusEnabled ? "block" : "none"};
@@ -1808,7 +1890,7 @@ var init_generateAIBannerModal = __esm({
                     text-align: center;
                 `
           }
-        });
+        }).innerHTML = 'You do not have an active <span style="color: var(--text-accent); font-weight: bold;">Pixel Banner Plus</span> account. Please <span style="color: var(--text-accent); font-weight: bold;">Signup for Free</span> or connect to your account in Settings to generate awesome banners with AI \u{1F916}.';
         const buttonContainer = contentEl.createDiv({
           cls: "setting-item pixel-banner-generate-btn-container pixel-banner-ai-control-row",
           attr: {
@@ -1824,7 +1906,7 @@ var init_generateAIBannerModal = __esm({
         tokenCountSpan.style.fontWeight = "bold";
         tokenCountSpan.style.letterSpacing = "1px";
         tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
-        tokenBalance.setText("\u{1FA99} Remaining Banner Tokens: ");
+        tokenBalance.setText("\u{1FA99} Remaining Tokens: ");
         tokenBalance.appendChild(tokenCountSpan);
         tokenCountSpan.classList.add("token-balance-animation");
         const generateButton = buttonContainer.createEl("button", {
@@ -2009,6 +2091,13 @@ var init_generateAIBannerModal = __esm({
         } finally {
           inspirationFromSeedButton.textContent = originalText;
           inspirationFromSeedButton.disabled = false;
+        }
+      }
+      async clearPromptInspiration() {
+        const promptTextarea = this.contentEl.querySelector("#ai-banner-prompt");
+        if (promptTextarea) {
+          promptTextarea.value = "";
+          promptTextarea.focus();
         }
       }
       async refreshHistoryContainer() {
@@ -22477,6 +22566,14 @@ var init_targetPositionModal = __esm({
           frontmatter[bannerIconVerticalOffsetField] = verticalOffset;
         });
       }
+      updateTitleColor(color) {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+        const titleColorField = Array.isArray(this.plugin.settings.customTitleColorField) ? this.plugin.settings.customTitleColorField[0].split(",")[0].trim() : this.plugin.settings.customTitleColorField;
+        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+          frontmatter[titleColorField] = color;
+        });
+      }
       updateRepeatMode(repeat) {
         const activeFile = this.app.workspace.getActiveFile();
         if (!activeFile) return;
@@ -23522,12 +23619,13 @@ var init_targetPositionModal = __esm({
           attr: {
             style: `
                     max-width: 600px;
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    gap: 10px;
                 `
           }
         });
-        flagRadioContainer.style.display = "flex";
-        flagRadioContainer.style.flexWrap = "wrap";
-        flagRadioContainer.style.gap = "10px";
         const currentFlagColor = getFrontmatterValue(frontmatter, this.plugin.settings.customFlagColorField) || this.plugin.settings.selectImageIconFlag;
         Object.keys(flags).forEach((color) => {
           const radioContainer = flagRadioContainer.createDiv({
@@ -23546,7 +23644,10 @@ var init_targetPositionModal = __esm({
               id: `flag-${color}`,
               name: "pixel-banner-flag",
               value: color,
-              style: "margin-right: 5px;"
+              style: `
+                        margin-right: 5px;
+                        cursor: pointer;
+                    `
             }
           });
           radio.checked = currentFlagColor === color;
@@ -23595,6 +23696,79 @@ var init_targetPositionModal = __esm({
               }
             }
           });
+        });
+        const inlineTitleEnabled = this.app.vault.config.showInlineTitle;
+        const titleColorSection = contentEl.createDiv({
+          cls: "title-color-section",
+          attr: {
+            style: `
+                    display: ${inlineTitleEnabled ? "flex" : "none"};
+                    flex-direction: row;
+                    gap: 10px;
+                    margin-top: 20px;
+                    padding: 15px;
+                    border-radius: 5px;
+                    background-color: var(--background-secondary);
+                    max-width: 510px;
+                    align-items: center;
+                `
+          }
+        });
+        titleColorSection.createEl("span", {
+          text: "Inline Title Color",
+          attr: {
+            style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    min-width: 120px;
+                `
+          }
+        });
+        const titleColorField = Array.isArray(this.plugin.settings.customTitleColorField) ? this.plugin.settings.customTitleColorField[0].split(",")[0].trim() : this.plugin.settings.customTitleColorField;
+        let currentTitleColor = (frontmatter == null ? void 0 : frontmatter[titleColorField]) || this.plugin.settings.titleColor;
+        if (currentTitleColor && currentTitleColor.startsWith("var(--")) {
+          const tempEl = document.createElement("div");
+          tempEl.style.color = currentTitleColor;
+          document.body.appendChild(tempEl);
+          const computedColor = window.getComputedStyle(tempEl).color;
+          document.body.removeChild(tempEl);
+          const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+          if (rgbMatch) {
+            const [_, r, g, b] = rgbMatch;
+            currentTitleColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+          }
+        }
+        this.currentTitleColor = currentTitleColor || (getCurrentTheme_default() === "dark" ? "#ffffff" : "#000000");
+        const titleColorInput = titleColorSection.createEl("input", {
+          type: "text",
+          cls: "title-color-input",
+          attr: {
+            value: this.currentTitleColor || "",
+            placeholder: "#RRGGBB or color name",
+            style: `
+                    flex: 1;
+                    max-width: 120px;
+                `
+          }
+        });
+        const titleColorPicker = titleColorSection.createEl("input", {
+          type: "color",
+          cls: "title-color-picker",
+          attr: {
+            value: this.currentTitleColor && this.currentTitleColor.startsWith("#") ? this.currentTitleColor : getCurrentTheme_default() === "dark" ? "#ffffff" : "#000000"
+          }
+        });
+        titleColorInput.addEventListener("change", () => {
+          this.currentTitleColor = titleColorInput.value;
+          if (this.currentTitleColor.startsWith("#")) {
+            titleColorPicker.value = this.currentTitleColor;
+          }
+          this.updateTitleColor(this.currentTitleColor);
+        });
+        titleColorPicker.addEventListener("input", () => {
+          this.currentTitleColor = titleColorPicker.value;
+          titleColorInput.value = this.currentTitleColor;
+          this.updateTitleColor(this.currentTitleColor);
         });
         const buttonContainer = contentEl.createDiv({
           cls: "button-container",
@@ -23747,6 +23921,31 @@ var init_targetPositionModal = __esm({
               radio.checked = radio.value === this.plugin.settings.selectImageIconFlag;
             });
           }
+          if (inlineTitleEnabled && titleColorInput) {
+            let defaultTitleColor = this.plugin.settings.titleColor;
+            if (defaultTitleColor.startsWith("var(--")) {
+              const tempEl = document.createElement("div");
+              tempEl.style.color = defaultTitleColor;
+              document.body.appendChild(tempEl);
+              const computedColor = window.getComputedStyle(tempEl).color;
+              document.body.removeChild(tempEl);
+              const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+              if (rgbMatch) {
+                const [_, r, g, b] = rgbMatch;
+                defaultTitleColor = "#" + parseInt(r).toString(16).padStart(2, "0") + parseInt(g).toString(16).padStart(2, "0") + parseInt(b).toString(16).padStart(2, "0");
+              }
+            }
+            titleColorInput.value = defaultTitleColor;
+            if (titleColorPicker) {
+              titleColorPicker.value = defaultTitleColor.startsWith("#") ? defaultTitleColor : getCurrentTheme_default() === "dark" ? "#ffffff" : "#000000";
+            }
+            this.updateTitleColor(defaultTitleColor);
+          }
+          this.currentX = this.plugin.settings.xPosition;
+          this.currentY = this.plugin.settings.yPosition;
+          verticalLine.style.left = `${this.currentX}%`;
+          horizontalLine.style.top = `${this.currentY}%`;
+          updatePositionIndicator();
         });
         const repeatContainer = controlPanel.createDiv({
           cls: "repeat-container",
@@ -23802,7 +24001,7 @@ var init_targetPositionModal = __esm({
         let isDragging = false;
         let offsetX, offsetY;
         modalEl.addEventListener("mousedown", (e) => {
-          if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider || e.target === bannerIconXPositionSlider || e.target === bannerIconSizeSlider || e.target === bannerIconColorPicker || e.target === bannerIconColorInput || e.target === bannerIconPaddingXSlider || e.target === bannerIconPaddingYSlider || e.target === bannerIconBorderRadiusSlider || e.target === bannerIconVerticalOffsetSlider || e.target === alphaSlider || e.target === bannerIconBgColorPicker || e.target === bannerIconBgColorInput) return;
+          if (e.target === zoomSlider || e.target === heightSlider || e.target === contentStartPositionSlider || e.target === bannerIconXPositionSlider || e.target === bannerIconSizeSlider || e.target === bannerIconColorPicker || e.target === bannerIconColorInput || e.target === bannerIconPaddingXSlider || e.target === bannerIconPaddingYSlider || e.target === bannerIconBorderRadiusSlider || e.target === bannerIconVerticalOffsetSlider || e.target === alphaSlider || e.target === bannerIconBgColorPicker || e.target === bannerIconBgColorInput || e.target === titleColorPicker || e.target === titleColorInput) return;
           isDragging = true;
           offsetX = e.clientX - modalEl.getBoundingClientRect().left;
           offsetY = e.clientY - modalEl.getBoundingClientRect().top;
@@ -23893,6 +24092,11 @@ var init_pixelBannerStoreModal = __esm({
         this.loadingEl = null;
         this.modalEl.addClass("pixel-banner-store-modal");
         this.isLoading = true;
+        this.currentPage = 1;
+        this.totalPages = 1;
+        this.searchTerm = "";
+        this.isSearchMode = false;
+        this.itemsPerPage = 9;
       }
       // ----------------
       // -- Open Modal --
@@ -23964,6 +24168,43 @@ var init_pixelBannerStoreModal = __esm({
           }
         });
         const selectContainer = contentEl.createDiv({ cls: "pixel-banner-store-select-container" });
+        if (this.plugin.pixelBannerPlusEnabled) {
+          this.searchContainer = selectContainer.createDiv({
+            cls: "pixel-banner-store-search-container",
+            attr: {
+              style: `
+                        display: none;
+                        align-items: center;
+                        gap: 5px;
+                        margin: 0 0 0 auto;
+                    `
+            }
+          });
+          this.searchInput = this.searchContainer.createEl("input", {
+            type: "text",
+            placeholder: "Search banners...",
+            cls: "pixel-banner-store-search-input"
+          });
+          this.searchInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              this.searchBanners();
+            }
+          });
+          this.searchButton = this.searchContainer.createEl("button", {
+            text: "Search",
+            cls: "pixel-banner-store-search-button"
+          });
+          this.searchButton.addEventListener("click", () => {
+            this.searchBanners();
+          });
+          this.stopSearchButton = this.searchContainer.createEl("button", {
+            text: "Back to Categories",
+            cls: "pixel-banner-store-stop-search-button"
+          });
+          this.stopSearchButton.addEventListener("click", () => {
+            this.toggleSearchMode(false);
+          });
+        }
         this.categorySelect = selectContainer.createEl("select", {
           cls: "pixel-banner-store-select",
           attr: {
@@ -24020,7 +24261,17 @@ var init_pixelBannerStoreModal = __esm({
             }
           });
         }
-        const nextCategoryButton = selectContainer.createEl("button", {
+        this.categoryControlsContainer = selectContainer.createDiv({
+          cls: "pixel-banner-store-category-controls",
+          attr: {
+            style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                `
+          }
+        });
+        this.nextCategoryButton = this.categoryControlsContainer.createEl("button", {
           text: "Next Category",
           cls: "pixel-banner-store-next-category",
           attr: {
@@ -24029,7 +24280,7 @@ var init_pixelBannerStoreModal = __esm({
                 `
           }
         });
-        nextCategoryButton.addEventListener("click", async () => {
+        this.nextCategoryButton.addEventListener("click", async () => {
           if (this.selectedCategoryIndex >= this.categories.length) {
             this.selectedCategoryIndex = 1;
           } else {
@@ -24039,6 +24290,15 @@ var init_pixelBannerStoreModal = __esm({
           this.selectedCategory = this.categorySelect.value;
           await this.loadCategoryImages();
         });
+        if (this.plugin.pixelBannerPlusEnabled) {
+          this.searchAllButton = this.categoryControlsContainer.createEl("button", {
+            text: "\u{1F50D} Search All",
+            cls: "pixel-banner-store-search-all-button"
+          });
+          this.searchAllButton.addEventListener("click", () => {
+            this.toggleSearchMode(true);
+          });
+        }
         const backToMainButton = selectContainer.createEl("button", {
           text: "\u21E0 Main Menu",
           cls: "pixel-banner-store-back-to-main"
@@ -24060,7 +24320,21 @@ var init_pixelBannerStoreModal = __esm({
         } else {
           this.imageContainer = contentEl.createDiv({ cls: "pixel-banner-store-image-grid -not-connected" });
         }
-        const pixelBannerPlusAccountStatus = contentEl.createDiv({
+        const bottomControlsContainer = contentEl.createDiv({
+          cls: "pixel-banner-store-bottom-controls",
+          attr: {
+            "style": `
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: 15px;
+                    border-top: 1px solid var(--background-modifier-border);
+                    padding-top: 10px;
+                `
+          }
+        });
+        const pixelBannerPlusAccountStatus = bottomControlsContainer.createDiv({
           cls: "pixel-banner-store-account-status",
           attr: {
             "style": `
@@ -24069,9 +24343,17 @@ var init_pixelBannerStoreModal = __esm({
                     gap: 10px;
                     align-items: center;
                     justify-content: flex-start;
-                    margin-bottom: -10px;
-                    margin-top: 5px;
                     font-size: .9em;
+                `
+          }
+        });
+        this.paginationContainer = bottomControlsContainer.createDiv({
+          cls: "pixel-banner-store-pagination-container",
+          attr: {
+            "style": `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
                 `
           }
         });
@@ -24145,6 +24427,8 @@ var init_pixelBannerStoreModal = __esm({
       // --------------------------
       async loadCategoryImages() {
         if (!this.selectedCategory) return;
+        this.isSearchMode = false;
+        this.currentPage = 1;
         this.imageContainer.empty();
         this.loadingEl = this.imageContainer.createDiv({ cls: "pixel-banner-store-loading" });
         this.loadingEl.innerHTML = `<div class="pixel-banner-store-spinner"></div>`;
@@ -24171,13 +24455,104 @@ var init_pixelBannerStoreModal = __esm({
           });
         }
       }
+      // -----------------
+      // -- Search Banners --
+      // -----------------
+      async searchBanners(page = 1) {
+        this.searchTerm = this.searchInput.value.trim();
+        if (!this.searchTerm) {
+          new import_obsidian18.Notice("Please enter a search term");
+          return;
+        }
+        this.isSearchMode = true;
+        this.currentPage = page;
+        this.imageContainer.empty();
+        this.loadingEl = this.imageContainer.createDiv({ cls: "pixel-banner-store-loading" });
+        this.loadingEl.innerHTML = `<div class="pixel-banner-store-spinner"></div>`;
+        try {
+          const response = await fetch(
+            `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_SEARCH}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-user-email": this.plugin.settings.pixelBannerPlusEmail,
+                "x-api-key": this.plugin.settings.pixelBannerPlusApiKey,
+                "Accept": "application/json"
+              },
+              body: JSON.stringify({
+                searchTerm: this.searchTerm,
+                page: this.currentPage,
+                limit: this.itemsPerPage,
+                sort: "date_added",
+                order: "desc"
+              })
+            }
+          );
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const data = await response.json();
+          console.log("Search API response:", data);
+          this.totalPages = data.totalPages || data.total_pages || 1;
+          let imagesArray = [];
+          if (data.images && Array.isArray(data.images)) {
+            imagesArray = data.images;
+          } else if (data.banners && Array.isArray(data.banners)) {
+            imagesArray = data.banners;
+          } else if (data.results && Array.isArray(data.results)) {
+            imagesArray = data.results;
+          } else if (Array.isArray(data)) {
+            imagesArray = data;
+          } else if (data.image) {
+            imagesArray = [data.image];
+          } else if (data.banner) {
+            imagesArray = [data.banner];
+          } else if (typeof data === "object" && data !== null) {
+            imagesArray = [data];
+          }
+          if (!Array.isArray(imagesArray)) {
+            console.error("Failed to extract images array from response:", data);
+            throw new Error("Invalid response format: could not extract images array");
+          }
+          if (imagesArray.length === 0) {
+            this.imageContainer.empty();
+            this.imageContainer.createEl("p", {
+              text: `No results found for "${this.searchTerm}"`,
+              cls: "pixel-banner-store-no-results",
+              attr: {
+                style: `
+                            text-align: center;
+                            margin-top: 100px;
+                            font-size: 16px;
+                        `
+              }
+            });
+            return;
+          }
+          this.displayImages(imagesArray, true);
+        } catch (error) {
+          console.error("Failed to search images:", error);
+          this.imageContainer.empty();
+          this.imageContainer.createEl("p", {
+            text: `Failed to search images: ${error.message}. Please try again.`,
+            cls: "pixel-banner-store-error"
+          });
+        }
+      }
       // --------------------
       // -- Display Images --
       // --------------------
-      displayImages(images) {
+      displayImages(images, isSearchResult = false) {
         if (this.loadingEl) {
           this.loadingEl.remove();
           this.loadingEl = null;
+        }
+        if (!Array.isArray(images)) {
+          console.error("displayImages received non-array:", images);
+          this.imageContainer.createEl("p", {
+            text: "Error displaying images: Invalid data format",
+            cls: "pixel-banner-store-error"
+          });
+          return;
         }
         if (images.length > 0) {
           this.imageContainer.removeClass("-empty");
@@ -24186,33 +24561,91 @@ var init_pixelBannerStoreModal = __esm({
         const container = this.imageContainer;
         container.empty();
         images.forEach((image) => {
-          const card = container.createEl("div", {
-            cls: "pixel-banner-store-image-card",
-            attr: {
-              "data-image-id": image.id,
-              "data-image-cost": image.cost
+          try {
+            if (!image || typeof image !== "object") {
+              console.warn("Skipping invalid image entry:", image);
+              return;
             }
-          });
-          const imgEl = card.createEl("img", {
-            attr: {
-              src: image.base64Image,
-              alt: image.prompt
+            const imageId = image.id || image.imageId || image.bannerId || "unknown";
+            const imageCost = typeof image.cost !== "undefined" ? image.cost : image.premium ? 1 : 0;
+            const card = container.createEl("div", {
+              cls: "pixel-banner-store-image-card",
+              attr: {
+                "data-image-id": imageId,
+                "data-image-cost": imageCost
+              }
+            });
+            const imageSource = image.base64Image || image.base64 || image.url || image.src || "";
+            const imgEl = card.createEl("img", {
+              attr: {
+                src: imageSource,
+                alt: image.prompt || image.description || "Banner image"
+              }
+            });
+            const details = card.createDiv({ cls: "pixel-banner-store-image-details" });
+            const promptText = image.prompt || image.description || image.title || "No description";
+            const truncatedPrompt = promptText.length > 85 ? promptText.slice(0, 85) + "..." : promptText;
+            details.createEl("p", { text: truncatedPrompt, cls: "pixel-banner-store-prompt" });
+            const costText = imageCost === 0 ? "FREE" : `\u{1FA99}`;
+            const costEl = details.createEl("p", { text: costText, cls: "pixel-banner-store-cost" });
+            if (imageCost === 0) {
+              costEl.addClass("free");
             }
-          });
-          const details = card.createDiv({ cls: "pixel-banner-store-image-details" });
-          const truncatedPrompt = image.prompt.length > 85 ? image.prompt.slice(0, 85) + "..." : image.prompt;
-          details.createEl("p", { text: truncatedPrompt, cls: "pixel-banner-store-prompt" });
-          const costText = image.cost === 0 ? "FREE" : `\u{1FA99}`;
-          const costEl = details.createEl("p", { text: costText, cls: "pixel-banner-store-cost" });
-          if (image.cost === 0) {
-            costEl.addClass("free");
-          }
-          card.addEventListener("click", async () => {
-            var _a;
-            const cost = parseInt(card.getAttribute("data-image-cost"));
-            if (cost > 0) {
-              new ConfirmPurchaseModal(this.app, cost, image.prompt, image.base64Image, async () => {
-                var _a2;
+            card.addEventListener("click", async () => {
+              var _a;
+              const cost = parseInt(card.getAttribute("data-image-cost"));
+              if (cost > 0) {
+                new ConfirmPurchaseModal(this.app, cost, image.prompt, image.base64Image, async () => {
+                  var _a2;
+                  try {
+                    const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
+                      headers: {
+                        "x-user-email": this.plugin.settings.pixelBannerPlusEmail,
+                        "x-api-key": this.plugin.settings.pixelBannerPlusApiKey,
+                        "Accept": "application/json"
+                      }
+                    });
+                    if (!response.ok) {
+                      throw new Error("Failed to fetch image");
+                    }
+                    await this.plugin.verifyPixelBannerPlusCredentials();
+                    card.setAttribute("data-image-cost", "0");
+                    card.querySelector(".pixel-banner-store-cost").classList.add("free");
+                    card.querySelector(".pixel-banner-store-cost").textContent = "FREE";
+                    const data = await response.json();
+                    let filename = ((_a2 = image.prompt) == null ? void 0 : _a2.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()) || "banner";
+                    filename = filename.replace(/\s+/g, "-").substring(0, 47);
+                    await handlePinIconClick(data.base64Image, this.plugin, null, filename);
+                    this.close();
+                    if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
+                      new EmojiSelectionModal(
+                        this.app,
+                        this.plugin,
+                        async (emoji) => {
+                          const activeFile = this.app.workspace.getActiveFile();
+                          if (activeFile) {
+                            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                              const iconField = this.plugin.settings.customBannerIconField[0];
+                              frontmatter[iconField] = emoji;
+                            });
+                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                              await new Promise((resolve) => setTimeout(resolve, 200));
+                              new TargetPositionModal(this.app, this.plugin).open();
+                            }
+                          }
+                        },
+                        true
+                        // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
+                      ).open();
+                    } else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                      new TargetPositionModal(this.app, this.plugin).open();
+                    }
+                  } catch (error) {
+                    console.error("Error purchasing image:", error);
+                    new import_obsidian18.Notice("Failed to purchase image. Please try again.");
+                  }
+                }, this.plugin).open();
+              } else {
                 try {
                   const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
                     headers: {
@@ -24224,12 +24657,8 @@ var init_pixelBannerStoreModal = __esm({
                   if (!response.ok) {
                     throw new Error("Failed to fetch image");
                   }
-                  await this.plugin.verifyPixelBannerPlusCredentials();
-                  card.setAttribute("data-image-cost", "0");
-                  card.querySelector(".pixel-banner-store-cost").classList.add("free");
-                  card.querySelector(".pixel-banner-store-cost").textContent = "FREE";
                   const data = await response.json();
-                  let filename = ((_a2 = image.prompt) == null ? void 0 : _a2.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()) || "banner";
+                  let filename = ((_a = image.prompt) == null ? void 0 : _a.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()) || "banner";
                   filename = filename.replace(/\s+/g, "-").substring(0, 47);
                   await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                   this.close();
@@ -24257,55 +24686,75 @@ var init_pixelBannerStoreModal = __esm({
                     new TargetPositionModal(this.app, this.plugin).open();
                   }
                 } catch (error) {
-                  console.error("Error purchasing image:", error);
-                  new import_obsidian18.Notice("Failed to purchase image. Please try again.");
+                  console.error("Error fetching store image:", error);
                 }
-              }, this.plugin).open();
-            } else {
-              try {
-                const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
-                  headers: {
-                    "x-user-email": this.plugin.settings.pixelBannerPlusEmail,
-                    "x-api-key": this.plugin.settings.pixelBannerPlusApiKey,
-                    "Accept": "application/json"
-                  }
-                });
-                if (!response.ok) {
-                  throw new Error("Failed to fetch image");
-                }
-                const data = await response.json();
-                let filename = ((_a = image.prompt) == null ? void 0 : _a.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, "").trim()) || "banner";
-                filename = filename.replace(/\s+/g, "-").substring(0, 47);
-                await handlePinIconClick(data.base64Image, this.plugin, null, filename);
-                this.close();
-                if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                  new EmojiSelectionModal(
-                    this.app,
-                    this.plugin,
-                    async (emoji) => {
-                      const activeFile = this.app.workspace.getActiveFile();
-                      if (activeFile) {
-                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                          const iconField = this.plugin.settings.customBannerIconField[0];
-                          frontmatter[iconField] = emoji;
-                        });
-                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                          await new Promise((resolve) => setTimeout(resolve, 200));
-                          new TargetPositionModal(this.app, this.plugin).open();
-                        }
-                      }
-                    },
-                    true
-                    // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                  ).open();
-                } else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                  new TargetPositionModal(this.app, this.plugin).open();
-                }
-              } catch (error) {
-                console.error("Error fetching store image:", error);
               }
-            }
-          });
+            });
+          } catch (error) {
+            console.error("Error rendering image card:", error, image);
+          }
+        });
+        if (this.isSearchMode && this.totalPages > 1) {
+          this.addPaginationControls();
+        } else {
+          this.paginationContainer.style.display = "none";
+        }
+      }
+      // Toggle between search mode and category browsing mode
+      toggleSearchMode(enableSearch) {
+        if (enableSearch) {
+          this.categorySelect.style.display = "none";
+          this.nextCategoryButton.style.display = "none";
+          this.searchAllButton.style.display = "none";
+          this.searchContainer.style.display = "flex";
+          this.searchInput.value = "";
+          this.searchInput.focus();
+          this.isSearchMode = true;
+        } else {
+          this.searchContainer.style.display = "none";
+          this.categorySelect.style.display = "block";
+          this.nextCategoryButton.style.display = "inline-flex";
+          this.searchAllButton.style.display = "inline-flex";
+          this.isSearchMode = false;
+          this.paginationContainer.style.display = "none";
+          if (this.selectedCategory) {
+            this.loadCategoryImages();
+          }
+        }
+      }
+      // --------------------------
+      // -- Add Pagination Controls --
+      // --------------------------
+      addPaginationControls() {
+        this.paginationContainer.empty();
+        this.paginationContainer.style.display = "flex";
+        const prevButton = this.paginationContainer.createEl("button", {
+          text: "\u2190 Previous",
+          cls: "pixel-banner-store-pagination-button",
+          attr: {
+            disabled: this.currentPage === 1 ? "disabled" : null
+          }
+        });
+        prevButton.addEventListener("click", () => {
+          if (this.currentPage > 1) {
+            this.searchBanners(this.currentPage - 1);
+          }
+        });
+        this.paginationContainer.createEl("span", {
+          text: `Page ${this.currentPage} of ${this.totalPages}`,
+          cls: "pixel-banner-store-pagination-info"
+        });
+        const nextButton = this.paginationContainer.createEl("button", {
+          text: "Next \u2192",
+          cls: "pixel-banner-store-pagination-button",
+          attr: {
+            disabled: this.currentPage === this.totalPages ? "disabled" : null
+          }
+        });
+        nextButton.addEventListener("click", () => {
+          if (this.currentPage < this.totalPages) {
+            this.searchBanners(this.currentPage + 1);
+          }
         });
       }
       addStyle() {
@@ -24323,12 +24772,102 @@ var init_pixelBannerStoreModal = __esm({
                 flex-direction: row;
                 gap: 10px;
                 align-items: center;
-                justify-content: end;
+                justify-content: flex-end;
+            }
+            
+            .pixel-banner-store-category-controls {
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
             
             .pixel-banner-store-select {
                 width: max-content;
                 font-size: 14px;
+            }
+            
+            /* Search Styles */
+            .pixel-banner-store-search-container {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                margin: 0 0 0 auto;
+            }
+            
+            .pixel-banner-store-search-input {
+                width: 200px;
+                font-size: 14px;
+                padding: 5px 10px;
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 4px;
+            }
+            
+            .pixel-banner-store-search-button,
+            .pixel-banner-store-stop-search-button,
+            .pixel-banner-store-search-all-button {
+                font-size: 14px;
+                padding: 6px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                border: none;
+                white-space: nowrap;
+            }
+            
+            .pixel-banner-store-search-button,
+            .pixel-banner-store-stop-search-button,
+            .pixel-banner-store-search-all-button {
+                background-color: var(--interactive-accent) !important;
+                color: var(--text-on-accent) !important;
+            }
+            
+            .pixel-banner-store-search-button:hover,
+            .pixel-banner-store-stop-search-button:hover,
+            .pixel-banner-store-search-all-button:hover {
+                background-color: var(--interactive-accent-hover) !important;
+            }
+            
+            /* Pagination Styles */
+            .pixel-banner-store-bottom-controls {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                margin-top: 15px;
+                border-top: 1px solid var(--background-modifier-border);
+                padding-top: 10px;
+            }
+            
+            .pixel-banner-store-pagination-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .pixel-banner-store-pagination-button {
+                font-size: 12px;
+                padding: 4px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+                background-color: var(--interactive-accent) !important;
+                color: var(--text-on-accent) !important;
+                border: none;
+            }
+            
+            .pixel-banner-store-pagination-button:not([disabled]):hover {
+                background-color: var(--interactive-accent-hover) !important;
+            }
+            
+            .pixel-banner-store-pagination-button[disabled] {
+                opacity: 0.5;
+                cursor: not-allowed;
+                color: var(--text-color);
+                background-color: var(--interactive-normal);
+            }
+            
+            .pixel-banner-store-pagination-info {
+                font-size: 12px;
+                color: var(--text-normal);
+                white-space: nowrap;
             }
 
             .pixel-banner-store-next-category {
@@ -24362,7 +24901,7 @@ var init_pixelBannerStoreModal = __esm({
 
             .pixel-banner-store-image-grid {
                 gap: 18px;
-                padding: 22px;
+                padding: 18px;
                 margin-top: 20px;
                 display: flex;
                 flex-direction: row;
@@ -24374,6 +24913,7 @@ var init_pixelBannerStoreModal = __esm({
                 overflow-y: auto;
                 overflow-x: hidden;
                 border: 1px solid var(--table-border-color);
+                position: relative; /* For the sticky pagination */
             }
             .pixel-banner-store-image-grid.-empty::after {
                 display: none;
@@ -24388,7 +24928,7 @@ var init_pixelBannerStoreModal = __esm({
                 // opacity: 0.7;
             }
             .pixel-banner-store-image-grid.-not-connected::after {
-                content: "\u26A1 Please connect your Pixel Banner Plus account to the plugin to access the store. If you don't have an account, you can sign up for free using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
+                content: "\u26A1 Please connect your Pixel Banner Plus account in Settings to access the store. If you don't have an account, you can sign up for FREE using the button below! No payment information is required, and you will get access to a wide range of FREE banners.";
                 position: relative;
                 top: 40%;
                 max-width: 458px;
@@ -24483,7 +25023,7 @@ var init_pixelBannerStoreModal = __esm({
                 animation: pixel-banner-fade-in 0.3s ease-in-out;
             }
 
-            .pixel-banner-status-value {
+            .pixel-banner-store-status-value {
                 padding: 3px 7px;
                 border-radius: 0px;
                 font-size: .8em;
@@ -24694,7 +25234,7 @@ module.exports = __toCommonJS(main_exports);
 var import_obsidian27 = require("obsidian");
 
 // virtual-module:virtual:release-notes
-var releaseNotes = '<h2>\u{1F389} What&#39;s New</h2>\n<h3>v2.21.2</h3>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>The Targeting Modal is now draggable (can help move it out of the way to see the banner)</li>\n<li>Updated the padding and height of embedded notes without banners to shrink to their content</li>\n<li>Improved cache to include banner icons</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with select image icon being added to embedded notes</li>\n</ul>\n<h3>v2.21.1</h3>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Addressed issue with target icon button not being cleaned up when viewing a note without a banner</li>\n<li>Resolved custom inline title colors being applied to notes without banners</li>\n<li>Resolved issue with Pixel Banner plugin preventing notes from being exported to PDF</li>\n</ul>\n<h3>v2.21.0</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New Targeting Modal with controls to set zoom level, height, and position for your banner image</li>\n<li>Command palette option and icon button to quickly open the targeting modal</li>\n</ul>\n<p><a href="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg"><img src="https://raw.githubusercontent.com/jparkerweb/ref/refs/heads/main/equill-labs/pixel-banner/pixel-banner-v2.21.0.jpg" alt="screenshot"></a></p>\n';
+var releaseNotes = '<a href="https://www.youtube.com/watch?v=pJFsMfrWak4">\n  <img src="https://pixel-banner.online/img/pixel-banner-logo-v3.jpg" alt="Pixel Banner" style="max-width: 400px;">\n</a>\n\n<h2>\u{1F389} What&#39;s New</h2>\n<h3>v3.0.0 - 2025-03-19</h3>\n<h4>\u2728 Added</h4>\n<ul>\n<li>New <code>Pixel Banner Plus \u{1F6A9}\u2795</code> premium features:<blockquote>\n<ul>\n<li>Curated Store of Images to choose from</li>\n<li>Generate banners using custom &quot;text to banner&quot; prompts</li>\n<li>Get image prompt inspiration from the AI models</li>\n<li>Cloud Server endpoint for handling user accounts and AI interactions (<a href="https://pixel-banner.online/">https://pixel-banner.online/</a>)</li>\n</ul>\n</blockquote>\n</li>\n<li>When using the &#39;\u{1F4CC} Pin Banner&#39; action, you can specify to not use the saved image as a banner (good for just saving file)</li>\n<li>Targeting Modal now has controls for all Image Banner and Icons settings!</li>\n<li>Added support for <code>.avif</code> images</li>\n<li>Added extra calculation to ensure Banner Icon position is within the Note&#39;s visible bounds</li>\n<li>Added &quot;repeat&quot; option to the &quot;contain&quot; section of the Targeting Modal</li>\n<li>Support for embedded image format in the Banner frontmatter field: <code>![[image.jpg]]</code></li>\n<li>YouTube promo video: <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">https://www.youtube.com/watch?v=pJFsMfrWak4</a></li>\n</ul>\n<h4>\u{1F4E6} Updated</h4>\n<ul>\n<li>Complete restructuring of plugin codebase for better organization and maintainability</li>\n<li>The Targeting Modal slider controls wont unintentionally drag the modal</li>\n</ul>\n<h4>\u{1F41B} Fixed</h4>\n<ul>\n<li>Fixed issue with the &quot;Directory&quot; selection modal was displaying the suggested directory twice when saving a banner image</li>\n<li>Resolved issue with cleaning up cached banner icons when loading notes without banner icons</li>\n</ul>\n';
 
 // src/settings/settings.js
 var import_obsidian6 = require("obsidian");
@@ -25611,17 +26151,16 @@ function createGeneralSettings(containerEl, plugin) {
   const calloutEl = containerEl.createEl("div", { cls: "tab-callout margin-bottom-0" });
   calloutEl.createEl("div", { text: "\u2699\uFE0F Configure default settings for all notes." });
   const SelectImageSettingsGroup = containerEl.createDiv({ cls: "setting-group" });
-  const showSelectImageIconSetting = new import_obsidian4.Setting(SelectImageSettingsGroup).setName("Show Select Pixel Banner Icon").setDesc("Show an icon to select banner image in the top-left corner").addToggle((toggle) => toggle.setValue(plugin.settings.showSelectImageIcon).onChange(async (value) => {
-    plugin.settings.showSelectImageIcon = value;
+  const selectImageIconOpacitySetting = new import_obsidian4.Setting(SelectImageSettingsGroup).setName("Pixel Banner Icon Opacity").setDesc("Set the opacity of the banner selector icon in the top-left corner (0-100)").addSlider((slider) => slider.setLimits(0, 100, 1).setValue(plugin.settings.selectImageIconOpacity).setDynamicTooltip().onChange(async (value) => {
+    plugin.settings.selectImageIconOpacity = value;
     await plugin.saveSettings();
     plugin.updateAllBanners();
   })).addExtraButton((button) => button.setIcon("reset").setTooltip("Reset to default").onClick(async () => {
-    plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+    plugin.settings.selectImageIconOpacity = DEFAULT_SETTINGS.selectImageIconOpacity;
     await plugin.saveSettings();
-    const toggleComponent = showSelectImageIconSetting.components[0];
-    if (toggleComponent) {
-      toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
-    }
+    const sliderEl = button.extraSettingsEl.parentElement.querySelector(".slider");
+    sliderEl.value = DEFAULT_SETTINGS.selectImageIconOpacity;
+    sliderEl.dispatchEvent(new Event("input"));
     plugin.updateAllBanners();
   }));
   const selectImageIconFlagSetting = new import_obsidian4.Setting(SelectImageSettingsGroup).setName("Select Pixel Banner Flag Color").setDesc("Choose which flag color to use for the banner selector");
@@ -26397,19 +26936,19 @@ var DEFAULT_SETTINGS = {
   fade: -75,
   bannerFadeInAnimationDuration: 300,
   borderRadius: 17,
-  showPinIcon: true,
+  showPinIcon: false,
   pinnedImageFolder: "pixel-banner-images",
   showReleaseNotes: true,
   lastVersion: null,
-  showRefreshIcon: true,
+  showRefreshIcon: false,
   showViewImageIcon: false,
-  hidePixelBannerFields: false,
-  hidePropertiesSectionIfOnlyBanner: false,
+  hidePixelBannerFields: true,
+  hidePropertiesSectionIfOnlyBanner: true,
   titleColor: "var(--inline-title-color)",
   enableImageShuffle: false,
   hideEmbeddedNoteTitles: false,
   hideEmbeddedNoteBanners: false,
-  showSelectImageIcon: true,
+  selectImageIconOpacity: 40,
   selectImageIconFlag: "red",
   defaultSelectImagePath: "",
   useShortPath: true,
@@ -26424,7 +26963,7 @@ var DEFAULT_SETTINGS = {
   bannerIconPaddingY: "0",
   bannerIconBorderRadius: "17",
   bannerIconVeritalOffset: "0",
-  openBannerIconModalAfterSelectingBanner: false,
+  openBannerIconModalAfterSelectingBanner: true,
   openTargetingModalAfterSelectingBannerOrIcon: true
 };
 var FolderSuggestModal = class extends import_obsidian6.FuzzySuggestModal {
@@ -26962,6 +27501,9 @@ async function fetchUnsplashImage(plugin, keyword) {
 // src/services/apiPIxelBannerPlus.js
 init_constants();
 async function verifyPixelBannerPlusCredentials(plugin) {
+  if (!plugin.settings.pixelBannerPlusEmail || !plugin.settings.pixelBannerPlusApiKey) {
+    return { serverOnline: true, verified: false, bannerTokens: 0 };
+  }
   try {
     const response = await makeRequest(
       `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.VERIFY}`,
@@ -26985,7 +27527,12 @@ async function verifyPixelBannerPlusCredentials(plugin) {
     return { serverOnline: true, verified: false, bannerTokens: 0 };
   } catch (error) {
     console.error("Failed to verify Pixel Banner Plus credentials:", error);
-    return { serverOnline: false, verified: false, bannerTokens: 0 };
+    const isConnectionError = error.name === "TypeError" || error.message.includes("Network Error") || error.message.includes("Failed to fetch") || error.message.includes("network") || !navigator.onLine;
+    return {
+      serverOnline: !isConnectionError,
+      verified: false,
+      bannerTokens: 0
+    };
   }
 }
 
@@ -27038,26 +27585,26 @@ async function addPixelBanner(plugin, el, ctx) {
     plugin.updateEmbeddedBannersVisibility();
   } else {
     let leftOffset = plugin.settings.bannerGap + 15;
-    if (plugin.settings.showSelectImageIcon) {
-      const selectImageIcon = createDiv({
-        cls: "select-image-icon",
-        attr: {
-          style: `
-                        position: absolute;
-                        top: 10px;
-                        left: ${leftOffset}px;
-                        font-size: 1.8em;
-                        cursor: pointer;
-                    `
-        }
-      });
-      const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
-      selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags["red"]}" alt="Select Banner" style="width: 25px; height: 30px;">`;
-      selectImageIcon._isPersistentSelectImage = true;
-      selectImageIcon.onclick = () => plugin.handleBannerIconClick();
-      container.appendChild(selectImageIcon);
-      leftOffset += 35;
-    }
+    const opacity = plugin.settings.selectImageIconOpacity / 100;
+    const selectImageIcon = createDiv({
+      cls: "select-image-icon",
+      attr: {
+        style: `
+                    position: absolute;
+                    top: 10px;
+                    left: ${leftOffset}px;
+                    font-size: 1.8em;
+                    cursor: pointer;
+                    opacity: ${opacity};
+                `
+      }
+    });
+    const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
+    selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags["red"]}" alt="Select Banner" style="width: 25px; height: 30px;">`;
+    selectImageIcon._isPersistentSelectImage = true;
+    selectImageIcon.onclick = () => plugin.handleBannerIconClick();
+    container.appendChild(selectImageIcon);
+    leftOffset += 35;
     if (bannerImage && plugin.settings.showViewImageIcon && !isEmbedded) {
       const viewImageIcon = createDiv({
         cls: "view-image-icon",
@@ -27409,7 +27956,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     const oldRefreshIcons = container.querySelectorAll(".refresh-icon");
     const oldSelectIcons = container.querySelectorAll(".select-image-icon");
     [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach((el) => el.remove());
-    if (!isEmbedded && plugin.settings.showSelectImageIcon && container) {
+    if (!isEmbedded && container) {
+      const opacity = plugin.settings.selectImageIconOpacity / 100;
       const existingSelectIcon = container.querySelector(".select-image-icon");
       if (!existingSelectIcon) {
         const selectImageIcon = createDiv({
@@ -27421,6 +27969,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                             left: ${plugin.settings.bannerGap + 5}px;
                             font-size: 1.8em;
                             cursor: pointer;
+                            opacity: ${opacity};
                         `
           }
         });
@@ -27429,11 +27978,6 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         selectImageIcon._isPersistentSelectImage = true;
         selectImageIcon.onclick = () => plugin.handleBannerIconClick();
         container.insertBefore(selectImageIcon, container.firstChild);
-      }
-    } else if (!plugin.settings.showSelectImageIcon && container) {
-      const existingSelectIcon = container.querySelector(".select-image-icon");
-      if (existingSelectIcon) {
-        existingSelectIcon.remove();
       }
     }
     if (container) {
@@ -28518,15 +29062,20 @@ var PixelBannerPlugin = class extends import_obsidian27.Plugin {
     });
     this.addCommand({
       id: "open-pixel-banner-select",
-      name: "\u{1F6A9} Pixel Banner Selector",
+      name: "\u{1F6A9} Pixel Banner Menu",
       callback: () => {
         this.handleBannerIconClick();
       }
     });
     this.addCommand({
       id: "set-banner-image",
-      name: "\u{1F3F7}\uFE0F Select Banner from Vault",
+      name: "\u{1F4BE} Select Banner from Vault",
       callback: () => this.handleSelectImage()
+    });
+    this.addCommand({
+      id: "open-banner-store",
+      name: "\u{1F3EA} Open Pixel Banner Plus Store",
+      callback: () => this.openBannerStore()
     });
     this.addCommand({
       id: "set-banner-icon",
@@ -28552,7 +29101,7 @@ var PixelBannerPlugin = class extends import_obsidian27.Plugin {
     });
     this.addCommand({
       id: "set-banner-position",
-      name: "\u{1F3AF} Set Banner and Icon Positions",
+      name: "\u{1F3AF} Adjust Position, Size, & Style",
       checkCallback: (checking) => {
         const activeFile = this.app.workspace.getActiveFile();
         const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
@@ -28591,6 +29140,9 @@ var PixelBannerPlugin = class extends import_obsidian27.Plugin {
         }
       })
     );
+    this.addRibbonIcon("flag", "\u{1F6A9} Pixel Banner Menu", () => {
+      this.handleBannerIconClick();
+    });
   }
   // -------------------
   // -- get image url --
@@ -28800,6 +29352,12 @@ var PixelBannerPlugin = class extends import_obsidian27.Plugin {
     this.pixelBannerPlusEnabled = result.verified;
     this.pixelBannerPlusBannerTokens = result.bannerTokens;
     return result;
+  }
+  // --------------------------
+  // -- open the banner store --
+  // --------------------------
+  openBannerStore() {
+    new SelectPixelBannerModal(this.app, this).open();
   }
 };
 

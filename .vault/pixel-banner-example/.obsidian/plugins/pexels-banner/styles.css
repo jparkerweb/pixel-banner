@@ -673,7 +673,7 @@
 }
 
 .pixel-banner-generated-image {
-    width: auto;
+    width: inherit;
     height: auto;
     display: block;
     animation: pixel-banner-fade-in 1300ms ease-in-out;
@@ -806,7 +806,7 @@
 .pin-icon:hover,
 .refresh-icon:hover,
 .view-image-icon:hover {
-    opacity: 1;
+    opacity: 1 !important;
     cursor: pointer;
     transform: scale(1.2);
 }

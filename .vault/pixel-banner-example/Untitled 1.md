@@ -1,5 +1,8 @@
 ---
-banner: "[[pixel-banner-images/in-the-shadowy-twilight-of-the-enchanted-forest.jpg]]"
-pixel-banner-flag-color: bee
+banner: "[[pixel-banner-images/glistening-tendrils-of-vibrant-aurora-borealis-.jpg]]"
+icon: 💫
+banner-inline-title-color: "#222222"
 ---
+# 🚩 Pixel Banner
 
+Bring your notes to life with beautiful banners...
