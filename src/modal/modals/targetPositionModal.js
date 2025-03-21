@@ -2168,6 +2168,7 @@ export class TargetPositionModal extends Modal {
         // Add drag-and-drop functionality
         let isDragging = false;
         let offsetX, offsetY;
+        let isCrosshairDragging = false;
 
         modalEl.addEventListener('mousedown', (e) => {
             // Prevent dragging if the target is a slider
@@ -2186,7 +2187,10 @@ export class TargetPositionModal extends Modal {
                 e.target === bannerIconBgColorPicker ||
                 e.target === bannerIconBgColorInput ||
                 e.target === titleColorPicker ||
-                e.target === titleColorInput) return;
+                e.target === titleColorInput ||
+                e.target === targetArea ||
+                e.target === verticalLine ||
+                e.target === horizontalLine) return;
             isDragging = true;
             offsetX = e.clientX - modalEl.getBoundingClientRect().left;
             offsetY = e.clientY - modalEl.getBoundingClientRect().top;
@@ -2198,11 +2202,38 @@ export class TargetPositionModal extends Modal {
                 modalEl.style.left = `${e.clientX - offsetX}px`;
                 modalEl.style.top = `${e.clientY - offsetY}px`;
             }
+            
+            if (isCrosshairDragging) {
+                updatePosition(e);
+            }
         });
 
         document.addEventListener('mouseup', () => {
             isDragging = false;
+            isCrosshairDragging = false;
             modalEl.style.cursor = 'default';
+            targetArea.style.cursor = 'crosshair';
+        });
+
+        // Replace click with drag for crosshair positioning
+        targetArea.addEventListener('mousedown', (e) => {
+            isCrosshairDragging = true;
+            targetArea.style.cursor = 'move';
+            updatePosition(e);
+            e.preventDefault(); // Prevent text selection during drag
+        });
+
+        // Add crosshair dragging to the lines themselves
+        verticalLine.addEventListener('mousedown', (e) => {
+            isCrosshairDragging = true;
+            targetArea.style.cursor = 'move';
+            e.preventDefault(); // Prevent text selection during drag
+        });
+
+        horizontalLine.addEventListener('mousedown', (e) => {
+            isCrosshairDragging = true;
+            targetArea.style.cursor = 'move';
+            e.preventDefault(); // Prevent text selection during drag
         });
 
         // Set initial position of the modal
@@ -2224,6 +2255,8 @@ export class TargetPositionModal extends Modal {
                 width: 1px;
                 height: 100%;
                 left: ${this.currentX}%;
+                pointer-events: auto;
+                cursor: move;
             }
             .target-position-modal .horizontal-line {
                 position: absolute;
@@ -2232,6 +2265,8 @@ export class TargetPositionModal extends Modal {
                 width: 100%;
                 height: 1px;
                 top: ${this.currentY}%;
+                pointer-events: auto;
+                cursor: move;
             }
             .target-position-modal .position-indicator {
                 text-align: center;
