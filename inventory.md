@@ -249,6 +249,26 @@ The modal uses the Pixel Banner Plus API endpoints to fetch categories and their
 
 ---
 
+## `/src/modal/modals/webAddressModal.js`
+**Class**: `WebAddressModal` (extends `Modal`)  
+Allows users to enter a URL for a banner image, validates it, and sets it in the frontmatter.
+
+**Key Methods**:
+1. **onOpen()**  
+   Renders the URL input field, error container, and buttons for setting the banner or returning to the main menu.
+2. **validateImageUrl(url)**  
+   Validates that the provided URL leads to a valid image by attempting to load it.
+3. **showError(message)** and **clearError()**  
+   Utility methods to display or remove validation error messages.
+4. **addStyle()**  
+   Injects custom styling for the URL modal layout.
+5. **onClose()**  
+   Cleans up the modal content and styles.
+
+The modal handles validation of image URLs, provides user feedback for errors, and updates note frontmatter with the validated URL as a banner image source.
+
+---
+
 ## `/src/modal/modals/imageViewModal.js`
 **Class**: `ImageViewModal`  
 Shows a single image at larger size in a centered modal.
@@ -302,14 +322,34 @@ Helps visually set or tweak the X/Y offsets for the banner and icon.
 Provides a central hub for accessing different banner selection methods.
 
 **Key Methods**:
-- **onOpen()**: Renders three large buttons for different banner selection methods
-- **addStyle()**: Adds custom styling for the modal buttons
-- **onClose()**: Cleans up the modal content and styles
+1. **onOpen()**  
+   Renders the loading spinner and initializes the modal.
+2. **showLoadingSpinner()** and **hideLoadingSpinner()**  
+   Manage loading state with a spinner overlay.
+3. **initializeModal()**  
+   Renders buttons for different banner sources (AI, Store, Vault, URL) and customization options.
+4. **addStyle()**  
+   Adds custom styling for the modal buttons.
+5. **onClose()**  
+   Cleans up the modal content and styles.
 
 ---
 
 ## `/src/modal/modals.js`
 Exports all modals from the `modal/modals` directory.
+
+**Exports**:
+- `ReleaseNotesModal`
+- `ImageViewModal`
+- `ImageSelectionModal`
+- `FolderSelectionModal`
+- `GenerateAIBannerModal`
+- `SaveImageModal`
+- `EmojiSelectionModal`
+- `TargetPositionModal`
+- `SelectPixelBannerModal`
+- `PixelBannerStoreModal`
+- `WebAddressModal`
 
 ---
 

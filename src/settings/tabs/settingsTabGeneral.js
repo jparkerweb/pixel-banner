@@ -10,6 +10,32 @@ export function createGeneralSettings(containerEl, plugin) {
     // Create a group for the select image icon settings
     const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
 
+    // Add the showSelectImageIcon setting
+    const showSelectImageIconSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Show Select Image Icon')
+        .setDesc('Show the banner selector icon in the top-left corner of notes')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.showSelectImageIcon)
+            .onChange(async (value) => {
+                plugin.settings.showSelectImageIcon = value;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+                await plugin.saveSettings();
+                
+                const toggleComponent = showSelectImageIconSetting.components[0];
+                if (toggleComponent) {
+                    toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
+                }
+                
+                plugin.updateAllBanners();
+            }));
+
     // Add the selectImageIconOpacity setting
     const selectImageIconOpacitySetting = new Setting(SelectImageSettingsGroup)
         .setName('Pixel Banner Icon Opacity')

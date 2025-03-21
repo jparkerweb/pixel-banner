@@ -1,5 +1,5 @@
 import { Modal, MarkdownView } from 'obsidian';
-import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal, EmojiSelectionModal, TargetPositionModal } from '../modals';
+import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal, EmojiSelectionModal, TargetPositionModal, WebAddressModal } from '../modals';
 import { flags } from '../../resources/flags.js';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
 
@@ -181,7 +181,7 @@ export class SelectPixelBannerModal extends Modal {
         const aiButtonContent = aiButton.createDiv({ cls: 'pixel-banner-button-content' });
         aiButtonContent.createEl('span', { text: '✨', cls: 'pixel-banner-button-icon' });
         aiButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Generate with AI', 
+            text: 'AI', 
             cls: 'pixel-banner-button-text'
         });
         // AI Generation Button Click Event
@@ -202,7 +202,7 @@ export class SelectPixelBannerModal extends Modal {
         const storeButtonContent = storeButton.createDiv({ cls: 'pixel-banner-button-content' });
         storeButtonContent.createEl('span', { text: '🏪', cls: 'pixel-banner-button-icon' });
         storeButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'From Store', 
+            text: 'Store', 
             cls: 'pixel-banner-button-text' 
         });
         // Store Button Click Event
@@ -218,7 +218,7 @@ export class SelectPixelBannerModal extends Modal {
         const vaultButtonContent = vaultButton.createDiv({ cls: 'pixel-banner-button-content' });
         vaultButtonContent.createEl('span', { text: '💾', cls: 'pixel-banner-button-icon' });
         vaultButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'From Vault', 
+            text: 'Your Vault', 
             cls: 'pixel-banner-button-text' 
         });
         
@@ -288,6 +288,23 @@ export class SelectPixelBannerModal extends Modal {
                 },
                 this.plugin.settings.defaultSelectImagePath
             ).open();
+        });
+
+        // Web Address Button
+        const webAddressButton = bannerSourceButtons.createEl('button', {
+            cls: 'pixel-banner-source-button'
+        });
+        const webAddressButtonContent = webAddressButton.createDiv({ cls: 'pixel-banner-button-content' });
+        webAddressButtonContent.createEl('span', { text: '🌐', cls: 'pixel-banner-button-icon' });
+        webAddressButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+            text: 'URL', 
+            cls: 'pixel-banner-button-text' 
+        });
+
+        // Web Address Button Click Event
+        webAddressButton.addEventListener('click', () => {
+            this.close();
+            new WebAddressModal(this.app, this.plugin).open();
         });
 
         // Customization section
