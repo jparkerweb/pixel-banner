@@ -61,7 +61,7 @@ export class TargetPositionModal extends Modal {
         const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
             ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
             : this.plugin.settings.customImageRepeatField;
-        this.currentRepeat = frontmatter?.[repeatField] ?? false;
+        this.currentRepeat = frontmatter?.[repeatField] !== undefined ? frontmatter[repeatField] : this.plugin.settings.imageRepeat;
 
         // Parse current display value for zoom percentage
         this.currentZoom = 100;
@@ -79,6 +79,10 @@ export class TargetPositionModal extends Modal {
         const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
             ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
             : this.plugin.settings.customImageDisplayField;
+        
+        const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
+            ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
+            : this.plugin.settings.customImageRepeatField;
 
         let newValue = mode;
         if (mode === 'cover-zoom') {
@@ -87,6 +91,17 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(activeFile, (fm) => {
             fm[displayField] = newValue;
+            
+            // When changing to "contain" or "auto", use the current toggle state
+            // For other modes, remove the repeat field completely
+            if (mode === 'contain' || mode === 'auto') {
+                fm[repeatField] = this.currentRepeat;
+            } else {
+                // Remove the repeat field if it exists
+                if (repeatField in fm) {
+                    delete fm[repeatField];
+                }
+            }
         });
     }
 
@@ -2083,7 +2098,7 @@ export class TargetPositionModal extends Modal {
             cls: 'repeat-container',
             attr: {
                 style: `
-                    display: ${this.currentDisplay === 'contain' ? 'flex' : 'none'};
+                    display: ${this.currentDisplay === 'contain' || this.currentDisplay === 'auto' ? 'flex' : 'none'};
                     flex-direction: column;
                     gap: 5px;
                     align-items: center;
@@ -2122,7 +2137,7 @@ export class TargetPositionModal extends Modal {
             type: 'checkbox',
             cls: 'repeat-checkbox',
             attr: {
-                checked: this.currentRepeat
+                checked: (this.currentDisplay === 'contain' || this.currentDisplay === 'auto') ? this.currentRepeat : this.plugin.settings.imageRepeat
             }
         });
 
@@ -2130,7 +2145,17 @@ export class TargetPositionModal extends Modal {
         displaySelect.addEventListener('change', () => {
             const mode = displaySelect.value;
             zoomContainer.style.display = mode === 'cover-zoom' ? 'flex' : 'none';
-            repeatContainer.style.display = mode === 'contain' ? 'flex' : 'none';
+            repeatContainer.style.display = (mode === 'contain' || mode === 'auto') ? 'flex' : 'none';
+            
+            // Update the checkbox state when switching modes
+            if (mode === 'contain' || mode === 'auto') {
+                toggleInput.checked = this.currentRepeat;
+            } else {
+                // For other modes, set checkbox to plugin default
+                toggleInput.checked = this.plugin.settings.imageRepeat;
+                this.currentRepeat = this.plugin.settings.imageRepeat;
+            }
+            
             this.updateDisplayMode(mode, mode === 'cover-zoom' ? this.currentZoom : null);
         });
 
