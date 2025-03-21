@@ -9,6 +9,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 #### 📦 Updated
 - Added back ability to prevent the `🚩` select pixel banner icon from being displayed on notes (you can still set the opacity of the icon when enabled)
+- Improved UX of dragging/selecting banner position when using the "crosshair" targeting control
 
 ### v3.0.0 - 2025-03-19
 #### ✨ Added
