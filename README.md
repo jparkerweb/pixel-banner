@@ -18,18 +18,18 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - Banner Store: Browse and use professional banner images from the integrated store, including free options
 - Local Image Support: Use images from your vault as banners with advanced customization options
 - Direct URL Banners: Apply banners from any web URL for maximum flexibility
-- Note Properties Integration: Control all banner aspects through Obsidian's properties feature
+- Note Properties Integration: Control all banner aspects through Obsidian's `properties` feature
 
 ### 🎨 Visual Customization
 - Position Control: Fine-tune banner placement with precise vertical and horizontal positioning for perfect alignment
 - Appearance Options: Customize transparency, border radius, animation effects, and spacing for seamless integration
 - Display Flexibility: Choose between display modes (cover, auto, contain) with options for repetition and sizing
 - Banner Icons: Add and customize decorative icons with control over size, position, color, background, and style
-- Title Integration: Style inline titles with custom colors that complement your banner designs
+- Title Integration: Style in-line titles with custom colors that complement your banner designs
 
 ### ⚡ Efficient Workflow
 - Banner Selection Modal: Quick visual picker for local images with sorting options
-- Command Integration: Access all banner functions via command palette and hotkeys
+- Command Integration: Access all banner functions via command palette and hot keys
 - Quick Action Icons: Select, pin, refresh, and view banners with convenient UI controls
 - Custom Field Names: Rename any banner property field to fit your workflow
 
@@ -57,23 +57,23 @@ Enhance your Obsidian experience with beautiful, intelligent banners that make y
 
 1. Open a note and click the `Banner Flag` in the top left corner of your Note  
 
-    ![1](./img/1.jpg)
+    ![1](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/1.jpg)
 
 2. Select a `Source` for your Banner (the AI and Store options require you to first create a FREE Pixel Banner Plus account at: https://pixel-banner.online)  
 
-    ![2](./img/2.jpg)
+    ![2](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/2.jpg)
 
 3. _Optionally_ select `Banner Icon` text (this can be any text, but it is advised to use an Emoji 🤣)
 
-    ![3](./img/3.jpg)
+    ![3](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/3.jpg)
 
-4. _Optionally_ change the `postion`, `size`, `color`, and various other `properites` for both the `Banner Image` and `Banner Icon` of the note (by default they will inherit the General settings in Pixel Banner's main setting page, but are customizable per note)
+4. _Optionally_ change the `position`, `size`, `color`, and other `properites` for both the `Banner Image` and `Banner Icon` of the note (by default they will inherit the General settings in Pixel Banner's main setting page, but are customizable per note)
 
-    ![4](./img/4.jpg)
+    ![4](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/4.jpg)
 
 5. Click the `Banner Flag` icon anytime to adjust any of these settings (`Banner Image`, `Banner icon`, `Display Properties`)
 
-    ![5](./img/5.jpg)
+    ![5](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/5.jpg)
 
 ### 🎉 Happy Pixel Bannering 🤣
 
