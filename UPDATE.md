@@ -4,9 +4,10 @@
 
 ## 🎉 What's New
 
-### v3.0.1 - 2025-03-20
+### v3.1.0 - 2025-03-20
 #### ✨ Added
 - Modal for setting banner source from a URL
+- Added clear instruction to the top of the "Set Banner Icon" modal
 
 #### 📦 Updated
 - Added back ability to prevent the `🚩` select pixel banner icon from being displayed on notes (you can still set the opacity of the icon when enabled)
