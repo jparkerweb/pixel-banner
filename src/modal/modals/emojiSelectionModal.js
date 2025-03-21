@@ -37,15 +37,39 @@ export class EmojiSelectionModal extends Modal {
 
         // Title
         contentEl.createEl('h3', {
-            text: 'Set Banner Icon',
+            text: '⭐ Set Banner Icon',
             cls: 'banner-icon-title margin-top-0'
         });
 
+        contentEl.createEl('p', {
+            text: 'Use the form below to optionally set an emoji and/or text as this note\'s Banner Icon. Leave the value blank and click the "Update Banner Icon" button to clear any existing banner icon if it exists.',
+            attr: {
+                style: `
+                    padding-top: 20px;
+                    border-top: 1px solid var(--background-modifier-border);
+                    font-size: 0.8em;
+                    color: var(--text-muted);
+                `
+            }
+        });
+
         // Create banner icon input container
-        const bannerIconContainer = contentEl.createDiv({ cls: 'banner-icon-container' });
+        const bannerIconContainer = contentEl.createDiv({
+            cls: 'banner-icon-container',
+            attr: {
+                style: `
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                    margin-top: 1em;
+                    padding: 8px;
+                `
+            }
+        });
+
         this.bannerIconInput = bannerIconContainer.createEl('input', {
             type: 'text',
-            placeholder: 'Banner icon value...',
+            placeholder: 'Enter an emoji and/or text...',
             cls: 'banner-icon-input',
             attr: {
                 style: `
@@ -57,7 +81,7 @@ export class EmojiSelectionModal extends Modal {
         });
 
         const setBannerButton = bannerIconContainer.createEl('button', {
-            text: 'Set the Banner Icon',
+            text: 'Update Banner Icon',
             cls: 'set-banner-button',
             attr: {
                 style: `
@@ -71,7 +95,10 @@ export class EmojiSelectionModal extends Modal {
             this.closedByButton = true;
             // Trim the input value before using it
             const trimmedValue = this.bannerIconInput.value.trim();
-            await this.onChoose(trimmedValue);
+            
+            // If the value is empty, pass null to signal that the field should be removed
+            // Otherwise pass the trimmed value as normal
+            await this.onChoose(trimmedValue === '' ? null : trimmedValue);
             this.close();
             
             // Get the active file and view
@@ -233,14 +260,6 @@ export class EmojiSelectionModal extends Modal {
             }
             .emoji-button:hover {
                 background: var(--background-modifier-hover);
-            }
-            .banner-icon-container {
-                display: flex;
-                gap: 8px;
-                align-items: center;
-                margin-top: 1em;
-                padding: 8px;
-                border-top: 1px solid var(--background-modifier-border);
             }
             .banner-icon-input {
                 flex: 1;
