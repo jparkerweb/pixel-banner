@@ -233,7 +233,7 @@ export class ImageSelectionModal extends Modal {
             const pixelBannerPlusGenAIButton = controlsRow.createEl('button');
             pixelBannerPlusGenAIButton.addClass('radial-pulse-animation');
             const sparkleSpan = pixelBannerPlusGenAIButton.createSpan({ cls: 'twinkle-animation', text: '✨ ' });
-            pixelBannerPlusGenAIButton.createSpan({ cls:'margin-left-5', text: 'AI Banners' });
+            pixelBannerPlusGenAIButton.createSpan({ cls:'margin-left-5', text: 'AI' });
             pixelBannerPlusGenAIButton.addEventListener('click', () => {
                 this.close();
                 new GenerateAIBannerModal(this.app, this.plugin).open();

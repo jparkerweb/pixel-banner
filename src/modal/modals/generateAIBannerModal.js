@@ -434,14 +434,6 @@ export class GenerateAIBannerModal extends Modal {
                     width: 100%;
                 }
 
-                .pixel-banner-ai-modal .pixel-banner-ai-prompt-container {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    max-width: 500px;
-                    width: 100%;
-                }
-
                 .pixel-banner-ai-modal .pixel-banner-ai-control-row {
                     display: flex;
                     flex-direction: row;
@@ -555,16 +547,19 @@ export class GenerateAIBannerModal extends Modal {
 
                 .pixel-banner-prompt-inspiration-container {
                     display: flex;
-                    flex-direction: column;
+                    flex-direction: row;
                     gap: 5px;
-                    align-items: flex-start;
+                    align-items: center;
                     justify-content: center;
+                    width: 100%;
                 }
                 .pixel-banner-prompt-inspiration-container > button {
                     margin: 0;
-                    flex: 0 auto;
-                    width: 40px;
+                    flex: 1;
                     border: 1px solid var(--modal-border-color);
+                    text-transform: uppercase;
+                    font-size: 0.8em;
+                    letter-spacing: 1px;
                 }
                 .pixel-banner-inspiration-button,
                 .pixel-banner-inspiration-from-seed-button {
@@ -609,7 +604,7 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         const promptDescription = promptAllowedSection.createEl('p', {
-            text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 seed button.',
+            text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 grow your idea button.',
             attr: {
                 'style': `
                     color: var(--text-muted); 
@@ -621,11 +616,23 @@ export class GenerateAIBannerModal extends Modal {
         });
 
         // Prompt
-        const promptContainer = promptAllowedSection.createDiv({ cls: 'setting-item pixel-banner-ai-prompt-container' });
-        promptContainer.createDiv({ cls: 'setting-item-name', text: 'Banner Prompt' });
+        const promptContainer = promptAllowedSection.createDiv({
+            cls: 'setting-item pixel-banner-ai-prompt-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    max-width: 500px;
+                    width: 100%;
+                `
+            }
+        });
+
+        promptContainer.createDiv({ cls: 'setting-item-name', text: '🖋️ Creative Banner Prompt' });
         promptContainer.createDiv({
             cls: 'setting-item-description', 
-            text: 'Enter a description of the banner you want created and click the generate button below.',
+            text: 'TIP ⇢ Type a few words and then press the "🌱" button to grow your idea into something special!',
             attr: {
                 'style': `
                     color: var(--text-muted); 
@@ -634,7 +641,7 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         
-        const promptControl = promptContainer.createDiv({ cls: 'setting-item-control width-100 margin-top-10' });
+        const promptControl = promptContainer.createDiv({ cls: 'setting-item-control width-100 margin-top-10 flex-column' });
         const promptInput = promptControl.createEl('textarea', {
             cls: 'full-width-input',
             attr: {
@@ -652,19 +659,24 @@ export class GenerateAIBannerModal extends Modal {
 
         const inspirationButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-button',
-            text: '💡'
+            text: '💡 Inspiration'
         });
         inspirationButton.addEventListener('click', () => this.getPromptInspiration());
         
         const inspirationFromSeedButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-from-seed-button',
-            text: '🌱'
+            text: '🌱 Grow your Idea',
+            attr: {
+                style: `
+                    border-bottom: 1px solid var(--interactive-accent-hover);
+                `
+            }
         });
         inspirationFromSeedButton.addEventListener('click', () => this.getPromptInspirationFromSeed());
         
         const inspirationClearButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-clear-button',
-            text: '🗑️'
+            text: '🗑️ Clear'
         });
         inspirationClearButton.addEventListener('click', () => this.clearPromptInspiration());
 

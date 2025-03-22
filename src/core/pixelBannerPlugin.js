@@ -7,7 +7,7 @@ import { loadSettings, saveSettings } from './settings.js';
 import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, cleanupIconOverlay } from './bannerIconHelpers.js'; 
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
-import { verifyPixelBannerPlusCredentials } from '../services/apiPIxelBannerPlus.js';
+import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition } from './bannerManager.js';
 import { getInputType, getPathFromObsidianLink, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
@@ -707,6 +707,15 @@ export class PixelBannerPlugin extends Plugin {
         this.pixelBannerPlusServerOnline = result.serverOnline;
         this.pixelBannerPlusEnabled = result.verified;
         this.pixelBannerPlusBannerTokens = result.bannerTokens;
+        return result;
+    }
+
+    // -------------------------------- //
+    // -- get pixel banner plus info -- //
+    // -------------------------------- //
+    async getPixelBannerInfo() {
+        const result = await getPixelBannerInfo(this);
+        this.pixelBannerVersion = result.version;
         return result;
     }
 

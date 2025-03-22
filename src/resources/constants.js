@@ -15,6 +15,11 @@ export const PIXEL_BANNER_PLUS = {
         STORE_IMAGE_BY_ID: 'store-image-by-id',
         STORE_IMAGE_SEARCH: 'store-search',
         SIGNUP: 'signup',
+        BANNER_VOTES_STATS: 'api/banner-votes/:id/stats',
+        BANNER_VOTES_USER_VOTE: 'api/banner-votes/:id/user-vote',
+        BANNER_VOTES_UPVOTE: 'api/banner-votes/:id/upvote',
+        BANNER_VOTES_DOWNVOTE: 'api/banner-votes/:id/downvote',
+        INFO: 'api/pixel-banner-info'
     },
     SHOP_URL: 'https://ko-fi.com/s/7ce609ff2c',
     DONATE_URL: 'https://ko-fi.com/jparkerweb'

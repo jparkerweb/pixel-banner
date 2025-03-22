@@ -62,6 +62,7 @@ const DEFAULT_SETTINGS = {
     enableImageShuffle: false,
     hideEmbeddedNoteTitles: false,
     hideEmbeddedNoteBanners: false,
+    showSelectImageIcon: true,
     selectImageIconOpacity: 40,
     selectImageIconFlag: 'red',
     defaultSelectImagePath: '',

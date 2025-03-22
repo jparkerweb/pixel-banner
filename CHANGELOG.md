@@ -2,6 +2,18 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.1.0 - 2025-03-22
+#### ✨ Added
+- Modal for setting banner source from a URL
+- Add voting functionality to Pixel Banner Store
+- Added clear instruction to the top of the "Set Banner Icon" modal
+- Enhance the visibility of the "🌱 GROW YOUR IDEA" button on the AI Banner modal to make it more prominent, highlighting its usefulness
+- Show a "Upgrade Available" message in the footer of the Pixel Banner Main Menu if a new version is available
+
+#### 📦 Updated
+- Added back ability to prevent the `🚩` select pixel banner icon from being displayed on notes (you can still set the opacity of the icon when enabled)
+- Improved UX of dragging/selecting banner position when using the `crosshair` targeting control
+
 ### v3.0.0 - 2025-03-19
 #### ✨ Added
 - New `Pixel Banner Plus 🚩➕` premium features:
@@ -13,7 +25,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 - Targeting Modal now has controls for all Image Banner and Icons settings!
 - Added support for `.avif` images
 - Added extra calculation to ensure Banner Icon position is within the Note's visible bounds
-- Added "repeat" option to the "contain" section of the Targeting Modal
+- Added `repeat` option to the `contain` section of the Targeting Modal
 - Support for embedded image format in the Banner frontmatter field: `![[image.jpg]]`
 - YouTube promo video: https://www.youtube.com/watch?v=pJFsMfrWak4
 
@@ -22,7 +34,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 - The Targeting Modal slider controls won't unintentionally drag the modal
 
 #### 🐛 Fixed
-- Fixed issue with the "Directory" selection modal was displaying the suggested directory twice when saving a banner image
+- Fixed issue with the `Folder` selection modal displaying the suggested directory twice when saving a banner image
 - Resolved issue with cleaning up cached banner icons when loading notes without banner icons
 
 ### v2.21.2 - 2025-01-28
