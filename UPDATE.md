@@ -7,6 +7,7 @@
 ### v3.1.0 - 2025-03-20
 #### ✨ Added
 - Modal for setting banner source from a URL
+- Add voting functionality to Pixel Banner Store
 - Added clear instruction to the top of the "Set Banner Icon" modal
 - Enhance the visibility of the "🌱 GROW YOUR IDEA" button on the AI Banner modal to make it more prominent, highlighting its usefulness.
 

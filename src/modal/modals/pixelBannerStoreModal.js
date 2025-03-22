@@ -27,6 +27,7 @@ export class PixelBannerStoreModal extends Modal {
         this.itemsPerPage = 9;
         this.voteStats = {}; // Store vote stats for each banner
         this.userVotes = {}; // Store user's votes for each banner
+        this.storeVotingEnabled = this.plugin.settings.storeVotingEnabled !== false; // Default to true if not set
     }
 
     // ----------------
@@ -292,6 +293,10 @@ export class PixelBannerStoreModal extends Modal {
         // Create container for images
         if (this.plugin.pixelBannerPlusEnabled) {
             this.imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-image-grid -empty' });
+            // Add store-voting-off class if store voting is disabled
+            if (!this.storeVotingEnabled) {
+                this.imageContainer.addClass('store-voting-off');
+            }
             // Add an async delay that will select the first option in the category select element
             setTimeout(async () => {
                 // Abort if the category select element no longer has the first option selected (the user may have changed the category)
@@ -346,6 +351,61 @@ export class PixelBannerStoreModal extends Modal {
                     align-items: center;
                     gap: 8px;
                 `
+            }
+        });
+
+        // Add Store Voting toggle
+        const storeVotingContainer = bottomControlsContainer.createDiv({
+            cls: 'pixel-banner-store-voting-container',
+            attr: {
+                'style': `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-left: 16px;
+                `
+            }
+        });
+        
+        // Store Voting Toggle
+        console.log('storeVotingEnabled', this.storeVotingEnabled);
+        const storeVotingToggle = storeVotingContainer.createEl('input', {
+            type: 'checkbox',
+            cls: 'pixel-banner-store-voting-toggle',
+            attr: {
+                id: 'store-voting-toggle',
+                style: `
+                    cursor: pointer;
+                `
+            }
+        });
+        storeVotingToggle.checked = this.storeVotingEnabled === true;
+
+        storeVotingContainer.createEl('label', {
+            text: 'Store Voting',
+            cls: 'pixel-banner-store-voting-label',
+            attr: {
+                for: 'store-voting-toggle',
+                style: `
+                    font-size: 0.8em;
+                    cursor: pointer;
+                    color: var(--text-muted);
+                    letter-spacing: 0.05em;
+                `
+            }
+        });
+
+        storeVotingToggle.addEventListener('change', (e) => {
+            this.storeVotingEnabled = e.target.checked;
+            // Save preference to plugin settings
+            this.plugin.settings.storeVotingEnabled = this.storeVotingEnabled;
+            this.plugin.saveSettings();
+            
+            // Toggle class on image grid
+            if (this.storeVotingEnabled) {
+                this.imageContainer.removeClass('store-voting-off');
+            } else {
+                this.imageContainer.addClass('store-voting-off');
             }
         });
 
@@ -455,6 +515,13 @@ export class PixelBannerStoreModal extends Modal {
 
         // Clear previous images
         this.imageContainer.empty();
+        
+        // Make sure the store-voting-off class is correctly applied based on the current setting
+        if (this.storeVotingEnabled) {
+            this.imageContainer.removeClass('store-voting-off');
+        } else {
+            this.imageContainer.addClass('store-voting-off');
+        }
 
         // Show loading spinner
         this.loadingEl = this.imageContainer.createDiv({ cls: 'pixel-banner-store-loading' });
@@ -504,6 +571,13 @@ export class PixelBannerStoreModal extends Modal {
         // Clear previous images
         this.imageContainer.empty();
         
+        // Make sure the store-voting-off class is correctly applied based on the current setting
+        if (this.storeVotingEnabled) {
+            this.imageContainer.removeClass('store-voting-off');
+        } else {
+            this.imageContainer.addClass('store-voting-off');
+        }
+        
         // Show loading spinner
         this.loadingEl = this.imageContainer.createDiv({ cls: 'pixel-banner-store-loading' });
         this.loadingEl.innerHTML = `<div class="pixel-banner-store-spinner"></div>`;
@@ -534,7 +608,7 @@ export class PixelBannerStoreModal extends Modal {
             const data = await response.json();
             
             // Debug: log the actual response structure
-            console.log('Search API response:', data);
+            // console.log('Search API response:', data);
             
             // Update pagination info
             this.totalPages = data.totalPages || data.total_pages || 1;
@@ -636,7 +710,6 @@ export class PixelBannerStoreModal extends Modal {
         
         // Fetch vote stats for all images in the current view
         if (this.plugin.pixelBannerPlusEnabled && imageIds.length > 0) {
-            console.log('Fetching vote data for images:', imageIds);
             // First fetch vote statistics
             this.fetchVoteStatsForImages(imageIds);
             // Then fetch user votes to apply active classes
@@ -914,12 +987,10 @@ export class PixelBannerStoreModal extends Modal {
     // Fetch user's votes for multiple images
     async fetchUserVotesForImages(imageIds) {
         if (!imageIds || imageIds.length === 0 || !this.plugin.pixelBannerPlusEnabled) {
-            console.log("Not fetching user votes: no image IDs or Pixel Banner Plus not enabled");
             return;
         }
         
         try {
-            console.log("Fetching user votes for images:", imageIds);
             for (const id of imageIds) {
                 try {
                     const endpoint = PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_VOTES_USER_VOTE.replace(':id', id);
@@ -933,7 +1004,6 @@ export class PixelBannerStoreModal extends Modal {
                     
                     if (response.ok) {
                         const data = await response.json();
-                        console.log(`User vote for banner ${id}:`, data);
                         
                         // Handle different response formats
                         // Sometimes the API returns a string 'up'/'down', sometimes numeric 1/-1
@@ -944,8 +1014,6 @@ export class PixelBannerStoreModal extends Modal {
                         } else {
                             this.userVotes[id] = null;
                         }
-                        
-                        console.log(`Normalized user vote for banner ${id} to: ${this.userVotes[id]}`);
                         
                         // Update the display for this banner
                         this.updateVoteDisplay(id);
@@ -964,7 +1032,6 @@ export class PixelBannerStoreModal extends Modal {
             console.error('Error fetching user votes:', error);
         } finally {
             // Once all votes are fetched, update all displays one more time
-            console.log("Finished fetching all user votes, updating displays");
             for (const id of imageIds) {
                 this.updateVoteDisplay(id);
             }
@@ -975,11 +1042,8 @@ export class PixelBannerStoreModal extends Modal {
     updateVoteDisplay(bannerId) {
         if (!bannerId) return;
         
-        console.log(`Updating vote display for banner ${bannerId}, user vote: ${this.userVotes[bannerId]}`);
-        
         const voteControls = document.querySelector(`.pixel-banner-store-vote-controls[data-banner-id="${bannerId}"]`);
         if (!voteControls) {
-            console.log(`Vote controls not found for banner ${bannerId}`);
             return;
         }
         
@@ -988,14 +1052,12 @@ export class PixelBannerStoreModal extends Modal {
         const downvoteButton = voteControls.querySelector('.downvote');
         
         if (!upvoteButton || !downvoteButton) {
-            console.log(`Vote buttons not found for banner ${bannerId}`);
             return;
         }
         
         // Update vote count
         if (voteCount && this.voteStats[bannerId]) {
             voteCount.textContent = this.voteStats[bannerId].total.toString();
-            console.log(`Updated vote count for banner ${bannerId} to ${this.voteStats[bannerId].total}`);
             
             // Add positive/negative class based on total
             voteCount.removeClass('positive', 'negative', 'neutral');
@@ -1006,8 +1068,6 @@ export class PixelBannerStoreModal extends Modal {
             } else {
                 voteCount.addClass('neutral');
             }
-        } else if (!this.voteStats[bannerId]) {
-            console.log(`Vote stats not found for banner ${bannerId}`);
         }
         
         // Update vote buttons based on user's current vote
@@ -1018,8 +1078,6 @@ export class PixelBannerStoreModal extends Modal {
             downvoteButton.removeClass('active');
             downvoteButton.removeClass('active-downvote');
             
-            console.log(`userVotes for ${bannerId}: ${JSON.stringify(this.userVotes[bannerId])}`);
-            
             // Apply appropriate active class based on user's vote - handle both string and numeric values
             const userVote = this.userVotes[bannerId];
             
@@ -1029,8 +1087,6 @@ export class PixelBannerStoreModal extends Modal {
             } else if (userVote === 'down' || userVote === -1) {
                 downvoteButton.addClass('active');
                 downvoteButton.addClass('active-downvote');
-            } else {
-                console.log(`No active vote for banner ${bannerId}, no 'active' class applied`);
             }
         }
     }
@@ -1053,7 +1109,6 @@ export class PixelBannerStoreModal extends Modal {
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('Upvote response:', data);
                 
                 // Update local vote data
                 this.voteStats[bannerId] = {
@@ -1065,8 +1120,6 @@ export class PixelBannerStoreModal extends Modal {
                 // Toggle user's vote - if they already upvoted, this sets it to null
                 // otherwise it sets it to 'up'
                 this.userVotes[bannerId] = this.userVotes[bannerId] === 'up' ? null : 'up';
-                
-                console.log(`Set user vote for banner ${bannerId} to: ${this.userVotes[bannerId]}`);
                 
                 // Update UI
                 this.updateVoteDisplay(bannerId);
@@ -1095,7 +1148,6 @@ export class PixelBannerStoreModal extends Modal {
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('Downvote response:', data);
                 
                 // Update local vote data
                 this.voteStats[bannerId] = {
@@ -1107,8 +1159,6 @@ export class PixelBannerStoreModal extends Modal {
                 // Toggle user's vote - if they already downvoted, this sets it to null
                 // otherwise it sets it to 'down'
                 this.userVotes[bannerId] = this.userVotes[bannerId] === 'down' ? null : 'down';
-                
-                console.log(`Set user vote for banner ${bannerId} to: ${this.userVotes[bannerId]}`);
                 
                 // Update UI
                 this.updateVoteDisplay(bannerId);
@@ -1570,6 +1620,10 @@ export class PixelBannerStoreModal extends Modal {
             .pixel-banner-signup-button {
                 background-color: var(--interactive-accent) !important;
                 color: var(--text-on-accent) !important;
+            }
+
+            .pixel-banner-store-image-grid.store-voting-off .pixel-banner-store-vote-controls {
+                display: none;
             }
         `;
         document.head.appendChild(style);
