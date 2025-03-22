@@ -181,7 +181,7 @@ export class SelectPixelBannerModal extends Modal {
         const aiButtonContent = aiButton.createDiv({ cls: 'pixel-banner-button-content' });
         aiButtonContent.createEl('span', { text: '✨', cls: 'pixel-banner-button-icon' });
         aiButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'AI', 
+            text: 'AI Banner', 
             cls: 'pixel-banner-button-text'
         });
         // AI Generation Button Click Event
