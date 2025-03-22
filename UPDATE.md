@@ -8,6 +8,7 @@
 #### ✨ Added
 - Modal for setting banner source from a URL
 - Added clear instruction to the top of the "Set Banner Icon" modal
+- Enhance the visibility of the "🌱 GROW YOUR IDEA" button on the AI Banner modal to make it more prominent, highlighting its usefulness.
 
 #### 📦 Updated
 - Added back ability to prevent the `🚩` select pixel banner icon from being displayed on notes (you can still set the opacity of the icon when enabled)
