@@ -10,11 +10,11 @@
 - Add voting functionality to Pixel Banner Store
 - Added clear instruction to the top of the "Set Banner Icon" modal
 - Enhance the visibility of the "🌱 GROW YOUR IDEA" button on the AI Banner modal to make it more prominent, highlighting its usefulness
-- Show a "Upgrade Available" message in the footer of hte Pixel Banner main menu if a new version is available
+- Show a "Upgrade Available" message in the footer of the Pixel Banner Main Menu if a new version is available
 
 #### 📦 Updated
 - Added back ability to prevent the `🚩` select pixel banner icon from being displayed on notes (you can still set the opacity of the icon when enabled)
-- Improved UX of dragging/selecting banner position when using the "crosshair" targeting control
+- Improved UX of dragging/selecting banner position when using the `crosshair` targeting control
 
 ### v3.0.0 - 2025-03-19
 #### ✨ Added
