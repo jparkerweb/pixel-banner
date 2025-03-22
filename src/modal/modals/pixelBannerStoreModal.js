@@ -25,6 +25,8 @@ export class PixelBannerStoreModal extends Modal {
         this.searchTerm = '';
         this.isSearchMode = false;
         this.itemsPerPage = 9;
+        this.voteStats = {}; // Store vote stats for each banner
+        this.userVotes = {}; // Store user's votes for each banner
     }
 
     // ----------------
@@ -447,6 +449,10 @@ export class PixelBannerStoreModal extends Modal {
         this.isSearchMode = false;
         this.currentPage = 1;
 
+        // Clear previous votes data when loading new category
+        this.userVotes = {};
+        this.voteStats = {};
+
         // Clear previous images
         this.imageContainer.empty();
 
@@ -581,6 +587,10 @@ export class PixelBannerStoreModal extends Modal {
                 return;
             }
             
+            // Clear any previous vote data when loading new search results
+            this.userVotes = {};
+            this.voteStats = {};
+            
             this.displayImages(imagesArray, true);
         } catch (error) {
             console.error('Failed to search images:', error);
@@ -620,6 +630,18 @@ export class PixelBannerStoreModal extends Modal {
 
         const container = this.imageContainer;
         container.empty();
+        
+        // Get all valid image IDs for the current view
+        const imageIds = images.map(image => image.id || image.imageId || image.bannerId).filter(id => id && id !== 'unknown');
+        
+        // Fetch vote stats for all images in the current view
+        if (this.plugin.pixelBannerPlusEnabled && imageIds.length > 0) {
+            console.log('Fetching vote data for images:', imageIds);
+            // First fetch vote statistics
+            this.fetchVoteStatsForImages(imageIds);
+            // Then fetch user votes to apply active classes
+            this.fetchUserVotesForImages(imageIds);
+        }
         
         // Display images
         images.forEach(image => {
@@ -666,6 +688,59 @@ export class PixelBannerStoreModal extends Modal {
                 const costEl = details.createEl('p', { text: costText, cls: 'pixel-banner-store-cost' });
                 if (imageCost === 0) {
                     costEl.addClass('free');
+                }
+
+                // Add vote controls if Pixel Banner Plus is enabled
+                if (this.plugin.pixelBannerPlusEnabled && imageId !== 'unknown') {
+                    const voteControls = card.createDiv({ 
+                        cls: 'pixel-banner-store-vote-controls',
+                        attr: {
+                            'data-banner-id': imageId
+                        }
+                    });
+                    
+                    // Upvote button
+                    const upvoteButton = voteControls.createEl('button', {
+                        cls: 'pixel-banner-store-vote-button upvote',
+                        attr: {
+                            'aria-label': 'Upvote Banner',
+                            'data-banner-id': imageId
+                        }
+                    });
+                    upvoteButton.innerHTML = '👍';
+                    
+                    // Vote count
+                    const voteCount = voteControls.createEl('span', {
+                        cls: 'pixel-banner-store-vote-count',
+                        text: '0',
+                        attr: {
+                            'data-banner-id': imageId
+                        }
+                    });
+                    
+                    // Downvote button
+                    const downvoteButton = voteControls.createEl('button', {
+                        cls: 'pixel-banner-store-vote-button downvote',
+                        attr: {
+                            'aria-label': 'Downvote Banner',
+                            'data-banner-id': imageId
+                        }
+                    });
+                    downvoteButton.innerHTML = '👎';
+                    
+                    // Add click handlers for vote buttons
+                    upvoteButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent opening the banner selection
+                        this.upvoteBanner(imageId);
+                    });
+                    
+                    downvoteButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent opening the banner selection
+                        this.downvoteBanner(imageId);
+                    });
+                    
+                    // Update vote display when stats are available
+                    this.updateVoteDisplay(imageId);
                 }
 
                 // Add click handler
@@ -802,7 +877,248 @@ export class PixelBannerStoreModal extends Modal {
             this.paginationContainer.style.display = 'none';
         }
     }
+
+    // Fetch vote stats for multiple images
+    async fetchVoteStatsForImages(imageIds) {
+        if (!imageIds || imageIds.length === 0) return;
+        
+        try {
+            for (const id of imageIds) {
+                const endpoint = PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_VOTES_STATS.replace(':id', id);
+                const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${endpoint}`, {
+                    headers: {
+                        'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                        'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Store the vote stats
+                    this.voteStats[id] = {
+                        upvotes: data.upvotes || 0,
+                        downvotes: data.downvotes || 0,
+                        total: (data.upvotes || 0) - (data.downvotes || 0)
+                    };
+                    
+                    // Update the display for this banner
+                    this.updateVoteDisplay(id);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching vote stats:', error);
+        }
+    }
     
+    // Fetch user's votes for multiple images
+    async fetchUserVotesForImages(imageIds) {
+        if (!imageIds || imageIds.length === 0 || !this.plugin.pixelBannerPlusEnabled) {
+            console.log("Not fetching user votes: no image IDs or Pixel Banner Plus not enabled");
+            return;
+        }
+        
+        try {
+            console.log("Fetching user votes for images:", imageIds);
+            for (const id of imageIds) {
+                try {
+                    const endpoint = PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_VOTES_USER_VOTE.replace(':id', id);
+                    const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${endpoint}`, {
+                        headers: {
+                            'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                            'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`User vote for banner ${id}:`, data);
+                        
+                        // Handle different response formats
+                        // Sometimes the API returns a string 'up'/'down', sometimes numeric 1/-1
+                        if (data.vote === 'up' || data.vote === 1) {
+                            this.userVotes[id] = 'up';
+                        } else if (data.vote === 'down' || data.vote === -1) {
+                            this.userVotes[id] = 'down';
+                        } else {
+                            this.userVotes[id] = null;
+                        }
+                        
+                        console.log(`Normalized user vote for banner ${id} to: ${this.userVotes[id]}`);
+                        
+                        // Update the display for this banner
+                        this.updateVoteDisplay(id);
+                    } else {
+                        console.error(`Error fetching user vote for banner ${id}: ${response.status}`);
+                        // Set default value if there's an error
+                        this.userVotes[id] = null;
+                    }
+                } catch (error) {
+                    console.error(`Error processing vote for banner ${id}:`, error);
+                    // Continue with next image even if one fails
+                    this.userVotes[id] = null;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching user votes:', error);
+        } finally {
+            // Once all votes are fetched, update all displays one more time
+            console.log("Finished fetching all user votes, updating displays");
+            for (const id of imageIds) {
+                this.updateVoteDisplay(id);
+            }
+        }
+    }
+    
+    // Update vote display for a specific banner
+    updateVoteDisplay(bannerId) {
+        if (!bannerId) return;
+        
+        console.log(`Updating vote display for banner ${bannerId}, user vote: ${this.userVotes[bannerId]}`);
+        
+        const voteControls = document.querySelector(`.pixel-banner-store-vote-controls[data-banner-id="${bannerId}"]`);
+        if (!voteControls) {
+            console.log(`Vote controls not found for banner ${bannerId}`);
+            return;
+        }
+        
+        const voteCount = voteControls.querySelector('.pixel-banner-store-vote-count');
+        const upvoteButton = voteControls.querySelector('.upvote');
+        const downvoteButton = voteControls.querySelector('.downvote');
+        
+        if (!upvoteButton || !downvoteButton) {
+            console.log(`Vote buttons not found for banner ${bannerId}`);
+            return;
+        }
+        
+        // Update vote count
+        if (voteCount && this.voteStats[bannerId]) {
+            voteCount.textContent = this.voteStats[bannerId].total.toString();
+            console.log(`Updated vote count for banner ${bannerId} to ${this.voteStats[bannerId].total}`);
+            
+            // Add positive/negative class based on total
+            voteCount.removeClass('positive', 'negative', 'neutral');
+            if (this.voteStats[bannerId].total > 0) {
+                voteCount.addClass('positive');
+            } else if (this.voteStats[bannerId].total < 0) {
+                voteCount.addClass('negative');
+            } else {
+                voteCount.addClass('neutral');
+            }
+        } else if (!this.voteStats[bannerId]) {
+            console.log(`Vote stats not found for banner ${bannerId}`);
+        }
+        
+        // Update vote buttons based on user's current vote
+        if (upvoteButton && downvoteButton) {
+            // Remove all classes first
+            upvoteButton.removeClass('active');
+            upvoteButton.removeClass('active-upvote');
+            downvoteButton.removeClass('active');
+            downvoteButton.removeClass('active-downvote');
+            
+            console.log(`userVotes for ${bannerId}: ${JSON.stringify(this.userVotes[bannerId])}`);
+            
+            // Apply appropriate active class based on user's vote - handle both string and numeric values
+            const userVote = this.userVotes[bannerId];
+            
+            if (userVote === 'up' || userVote === 1) {
+                upvoteButton.addClass('active');
+                upvoteButton.addClass('active-upvote');
+            } else if (userVote === 'down' || userVote === -1) {
+                downvoteButton.addClass('active');
+                downvoteButton.addClass('active-downvote');
+            } else {
+                console.log(`No active vote for banner ${bannerId}, no 'active' class applied`);
+            }
+        }
+    }
+    
+    // Upvote a banner
+    async upvoteBanner(bannerId) {
+        if (!bannerId || !this.plugin.pixelBannerPlusEnabled) return;
+        
+        try {
+            const endpoint = PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_VOTES_UPVOTE.replace(':id', bannerId);
+            const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                    'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Upvote response:', data);
+                
+                // Update local vote data
+                this.voteStats[bannerId] = {
+                    upvotes: data.votes.upvotes || 0,
+                    downvotes: data.votes.downvotes || 0,
+                    total: data.votes.total || 0
+                };
+                
+                // Toggle user's vote - if they already upvoted, this sets it to null
+                // otherwise it sets it to 'up'
+                this.userVotes[bannerId] = this.userVotes[bannerId] === 'up' ? null : 'up';
+                
+                console.log(`Set user vote for banner ${bannerId} to: ${this.userVotes[bannerId]}`);
+                
+                // Update UI
+                this.updateVoteDisplay(bannerId);
+            }
+        } catch (error) {
+            console.error('Error upvoting banner:', error);
+            new Notice('Failed to upvote banner. Please try again.');
+        }
+    }
+    
+    // Downvote a banner
+    async downvoteBanner(bannerId) {
+        if (!bannerId || !this.plugin.pixelBannerPlusEnabled) return;
+        
+        try {
+            const endpoint = PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_VOTES_DOWNVOTE.replace(':id', bannerId);
+            const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                    'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Downvote response:', data);
+                
+                // Update local vote data
+                this.voteStats[bannerId] = {
+                    upvotes: data.votes.upvotes || 0,
+                    downvotes: data.votes.downvotes || 0,
+                    total: data.votes.total || 0
+                };
+                
+                // Toggle user's vote - if they already downvoted, this sets it to null
+                // otherwise it sets it to 'down'
+                this.userVotes[bannerId] = this.userVotes[bannerId] === 'down' ? null : 'down';
+                
+                console.log(`Set user vote for banner ${bannerId} to: ${this.userVotes[bannerId]}`);
+                
+                // Update UI
+                this.updateVoteDisplay(bannerId);
+            }
+        } catch (error) {
+            console.error('Error downvoting banner:', error);
+            new Notice('Failed to downvote banner. Please try again.');
+        }
+    }
+
     // Toggle between search mode and category browsing mode
     toggleSearchMode(enableSearch) {
         if (enableSearch) {
@@ -1114,6 +1430,79 @@ export class PixelBannerStoreModal extends Modal {
             .pixel-banner-store-cost.free {
                 color: var(--text-success);
                 font-weight: bold;
+            }
+            
+            /* Vote Controls Styles */
+            .pixel-banner-store-vote-controls {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                padding: 5px 0 0;
+                gap: 7px;
+            }
+            
+            .pixel-banner-store-vote-button {
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                font-size: 14px;
+                opacity: 0.4;
+                transition: all 0.2s ease;
+                width: 28px;
+                height: 27px;
+                line-height: 1.38;
+                border-radius: 50%;
+                border: 1px dashed transparent;
+            }
+            
+            .pixel-banner-store-vote-button:hover {
+                transform: scale(1.2);
+                opacity: 1 !important;
+            }
+            
+            .pixel-banner-store-vote-button.active {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+            
+            .pixel-banner-store-vote-button.active-upvote {
+                border-color: var(--text-success);
+            }
+            
+            .pixel-banner-store-vote-button.active-downvote {
+                border-color: var(--text-error);
+            }
+            
+            .pixel-banner-store-vote-button.disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+                transform: none;
+            }
+            
+            .pixel-banner-store-vote-button.disabled:hover {
+                transform: none;
+                opacity: 0.3;
+            }
+            
+            .pixel-banner-store-vote-count {
+                font-size: 14px;
+                font-weight: bold;
+                min-width: 30px;
+                text-align: center;
+            }
+            
+            .pixel-banner-store-vote-count.positive {
+                color: var(--text-success);
+            }
+            
+            .pixel-banner-store-vote-count.negative {
+                color: var(--text-error);
+            }
+            
+            .pixel-banner-store-vote-count.neutral {
+                color: var(--text-muted);
             }
 
             .pixel-banner-store-loading {
