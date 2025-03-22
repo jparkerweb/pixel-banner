@@ -368,7 +368,6 @@ export class PixelBannerStoreModal extends Modal {
         });
         
         // Store Voting Toggle
-        console.log('storeVotingEnabled', this.storeVotingEnabled);
         const storeVotingToggle = storeVotingContainer.createEl('input', {
             type: 'checkbox',
             cls: 'pixel-banner-store-voting-toggle',

@@ -1,6 +1,10 @@
 import { Modal, MarkdownView } from 'obsidian';
-import { ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal, EmojiSelectionModal, TargetPositionModal, WebAddressModal } from '../modals';
+import {
+    ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal,
+    EmojiSelectionModal, TargetPositionModal, WebAddressModal
+} from '../modals';
 import { flags } from '../../resources/flags.js';
+import { semver } from '../../utils/semver.js';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
 
 export class SelectPixelBannerModal extends Modal {
@@ -77,6 +81,7 @@ export class SelectPixelBannerModal extends Modal {
     // Initialize modal content
     async initializeModal() {
         await this.plugin.verifyPixelBannerPlusCredentials();
+        await this.plugin.getPixelBannerInfo();
         const { contentEl } = this;
         
         // Create title with the selected flag icon
@@ -412,6 +417,7 @@ export class SelectPixelBannerModal extends Modal {
         
         // Account info container
         const accountInfo = accountSection.createDiv({ cls: 'pixel-banner-account-info' });
+
         const statusContainer = accountInfo.createDiv({
             attr: {
                 style: `
@@ -476,7 +482,6 @@ export class SelectPixelBannerModal extends Modal {
                     break;
                 }
             }
-
         };
         // Plus Settings Listener for `accountTitle` and `statusContainer`
         accountTitle.addEventListener('click', openPlusSettings);
@@ -506,6 +511,66 @@ export class SelectPixelBannerModal extends Modal {
                 const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
                 window.open(signupUrl, '_blank');
             });
+        }
+
+        // Version Info
+        const cloudVersion = this.plugin.pixelBannerVersion;
+        const currentVersion = this.plugin.settings.lastVersion;
+        console.log(`cloudVersion: ${cloudVersion}, currentVersion: ${currentVersion}`);
+        // check if cloudVersion is greater than currentVersion (these are semver versions, eg: 1.0.0)
+        const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
+        let versionText, cursor;
+        if (isCloudVersionGreater) {
+            versionText = `🔄 Update Available!`;
+            cursor = 'pointer';
+        } else {
+            versionText = ``;
+            // versionText = `✅ Up to Date`;
+            cursor = 'default';
+        }
+        const versionInfo = accountInfo.createDiv({
+            text: versionText,
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    cursor: ${cursor};
+                    margin-left: auto;
+                    animation: pixel-banner-scale-up-down 3s ease-in-out infinite;
+                `
+            }
+        });
+
+        if (isCloudVersionGreater) {
+            // Obsidian API call to update the plugin: plugin-id is "pexels-banner"
+            const openCommunityPlugins = async () => {
+                this.close();
+                await this.app.setting.open();
+                await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+                
+                // Find and click the Community Plugins item in the settings sidebar
+                const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+                for (const tab of settingsTabs) {
+                    if (tab.textContent.includes('Community plugins')) {
+                        tab.click();
+                        break;
+                    }
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
+                
+                // Find the "Check for updates" button
+                const allTheButtons = document.querySelectorAll('button.mod-cta');
+                for (const button of allTheButtons) {
+                    if (button.textContent.includes('Check for updates')) {
+                        button.click();
+                        break;
+                    }
+                }
+            };
+            versionInfo.addEventListener('click', openCommunityPlugins);
         }
 
         // Add styles

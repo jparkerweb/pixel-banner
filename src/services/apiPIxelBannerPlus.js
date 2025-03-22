@@ -1,6 +1,10 @@
 import { PIXEL_BANNER_PLUS } from '../resources/constants.js';
 import { makeRequest } from './apiService.js';
 
+
+// --------------------------------------------------------- //
+// -- Verify Pixel Banner Plus Connection and Credentials -- //
+// --------------------------------------------------------- //
 async function verifyPixelBannerPlusCredentials(plugin) {
     if (!plugin.settings.pixelBannerPlusEmail || !plugin.settings.pixelBannerPlusApiKey ) {
         return { serverOnline: true, verified: false, bannerTokens: 0 };
@@ -49,6 +53,27 @@ async function verifyPixelBannerPlusCredentials(plugin) {
     }
 }
 
+// -------------------------------- //
+// -- Get Pixel Banner Plus Info -- //
+// -------------------------------- //
+async function getPixelBannerInfo() {
+    const response = await makeRequest(
+        `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.INFO}`,
+        {
+            method: 'GET',
+        }
+    );
+
+    if (response.status === 200) {
+        const data = response.json;
+        return {
+            version: data.version,
+        };
+    }
+    return { version: '0.0.0' };
+}
+
 export {
-    verifyPixelBannerPlusCredentials
+    verifyPixelBannerPlusCredentials,
+    getPixelBannerInfo
 }; 
