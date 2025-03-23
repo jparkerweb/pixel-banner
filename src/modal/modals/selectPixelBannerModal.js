@@ -516,7 +516,7 @@ export class SelectPixelBannerModal extends Modal {
         // Version Info
         const cloudVersion = this.plugin.pixelBannerVersion;
         const currentVersion = this.plugin.settings.lastVersion;
-        console.log(`cloudVersion: ${cloudVersion}, currentVersion: ${currentVersion}`);
+        
         // check if cloudVersion is greater than currentVersion (these are semver versions, eg: 1.0.0)
         const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
         let versionText, cursor;
