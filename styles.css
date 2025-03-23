@@ -39,7 +39,7 @@
 }
 
 .pixel-banner-image {
-	position: absolute;
+	position: absolute !important;
 	top: 0;
 	left: var(--pixel-banner-banner-gap, 0);
 	right: var(--pixel-banner-banner-gap, 0);
@@ -844,7 +844,7 @@
 .banner-icon-overlay {
     --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
     transform: translate(var(--pixel-banner-icon-translate-x), -15%);
-    position: absolute;
+    position: absolute !important;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
     margin-top: calc(var(--pixel-banner-icon-vertical-offset, 0) * 1px);
