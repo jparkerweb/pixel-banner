@@ -3,7 +3,7 @@ import { ImageViewModal, TargetPositionModal } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { flags } from '../resources/flags.js';
-import { debounceAndSwallow } from '../utils/debounce.js';
+import { debounceImmediate, debounceAndSwallow } from '../utils/debounce.js';
 
 
 // ----------------------
@@ -421,7 +421,7 @@ async function addPixelBanner(plugin, el, ctx) {
 // ---------------------------
 // -- updateBanner function --
 // ---------------------------
-const debouncedUpdateBanner = debounceAndSwallow(updateBanner, 350);
+const debouncedUpdateBanner = debounceImmediate(updateBanner, 50);
 async function updateBanner(plugin, view, isContentChange, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
     // console.log('🎯 updateBanner called:', {
     //     file: view?.file?.path,
