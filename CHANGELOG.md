@@ -2,6 +2,15 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.1.1 - 2025-03-24
+#### ✨ Added
+- Added basic "Banner View" to all hover preview views
+
+#### 📦 Updated
+- Addressed style conflicts with the `Border` theme and `Style Settings`
+- Improved Performance: added `debounce` logic to internal rendering functions to prevent unnecessary subsequent calls
+- Improved Performance: reduce `content` push flicker by immediately setting the content at its start position before rendering Banner assets
+
 ### v3.1.0 - 2025-03-22
 #### ✨ Added
 - Modal for setting banner source from a URL

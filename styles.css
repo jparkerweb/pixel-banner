@@ -103,6 +103,7 @@
     min-height: 200px !important;
 }
 .popover.hover-popover .pixel-banner-image {
+    background-repeat: repeat !important;
     min-height: 100px !important;
 }
 .pixel-banner-image + .markdown-preview-sizer.markdown-preview-section {
@@ -154,13 +155,15 @@
 
 /* ----------------------------------------------------- */
 /* -- content start (push frontmatter container down) -- */
+/* *** NOTE: this is now handled in bannerManager.js *** */
+/* ***       for faster rendering!                   *** */
 /* ----------------------------------------------------- */
-.view-content.pixel-banner > .markdown-source-view .cm-sizer,
+/* .view-content.pixel-banner > .markdown-source-view .cm-sizer,
 .view-content.pixel-banner > .markdown-reading-view .markdown-preview-sizer {
     padding-top: var(--pixel-banner-content-start, 150px) !important;
     padding-bottom: 0 !important;
-}
-/* fix for embedded notes */
+} */
+/* -- fix for embedded notes -- */
 .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
     padding-top: unset !important;

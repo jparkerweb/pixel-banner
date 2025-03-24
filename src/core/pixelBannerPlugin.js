@@ -235,8 +235,8 @@ export class PixelBannerPlugin extends Plugin {
             const isPreview = ctx.containerEl.classList.contains('markdown-preview-view');
             const isHoverPopover = ctx.containerEl.closest('.hover-popover') !== null;
             
-            console.log('🔎 isPreview:', isPreview);
-            console.log('🔎 isHoverPopover:', isHoverPopover);
+            // console.log('🔎 isPreview:', isPreview);
+            // console.log('🔎 isHoverPopover:', isHoverPopover);
             
             if (!isPreview && !isHoverPopover) return;
             

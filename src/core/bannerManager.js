@@ -3,10 +3,13 @@ import { ImageViewModal, TargetPositionModal } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { flags } from '../resources/flags.js';
+import { debounceAndSwallow } from '../utils/debounce.js';
+
 
 // ----------------------
 // -- add pixel banner --
 // ----------------------
+const debouncedAddPixelBanner = debounceAndSwallow(addPixelBanner, 350);
 async function addPixelBanner(plugin, el, ctx) {
     const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
     const viewContent = el;
@@ -16,6 +19,19 @@ async function addPixelBanner(plugin, el, ctx) {
     
     // Add pixel-banner class to the appropriate container
     if (!isEmbedded && !isHoverPopover && viewContent.classList.contains('view-content')) {
+        // set padding-top for source & preview elements as inline style for FAST rendering!
+        const sourceEl = viewContent.querySelector(':scope > .markdown-source-view .cm-sizer');
+        if (sourceEl) {
+            sourceEl.style.paddingTop = 'var(--pixel-banner-content-start, 150px)';
+            sourceEl.style.paddingBottom = '0px !important';
+        }
+        
+        const previewEl = viewContent.querySelector(':scope > .markdown-reading-view .markdown-preview-sizer');
+        if (previewEl) {
+            previewEl.style.paddingTop = 'var(--pixel-banner-content-start, 150px)';
+            previewEl.style.paddingBottom = '0px !important';
+        }
+        
         viewContent.classList.add('pixel-banner');
         plugin.setupResizeObserver(viewContent);
         plugin.applyBannerWidth(viewContent);
@@ -54,7 +70,7 @@ async function addPixelBanner(plugin, el, ctx) {
             }
         }
         
-        console.log('🔍 Hover popover container found:', container?.className);
+        // console.log('🔍 Hover popover container found:', container?.className);
     } else {
         container = isReadingView 
             ? viewContent.querySelector('.markdown-preview-sizer:not(.internal-embed .markdown-preview-sizer)') || viewContent.querySelector('.markdown-preview-view')
@@ -257,7 +273,6 @@ async function addPixelBanner(plugin, el, ctx) {
 
             bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
 
-            // SVG handling
             if (isSvg) {
                 bannerDiv.style.backgroundSize = imageDisplay === 'contain' ? 'contain' : '100% 100%';
             } else {
@@ -302,7 +317,7 @@ async function addPixelBanner(plugin, el, ctx) {
             plugin.applyBannerWidth(viewContent);
 
             // 6) If pin icon is allowed, create it now
-            const canPin = (inputType === 'keyword' || inputType === 'url') && plugin.settings.showPinIcon && !isEmbedded;
+            const canPin = (inputType === 'keyword' || inputType === 'url') && plugin.settings.showPinIcon && !isEmbedded && !isHoverPopover;
             if (canPin) {
                 // Insert pin icon
                 let leftOffset = plugin.settings.bannerGap + 5;
@@ -403,6 +418,10 @@ async function addPixelBanner(plugin, el, ctx) {
 }
 
 
+// ---------------------------
+// -- updateBanner function --
+// ---------------------------
+const debouncedUpdateBanner = debounceAndSwallow(updateBanner, 350);
 async function updateBanner(plugin, view, isContentChange, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
     // console.log('🎯 updateBanner called:', {
     //     file: view?.file?.path,
@@ -823,7 +842,12 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 }
 
 
+// ----------------------------------
+// -- applyBannerSettings function --
+// ----------------------------------
+const debouncedApplyBannerSettings = debounceAndSwallow(applyBannerSettings, 350);
 function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
+    // console.log('🔍 Applying banner settings');
     const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
     const folderSpecific = plugin.getFolderSpecificImage(ctx.file.path);
     
@@ -948,6 +972,10 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
 }
 
 
+// ----------------------------------------
+// -- applyContentStartPosition function --
+// ----------------------------------------
+const debouncedApplyContentStartPosition = debounceAndSwallow(applyContentStartPosition, 350);
 function applyContentStartPosition(plugin, el, contentStartPosition) {
     if (!el) {
         return;
@@ -955,6 +983,11 @@ function applyContentStartPosition(plugin, el, contentStartPosition) {
     el.style.setProperty('--pixel-banner-content-start', `${contentStartPosition}px`);
 }
 
+
+// -------------------------------
+// -- applyBannerWidth function --
+// -------------------------------
+const debouncedApplyBannerWidth = debounceAndSwallow(applyBannerWidth, 350);
 function applyBannerWidth(plugin, el) {
     if (!el) return;
 
@@ -974,6 +1007,10 @@ function applyBannerWidth(plugin, el) {
 }
 
 
+// -------------------------------
+// -- updateAllBanners function --
+// -------------------------------
+const debouncedUpdateAllBanners = debounceAndSwallow(updateAllBanners, 350);
 function updateAllBanners(plugin) {
     plugin.app.workspace.iterateAllLeaves(leaf => {
         if (leaf.view.getViewType() === "markdown") {
@@ -982,6 +1019,11 @@ function updateAllBanners(plugin) {
     });
 }
 
+
+// -----------------------------------
+// -- updateBannerPosition function --
+// -----------------------------------
+const debouncedUpdateBannerPosition = debounceAndSwallow(updateBannerPosition, 350);
 async function updateBannerPosition(plugin, file, position) {
     if (!file) return;
     
@@ -994,6 +1036,10 @@ async function updateBannerPosition(plugin, file, position) {
     });
 }
 
+
+// --------------------------------------------
+// -- registerMarkdownPostProcessor function --
+// --------------------------------------------
 function registerMarkdownPostProcessor(plugin) {
   plugin.registerMarkdownPostProcessor((el, ctx) => {
     // Check if in preview view or hover preview
@@ -1057,12 +1103,12 @@ function registerMarkdownPostProcessor(plugin) {
 }
 
 export {
-    addPixelBanner,
-    updateBanner,
-    applyBannerSettings,
-    applyContentStartPosition,
-    applyBannerWidth,
-    updateAllBanners,
-    updateBannerPosition,
+    debouncedAddPixelBanner as addPixelBanner,
+    debouncedUpdateBanner as updateBanner,
+    debouncedApplyBannerSettings as applyBannerSettings,
+    debouncedApplyContentStartPosition as applyContentStartPosition,
+    debouncedApplyBannerWidth as applyBannerWidth,
+    debouncedUpdateAllBanners as updateAllBanners,
+    debouncedUpdateBannerPosition as updateBannerPosition,
     registerMarkdownPostProcessor
 };
