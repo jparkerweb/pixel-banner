@@ -4,7 +4,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ### v3.1.1 - 2025-03-24
 #### ✨ Added
-- Added basic "Banner View" to all hover preview views
+- Added basic "Banner View" to hover previews
 
 #### 📦 Updated
 - Addressed style conflicts with the `Border` theme and `Style Settings`
