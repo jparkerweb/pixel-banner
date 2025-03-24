@@ -8,10 +8,11 @@ import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBa
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
-import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition } from './bannerManager.js';
+import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
 import { getInputType, getPathFromObsidianLink, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
+import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 
 
 // -----------------------
@@ -198,7 +199,6 @@ export class PixelBannerPlugin extends Plugin {
                 ];
 
                 // console.log('🔎 Checking relevant fields:', relevantFields);
-
                 const changedFields = relevantFields.filter(field => 
                     frontmatter[field] !== previousFrontmatter?.[field]
                 );
@@ -229,7 +229,75 @@ export class PixelBannerPlugin extends Plugin {
             })
         );
 
-        this.registerMarkdownPostProcessor(this.postProcessor.bind(this));
+        // Enhanced markdown post processor to ensure banners in preview mode
+        this.registerMarkdownPostProcessor((el, ctx) => {
+            // Check if in preview view or hover preview
+            const isPreview = ctx.containerEl.classList.contains('markdown-preview-view');
+            const isHoverPopover = ctx.containerEl.closest('.hover-popover') !== null;
+            
+            console.log('🔎 isPreview:', isPreview);
+            console.log('🔎 isHoverPopover:', isHoverPopover);
+            
+            if (!isPreview && !isHoverPopover) return;
+            
+            const file = ctx.sourcePath ? this.app.vault.getAbstractFileByPath(ctx.sourcePath) : null;
+            if (!file) return;
+            
+            // Get banner data from frontmatter
+            const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+            
+            // Check all custom banner fields
+            let bannerImage = null;
+            for (const field of this.settings.customBannerField) {
+                if (frontmatter?.[field]) {
+                    bannerImage = frontmatter[field];
+                    break;
+                }
+            }
+            
+            // Try folder-specific image if no frontmatter banner
+            if (!bannerImage) {
+                const folderSpecific = this.getFolderSpecificImage(file.path);
+                if (folderSpecific?.image) {
+                    bannerImage = folderSpecific.image;
+                }
+            }
+            
+            if (!bannerImage) return;
+            
+            // Get proper banner settings
+            const folderSpecific = this.getFolderSpecificImage(file.path);
+            const yPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField) || 
+                             folderSpecific?.yPosition || 
+                             this.settings.yPosition;
+            const xPosition = getFrontmatterValue(frontmatter, this.settings.customXPositionField) || 
+                             folderSpecific?.xPosition || 
+                             this.settings.xPosition;
+            const contentStartPosition = getFrontmatterValue(frontmatter, this.settings.customContentStartField) || 
+                                        folderSpecific?.contentStartPosition || 
+                                        this.settings.contentStartPosition;
+            
+            // For hover popovers, directly add the banner
+            if (isHoverPopover) {
+                this.addPixelBanner(ctx.containerEl, {
+                    frontmatter,
+                    file,
+                    isContentChange: false,
+                    yPosition,
+                    xPosition,
+                    contentStartPosition,
+                    bannerImage,
+                    isReadingView: true
+                });
+            } else {
+                // For regular preview, call updateBanner
+                this.updateBanner({
+                    file: file,
+                    contentEl: ctx.containerEl,
+                    getMode: () => 'preview'
+                }, false, this.UPDATE_MODE.ENSURE_VISIBILITY);
+            }
+        });
 
         this.setupMutationObserver();
 
@@ -310,7 +378,6 @@ export class PixelBannerPlugin extends Plugin {
             id: 'open-pixel-banner-select',
             name: '🚩 Pixel Banner Menu',
             callback: () => {
-                // new SelectPixelBannerModal(this.app, this).open();
                 this.handleBannerIconClick();
             }
         });
@@ -414,6 +481,8 @@ export class PixelBannerPlugin extends Plugin {
         this.addRibbonIcon('flag', '🚩 Pixel Banner Menu', () => {
             this.handleBannerIconClick();
         });
+
+        registerMarkdownPostProcessor(this);
     }
 
 
