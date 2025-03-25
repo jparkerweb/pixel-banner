@@ -11,6 +11,20 @@ export class WebAddressModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
+        // Add styles
+        const style = document.createElement('style');
+        style.textContent = `
+            /* ------------------- */
+            /* -- mobile layout -- */
+            /* ------------------- */
+            @media screen and (max-width: 375px) {
+                .pixel-banner-web-address-button-container { flex-direction: column !important; }
+                .pixel-banner-web-address-button-container button { width: 100% !important; }
+            }
+        `;
+        document.head.appendChild(style);
+        this.style = style;
+
         // Main container
         const mainContainer = contentEl.createDiv({ cls: 'pixel-banner-web-address-modal' });
 

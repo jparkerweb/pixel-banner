@@ -71,6 +71,8 @@ Handles adding and updating "pixel banners" (the large images at the top of note
    Iterates through all workspace leaves and updates banners in each markdown view.
 7. **updateBannerPosition(plugin, file, position)**  
    Updates the note's frontmatter for custom X/Y positions (used by "Target Position" modals).
+8. **registerMarkdownPostProcessor(plugin)**
+   Markdown post process to add banners to "hover preview" note views
 
 ---
 
@@ -436,6 +438,17 @@ Various helper scripts:
   A simple class that tracks previously downloaded AI images, so the user can avoid duplicates.  
 - **frontmatterUtils.js**  
   Typically includes something like `getFrontmatterValue(frontmatter, fields)` to retrieve relevant frontmatter fields.
+
+## `/src/utils/debounceFunction.js`
+Provides utility functions for debouncing function calls.
+
+**Methods**:
+1. **debounce(func, wait)**  
+   Standard debounce utility that delays function execution until wait time has passed.
+2. **debounceImmediate(func, wait)**  
+   Executes first call immediately, then debounces subsequent calls.
+3. **debounceAndSwallow(func, wait)**  
+   Executes first call, ignores subsequent calls within wait time.
 
 (Implementation details for some of these are not shown in the opened files, but references exist throughout the plugin.)
 

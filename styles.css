@@ -39,7 +39,7 @@
 }
 
 .pixel-banner-image {
-	position: absolute;
+	position: absolute !important;
 	top: 0;
 	left: var(--pixel-banner-banner-gap, 0);
 	right: var(--pixel-banner-banner-gap, 0);
@@ -95,6 +95,43 @@
     isolation: isolate;
 }
 
+
+/* ----------------------------------------------- */
+/* -- Specific styles for hover popover banners -- */
+/* ----------------------------------------------- */
+.popover.hover-popover {
+    min-height: 200px !important;
+}
+.popover.hover-popover .pixel-banner-image {
+    background-repeat: repeat !important;
+    min-height: 100px !important;
+}
+.pixel-banner-image + .markdown-preview-sizer.markdown-preview-section {
+    margin-top: 100px !important;
+}
+.hover-popover .markdown-preview-view.pixel-banner {
+    position: relative;
+    isolation: isolate;
+}
+.hover-popover .pixel-banner-image {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--pixel-banner-radius, 17px) !important;
+}
+.hover-popover .markdown-preview-view .markdown-preview-sizer {
+    position: relative;
+    z-index: 1;
+}
+.hover-popover .markdown-preview-view.pixel-banner .markdown-preview-sizer {
+    padding-top: var(--pixel-banner-content-start, 150px) !important;
+}
+/* ----------------------------------------------- */
+
 .cm-sizer .metadata-container,
 .markdown-preview-sizer .metadata-container {
     z-index: 1;
@@ -118,13 +155,15 @@
 
 /* ----------------------------------------------------- */
 /* -- content start (push frontmatter container down) -- */
+/* *** NOTE: this is now handled in bannerManager.js *** */
+/* ***       for faster rendering!                   *** */
 /* ----------------------------------------------------- */
-.view-content.pixel-banner > .markdown-source-view .cm-sizer,
+/* .view-content.pixel-banner > .markdown-source-view .cm-sizer,
 .view-content.pixel-banner > .markdown-reading-view .markdown-preview-sizer {
     padding-top: var(--pixel-banner-content-start, 150px) !important;
     padding-bottom: 0 !important;
-}
-/* fix for embedded notes */
+} */
+/* -- fix for embedded notes -- */
 .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
     padding-top: unset !important;
@@ -844,7 +883,7 @@
 .banner-icon-overlay {
     --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
     transform: translate(var(--pixel-banner-icon-translate-x), -15%);
-    position: absolute;
+    position: absolute !important;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
     margin-top: calc(var(--pixel-banner-icon-vertical-offset, 0) * 1px);
