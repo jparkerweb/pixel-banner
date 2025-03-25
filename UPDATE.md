@@ -7,6 +7,7 @@
 #### ✨ Added
 - Basic "Banner View" to hover previews
 - New "Add Banner Icon" button will be displayed on the `Targeting Modal` if an icon doesn't already exist
+- Added `NEW` and `HOT` metadata badges to banners in the store
 
 #### 📦 Updated
 - Addressed style conflicts with the `Border` theme and `Style Settings`
