@@ -192,6 +192,14 @@ export class ImageSelectionModal extends Modal {
                 height: 16px;
                 color: white;
             }
+
+            /* ------------------- */
+            /* -- mobile layout -- */
+            /* ------------------- */
+            @media screen and (max-width: 550px) {
+                .pixel-banner-pagination { flex-direction: column !important; }
+                .pixel-banner-pagination .pixel-banner-controls { flex-direction: column !important; }
+            }
         `;
         document.head.appendChild(style);
         this.style = style;

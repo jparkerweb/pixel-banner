@@ -582,6 +582,22 @@ export class GenerateAIBannerModal extends Modal {
                     cursor: not-allowed;
                     background-color: var(--interactive-accent);
                 }
+
+                /* ------------------- */
+                /* -- mobile layout -- */
+                /* ------------------- */
+                @media screen and (max-width: 550px) {
+                    .pixel-banner-prompt-description { display: none; }
+                    .setting-item.pixel-banner-ai-prompt-container {
+                        max-width: var(--dialog-max-width) !important;
+                        padding-left: 20px;
+                        padding-right: 20px;
+                    }
+                    .pixel-banner-prompt-inspiration-container { flex-direction: column !important; }
+                    .pixel-banner-prompt-inspiration-container button { width: 100% !important; }
+                    .pixel-banner-generate-btn-container { flex-direction: column !important; }
+                    .pixel-banner-generate-btn-container button { width: 100% !important; }
+                }
             `
         });
         // Title
@@ -605,6 +621,7 @@ export class GenerateAIBannerModal extends Modal {
         });
         const promptDescription = promptAllowedSection.createEl('p', {
             text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 grow your idea button.',
+            cls: 'pixel-banner-prompt-description',
             attr: {
                 'style': `
                     color: var(--text-muted); 
@@ -1277,7 +1294,7 @@ export class GenerateAIBannerModal extends Modal {
         }
         
         const pageInfo = paginationContainer.createSpan({
-            text: `Page ${this.currentPage} of ${this.totalPages}`
+            text: `${this.currentPage} of ${this.totalPages}`
         });
         
         // Next page button

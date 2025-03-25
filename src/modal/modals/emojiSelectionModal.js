@@ -55,7 +55,7 @@ export class EmojiSelectionModal extends Modal {
 
         // Create banner icon input container
         const bannerIconContainer = contentEl.createDiv({
-            cls: 'banner-icon-container',
+            cls: 'banner-icon-input-container',
             attr: {
                 style: `
                     display: flex;
@@ -275,6 +275,14 @@ export class EmojiSelectionModal extends Modal {
             }
             .set-banner-button:hover {
                 background: var(--interactive-accent-hover);
+            }
+
+            /* ------------------- */
+            /* -- mobile layout -- */
+            /* ------------------- */
+            @media screen and (max-width: 640px) {
+                .banner-icon-input-container { flex-direction: column !important; }
+                .banner-icon-input-container * { width: 100% !important; }
             }
         `;
         document.head.appendChild(style);

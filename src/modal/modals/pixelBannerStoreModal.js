@@ -1624,6 +1624,17 @@ export class PixelBannerStoreModal extends Modal {
             .pixel-banner-store-image-grid.store-voting-off .pixel-banner-store-vote-controls {
                 display: none;
             }
+
+
+            /* ------------------- */
+            /* -- mobile layout -- */
+            /* ------------------- */
+            @media screen and (max-width: 800px) {
+                .pixel-banner-store-select-container { flex-direction: column !important; width: 100% !important; }
+                .pixel-banner-store-select-container * { width: 100% !important; }
+                .pixel-banner-store-search-container { flex-direction: column !important; width: 100% !important; }
+                .pixel-banner-store-search-container * { width: 100% !important; }
+            }
         `;
         document.head.appendChild(style);
         this.style = style;

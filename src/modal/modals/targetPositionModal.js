@@ -382,7 +382,7 @@ export class TargetPositionModal extends Modal {
 
         // Create main container with flex layout
         const mainContainer = contentEl.createDiv({
-            cls: 'main-container',
+            cls: 'main-container--banner-image',
             attr: {
                 style: `
                     position: relative;
@@ -721,7 +721,7 @@ export class TargetPositionModal extends Modal {
 
         // banner icon controls container
         const bannerIconControlsContainer = contentEl.createDiv({
-            cls: 'main-container',
+            cls: 'main-container--banner-icon',
             attr: {
                 style: `
                     margin-top: 20px;
@@ -755,7 +755,7 @@ export class TargetPositionModal extends Modal {
         } else {
             // banner icon controls container
             const addBannerIconContainer = contentEl.createDiv({
-                cls: 'main-container',
+                cls: 'main-container--banner-icon',
                 attr: {
                     style: `
                         display: flex;
@@ -2316,6 +2316,25 @@ export class TargetPositionModal extends Modal {
             .target-position-modal .repeat-checkbox {
                 transform: scale(1.2);
                 cursor: pointer;
+            }
+
+            /* ------------------- */
+            /* -- mobile layout -- */
+            /* ------------------- */
+            @media screen and (max-width: 550px) {
+                .banner-image-header { flex-direction: column !important; }
+                .banner-icon-header { flex-direction: column !important; }
+                .main-container--banner-image { flex-direction: column !important; }
+                .main-container--banner-icon { flex-direction: column !important; }
+                .target-container { order: -1 !important; align-items: center !important; }
+                .height-slider,
+                .content-start-position-slider {
+                    rotate: 90deg !important;
+                    flex: 0 auto !important;
+                    writing-mode: unset !important;
+                    direction: unset !important;
+                }
+                .color-picker-and-alpha-slider-row { flex-wrap: wrap !important; }
             }
         `;
         document.head.appendChild(style);
