@@ -3,14 +3,18 @@
 </a>
 
 ## 🎉 What's New
-### v3.1.1 - 2025-03-24
+### v3.2.0 - 2025-03-25
 #### ✨ Added
-- Added basic "Banner View" to hover previews
+- Basic "Banner View" to hover previews
+- New "Add Banner Icon" button will be displayed on the `Targeting Modal` if an icon doesn't already exist
 
 #### 📦 Updated
 - Addressed style conflicts with the `Border` theme and `Style Settings`
 - Improved Performance: added `debounce` logic to internal rendering functions to prevent unnecessary subsequent calls
 - Improved Performance: reduce `content` push flicker by immediately setting the content at its start position before rendering Banner assets
+
+#### 🐛 Fixed
+- Resolved issue with the "Set Banner Icon" & "Adjust Position, Size & Style" buttons being disabled if the note was set to use a `shuffle banner`
 
 ### v3.1.0 - 2025-03-22
 #### ✨ Added
