@@ -693,6 +693,32 @@ export class TargetPositionModal extends Modal {
             this.updateBannerContentStartPosition(this.currentContentStartPosition);
         });
 
+        // -----------------------
+        // -- banner icon stuff --
+        // -----------------------
+        // Function to open emoji picker
+        const openEmojiPicker = () => {
+            this.close();
+            new EmojiSelectionModal(
+                this.app, 
+                this.plugin,
+                async (emoji) => {
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (activeFile) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                            const iconField = this.plugin.settings.customBannerIconField[0];
+                            if (emoji) {
+                                frontmatter[iconField] = emoji;
+                            } else {
+                                // If emoji is empty, remove the field from frontmatter
+                                delete frontmatter[iconField];
+                            }
+                        });
+                    }
+                }
+            ).open();
+        };
+
         // banner icon controls container
         const bannerIconControlsContainer = contentEl.createDiv({
             cls: 'main-container',
@@ -712,18 +738,47 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customBannerIconField;
         
         // check for banner icon in frontmatter
-        const hasBannerIcon = frontmatter && frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== '';
+        let hasBannerIcon = frontmatter && frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== '';
+        
+        if (!hasBannerIcon) {
+            // no banner icon found, try one more time after a short delay
+            setTimeout(() => {
+                const refreshedFrontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+                if (!hasBannerIcon && refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
+                    hasBannerIcon = true;
+                }
+            }, 400);
+        }
         
         if (hasBannerIcon) {
             bannerIconControlsContainer.style.display = 'block';
         } else {
-            // no banner icon found, try one more time after a short delay
-            setTimeout(() => {
-                const refreshedFrontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-                if (refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
-                    bannerIconControlsContainer.style.display = 'block';
+            // banner icon controls container
+            const addBannerIconContainer = contentEl.createDiv({
+                cls: 'main-container',
+                attr: {
+                    style: `
+                        display: flex;
+                        flex-direction: row;
+                        margin-top: 20px;
+                    `
                 }
-            }, 300);
+            });
+
+            // add button to addBannerIconContainer
+            const addBannerIconButton = addBannerIconContainer.createEl('button', {
+                text: '⭐ Add Banner Icon',
+                cls: 'banner-icon-header-button cursor-pointer',
+                attr: {
+                    style: `
+                        margin-top: 15px;
+                        margin-left: auto;
+                        text-transform: uppercase;
+                        font-size: .8em;
+                    `
+                }
+            });
+            addBannerIconButton.addEventListener('click', openEmojiPicker);
         }
 
         // Banner Icon header
@@ -759,28 +814,7 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
-        // on click on emoji button, open emoji picker
-        bannerIconHeaderButton.addEventListener('click', () => {
-            this.close();
-            new EmojiSelectionModal(
-                this.app, 
-                this.plugin,
-                async (emoji) => {
-                    const activeFile = this.app.workspace.getActiveFile();
-                    if (activeFile) {
-                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                            const iconField = this.plugin.settings.customBannerIconField[0];
-                            if (emoji) {
-                                frontmatter[iconField] = emoji;
-                            } else {
-                                // If emoji is empty, remove the field from frontmatter
-                                delete frontmatter[iconField];
-                            }
-                        });
-                    }
-                }
-            ).open();
-        });
+        bannerIconHeaderButton.addEventListener('click', openEmojiPicker);
 
         // Banner Icon X Position control container
         const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({
@@ -1577,7 +1611,7 @@ export class TargetPositionModal extends Modal {
                     padding: 15px;
                     border-radius: 5px;
                     background-color: var(--background-secondary);
-                    max-width: 510px;
+                    max-width: 600px;
                 `
             }
         });
@@ -1598,7 +1632,7 @@ export class TargetPositionModal extends Modal {
             cls: 'pixel-banner-flag-radio-container',
             attr: {
                 style: `
-                    max-width: 600px;
+                    max-width: 440px;
                     display: flex;
                     flex-direction: row;
                     flex-wrap: wrap;
