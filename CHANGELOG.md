@@ -14,6 +14,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 #### 🐛 Fixed
 - Resolved issue with the "Set Banner Icon" & "Adjust Position, Size & Style" buttons being disabled if the note was set to use a `shuffle banner`
+- Adjusted style to accomidate for mobile screen sizes
 
 ### v3.1.0 - 2025-03-22
 #### ✨ Added
