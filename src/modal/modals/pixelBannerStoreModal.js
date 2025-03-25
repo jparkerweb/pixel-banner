@@ -735,7 +735,9 @@ export class PixelBannerStoreModal extends Modal {
                     cls: 'pixel-banner-store-image-card',
                     attr: {
                         'data-image-id': imageId,
-                        'data-image-cost': imageCost
+                        'data-image-cost': imageCost,
+                        'data-image-new': true,
+                        'data-image-hot': image.hot ? 'true' : 'false'
                     }
                 });
 
@@ -756,10 +758,49 @@ export class PixelBannerStoreModal extends Modal {
                 const truncatedPrompt = promptText.length > 85 ? promptText.slice(0, 85) + '...' : promptText;
                 
                 details.createEl('p', { text: truncatedPrompt, cls: 'pixel-banner-store-prompt' });
+                
+                const metaDetails = details.createEl('div', { cls: 'pixel-banner-store-meta-details' });
+                
                 const costText = imageCost === 0 ? 'FREE' : `🪙`;
-                const costEl = details.createEl('p', { text: costText, cls: 'pixel-banner-store-cost' });
+                const costEl = metaDetails.createEl('div', { text: costText, cls: 'pixel-banner-store-cost' });
                 if (imageCost === 0) {
                     costEl.addClass('free');
+                }
+
+                // new
+                if (image.new) {
+                    metaDetails.createEl('div', {
+                        text: 'NEW', 
+                        attr: {
+                            style: `
+                                color: var(--interactive-accent);
+                                font-weight: bold;
+                                font-size: 11px;
+                                margin: 0;
+                                text-align: right;
+                                white-space: nowrap;
+                                margin-left: 5px;
+                            `
+                        }
+                    });
+                }
+
+                // hot
+                if (image.hot) {
+                    metaDetails.createEl('div', {
+                        text: '🔥HOT',
+                        attr: {
+                            style: `
+                                color: var(--error-color);
+                                font-weight: bold;
+                                font-size: 11px;
+                                margin: 0;
+                                text-align: right;
+                                white-space: nowrap;
+                                margin-left: 5px;
+                            `
+                        }
+                    });
                 }
 
                 // Add vote controls if Pixel Banner Plus is enabled
