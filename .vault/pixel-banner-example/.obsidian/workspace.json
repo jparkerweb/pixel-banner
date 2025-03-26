@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "f620b11acee9ba49",
+        "id": "31d82c9f57c19e04",
         "type": "tabs",
         "children": [
           {
-            "id": "cec2ea06e17e62a7",
+            "id": "78ded05f8c5e2aec",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "releases/v3.0.0 - ✨ The AI Release.md",
-                "mode": "preview",
-                "source": true
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "v3.0.0 - ✨ The AI Release"
+              "title": "New tab"
             }
           }
         ]
@@ -53,7 +49,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "padding-top: var(--pixel-banner-content-start, 150px);",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -78,7 +74,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 323.5
+    "width": 381.5
   },
   "right": {
     "id": "b0587a5ae3ec7375",
@@ -5679,14 +5675,13 @@
             "id": "11ac24ec4850022d",
             "type": "leaf",
             "state": {
-              "type": "Saved Queries View",
+              "type": "empty",
               "state": {},
-              "icon": "feather-mouse-pointer",
-              "title": "Saved Queries"
+              "icon": "lucide-file",
+              "title": "New tab"
             }
-          }
-        ],
-        "currentTab": 556
+          },
+        "currentTab": 829
       }
     ],
     "direction": "horizontal",
@@ -5703,38 +5698,43 @@
       "cmdr:Reload app without saving": false
     }
   },
-  "active": "cec2ea06e17e62a7",
+  "active": "73ecac294db5a0af",
   "lastOpenFiles": [
-    "releases/v2.21.2 - 🎯 Target Practice.md",
-    "releases/v3.0.0 - ✨ The AI Release.md",
-    "pixel-banner-images/glistening-tendrils-of-vibrant-aurora-borealis--1.jpg",
-    "spring.md",
-    "Untitled.md",
-    "pixel-banner-images/in-the-midst-of-a-crystalline-world-an-intricat.jpg",
-    "Untitled 2.md",
-    "pixel-banner-images/pixel-banner-image.jpg",
-    "pixel-banner-images/beautiful-blue-fish.jpg",
-    "pixel-banner-images/an-eerie-abandoned-theme-park-filled-with-mecha.jpg",
-    "pixel-banner-images/mechanical-spider-with-purple-glow-moves-in-the.jpg",
     "Untitled 1.md",
+    "Untitled.md",
+    "Paterns.md",
+    "pixel-banner-images/colorful-racetrack-banana-peels-invincibility-s.jpg",
+    "releases/v3.2.0 - 👿 Speed 🔍 Preview 📇 Badges.md",
     "🚩 Pixel-Banner.md",
-    "stars.md",
-    "pixel-banner-images/gray-hamster-sips-tea-from-antique-set-magical-.jpg",
-    "pixel-banner-images/whimsical-mechanical-bird-perched-on-a-branch-i.jpg",
-    "pixel-banner-images/beneath-the-midnight-sky-an-ethereal-field-of-c.jpg",
-    "pixel-banner-images/glistening-tendrils-of-vibrant-aurora-borealis-.jpg",
-    "Untitled 5.md",
-    "Untitled 4.md",
-    "Random Shuffle/Disney Lorcana.md",
-    "Monkey.md",
-    "hello there.md",
-    "tests/banner icon 2.md",
-    "tests/blank.md",
-    "tests/banner icon 1.md",
+    "pixel-banner-images/in-a-dimly-lit-vintage-arcade-lobby-retro-poste.jpg",
+    "releases/v3.1.0 - ⚡ Customize, Vote, Upgrade.md",
+    "pixel-banner-images/colossal-dragon-in-cosmos-exhales-constellation.jpg",
+    "pixel-banner-images/crazy-lizard-guy.jpg",
+    "pixel-banner-images/breathtaking-beach-golden-sand-turquoise-waves-.jpg",
+    "pixel-banner-images/imagine-a-vibrant-technicolor-racetrack-stretch.jpg",
+    "pixel-banner-images/mystical-apothecary-shop-ancient-herbalist-brew.jpg",
+    "tests/🧪 test - 5 - absolute position.md",
+    "tests/🧪 test - 1 - internal link.md",
+    "tests/🧪 test - 7- shuffle time!.md",
+    "tests/🧪 test - 8 - render link.md",
+    "tests/🧪 test - 6 - image float right.md",
+    "tests/🧪 test - 4 - all fields.md",
+    "tests/🧪 test - 3 - direct url link.md",
+    "tests/🧪 test - 2 - internal link - unquoted.md",
     "tests/various embedded heights/_embedding-test.md",
-    "tests/various embedded heights/banner-height-300.md",
-    "tests/various embedded heights/banner-height-150.md",
     "tests/various embedded heights/banner-height-50.md",
-    "tests/🧪 test - 1 - internal link.md"
+    "tests/various embedded heights/banner-height-150.md",
+    "tests/various embedded heights/banner-height-300.md",
+    "tests/simple embedded/consumer.md",
+    "tests/simple embedded/example-embedded.md",
+    "Random Shuffle/Disney Lorcana.md",
+    "Note about Dino Robots.md",
+    "releases/v2.21.2 - 🎯 Target Practice.md",
+    "D-Trees.md",
+    "tests/snippets.md",
+    "pixel-banner-images/amidst-the-futuristic-metropolis-lies-an-underg.jpg",
+    "ll.jpg",
+    "llamas.jpg",
+    "Untitled.canvas"
   ]
 }

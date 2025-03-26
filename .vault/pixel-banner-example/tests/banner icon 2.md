@@ -1,6 +1,6 @@
 ---
 icon: v2.20.4 - ⭐ The Icon has Landed
-banner: "[[shooting-star.png]]"
+banner: "[[shooting-star.jpg]]"
 content-start: 386
 icon-size: "30"
 icon-x: 50

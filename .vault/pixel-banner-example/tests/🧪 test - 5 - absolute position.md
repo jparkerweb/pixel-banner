@@ -1,5 +1,5 @@
 ---
-banner: [[jp-cover.jpg]]
+banner: [[images/jp-cover.jpg]]
 ---
 # 🧪 test - 5 - absolute position
 
