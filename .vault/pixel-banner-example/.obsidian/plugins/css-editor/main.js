@@ -24,14 +24,15 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
+  DEFAULT_SETTINGS: () => DEFAULT_SETTINGS,
   default: () => CssEditorPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/views/CssEditorView.ts
 var import_obsidian2 = require("obsidian");
-var import_view5 = require("@codemirror/view");
+var import_view6 = require("@codemirror/view");
 
 // node_modules/@replit/codemirror-vim/dist/index.js
 var import_state = require("@codemirror/state");
@@ -7311,1001 +7312,14 @@ ${curr}`, "Failed to create file.");
 
 // src/codemirror-extensions/basic-extensions.ts
 var import_commands2 = require("@codemirror/commands");
-
-// node_modules/@lezer/css/dist/index.es.js
-var import_lr = require("@lezer/lr");
-var import_highlight = require("@lezer/highlight");
-var descendantOp = 94;
-var Unit = 1;
-var callee = 95;
-var identifier = 96;
-var VariableName = 2;
-var space = [
-  9,
-  10,
-  11,
-  12,
-  13,
-  32,
-  133,
-  160,
-  5760,
-  8192,
-  8193,
-  8194,
-  8195,
-  8196,
-  8197,
-  8198,
-  8199,
-  8200,
-  8201,
-  8202,
-  8232,
-  8233,
-  8239,
-  8287,
-  12288
-];
-var colon = 58;
-var parenL = 40;
-var underscore = 95;
-var bracketL = 91;
-var dash = 45;
-var period = 46;
-var hash = 35;
-var percent = 37;
-function isAlpha(ch) {
-  return ch >= 65 && ch <= 90 || ch >= 97 && ch <= 122 || ch >= 161;
-}
-function isDigit(ch) {
-  return ch >= 48 && ch <= 57;
-}
-var identifiers = new import_lr.ExternalTokenizer((input, stack) => {
-  for (let inside = false, dashes = 0, i = 0; ; i++) {
-    let { next } = input;
-    if (isAlpha(next) || next == dash || next == underscore || inside && isDigit(next)) {
-      if (!inside && (next != dash || i > 0))
-        inside = true;
-      if (dashes === i && next == dash)
-        dashes++;
-      input.advance();
-    } else {
-      if (inside)
-        input.acceptToken(next == parenL ? callee : dashes == 2 && stack.canShift(VariableName) ? VariableName : identifier);
-      break;
-    }
-  }
-});
-var descendant = new import_lr.ExternalTokenizer((input) => {
-  if (space.includes(input.peek(-1))) {
-    let { next } = input;
-    if (isAlpha(next) || next == underscore || next == hash || next == period || next == bracketL || next == colon || next == dash)
-      input.acceptToken(descendantOp);
-  }
-});
-var unitToken = new import_lr.ExternalTokenizer((input) => {
-  if (!space.includes(input.peek(-1))) {
-    let { next } = input;
-    if (next == percent) {
-      input.advance();
-      input.acceptToken(Unit);
-    }
-    if (isAlpha(next)) {
-      do {
-        input.advance();
-      } while (isAlpha(input.next));
-      input.acceptToken(Unit);
-    }
-  }
-});
-var cssHighlighting = (0, import_highlight.styleTags)({
-  "AtKeyword import charset namespace keyframes media supports": import_highlight.tags.definitionKeyword,
-  "from to selector": import_highlight.tags.keyword,
-  NamespaceName: import_highlight.tags.namespace,
-  KeyframeName: import_highlight.tags.labelName,
-  TagName: import_highlight.tags.tagName,
-  ClassName: import_highlight.tags.className,
-  PseudoClassName: import_highlight.tags.constant(import_highlight.tags.className),
-  IdName: import_highlight.tags.labelName,
-  "FeatureName PropertyName": import_highlight.tags.propertyName,
-  AttributeName: import_highlight.tags.attributeName,
-  NumberLiteral: import_highlight.tags.number,
-  KeywordQuery: import_highlight.tags.keyword,
-  UnaryQueryOp: import_highlight.tags.operatorKeyword,
-  "CallTag ValueName": import_highlight.tags.atom,
-  VariableName: import_highlight.tags.variableName,
-  Callee: import_highlight.tags.operatorKeyword,
-  Unit: import_highlight.tags.unit,
-  "UniversalSelector NestingSelector": import_highlight.tags.definitionOperator,
-  MatchOp: import_highlight.tags.compareOperator,
-  "ChildOp SiblingOp, LogicOp": import_highlight.tags.logicOperator,
-  BinOp: import_highlight.tags.arithmeticOperator,
-  Important: import_highlight.tags.modifier,
-  Comment: import_highlight.tags.blockComment,
-  ParenthesizedContent: import_highlight.tags.special(import_highlight.tags.name),
-  ColorLiteral: import_highlight.tags.color,
-  StringLiteral: import_highlight.tags.string,
-  ":": import_highlight.tags.punctuation,
-  "PseudoOp #": import_highlight.tags.derefOperator,
-  "; ,": import_highlight.tags.separator,
-  "( )": import_highlight.tags.paren,
-  "[ ]": import_highlight.tags.squareBracket,
-  "{ }": import_highlight.tags.brace
-});
-var spec_callee = { __proto__: null, lang: 32, "nth-child": 32, "nth-last-child": 32, "nth-of-type": 32, "nth-last-of-type": 32, dir: 32, "host-context": 32, url: 60, "url-prefix": 60, domain: 60, regexp: 60, selector: 134 };
-var spec_AtKeyword = { __proto__: null, "@import": 114, "@media": 138, "@charset": 142, "@namespace": 146, "@keyframes": 152, "@supports": 164 };
-var spec_identifier = { __proto__: null, not: 128, only: 128, from: 158, to: 160 };
-var parser = import_lr.LRParser.deserialize({
-  version: 14,
-  states: "7WQYQ[OOO#_Q[OOOOQP'#Cd'#CdOOQP'#Cc'#CcO#fQ[O'#CfO$YQXO'#CaO$aQ[O'#ChO$lQ[O'#DPO$qQ[O'#DTOOQP'#Ed'#EdO$vQdO'#DeO%bQ[O'#DrO$vQdO'#DtO%sQ[O'#DvO&OQ[O'#DyO&TQ[O'#EPO&cQ[O'#EROOQS'#Ec'#EcOOQS'#ET'#ETQYQ[OOO&jQXO'#CdO'_QWO'#DaO'dQWO'#EjO'oQ[O'#EjQOQWOOOOQP'#Cg'#CgOOQP,59Q,59QO#fQ[O,59QO'yQ[O'#EWO(eQWO,58{O(mQ[O,59SO$lQ[O,59kO$qQ[O,59oO'yQ[O,59sO'yQ[O,59uO'yQ[O,59vO(xQ[O'#D`OOQS,58{,58{OOQP'#Ck'#CkOOQO'#C}'#C}OOQP,59S,59SO)PQWO,59SO)UQWO,59SOOQP'#DR'#DROOQP,59k,59kOOQO'#DV'#DVO)ZQ`O,59oOOQS'#Cp'#CpO$vQdO'#CqO)cQvO'#CsO*pQtO,5:POOQO'#Cx'#CxO)UQWO'#CwO+UQWO'#CyOOQS'#Eg'#EgOOQO'#Dh'#DhO+ZQ[O'#DoO+iQWO'#EkO&TQ[O'#DmO+wQWO'#DpOOQO'#El'#ElO(hQWO,5:^O+|QpO,5:`OOQS'#Dx'#DxO,UQWO,5:bO,ZQ[O,5:bOOQO'#D{'#D{O,cQWO,5:eO,hQWO,5:kO,pQWO,5:mOOQS-E8R-E8RO$vQdO,59{O,xQ[O'#EYO-VQWO,5;UO-VQWO,5;UOOQP1G.l1G.lO-|QXO,5:rOOQO-E8U-E8UOOQS1G.g1G.gOOQP1G.n1G.nO)PQWO1G.nO)UQWO1G.nOOQP1G/V1G/VO.ZQ`O1G/ZO.tQXO1G/_O/[QXO1G/aO/rQXO1G/bO0YQWO,59zO0_Q[O'#DOO0fQdO'#CoOOQP1G/Z1G/ZO$vQdO1G/ZO0mQpO,59]OOQS,59_,59_O$vQdO,59aO0uQWO1G/kOOQS,59c,59cO0zQ!bO,59eO1SQWO'#DhO1_QWO,5:TO1dQWO,5:ZO&TQ[O,5:VO&TQ[O'#EZO1lQWO,5;VO1wQWO,5:XO'yQ[O,5:[OOQS1G/x1G/xOOQS1G/z1G/zOOQS1G/|1G/|O2YQWO1G/|O2_QdO'#D|OOQS1G0P1G0POOQS1G0V1G0VOOQS1G0X1G0XO2mQtO1G/gOOQO,5:t,5:tO3TQ[O,5:tOOQO-E8W-E8WO3bQWO1G0pOOQP7+$Y7+$YOOQP7+$u7+$uO$vQdO7+$uOOQS1G/f1G/fO3mQXO'#EiO3tQWO,59jO3yQtO'#EUO4nQdO'#EfO4xQWO,59ZO4}QpO7+$uOOQS1G.w1G.wOOQS1G.{1G.{OOQS7+%V7+%VO5VQWO1G/PO$vQdO1G/oOOQO1G/u1G/uOOQO1G/q1G/qO5[QWO,5:uOOQO-E8X-E8XO5jQXO1G/vOOQS7+%h7+%hO5qQYO'#CsO(hQWO'#E[O5yQdO,5:hOOQS,5:h,5:hO6XQtO'#EXO$vQdO'#EXO7VQdO7+%ROOQO7+%R7+%ROOQO1G0`1G0`O7jQpO<<HaO7rQWO,5;TOOQP1G/U1G/UOOQS-E8S-E8SO$vQdO'#EVO7zQWO,5;QOOQT1G.u1G.uOOQP<<Ha<<HaOOQS7+$k7+$kO8SQdO7+%ZOOQO7+%b7+%bOOQS,5:v,5:vOOQS-E8Y-E8YOOQS1G0S1G0SO8ZQtO,5:sOOQS-E8V-E8VOOQO<<Hm<<HmOOQPAN={AN={O9XQdO,5:qOOQO-E8T-E8TOOQO<<Hu<<Hu",
-  stateData: "9i~O#UOSROS~OUXOXXO]UO^UOtVOxWO!Y`O!ZYO!gZO!i[O!k]O!n^O!t_O#SQO#XSO~OQeOUXOXXO]UO^UOtVOxWO!Y`O!ZYO!gZO!i[O!k]O!n^O!t_O#SdO#XSO~O#P#^P~P!ZO#SiO~O]nO^nOplOtoOxpO|qO!PsO#QrO#XkO~O!RtO~P#kO`zO#RwO#SvO~O#S{O~O#S}O~OQ!WOb!QOf!WOh!WOn!VO#R!TO#S!PO#[!RO~Ob!YO!b![O!e!]O#S!XO!R#_P~Oh!bOn!VO#S!aO~O#S!dO~Ob!YO!b![O!e!]O#S!XO~O!W#_P~P%bO]WX]!UX^WXpWXtWXxWX|WX!PWX!RWX#QWX#XWX~O]!iO~O!W!jO#P#^X!Q#^X~O#P#^X!Q#^X~P!ZOUXOXXO]UO^UOtVOxWO#SQO#XSO~OplO!RtO~O`!sO#RwO#SvO~O!Q#^P~P!ZOb!zO~Ob!{O~Ov!|Oz!}O~OP#PObgXjgX!WgX!bgX!egX#SgXagXQgXfgXhgXngXpgX!VgX#PgX#RgX#[gXvgX!QgX~Ob!YOj#QO!b![O!e!]O#S!XO!W#_P~Ob#TO~Ob!YO!b![O!e!]O#S#UO~Op#YO!`#XO!R#_X!W#_X~Ob#]O~Oj#QO!W#_O~O!W#`O~Oh#aOn!VO~O!R#bO~O!RtO!`#XO~O!RtO!W#eO~O!W!|X#P!|X!Q!|X~P!ZO!W!jO#P#^a!Q#^a~O]nO^nOtoOxpO|qO!PsO#QrO#XkO~Op!za!R!zaa!za~P-bOv#lOz#mO~O]nO^nOtoOxpO#XkO~Op{i|{i!P{i!R{i#Q{ia{i~P.cOp}i|}i!P}i!R}i#Q}ia}i~P.cOp!Oi|!Oi!P!Oi!R!Oi#Q!Oia!Oi~P.cO!Q#nO~Oa#]P~P'yOa#YP~P$vOa#uOj#QO~O!W#wO~Oh#xOo#xO~O]!^Xa![X!`![X~O]#yO~Oa#zO!`#XO~Op#YO!R#_a!W#_a~O!`#XOp!aa!R!aa!W!aaa!aa~O!W$PO~O!Q$TO!q$RO!r$RO#[$QO~Oj#QOp$VO!V$XO!W!Ti#P!Ti!Q!Ti~P$vO!W!|a#P!|a!Q!|a~P!ZO!W!jO#P#^i!Q#^i~Oa#]X~P#kOa$]O~Oj#QOQ!xXa!xXb!xXf!xXh!xXn!xXp!xX#R!xX#S!xX#[!xX~Op$_Oa#YX~P$vOa$aO~Oj#QOv$bO~Oa$cO~O!`#XOp!}a!R!}a!W!}a~Oa$eO~P-bOP#PO!RgX~O!Q$hO!q$RO!r$RO#[$QO~Oj#QOQ!{Xb!{Xf!{Xh!{Xn!{Xp!{X!V!{X!W!{X#P!{X#R!{X#S!{X#[!{X!Q!{X~Op$VO!V$kO!W!Tq#P!Tq!Q!Tq~P$vOj#QOv$lO~OplOa#]a~Op$_Oa#Ya~Oa$oO~P$vOj#QOQ!{ab!{af!{ah!{an!{ap!{a!V!{a!W!{a#P!{a#R!{a#S!{a#[!{a!Q!{a~Oa!yap!ya~P$vOo#[j!Pj~",
-  goto: ",`#aPPPPP#bP#k#zP#k$Z#kPP$aPPP$g$p$pP%SP$pP$p%j%|PPP&f&l#kP&rP#kP&xP#kP#k#kPPP'O'b'oPP#bPP'v'v(Q'vP'vP'v'vP#bP#bP#bP(T#bP(W(ZPP#bP#bP(^(m({)R)])c)m)sPPPPPP)y*SP*o*rP+h+k+q+z_aOPcgt!j#hkXOPcglqrst!j!z#]#hkROPcglqrst!j!z#]#hQjSR!mkQxUR!qnQ!qzQ#S!UR#k!sq!WY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mp!WY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mT$R#b$Sq!UY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mp!WY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mQ!b]R#a!cQyUR!rnQ!qyR#k!rQ|VR!toQ!OWR!upQuTQ!pmQ#^!_Q#d!fQ#e!gR$f$RSfPtQ!lgQ#g!jR$Y#hZePgt!j#ha!^Z_`!S!Y![#X#YR#V!YR!c]R!e^R#c!eQcOSgPtU!hcg#hR#h!jQ#r!{U$^#r$d$mQ$d#yR$m$_Q$`#rR$n$`QmTS!om$[R$[#oQ$W#fR$j$WQ!kfS#i!k#jR#j!lQ#Z!ZR#}#ZQ$S#bR$g$S_bOPcgt!j#h^TOPcgt!j#hQ!nlQ!vqQ!wrQ!xsQ#o!zR$O#]R#s!{Q!SYQ!`[Q#O!QQ#f!i[#q!{#r#y$_$d$mQ#t!}Q#v#QS$U#f$WQ$Z#mR$i$VR#p!zQhPR!ytQ!_ZQ!g`R#R!SU!ZZ`!SQ!f_Q#W!YQ#[![Q#{#XR#|#Y",
-  nodeNames: "\u26A0 Unit VariableName Comment StyleSheet RuleSet UniversalSelector TagSelector TagName NestingSelector ClassSelector ClassName PseudoClassSelector : :: PseudoClassName PseudoClassName ) ( ArgList ValueName ParenthesizedValue ColorLiteral NumberLiteral StringLiteral BinaryExpression BinOp CallExpression Callee CallLiteral CallTag ParenthesizedContent , PseudoClassName ArgList IdSelector # IdName ] AttributeSelector [ AttributeName MatchOp ChildSelector ChildOp DescendantSelector SiblingSelector SiblingOp } { Block Declaration PropertyName Important ; ImportStatement AtKeyword import KeywordQuery FeatureQuery FeatureName BinaryQuery LogicOp UnaryQuery UnaryQueryOp ParenthesizedQuery SelectorQuery selector MediaStatement media CharsetStatement charset NamespaceStatement namespace NamespaceName KeyframesStatement keyframes KeyframeName KeyframeList from to SupportsStatement supports AtRule Styles",
-  maxTerm: 108,
-  nodeProps: [
-    ["openedBy", 17, "(", 48, "{"],
-    ["closedBy", 18, ")", 49, "}"]
-  ],
-  propSources: [cssHighlighting],
-  skippedNodes: [0, 3],
-  repeatNodeCount: 8,
-  tokenData: "Lq~R!^OX$}X^%u^p$}pq%uqr)Xrs.Rst/utu6duv$}vw7^wx7oxy9^yz9oz{9t{|:_|}?Q}!O?c!O!P@Q!P!Q@i!Q![Cu![!]Dp!]!^El!^!_$}!_!`E}!`!aF`!a!b$}!b!cG[!c!}$}!}#OHt#O#P$}#P#QIV#Q#R6d#R#T$}#T#UIh#U#c$}#c#dJy#d#o$}#o#pK`#p#q6d#q#rKq#r#sLS#s#y$}#y#z%u#z$f$}$f$g%u$g#BY$}#BY#BZ%u#BZ$IS$}$IS$I_%u$I_$I|$}$I|$JO%u$JO$JT$}$JT$JU%u$JU$KV$}$KV$KW%u$KW&FU$}&FU&FV%u&FV;'S$};'S;=`Lk<%lO$}W%QSOy%^z;'S%^;'S;=`%o<%lO%^W%cSoWOy%^z;'S%^;'S;=`%o<%lO%^W%rP;=`<%l%^~%zh#U~OX%^X^'f^p%^pq'fqy%^z#y%^#y#z'f#z$f%^$f$g'f$g#BY%^#BY#BZ'f#BZ$IS%^$IS$I_'f$I_$I|%^$I|$JO'f$JO$JT%^$JT$JU'f$JU$KV%^$KV$KW'f$KW&FU%^&FU&FV'f&FV;'S%^;'S;=`%o<%lO%^~'mh#U~oWOX%^X^'f^p%^pq'fqy%^z#y%^#y#z'f#z$f%^$f$g'f$g#BY%^#BY#BZ'f#BZ$IS%^$IS$I_'f$I_$I|%^$I|$JO'f$JO$JT%^$JT$JU'f$JU$KV%^$KV$KW'f$KW&FU%^&FU&FV'f&FV;'S%^;'S;=`%o<%lO%^^)[UOy%^z#]%^#]#^)n#^;'S%^;'S;=`%o<%lO%^^)sUoWOy%^z#a%^#a#b*V#b;'S%^;'S;=`%o<%lO%^^*[UoWOy%^z#d%^#d#e*n#e;'S%^;'S;=`%o<%lO%^^*sUoWOy%^z#c%^#c#d+V#d;'S%^;'S;=`%o<%lO%^^+[UoWOy%^z#f%^#f#g+n#g;'S%^;'S;=`%o<%lO%^^+sUoWOy%^z#h%^#h#i,V#i;'S%^;'S;=`%o<%lO%^^,[UoWOy%^z#T%^#T#U,n#U;'S%^;'S;=`%o<%lO%^^,sUoWOy%^z#b%^#b#c-V#c;'S%^;'S;=`%o<%lO%^^-[UoWOy%^z#h%^#h#i-n#i;'S%^;'S;=`%o<%lO%^^-uS!VUoWOy%^z;'S%^;'S;=`%o<%lO%^~.UWOY.RZr.Rrs.ns#O.R#O#P.s#P;'S.R;'S;=`/o<%lO.R~.sOh~~.vRO;'S.R;'S;=`/P;=`O.R~/SXOY.RZr.Rrs.ns#O.R#O#P.s#P;'S.R;'S;=`/o;=`<%l.R<%lO.R~/rP;=`<%l.R_/zYtPOy%^z!Q%^!Q![0j![!c%^!c!i0j!i#T%^#T#Z0j#Z;'S%^;'S;=`%o<%lO%^^0oYoWOy%^z!Q%^!Q![1_![!c%^!c!i1_!i#T%^#T#Z1_#Z;'S%^;'S;=`%o<%lO%^^1dYoWOy%^z!Q%^!Q![2S![!c%^!c!i2S!i#T%^#T#Z2S#Z;'S%^;'S;=`%o<%lO%^^2ZYfUoWOy%^z!Q%^!Q![2y![!c%^!c!i2y!i#T%^#T#Z2y#Z;'S%^;'S;=`%o<%lO%^^3QYfUoWOy%^z!Q%^!Q![3p![!c%^!c!i3p!i#T%^#T#Z3p#Z;'S%^;'S;=`%o<%lO%^^3uYoWOy%^z!Q%^!Q![4e![!c%^!c!i4e!i#T%^#T#Z4e#Z;'S%^;'S;=`%o<%lO%^^4lYfUoWOy%^z!Q%^!Q![5[![!c%^!c!i5[!i#T%^#T#Z5[#Z;'S%^;'S;=`%o<%lO%^^5aYoWOy%^z!Q%^!Q![6P![!c%^!c!i6P!i#T%^#T#Z6P#Z;'S%^;'S;=`%o<%lO%^^6WSfUoWOy%^z;'S%^;'S;=`%o<%lO%^Y6gUOy%^z!_%^!_!`6y!`;'S%^;'S;=`%o<%lO%^Y7QSzQoWOy%^z;'S%^;'S;=`%o<%lO%^X7cSXPOy%^z;'S%^;'S;=`%o<%lO%^~7rWOY7oZw7owx.nx#O7o#O#P8[#P;'S7o;'S;=`9W<%lO7o~8_RO;'S7o;'S;=`8h;=`O7o~8kXOY7oZw7owx.nx#O7o#O#P8[#P;'S7o;'S;=`9W;=`<%l7o<%lO7o~9ZP;=`<%l7o_9cSbVOy%^z;'S%^;'S;=`%o<%lO%^~9tOa~_9{UUPjSOy%^z!_%^!_!`6y!`;'S%^;'S;=`%o<%lO%^_:fWjS!PPOy%^z!O%^!O!P;O!P!Q%^!Q![>T![;'S%^;'S;=`%o<%lO%^^;TUoWOy%^z!Q%^!Q![;g![;'S%^;'S;=`%o<%lO%^^;nYoW#[UOy%^z!Q%^!Q![;g![!g%^!g!h<^!h#X%^#X#Y<^#Y;'S%^;'S;=`%o<%lO%^^<cYoWOy%^z{%^{|=R|}%^}!O=R!O!Q%^!Q![=j![;'S%^;'S;=`%o<%lO%^^=WUoWOy%^z!Q%^!Q![=j![;'S%^;'S;=`%o<%lO%^^=qUoW#[UOy%^z!Q%^!Q![=j![;'S%^;'S;=`%o<%lO%^^>[[oW#[UOy%^z!O%^!O!P;g!P!Q%^!Q![>T![!g%^!g!h<^!h#X%^#X#Y<^#Y;'S%^;'S;=`%o<%lO%^_?VSpVOy%^z;'S%^;'S;=`%o<%lO%^^?hWjSOy%^z!O%^!O!P;O!P!Q%^!Q![>T![;'S%^;'S;=`%o<%lO%^_@VU#XPOy%^z!Q%^!Q![;g![;'S%^;'S;=`%o<%lO%^~@nTjSOy%^z{@}{;'S%^;'S;=`%o<%lO%^~ASUoWOy@}yzAfz{Bm{;'S@};'S;=`Co<%lO@}~AiTOzAfz{Ax{;'SAf;'S;=`Bg<%lOAf~A{VOzAfz{Ax{!PAf!P!QBb!Q;'SAf;'S;=`Bg<%lOAf~BgOR~~BjP;=`<%lAf~BrWoWOy@}yzAfz{Bm{!P@}!P!QC[!Q;'S@};'S;=`Co<%lO@}~CcSoWR~Oy%^z;'S%^;'S;=`%o<%lO%^~CrP;=`<%l@}^Cz[#[UOy%^z!O%^!O!P;g!P!Q%^!Q![>T![!g%^!g!h<^!h#X%^#X#Y<^#Y;'S%^;'S;=`%o<%lO%^XDuU]POy%^z![%^![!]EX!];'S%^;'S;=`%o<%lO%^XE`S^PoWOy%^z;'S%^;'S;=`%o<%lO%^_EqS!WVOy%^z;'S%^;'S;=`%o<%lO%^YFSSzQOy%^z;'S%^;'S;=`%o<%lO%^XFeU|POy%^z!`%^!`!aFw!a;'S%^;'S;=`%o<%lO%^XGOS|PoWOy%^z;'S%^;'S;=`%o<%lO%^XG_WOy%^z!c%^!c!}Gw!}#T%^#T#oGw#o;'S%^;'S;=`%o<%lO%^XHO[!YPoWOy%^z}%^}!OGw!O!Q%^!Q![Gw![!c%^!c!}Gw!}#T%^#T#oGw#o;'S%^;'S;=`%o<%lO%^XHySxPOy%^z;'S%^;'S;=`%o<%lO%^^I[SvUOy%^z;'S%^;'S;=`%o<%lO%^XIkUOy%^z#b%^#b#cI}#c;'S%^;'S;=`%o<%lO%^XJSUoWOy%^z#W%^#W#XJf#X;'S%^;'S;=`%o<%lO%^XJmS!`PoWOy%^z;'S%^;'S;=`%o<%lO%^XJ|UOy%^z#f%^#f#gJf#g;'S%^;'S;=`%o<%lO%^XKeS!RPOy%^z;'S%^;'S;=`%o<%lO%^_KvS!QVOy%^z;'S%^;'S;=`%o<%lO%^ZLXU!PPOy%^z!_%^!_!`6y!`;'S%^;'S;=`%o<%lO%^WLnP;=`<%l$}",
-  tokenizers: [descendant, unitToken, identifiers, 0, 1, 2, 3],
-  topRules: { "StyleSheet": [0, 4], "Styles": [1, 84] },
-  specialized: [{ term: 95, get: (value) => spec_callee[value] || -1 }, { term: 56, get: (value) => spec_AtKeyword[value] || -1 }, { term: 96, get: (value) => spec_identifier[value] || -1 }],
-  tokenPrec: 1123
-});
-
-// node_modules/@codemirror/lang-css/dist/index.js
-var import_language2 = require("@codemirror/language");
-var import_common = require("@lezer/common");
-var _properties = null;
-function properties() {
-  if (!_properties && typeof document == "object" && document.body) {
-    let { style } = document.body, names = [], seen = /* @__PURE__ */ new Set();
-    for (let prop in style)
-      if (prop != "cssText" && prop != "cssFloat") {
-        if (typeof style[prop] == "string") {
-          if (/[A-Z]/.test(prop))
-            prop = prop.replace(/[A-Z]/g, (ch) => "-" + ch.toLowerCase());
-          if (!seen.has(prop)) {
-            names.push(prop);
-            seen.add(prop);
-          }
-        }
-      }
-    _properties = names.sort().map((name) => ({ type: "property", label: name }));
-  }
-  return _properties || [];
-}
-var pseudoClasses = /* @__PURE__ */ [
-  "active",
-  "after",
-  "any-link",
-  "autofill",
-  "backdrop",
-  "before",
-  "checked",
-  "cue",
-  "default",
-  "defined",
-  "disabled",
-  "empty",
-  "enabled",
-  "file-selector-button",
-  "first",
-  "first-child",
-  "first-letter",
-  "first-line",
-  "first-of-type",
-  "focus",
-  "focus-visible",
-  "focus-within",
-  "fullscreen",
-  "has",
-  "host",
-  "host-context",
-  "hover",
-  "in-range",
-  "indeterminate",
-  "invalid",
-  "is",
-  "lang",
-  "last-child",
-  "last-of-type",
-  "left",
-  "link",
-  "marker",
-  "modal",
-  "not",
-  "nth-child",
-  "nth-last-child",
-  "nth-last-of-type",
-  "nth-of-type",
-  "only-child",
-  "only-of-type",
-  "optional",
-  "out-of-range",
-  "part",
-  "placeholder",
-  "placeholder-shown",
-  "read-only",
-  "read-write",
-  "required",
-  "right",
-  "root",
-  "scope",
-  "selection",
-  "slotted",
-  "target",
-  "target-text",
-  "valid",
-  "visited",
-  "where"
-].map((name) => ({ type: "class", label: name }));
-var values = /* @__PURE__ */ [
-  "above",
-  "absolute",
-  "activeborder",
-  "additive",
-  "activecaption",
-  "after-white-space",
-  "ahead",
-  "alias",
-  "all",
-  "all-scroll",
-  "alphabetic",
-  "alternate",
-  "always",
-  "antialiased",
-  "appworkspace",
-  "asterisks",
-  "attr",
-  "auto",
-  "auto-flow",
-  "avoid",
-  "avoid-column",
-  "avoid-page",
-  "avoid-region",
-  "axis-pan",
-  "background",
-  "backwards",
-  "baseline",
-  "below",
-  "bidi-override",
-  "blink",
-  "block",
-  "block-axis",
-  "bold",
-  "bolder",
-  "border",
-  "border-box",
-  "both",
-  "bottom",
-  "break",
-  "break-all",
-  "break-word",
-  "bullets",
-  "button",
-  "button-bevel",
-  "buttonface",
-  "buttonhighlight",
-  "buttonshadow",
-  "buttontext",
-  "calc",
-  "capitalize",
-  "caps-lock-indicator",
-  "caption",
-  "captiontext",
-  "caret",
-  "cell",
-  "center",
-  "checkbox",
-  "circle",
-  "cjk-decimal",
-  "clear",
-  "clip",
-  "close-quote",
-  "col-resize",
-  "collapse",
-  "color",
-  "color-burn",
-  "color-dodge",
-  "column",
-  "column-reverse",
-  "compact",
-  "condensed",
-  "contain",
-  "content",
-  "contents",
-  "content-box",
-  "context-menu",
-  "continuous",
-  "copy",
-  "counter",
-  "counters",
-  "cover",
-  "crop",
-  "cross",
-  "crosshair",
-  "currentcolor",
-  "cursive",
-  "cyclic",
-  "darken",
-  "dashed",
-  "decimal",
-  "decimal-leading-zero",
-  "default",
-  "default-button",
-  "dense",
-  "destination-atop",
-  "destination-in",
-  "destination-out",
-  "destination-over",
-  "difference",
-  "disc",
-  "discard",
-  "disclosure-closed",
-  "disclosure-open",
-  "document",
-  "dot-dash",
-  "dot-dot-dash",
-  "dotted",
-  "double",
-  "down",
-  "e-resize",
-  "ease",
-  "ease-in",
-  "ease-in-out",
-  "ease-out",
-  "element",
-  "ellipse",
-  "ellipsis",
-  "embed",
-  "end",
-  "ethiopic-abegede-gez",
-  "ethiopic-halehame-aa-er",
-  "ethiopic-halehame-gez",
-  "ew-resize",
-  "exclusion",
-  "expanded",
-  "extends",
-  "extra-condensed",
-  "extra-expanded",
-  "fantasy",
-  "fast",
-  "fill",
-  "fill-box",
-  "fixed",
-  "flat",
-  "flex",
-  "flex-end",
-  "flex-start",
-  "footnotes",
-  "forwards",
-  "from",
-  "geometricPrecision",
-  "graytext",
-  "grid",
-  "groove",
-  "hand",
-  "hard-light",
-  "help",
-  "hidden",
-  "hide",
-  "higher",
-  "highlight",
-  "highlighttext",
-  "horizontal",
-  "hsl",
-  "hsla",
-  "hue",
-  "icon",
-  "ignore",
-  "inactiveborder",
-  "inactivecaption",
-  "inactivecaptiontext",
-  "infinite",
-  "infobackground",
-  "infotext",
-  "inherit",
-  "initial",
-  "inline",
-  "inline-axis",
-  "inline-block",
-  "inline-flex",
-  "inline-grid",
-  "inline-table",
-  "inset",
-  "inside",
-  "intrinsic",
-  "invert",
-  "italic",
-  "justify",
-  "keep-all",
-  "landscape",
-  "large",
-  "larger",
-  "left",
-  "level",
-  "lighter",
-  "lighten",
-  "line-through",
-  "linear",
-  "linear-gradient",
-  "lines",
-  "list-item",
-  "listbox",
-  "listitem",
-  "local",
-  "logical",
-  "loud",
-  "lower",
-  "lower-hexadecimal",
-  "lower-latin",
-  "lower-norwegian",
-  "lowercase",
-  "ltr",
-  "luminosity",
-  "manipulation",
-  "match",
-  "matrix",
-  "matrix3d",
-  "medium",
-  "menu",
-  "menutext",
-  "message-box",
-  "middle",
-  "min-intrinsic",
-  "mix",
-  "monospace",
-  "move",
-  "multiple",
-  "multiple_mask_images",
-  "multiply",
-  "n-resize",
-  "narrower",
-  "ne-resize",
-  "nesw-resize",
-  "no-close-quote",
-  "no-drop",
-  "no-open-quote",
-  "no-repeat",
-  "none",
-  "normal",
-  "not-allowed",
-  "nowrap",
-  "ns-resize",
-  "numbers",
-  "numeric",
-  "nw-resize",
-  "nwse-resize",
-  "oblique",
-  "opacity",
-  "open-quote",
-  "optimizeLegibility",
-  "optimizeSpeed",
-  "outset",
-  "outside",
-  "outside-shape",
-  "overlay",
-  "overline",
-  "padding",
-  "padding-box",
-  "painted",
-  "page",
-  "paused",
-  "perspective",
-  "pinch-zoom",
-  "plus-darker",
-  "plus-lighter",
-  "pointer",
-  "polygon",
-  "portrait",
-  "pre",
-  "pre-line",
-  "pre-wrap",
-  "preserve-3d",
-  "progress",
-  "push-button",
-  "radial-gradient",
-  "radio",
-  "read-only",
-  "read-write",
-  "read-write-plaintext-only",
-  "rectangle",
-  "region",
-  "relative",
-  "repeat",
-  "repeating-linear-gradient",
-  "repeating-radial-gradient",
-  "repeat-x",
-  "repeat-y",
-  "reset",
-  "reverse",
-  "rgb",
-  "rgba",
-  "ridge",
-  "right",
-  "rotate",
-  "rotate3d",
-  "rotateX",
-  "rotateY",
-  "rotateZ",
-  "round",
-  "row",
-  "row-resize",
-  "row-reverse",
-  "rtl",
-  "run-in",
-  "running",
-  "s-resize",
-  "sans-serif",
-  "saturation",
-  "scale",
-  "scale3d",
-  "scaleX",
-  "scaleY",
-  "scaleZ",
-  "screen",
-  "scroll",
-  "scrollbar",
-  "scroll-position",
-  "se-resize",
-  "self-start",
-  "self-end",
-  "semi-condensed",
-  "semi-expanded",
-  "separate",
-  "serif",
-  "show",
-  "single",
-  "skew",
-  "skewX",
-  "skewY",
-  "skip-white-space",
-  "slide",
-  "slider-horizontal",
-  "slider-vertical",
-  "sliderthumb-horizontal",
-  "sliderthumb-vertical",
-  "slow",
-  "small",
-  "small-caps",
-  "small-caption",
-  "smaller",
-  "soft-light",
-  "solid",
-  "source-atop",
-  "source-in",
-  "source-out",
-  "source-over",
-  "space",
-  "space-around",
-  "space-between",
-  "space-evenly",
-  "spell-out",
-  "square",
-  "start",
-  "static",
-  "status-bar",
-  "stretch",
-  "stroke",
-  "stroke-box",
-  "sub",
-  "subpixel-antialiased",
-  "svg_masks",
-  "super",
-  "sw-resize",
-  "symbolic",
-  "symbols",
-  "system-ui",
-  "table",
-  "table-caption",
-  "table-cell",
-  "table-column",
-  "table-column-group",
-  "table-footer-group",
-  "table-header-group",
-  "table-row",
-  "table-row-group",
-  "text",
-  "text-bottom",
-  "text-top",
-  "textarea",
-  "textfield",
-  "thick",
-  "thin",
-  "threeddarkshadow",
-  "threedface",
-  "threedhighlight",
-  "threedlightshadow",
-  "threedshadow",
-  "to",
-  "top",
-  "transform",
-  "translate",
-  "translate3d",
-  "translateX",
-  "translateY",
-  "translateZ",
-  "transparent",
-  "ultra-condensed",
-  "ultra-expanded",
-  "underline",
-  "unidirectional-pan",
-  "unset",
-  "up",
-  "upper-latin",
-  "uppercase",
-  "url",
-  "var",
-  "vertical",
-  "vertical-text",
-  "view-box",
-  "visible",
-  "visibleFill",
-  "visiblePainted",
-  "visibleStroke",
-  "visual",
-  "w-resize",
-  "wait",
-  "wave",
-  "wider",
-  "window",
-  "windowframe",
-  "windowtext",
-  "words",
-  "wrap",
-  "wrap-reverse",
-  "x-large",
-  "x-small",
-  "xor",
-  "xx-large",
-  "xx-small"
-].map((name) => ({ type: "keyword", label: name })).concat(/* @__PURE__ */ [
-  "aliceblue",
-  "antiquewhite",
-  "aqua",
-  "aquamarine",
-  "azure",
-  "beige",
-  "bisque",
-  "black",
-  "blanchedalmond",
-  "blue",
-  "blueviolet",
-  "brown",
-  "burlywood",
-  "cadetblue",
-  "chartreuse",
-  "chocolate",
-  "coral",
-  "cornflowerblue",
-  "cornsilk",
-  "crimson",
-  "cyan",
-  "darkblue",
-  "darkcyan",
-  "darkgoldenrod",
-  "darkgray",
-  "darkgreen",
-  "darkkhaki",
-  "darkmagenta",
-  "darkolivegreen",
-  "darkorange",
-  "darkorchid",
-  "darkred",
-  "darksalmon",
-  "darkseagreen",
-  "darkslateblue",
-  "darkslategray",
-  "darkturquoise",
-  "darkviolet",
-  "deeppink",
-  "deepskyblue",
-  "dimgray",
-  "dodgerblue",
-  "firebrick",
-  "floralwhite",
-  "forestgreen",
-  "fuchsia",
-  "gainsboro",
-  "ghostwhite",
-  "gold",
-  "goldenrod",
-  "gray",
-  "grey",
-  "green",
-  "greenyellow",
-  "honeydew",
-  "hotpink",
-  "indianred",
-  "indigo",
-  "ivory",
-  "khaki",
-  "lavender",
-  "lavenderblush",
-  "lawngreen",
-  "lemonchiffon",
-  "lightblue",
-  "lightcoral",
-  "lightcyan",
-  "lightgoldenrodyellow",
-  "lightgray",
-  "lightgreen",
-  "lightpink",
-  "lightsalmon",
-  "lightseagreen",
-  "lightskyblue",
-  "lightslategray",
-  "lightsteelblue",
-  "lightyellow",
-  "lime",
-  "limegreen",
-  "linen",
-  "magenta",
-  "maroon",
-  "mediumaquamarine",
-  "mediumblue",
-  "mediumorchid",
-  "mediumpurple",
-  "mediumseagreen",
-  "mediumslateblue",
-  "mediumspringgreen",
-  "mediumturquoise",
-  "mediumvioletred",
-  "midnightblue",
-  "mintcream",
-  "mistyrose",
-  "moccasin",
-  "navajowhite",
-  "navy",
-  "oldlace",
-  "olive",
-  "olivedrab",
-  "orange",
-  "orangered",
-  "orchid",
-  "palegoldenrod",
-  "palegreen",
-  "paleturquoise",
-  "palevioletred",
-  "papayawhip",
-  "peachpuff",
-  "peru",
-  "pink",
-  "plum",
-  "powderblue",
-  "purple",
-  "rebeccapurple",
-  "red",
-  "rosybrown",
-  "royalblue",
-  "saddlebrown",
-  "salmon",
-  "sandybrown",
-  "seagreen",
-  "seashell",
-  "sienna",
-  "silver",
-  "skyblue",
-  "slateblue",
-  "slategray",
-  "snow",
-  "springgreen",
-  "steelblue",
-  "tan",
-  "teal",
-  "thistle",
-  "tomato",
-  "turquoise",
-  "violet",
-  "wheat",
-  "white",
-  "whitesmoke",
-  "yellow",
-  "yellowgreen"
-].map((name) => ({ type: "constant", label: name })));
-var tags2 = /* @__PURE__ */ [
-  "a",
-  "abbr",
-  "address",
-  "article",
-  "aside",
-  "b",
-  "bdi",
-  "bdo",
-  "blockquote",
-  "body",
-  "br",
-  "button",
-  "canvas",
-  "caption",
-  "cite",
-  "code",
-  "col",
-  "colgroup",
-  "dd",
-  "del",
-  "details",
-  "dfn",
-  "dialog",
-  "div",
-  "dl",
-  "dt",
-  "em",
-  "figcaption",
-  "figure",
-  "footer",
-  "form",
-  "header",
-  "hgroup",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "hr",
-  "html",
-  "i",
-  "iframe",
-  "img",
-  "input",
-  "ins",
-  "kbd",
-  "label",
-  "legend",
-  "li",
-  "main",
-  "meter",
-  "nav",
-  "ol",
-  "output",
-  "p",
-  "pre",
-  "ruby",
-  "section",
-  "select",
-  "small",
-  "source",
-  "span",
-  "strong",
-  "sub",
-  "summary",
-  "sup",
-  "table",
-  "tbody",
-  "td",
-  "template",
-  "textarea",
-  "tfoot",
-  "th",
-  "thead",
-  "tr",
-  "u",
-  "ul"
-].map((name) => ({ type: "type", label: name }));
-var identifier2 = /^(\w[\w-]*|-\w[\w-]*|)$/;
-var variable = /^-(-[\w-]*)?$/;
-function isVarArg(node, doc) {
-  var _a;
-  if (node.name == "(" || node.type.isError)
-    node = node.parent || node;
-  if (node.name != "ArgList")
-    return false;
-  let callee2 = (_a = node.parent) === null || _a === void 0 ? void 0 : _a.firstChild;
-  if ((callee2 === null || callee2 === void 0 ? void 0 : callee2.name) != "Callee")
-    return false;
-  return doc.sliceString(callee2.from, callee2.to) == "var";
-}
-var VariablesByNode = /* @__PURE__ */ new import_common.NodeWeakMap();
-var declSelector = ["Declaration"];
-function astTop(node) {
-  for (let cur2 = node; ; ) {
-    if (cur2.type.isTop)
-      return cur2;
-    if (!(cur2 = cur2.parent))
-      return node;
-  }
-}
-function variableNames(doc, node, isVariable) {
-  if (node.to - node.from > 4096) {
-    let known = VariablesByNode.get(node);
-    if (known)
-      return known;
-    let result = [], seen = /* @__PURE__ */ new Set(), cursor = node.cursor(import_common.IterMode.IncludeAnonymous);
-    if (cursor.firstChild())
-      do {
-        for (let option of variableNames(doc, cursor.node, isVariable))
-          if (!seen.has(option.label)) {
-            seen.add(option.label);
-            result.push(option);
-          }
-      } while (cursor.nextSibling());
-    VariablesByNode.set(node, result);
-    return result;
-  } else {
-    let result = [], seen = /* @__PURE__ */ new Set();
-    node.cursor().iterate((node2) => {
-      var _a;
-      if (isVariable(node2) && node2.matchContext(declSelector) && ((_a = node2.node.nextSibling) === null || _a === void 0 ? void 0 : _a.name) == ":") {
-        let name = doc.sliceString(node2.from, node2.to);
-        if (!seen.has(name)) {
-          seen.add(name);
-          result.push({ label: name, type: "variable" });
-        }
-      }
-    });
-    return result;
-  }
-}
-var defineCSSCompletionSource = (isVariable) => (context) => {
-  let { state, pos } = context, node = (0, import_language2.syntaxTree)(state).resolveInner(pos, -1);
-  let isDash = node.type.isError && node.from == node.to - 1 && state.doc.sliceString(node.from, node.to) == "-";
-  if (node.name == "PropertyName" || (isDash || node.name == "TagName") && /^(Block|Styles)$/.test(node.resolve(node.to).name))
-    return { from: node.from, options: properties(), validFor: identifier2 };
-  if (node.name == "ValueName")
-    return { from: node.from, options: values, validFor: identifier2 };
-  if (node.name == "PseudoClassName")
-    return { from: node.from, options: pseudoClasses, validFor: identifier2 };
-  if (isVariable(node) || (context.explicit || isDash) && isVarArg(node, state.doc))
-    return {
-      from: isVariable(node) || isDash ? node.from : pos,
-      options: variableNames(state.doc, astTop(node), isVariable),
-      validFor: variable
-    };
-  if (node.name == "TagName") {
-    for (let { parent } = node; parent; parent = parent.parent)
-      if (parent.name == "Block")
-        return { from: node.from, options: properties(), validFor: identifier2 };
-    return { from: node.from, options: tags2, validFor: identifier2 };
-  }
-  if (!context.explicit)
-    return null;
-  let above = node.resolve(pos), before = above.childBefore(pos);
-  if (before && before.name == ":" && above.name == "PseudoClassSelector")
-    return { from: pos, options: pseudoClasses, validFor: identifier2 };
-  if (before && before.name == ":" && above.name == "Declaration" || above.name == "ArgList")
-    return { from: pos, options: values, validFor: identifier2 };
-  if (above.name == "Block" || above.name == "Styles")
-    return { from: pos, options: properties(), validFor: identifier2 };
-  return null;
-};
-var cssCompletionSource = /* @__PURE__ */ defineCSSCompletionSource((n) => n.name == "VariableName");
-var cssLanguage = /* @__PURE__ */ import_language2.LRLanguage.define({
-  name: "css",
-  parser: /* @__PURE__ */ parser.configure({
-    props: [
-      /* @__PURE__ */ import_language2.indentNodeProp.add({
-        Declaration: /* @__PURE__ */ (0, import_language2.continuedIndent)()
-      }),
-      /* @__PURE__ */ import_language2.foldNodeProp.add({
-        Block: import_language2.foldInside
-      })
-    ]
-  }),
-  languageData: {
-    commentTokens: { block: { open: "/*", close: "*/" } },
-    indentOnInput: /^\s*\}$/,
-    wordChars: "-"
-  }
-});
-function css() {
-  return new import_language2.LanguageSupport(cssLanguage, cssLanguage.data.of({ autocomplete: cssCompletionSource }));
-}
-
-// src/codemirror-extensions/basic-extensions.ts
-var import_language5 = require("@codemirror/language");
+var import_language6 = require("@codemirror/language");
 var import_state3 = require("@codemirror/state");
-var import_view4 = require("@codemirror/view");
+var import_view5 = require("@codemirror/view");
 
 // node_modules/@codemirror/autocomplete/dist/index.js
 var import_state2 = require("@codemirror/state");
 var import_view2 = require("@codemirror/view");
-var import_language3 = require("@codemirror/language");
+var import_language2 = require("@codemirror/language");
 var CompletionContext = class {
   /**
   Create a new completion context. (Mostly useful for testing
@@ -8323,7 +7337,7 @@ var CompletionContext = class {
   token before `this.pos`.
   */
   tokenBefore(types) {
-    let token = (0, import_language3.syntaxTree)(this.state).resolveInner(this.pos, -1);
+    let token = (0, import_language2.syntaxTree)(this.state).resolveInner(this.pos, -1);
     while (token && types.indexOf(token.name) < 0)
       token = token.parent;
     return token ? {
@@ -9719,11 +8733,11 @@ function handleSame(state, token, allowTriple, config3) {
   });
 }
 function nodeStart(state, pos) {
-  let tree = (0, import_language3.syntaxTree)(state).resolveInner(pos + 1);
+  let tree = (0, import_language2.syntaxTree)(state).resolveInner(pos + 1);
   return tree.parent && tree.from == pos;
 }
 function probablyInString(state, pos, quoteToken, prefixes) {
-  let node = (0, import_language3.syntaxTree)(state).resolveInner(pos, -1);
+  let node = (0, import_language2.syntaxTree)(state).resolveInner(pos, -1);
   let maxPrefix = prefixes.reduce((m, p) => Math.max(m, p.length), 0);
   for (let i = 0; i < 5; i++) {
     let start = state.sliceDoc(node.from, Math.min(node.to, node.from + quoteToken.length + maxPrefix));
@@ -9781,8 +8795,8 @@ var import_lint = require("@codemirror/lint");
 
 // src/codemirror-extensions/obsidian-theme.ts
 var import_view3 = require("@codemirror/view");
-var import_language4 = require("@codemirror/language");
-var import_highlight2 = require("@lezer/highlight");
+var import_language3 = require("@codemirror/language");
+var import_highlight = require("@lezer/highlight");
 var config2 = {
   name: "obsidian",
   dark: false,
@@ -9792,7 +8806,8 @@ var config2 = {
   cursor: "var(--text-normal)",
   dropdownBackground: "var(--background-primary)",
   dropdownBorder: "var(--background-modifier-border)",
-  activeLine: "var(--background-primary)",
+  activeLine: "var(--background-secondary)",
+  activeLineNumber: "var(--text-normal)",
   matchingBracket: "var(--background-modifier-accent)",
   keyword: "#d73a49",
   storage: "#d73a49",
@@ -9806,7 +8821,8 @@ var config2 = {
   number: "var(--text-accent-hover)",
   comment: "var(--text-faint)",
   invalid: "var(--text-error)",
-  regexp: "#032f62"
+  regexp: "#032f62",
+  monospace: "var(--font-monospace)"
 };
 var obsidianTheme = import_view3.EditorView.theme(
   {
@@ -9814,9 +8830,10 @@ var obsidianTheme = import_view3.EditorView.theme(
       color: config2.foreground,
       backgroundColor: config2.background
     },
+    ".cm-scroller": { fontFamily: config2.monospace },
     ".cm-content": { caretColor: config2.cursor },
     "&.cm-focused .cm-cursor": { borderLeftColor: config2.cursor },
-    "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, & ::selection": { backgroundColor: config2.selection },
+    ".cm-selectionBackground, &.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, & ::selection": { backgroundColor: config2.selection },
     ".cm-panels": {
       backgroundColor: config2.dropdownBackground,
       color: config2.foreground
@@ -9831,7 +8848,12 @@ var obsidianTheme = import_view3.EditorView.theme(
       backgroundColor: config2.selection
     },
     ".cm-activeLine": { backgroundColor: config2.activeLine },
-    ".cm-activeLineGutter": { backgroundColor: config2.background },
+    ".cm-activeLineGutter": {
+      backgroundColor: config2.activeLine,
+      ".cm-lineNumbers &": {
+        color: config2.activeLineNumber
+      }
+    },
     ".cm-selectionMatch": { backgroundColor: config2.selection },
     ".cm-matchingBracket, .cm-nonmatchingBracket": {
       backgroundColor: config2.matchingBracket,
@@ -9854,105 +8876,1206 @@ var obsidianTheme = import_view3.EditorView.theme(
       color: config2.foreground
     },
     ".cm-tooltip.cm-tooltip-autocomplete": {
-      "& > ul > li[aria-selected]": {
-        background: config2.selection,
-        color: config2.foreground
+      "& > ul": {
+        fontFamily: config2.monospace,
+        "& > li[aria-selected]": {
+          background: config2.selection,
+          color: config2.foreground
+        }
       }
     }
   },
   { dark: config2.dark }
 );
-var obsidianHighlightStyle = import_language4.HighlightStyle.define([
-  { tag: import_highlight2.tags.keyword, color: config2.keyword },
+var obsidianHighlightStyle = import_language3.HighlightStyle.define([
+  { tag: import_highlight.tags.keyword, color: config2.keyword },
   {
-    tag: [import_highlight2.tags.name, import_highlight2.tags.deleted, import_highlight2.tags.character, import_highlight2.tags.macroName],
+    tag: [import_highlight.tags.name, import_highlight.tags.deleted, import_highlight.tags.character, import_highlight.tags.macroName],
     color: config2.variable
   },
-  { tag: [import_highlight2.tags.propertyName], color: config2.function },
+  { tag: [import_highlight.tags.propertyName], color: config2.function },
   {
     tag: [
-      import_highlight2.tags.processingInstruction,
-      import_highlight2.tags.string,
-      import_highlight2.tags.inserted,
-      import_highlight2.tags.special(import_highlight2.tags.string)
+      import_highlight.tags.processingInstruction,
+      import_highlight.tags.string,
+      import_highlight.tags.inserted,
+      import_highlight.tags.special(import_highlight.tags.string)
     ],
     color: config2.string
   },
-  { tag: [import_highlight2.tags.function(import_highlight2.tags.variableName), import_highlight2.tags.labelName], color: config2.function },
+  { tag: [import_highlight.tags.function(import_highlight.tags.variableName), import_highlight.tags.labelName], color: config2.function },
   {
-    tag: [import_highlight2.tags.color, import_highlight2.tags.constant(import_highlight2.tags.name), import_highlight2.tags.standard(import_highlight2.tags.name)],
+    tag: [import_highlight.tags.color, import_highlight.tags.constant(import_highlight.tags.name), import_highlight.tags.standard(import_highlight.tags.name)],
     color: config2.constant
   },
-  { tag: [import_highlight2.tags.definition(import_highlight2.tags.name), import_highlight2.tags.separator], color: config2.variable },
-  { tag: [import_highlight2.tags.className], color: config2.class },
+  { tag: [import_highlight.tags.definition(import_highlight.tags.name), import_highlight.tags.separator], color: config2.variable },
+  { tag: [import_highlight.tags.className], color: config2.class },
   {
     tag: [
-      import_highlight2.tags.number,
-      import_highlight2.tags.changed,
-      import_highlight2.tags.annotation,
-      import_highlight2.tags.modifier,
-      import_highlight2.tags.self,
-      import_highlight2.tags.namespace
+      import_highlight.tags.number,
+      import_highlight.tags.changed,
+      import_highlight.tags.annotation,
+      import_highlight.tags.modifier,
+      import_highlight.tags.self,
+      import_highlight.tags.namespace
     ],
     color: config2.number
   },
-  { tag: [import_highlight2.tags.typeName], color: config2.type, fontStyle: config2.type },
-  { tag: [import_highlight2.tags.operator, import_highlight2.tags.operatorKeyword], color: config2.keyword },
-  { tag: [import_highlight2.tags.url, import_highlight2.tags.escape, import_highlight2.tags.regexp, import_highlight2.tags.link], color: config2.regexp },
-  { tag: [import_highlight2.tags.meta, import_highlight2.tags.comment], color: config2.comment },
+  { tag: [import_highlight.tags.typeName], color: config2.type, fontStyle: config2.type },
+  { tag: [import_highlight.tags.operator, import_highlight.tags.operatorKeyword], color: config2.keyword },
+  { tag: [import_highlight.tags.url, import_highlight.tags.escape, import_highlight.tags.regexp, import_highlight.tags.link], color: config2.regexp },
+  { tag: [import_highlight.tags.meta, import_highlight.tags.comment], color: config2.comment },
   {
-    tag: [import_highlight2.tags.atom, import_highlight2.tags.bool, import_highlight2.tags.special(import_highlight2.tags.variableName)],
+    tag: [import_highlight.tags.atom, import_highlight.tags.bool, import_highlight.tags.special(import_highlight.tags.variableName)],
     color: config2.variable
   },
-  { tag: import_highlight2.tags.invalid, color: config2.invalid }
+  { tag: import_highlight.tags.invalid, color: config2.invalid }
 ]);
 var obsidian = [
   obsidianTheme,
-  (0, import_language4.syntaxHighlighting)(obsidianHighlightStyle)
+  (0, import_language3.syntaxHighlighting)(obsidianHighlightStyle)
 ];
+
+// node_modules/@lezer/css/dist/index.es.js
+var import_lr = require("@lezer/lr");
+var import_highlight2 = require("@lezer/highlight");
+var descendantOp = 94;
+var Unit = 1;
+var callee = 95;
+var identifier = 96;
+var VariableName = 2;
+var space = [
+  9,
+  10,
+  11,
+  12,
+  13,
+  32,
+  133,
+  160,
+  5760,
+  8192,
+  8193,
+  8194,
+  8195,
+  8196,
+  8197,
+  8198,
+  8199,
+  8200,
+  8201,
+  8202,
+  8232,
+  8233,
+  8239,
+  8287,
+  12288
+];
+var colon = 58;
+var parenL = 40;
+var underscore = 95;
+var bracketL = 91;
+var dash = 45;
+var period = 46;
+var hash = 35;
+var percent = 37;
+function isAlpha(ch) {
+  return ch >= 65 && ch <= 90 || ch >= 97 && ch <= 122 || ch >= 161;
+}
+function isDigit(ch) {
+  return ch >= 48 && ch <= 57;
+}
+var identifiers = new import_lr.ExternalTokenizer((input, stack) => {
+  for (let inside = false, dashes = 0, i = 0; ; i++) {
+    let { next } = input;
+    if (isAlpha(next) || next == dash || next == underscore || inside && isDigit(next)) {
+      if (!inside && (next != dash || i > 0))
+        inside = true;
+      if (dashes === i && next == dash)
+        dashes++;
+      input.advance();
+    } else {
+      if (inside)
+        input.acceptToken(next == parenL ? callee : dashes == 2 && stack.canShift(VariableName) ? VariableName : identifier);
+      break;
+    }
+  }
+});
+var descendant = new import_lr.ExternalTokenizer((input) => {
+  if (space.includes(input.peek(-1))) {
+    let { next } = input;
+    if (isAlpha(next) || next == underscore || next == hash || next == period || next == bracketL || next == colon || next == dash)
+      input.acceptToken(descendantOp);
+  }
+});
+var unitToken = new import_lr.ExternalTokenizer((input) => {
+  if (!space.includes(input.peek(-1))) {
+    let { next } = input;
+    if (next == percent) {
+      input.advance();
+      input.acceptToken(Unit);
+    }
+    if (isAlpha(next)) {
+      do {
+        input.advance();
+      } while (isAlpha(input.next));
+      input.acceptToken(Unit);
+    }
+  }
+});
+var cssHighlighting = (0, import_highlight2.styleTags)({
+  "AtKeyword import charset namespace keyframes media supports": import_highlight2.tags.definitionKeyword,
+  "from to selector": import_highlight2.tags.keyword,
+  NamespaceName: import_highlight2.tags.namespace,
+  KeyframeName: import_highlight2.tags.labelName,
+  TagName: import_highlight2.tags.tagName,
+  ClassName: import_highlight2.tags.className,
+  PseudoClassName: import_highlight2.tags.constant(import_highlight2.tags.className),
+  IdName: import_highlight2.tags.labelName,
+  "FeatureName PropertyName": import_highlight2.tags.propertyName,
+  AttributeName: import_highlight2.tags.attributeName,
+  NumberLiteral: import_highlight2.tags.number,
+  KeywordQuery: import_highlight2.tags.keyword,
+  UnaryQueryOp: import_highlight2.tags.operatorKeyword,
+  "CallTag ValueName": import_highlight2.tags.atom,
+  VariableName: import_highlight2.tags.variableName,
+  Callee: import_highlight2.tags.operatorKeyword,
+  Unit: import_highlight2.tags.unit,
+  "UniversalSelector NestingSelector": import_highlight2.tags.definitionOperator,
+  MatchOp: import_highlight2.tags.compareOperator,
+  "ChildOp SiblingOp, LogicOp": import_highlight2.tags.logicOperator,
+  BinOp: import_highlight2.tags.arithmeticOperator,
+  Important: import_highlight2.tags.modifier,
+  Comment: import_highlight2.tags.blockComment,
+  ParenthesizedContent: import_highlight2.tags.special(import_highlight2.tags.name),
+  ColorLiteral: import_highlight2.tags.color,
+  StringLiteral: import_highlight2.tags.string,
+  ":": import_highlight2.tags.punctuation,
+  "PseudoOp #": import_highlight2.tags.derefOperator,
+  "; ,": import_highlight2.tags.separator,
+  "( )": import_highlight2.tags.paren,
+  "[ ]": import_highlight2.tags.squareBracket,
+  "{ }": import_highlight2.tags.brace
+});
+var spec_callee = { __proto__: null, lang: 32, "nth-child": 32, "nth-last-child": 32, "nth-of-type": 32, "nth-last-of-type": 32, dir: 32, "host-context": 32, url: 60, "url-prefix": 60, domain: 60, regexp: 60, selector: 134 };
+var spec_AtKeyword = { __proto__: null, "@import": 114, "@media": 138, "@charset": 142, "@namespace": 146, "@keyframes": 152, "@supports": 164 };
+var spec_identifier = { __proto__: null, not: 128, only: 128, from: 158, to: 160 };
+var parser = import_lr.LRParser.deserialize({
+  version: 14,
+  states: "7WQYQ[OOO#_Q[OOOOQP'#Cd'#CdOOQP'#Cc'#CcO#fQ[O'#CfO$YQXO'#CaO$aQ[O'#ChO$lQ[O'#DPO$qQ[O'#DTOOQP'#Ed'#EdO$vQdO'#DeO%bQ[O'#DrO$vQdO'#DtO%sQ[O'#DvO&OQ[O'#DyO&TQ[O'#EPO&cQ[O'#EROOQS'#Ec'#EcOOQS'#ET'#ETQYQ[OOO&jQXO'#CdO'_QWO'#DaO'dQWO'#EjO'oQ[O'#EjQOQWOOOOQP'#Cg'#CgOOQP,59Q,59QO#fQ[O,59QO'yQ[O'#EWO(eQWO,58{O(mQ[O,59SO$lQ[O,59kO$qQ[O,59oO'yQ[O,59sO'yQ[O,59uO'yQ[O,59vO(xQ[O'#D`OOQS,58{,58{OOQP'#Ck'#CkOOQO'#C}'#C}OOQP,59S,59SO)PQWO,59SO)UQWO,59SOOQP'#DR'#DROOQP,59k,59kOOQO'#DV'#DVO)ZQ`O,59oOOQS'#Cp'#CpO$vQdO'#CqO)cQvO'#CsO*pQtO,5:POOQO'#Cx'#CxO)UQWO'#CwO+UQWO'#CyOOQS'#Eg'#EgOOQO'#Dh'#DhO+ZQ[O'#DoO+iQWO'#EkO&TQ[O'#DmO+wQWO'#DpOOQO'#El'#ElO(hQWO,5:^O+|QpO,5:`OOQS'#Dx'#DxO,UQWO,5:bO,ZQ[O,5:bOOQO'#D{'#D{O,cQWO,5:eO,hQWO,5:kO,pQWO,5:mOOQS-E8R-E8RO$vQdO,59{O,xQ[O'#EYO-VQWO,5;UO-VQWO,5;UOOQP1G.l1G.lO-|QXO,5:rOOQO-E8U-E8UOOQS1G.g1G.gOOQP1G.n1G.nO)PQWO1G.nO)UQWO1G.nOOQP1G/V1G/VO.ZQ`O1G/ZO.tQXO1G/_O/[QXO1G/aO/rQXO1G/bO0YQWO,59zO0_Q[O'#DOO0fQdO'#CoOOQP1G/Z1G/ZO$vQdO1G/ZO0mQpO,59]OOQS,59_,59_O$vQdO,59aO0uQWO1G/kOOQS,59c,59cO0zQ!bO,59eO1SQWO'#DhO1_QWO,5:TO1dQWO,5:ZO&TQ[O,5:VO&TQ[O'#EZO1lQWO,5;VO1wQWO,5:XO'yQ[O,5:[OOQS1G/x1G/xOOQS1G/z1G/zOOQS1G/|1G/|O2YQWO1G/|O2_QdO'#D|OOQS1G0P1G0POOQS1G0V1G0VOOQS1G0X1G0XO2mQtO1G/gOOQO,5:t,5:tO3TQ[O,5:tOOQO-E8W-E8WO3bQWO1G0pOOQP7+$Y7+$YOOQP7+$u7+$uO$vQdO7+$uOOQS1G/f1G/fO3mQXO'#EiO3tQWO,59jO3yQtO'#EUO4nQdO'#EfO4xQWO,59ZO4}QpO7+$uOOQS1G.w1G.wOOQS1G.{1G.{OOQS7+%V7+%VO5VQWO1G/PO$vQdO1G/oOOQO1G/u1G/uOOQO1G/q1G/qO5[QWO,5:uOOQO-E8X-E8XO5jQXO1G/vOOQS7+%h7+%hO5qQYO'#CsO(hQWO'#E[O5yQdO,5:hOOQS,5:h,5:hO6XQtO'#EXO$vQdO'#EXO7VQdO7+%ROOQO7+%R7+%ROOQO1G0`1G0`O7jQpO<<HaO7rQWO,5;TOOQP1G/U1G/UOOQS-E8S-E8SO$vQdO'#EVO7zQWO,5;QOOQT1G.u1G.uOOQP<<Ha<<HaOOQS7+$k7+$kO8SQdO7+%ZOOQO7+%b7+%bOOQS,5:v,5:vOOQS-E8Y-E8YOOQS1G0S1G0SO8ZQtO,5:sOOQS-E8V-E8VOOQO<<Hm<<HmOOQPAN={AN={O9XQdO,5:qOOQO-E8T-E8TOOQO<<Hu<<Hu",
+  stateData: "9i~O#UOSROS~OUXOXXO]UO^UOtVOxWO!Y`O!ZYO!gZO!i[O!k]O!n^O!t_O#SQO#XSO~OQeOUXOXXO]UO^UOtVOxWO!Y`O!ZYO!gZO!i[O!k]O!n^O!t_O#SdO#XSO~O#P#^P~P!ZO#SiO~O]nO^nOplOtoOxpO|qO!PsO#QrO#XkO~O!RtO~P#kO`zO#RwO#SvO~O#S{O~O#S}O~OQ!WOb!QOf!WOh!WOn!VO#R!TO#S!PO#[!RO~Ob!YO!b![O!e!]O#S!XO!R#_P~Oh!bOn!VO#S!aO~O#S!dO~Ob!YO!b![O!e!]O#S!XO~O!W#_P~P%bO]WX]!UX^WXpWXtWXxWX|WX!PWX!RWX#QWX#XWX~O]!iO~O!W!jO#P#^X!Q#^X~O#P#^X!Q#^X~P!ZOUXOXXO]UO^UOtVOxWO#SQO#XSO~OplO!RtO~O`!sO#RwO#SvO~O!Q#^P~P!ZOb!zO~Ob!{O~Ov!|Oz!}O~OP#PObgXjgX!WgX!bgX!egX#SgXagXQgXfgXhgXngXpgX!VgX#PgX#RgX#[gXvgX!QgX~Ob!YOj#QO!b![O!e!]O#S!XO!W#_P~Ob#TO~Ob!YO!b![O!e!]O#S#UO~Op#YO!`#XO!R#_X!W#_X~Ob#]O~Oj#QO!W#_O~O!W#`O~Oh#aOn!VO~O!R#bO~O!RtO!`#XO~O!RtO!W#eO~O!W!|X#P!|X!Q!|X~P!ZO!W!jO#P#^a!Q#^a~O]nO^nOtoOxpO|qO!PsO#QrO#XkO~Op!za!R!zaa!za~P-bOv#lOz#mO~O]nO^nOtoOxpO#XkO~Op{i|{i!P{i!R{i#Q{ia{i~P.cOp}i|}i!P}i!R}i#Q}ia}i~P.cOp!Oi|!Oi!P!Oi!R!Oi#Q!Oia!Oi~P.cO!Q#nO~Oa#]P~P'yOa#YP~P$vOa#uOj#QO~O!W#wO~Oh#xOo#xO~O]!^Xa![X!`![X~O]#yO~Oa#zO!`#XO~Op#YO!R#_a!W#_a~O!`#XOp!aa!R!aa!W!aaa!aa~O!W$PO~O!Q$TO!q$RO!r$RO#[$QO~Oj#QOp$VO!V$XO!W!Ti#P!Ti!Q!Ti~P$vO!W!|a#P!|a!Q!|a~P!ZO!W!jO#P#^i!Q#^i~Oa#]X~P#kOa$]O~Oj#QOQ!xXa!xXb!xXf!xXh!xXn!xXp!xX#R!xX#S!xX#[!xX~Op$_Oa#YX~P$vOa$aO~Oj#QOv$bO~Oa$cO~O!`#XOp!}a!R!}a!W!}a~Oa$eO~P-bOP#PO!RgX~O!Q$hO!q$RO!r$RO#[$QO~Oj#QOQ!{Xb!{Xf!{Xh!{Xn!{Xp!{X!V!{X!W!{X#P!{X#R!{X#S!{X#[!{X!Q!{X~Op$VO!V$kO!W!Tq#P!Tq!Q!Tq~P$vOj#QOv$lO~OplOa#]a~Op$_Oa#Ya~Oa$oO~P$vOj#QOQ!{ab!{af!{ah!{an!{ap!{a!V!{a!W!{a#P!{a#R!{a#S!{a#[!{a!Q!{a~Oa!yap!ya~P$vOo#[j!Pj~",
+  goto: ",`#aPPPPP#bP#k#zP#k$Z#kPP$aPPP$g$p$pP%SP$pP$p%j%|PPP&f&l#kP&rP#kP&xP#kP#k#kPPP'O'b'oPP#bPP'v'v(Q'vP'vP'v'vP#bP#bP#bP(T#bP(W(ZPP#bP#bP(^(m({)R)])c)m)sPPPPPP)y*SP*o*rP+h+k+q+z_aOPcgt!j#hkXOPcglqrst!j!z#]#hkROPcglqrst!j!z#]#hQjSR!mkQxUR!qnQ!qzQ#S!UR#k!sq!WY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mp!WY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mT$R#b$Sq!UY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mp!WY[!Q!i!{!}#Q#f#m#r#y$V$W$_$d$mQ!b]R#a!cQyUR!rnQ!qyR#k!rQ|VR!toQ!OWR!upQuTQ!pmQ#^!_Q#d!fQ#e!gR$f$RSfPtQ!lgQ#g!jR$Y#hZePgt!j#ha!^Z_`!S!Y![#X#YR#V!YR!c]R!e^R#c!eQcOSgPtU!hcg#hR#h!jQ#r!{U$^#r$d$mQ$d#yR$m$_Q$`#rR$n$`QmTS!om$[R$[#oQ$W#fR$j$WQ!kfS#i!k#jR#j!lQ#Z!ZR#}#ZQ$S#bR$g$S_bOPcgt!j#h^TOPcgt!j#hQ!nlQ!vqQ!wrQ!xsQ#o!zR$O#]R#s!{Q!SYQ!`[Q#O!QQ#f!i[#q!{#r#y$_$d$mQ#t!}Q#v#QS$U#f$WQ$Z#mR$i$VR#p!zQhPR!ytQ!_ZQ!g`R#R!SU!ZZ`!SQ!f_Q#W!YQ#[![Q#{#XR#|#Y",
+  nodeNames: "\u26A0 Unit VariableName Comment StyleSheet RuleSet UniversalSelector TagSelector TagName NestingSelector ClassSelector ClassName PseudoClassSelector : :: PseudoClassName PseudoClassName ) ( ArgList ValueName ParenthesizedValue ColorLiteral NumberLiteral StringLiteral BinaryExpression BinOp CallExpression Callee CallLiteral CallTag ParenthesizedContent , PseudoClassName ArgList IdSelector # IdName ] AttributeSelector [ AttributeName MatchOp ChildSelector ChildOp DescendantSelector SiblingSelector SiblingOp } { Block Declaration PropertyName Important ; ImportStatement AtKeyword import KeywordQuery FeatureQuery FeatureName BinaryQuery LogicOp UnaryQuery UnaryQueryOp ParenthesizedQuery SelectorQuery selector MediaStatement media CharsetStatement charset NamespaceStatement namespace NamespaceName KeyframesStatement keyframes KeyframeName KeyframeList from to SupportsStatement supports AtRule Styles",
+  maxTerm: 108,
+  nodeProps: [
+    ["openedBy", 17, "(", 48, "{"],
+    ["closedBy", 18, ")", 49, "}"]
+  ],
+  propSources: [cssHighlighting],
+  skippedNodes: [0, 3],
+  repeatNodeCount: 8,
+  tokenData: "Lq~R!^OX$}X^%u^p$}pq%uqr)Xrs.Rst/utu6duv$}vw7^wx7oxy9^yz9oz{9t{|:_|}?Q}!O?c!O!P@Q!P!Q@i!Q![Cu![!]Dp!]!^El!^!_$}!_!`E}!`!aF`!a!b$}!b!cG[!c!}$}!}#OHt#O#P$}#P#QIV#Q#R6d#R#T$}#T#UIh#U#c$}#c#dJy#d#o$}#o#pK`#p#q6d#q#rKq#r#sLS#s#y$}#y#z%u#z$f$}$f$g%u$g#BY$}#BY#BZ%u#BZ$IS$}$IS$I_%u$I_$I|$}$I|$JO%u$JO$JT$}$JT$JU%u$JU$KV$}$KV$KW%u$KW&FU$}&FU&FV%u&FV;'S$};'S;=`Lk<%lO$}W%QSOy%^z;'S%^;'S;=`%o<%lO%^W%cSoWOy%^z;'S%^;'S;=`%o<%lO%^W%rP;=`<%l%^~%zh#U~OX%^X^'f^p%^pq'fqy%^z#y%^#y#z'f#z$f%^$f$g'f$g#BY%^#BY#BZ'f#BZ$IS%^$IS$I_'f$I_$I|%^$I|$JO'f$JO$JT%^$JT$JU'f$JU$KV%^$KV$KW'f$KW&FU%^&FU&FV'f&FV;'S%^;'S;=`%o<%lO%^~'mh#U~oWOX%^X^'f^p%^pq'fqy%^z#y%^#y#z'f#z$f%^$f$g'f$g#BY%^#BY#BZ'f#BZ$IS%^$IS$I_'f$I_$I|%^$I|$JO'f$JO$JT%^$JT$JU'f$JU$KV%^$KV$KW'f$KW&FU%^&FU&FV'f&FV;'S%^;'S;=`%o<%lO%^^)[UOy%^z#]%^#]#^)n#^;'S%^;'S;=`%o<%lO%^^)sUoWOy%^z#a%^#a#b*V#b;'S%^;'S;=`%o<%lO%^^*[UoWOy%^z#d%^#d#e*n#e;'S%^;'S;=`%o<%lO%^^*sUoWOy%^z#c%^#c#d+V#d;'S%^;'S;=`%o<%lO%^^+[UoWOy%^z#f%^#f#g+n#g;'S%^;'S;=`%o<%lO%^^+sUoWOy%^z#h%^#h#i,V#i;'S%^;'S;=`%o<%lO%^^,[UoWOy%^z#T%^#T#U,n#U;'S%^;'S;=`%o<%lO%^^,sUoWOy%^z#b%^#b#c-V#c;'S%^;'S;=`%o<%lO%^^-[UoWOy%^z#h%^#h#i-n#i;'S%^;'S;=`%o<%lO%^^-uS!VUoWOy%^z;'S%^;'S;=`%o<%lO%^~.UWOY.RZr.Rrs.ns#O.R#O#P.s#P;'S.R;'S;=`/o<%lO.R~.sOh~~.vRO;'S.R;'S;=`/P;=`O.R~/SXOY.RZr.Rrs.ns#O.R#O#P.s#P;'S.R;'S;=`/o;=`<%l.R<%lO.R~/rP;=`<%l.R_/zYtPOy%^z!Q%^!Q![0j![!c%^!c!i0j!i#T%^#T#Z0j#Z;'S%^;'S;=`%o<%lO%^^0oYoWOy%^z!Q%^!Q![1_![!c%^!c!i1_!i#T%^#T#Z1_#Z;'S%^;'S;=`%o<%lO%^^1dYoWOy%^z!Q%^!Q![2S![!c%^!c!i2S!i#T%^#T#Z2S#Z;'S%^;'S;=`%o<%lO%^^2ZYfUoWOy%^z!Q%^!Q![2y![!c%^!c!i2y!i#T%^#T#Z2y#Z;'S%^;'S;=`%o<%lO%^^3QYfUoWOy%^z!Q%^!Q![3p![!c%^!c!i3p!i#T%^#T#Z3p#Z;'S%^;'S;=`%o<%lO%^^3uYoWOy%^z!Q%^!Q![4e![!c%^!c!i4e!i#T%^#T#Z4e#Z;'S%^;'S;=`%o<%lO%^^4lYfUoWOy%^z!Q%^!Q![5[![!c%^!c!i5[!i#T%^#T#Z5[#Z;'S%^;'S;=`%o<%lO%^^5aYoWOy%^z!Q%^!Q![6P![!c%^!c!i6P!i#T%^#T#Z6P#Z;'S%^;'S;=`%o<%lO%^^6WSfUoWOy%^z;'S%^;'S;=`%o<%lO%^Y6gUOy%^z!_%^!_!`6y!`;'S%^;'S;=`%o<%lO%^Y7QSzQoWOy%^z;'S%^;'S;=`%o<%lO%^X7cSXPOy%^z;'S%^;'S;=`%o<%lO%^~7rWOY7oZw7owx.nx#O7o#O#P8[#P;'S7o;'S;=`9W<%lO7o~8_RO;'S7o;'S;=`8h;=`O7o~8kXOY7oZw7owx.nx#O7o#O#P8[#P;'S7o;'S;=`9W;=`<%l7o<%lO7o~9ZP;=`<%l7o_9cSbVOy%^z;'S%^;'S;=`%o<%lO%^~9tOa~_9{UUPjSOy%^z!_%^!_!`6y!`;'S%^;'S;=`%o<%lO%^_:fWjS!PPOy%^z!O%^!O!P;O!P!Q%^!Q![>T![;'S%^;'S;=`%o<%lO%^^;TUoWOy%^z!Q%^!Q![;g![;'S%^;'S;=`%o<%lO%^^;nYoW#[UOy%^z!Q%^!Q![;g![!g%^!g!h<^!h#X%^#X#Y<^#Y;'S%^;'S;=`%o<%lO%^^<cYoWOy%^z{%^{|=R|}%^}!O=R!O!Q%^!Q![=j![;'S%^;'S;=`%o<%lO%^^=WUoWOy%^z!Q%^!Q![=j![;'S%^;'S;=`%o<%lO%^^=qUoW#[UOy%^z!Q%^!Q![=j![;'S%^;'S;=`%o<%lO%^^>[[oW#[UOy%^z!O%^!O!P;g!P!Q%^!Q![>T![!g%^!g!h<^!h#X%^#X#Y<^#Y;'S%^;'S;=`%o<%lO%^_?VSpVOy%^z;'S%^;'S;=`%o<%lO%^^?hWjSOy%^z!O%^!O!P;O!P!Q%^!Q![>T![;'S%^;'S;=`%o<%lO%^_@VU#XPOy%^z!Q%^!Q![;g![;'S%^;'S;=`%o<%lO%^~@nTjSOy%^z{@}{;'S%^;'S;=`%o<%lO%^~ASUoWOy@}yzAfz{Bm{;'S@};'S;=`Co<%lO@}~AiTOzAfz{Ax{;'SAf;'S;=`Bg<%lOAf~A{VOzAfz{Ax{!PAf!P!QBb!Q;'SAf;'S;=`Bg<%lOAf~BgOR~~BjP;=`<%lAf~BrWoWOy@}yzAfz{Bm{!P@}!P!QC[!Q;'S@};'S;=`Co<%lO@}~CcSoWR~Oy%^z;'S%^;'S;=`%o<%lO%^~CrP;=`<%l@}^Cz[#[UOy%^z!O%^!O!P;g!P!Q%^!Q![>T![!g%^!g!h<^!h#X%^#X#Y<^#Y;'S%^;'S;=`%o<%lO%^XDuU]POy%^z![%^![!]EX!];'S%^;'S;=`%o<%lO%^XE`S^PoWOy%^z;'S%^;'S;=`%o<%lO%^_EqS!WVOy%^z;'S%^;'S;=`%o<%lO%^YFSSzQOy%^z;'S%^;'S;=`%o<%lO%^XFeU|POy%^z!`%^!`!aFw!a;'S%^;'S;=`%o<%lO%^XGOS|PoWOy%^z;'S%^;'S;=`%o<%lO%^XG_WOy%^z!c%^!c!}Gw!}#T%^#T#oGw#o;'S%^;'S;=`%o<%lO%^XHO[!YPoWOy%^z}%^}!OGw!O!Q%^!Q![Gw![!c%^!c!}Gw!}#T%^#T#oGw#o;'S%^;'S;=`%o<%lO%^XHySxPOy%^z;'S%^;'S;=`%o<%lO%^^I[SvUOy%^z;'S%^;'S;=`%o<%lO%^XIkUOy%^z#b%^#b#cI}#c;'S%^;'S;=`%o<%lO%^XJSUoWOy%^z#W%^#W#XJf#X;'S%^;'S;=`%o<%lO%^XJmS!`PoWOy%^z;'S%^;'S;=`%o<%lO%^XJ|UOy%^z#f%^#f#gJf#g;'S%^;'S;=`%o<%lO%^XKeS!RPOy%^z;'S%^;'S;=`%o<%lO%^_KvS!QVOy%^z;'S%^;'S;=`%o<%lO%^ZLXU!PPOy%^z!_%^!_!`6y!`;'S%^;'S;=`%o<%lO%^WLnP;=`<%l$}",
+  tokenizers: [descendant, unitToken, identifiers, 0, 1, 2, 3],
+  topRules: { "StyleSheet": [0, 4], "Styles": [1, 84] },
+  specialized: [{ term: 95, get: (value) => spec_callee[value] || -1 }, { term: 56, get: (value) => spec_AtKeyword[value] || -1 }, { term: 96, get: (value) => spec_identifier[value] || -1 }],
+  tokenPrec: 1123
+});
+
+// node_modules/@codemirror/lang-css/dist/index.js
+var import_language4 = require("@codemirror/language");
+var import_common = require("@lezer/common");
+var _properties = null;
+function properties() {
+  if (!_properties && typeof document == "object" && document.body) {
+    let { style } = document.body, names = [], seen = /* @__PURE__ */ new Set();
+    for (let prop in style)
+      if (prop != "cssText" && prop != "cssFloat") {
+        if (typeof style[prop] == "string") {
+          if (/[A-Z]/.test(prop))
+            prop = prop.replace(/[A-Z]/g, (ch) => "-" + ch.toLowerCase());
+          if (!seen.has(prop)) {
+            names.push(prop);
+            seen.add(prop);
+          }
+        }
+      }
+    _properties = names.sort().map((name) => ({ type: "property", label: name }));
+  }
+  return _properties || [];
+}
+var pseudoClasses = /* @__PURE__ */ [
+  "active",
+  "after",
+  "any-link",
+  "autofill",
+  "backdrop",
+  "before",
+  "checked",
+  "cue",
+  "default",
+  "defined",
+  "disabled",
+  "empty",
+  "enabled",
+  "file-selector-button",
+  "first",
+  "first-child",
+  "first-letter",
+  "first-line",
+  "first-of-type",
+  "focus",
+  "focus-visible",
+  "focus-within",
+  "fullscreen",
+  "has",
+  "host",
+  "host-context",
+  "hover",
+  "in-range",
+  "indeterminate",
+  "invalid",
+  "is",
+  "lang",
+  "last-child",
+  "last-of-type",
+  "left",
+  "link",
+  "marker",
+  "modal",
+  "not",
+  "nth-child",
+  "nth-last-child",
+  "nth-last-of-type",
+  "nth-of-type",
+  "only-child",
+  "only-of-type",
+  "optional",
+  "out-of-range",
+  "part",
+  "placeholder",
+  "placeholder-shown",
+  "read-only",
+  "read-write",
+  "required",
+  "right",
+  "root",
+  "scope",
+  "selection",
+  "slotted",
+  "target",
+  "target-text",
+  "valid",
+  "visited",
+  "where"
+].map((name) => ({ type: "class", label: name }));
+var values = /* @__PURE__ */ [
+  "above",
+  "absolute",
+  "activeborder",
+  "additive",
+  "activecaption",
+  "after-white-space",
+  "ahead",
+  "alias",
+  "all",
+  "all-scroll",
+  "alphabetic",
+  "alternate",
+  "always",
+  "antialiased",
+  "appworkspace",
+  "asterisks",
+  "attr",
+  "auto",
+  "auto-flow",
+  "avoid",
+  "avoid-column",
+  "avoid-page",
+  "avoid-region",
+  "axis-pan",
+  "background",
+  "backwards",
+  "baseline",
+  "below",
+  "bidi-override",
+  "blink",
+  "block",
+  "block-axis",
+  "bold",
+  "bolder",
+  "border",
+  "border-box",
+  "both",
+  "bottom",
+  "break",
+  "break-all",
+  "break-word",
+  "bullets",
+  "button",
+  "button-bevel",
+  "buttonface",
+  "buttonhighlight",
+  "buttonshadow",
+  "buttontext",
+  "calc",
+  "capitalize",
+  "caps-lock-indicator",
+  "caption",
+  "captiontext",
+  "caret",
+  "cell",
+  "center",
+  "checkbox",
+  "circle",
+  "cjk-decimal",
+  "clear",
+  "clip",
+  "close-quote",
+  "col-resize",
+  "collapse",
+  "color",
+  "color-burn",
+  "color-dodge",
+  "column",
+  "column-reverse",
+  "compact",
+  "condensed",
+  "contain",
+  "content",
+  "contents",
+  "content-box",
+  "context-menu",
+  "continuous",
+  "copy",
+  "counter",
+  "counters",
+  "cover",
+  "crop",
+  "cross",
+  "crosshair",
+  "currentcolor",
+  "cursive",
+  "cyclic",
+  "darken",
+  "dashed",
+  "decimal",
+  "decimal-leading-zero",
+  "default",
+  "default-button",
+  "dense",
+  "destination-atop",
+  "destination-in",
+  "destination-out",
+  "destination-over",
+  "difference",
+  "disc",
+  "discard",
+  "disclosure-closed",
+  "disclosure-open",
+  "document",
+  "dot-dash",
+  "dot-dot-dash",
+  "dotted",
+  "double",
+  "down",
+  "e-resize",
+  "ease",
+  "ease-in",
+  "ease-in-out",
+  "ease-out",
+  "element",
+  "ellipse",
+  "ellipsis",
+  "embed",
+  "end",
+  "ethiopic-abegede-gez",
+  "ethiopic-halehame-aa-er",
+  "ethiopic-halehame-gez",
+  "ew-resize",
+  "exclusion",
+  "expanded",
+  "extends",
+  "extra-condensed",
+  "extra-expanded",
+  "fantasy",
+  "fast",
+  "fill",
+  "fill-box",
+  "fixed",
+  "flat",
+  "flex",
+  "flex-end",
+  "flex-start",
+  "footnotes",
+  "forwards",
+  "from",
+  "geometricPrecision",
+  "graytext",
+  "grid",
+  "groove",
+  "hand",
+  "hard-light",
+  "help",
+  "hidden",
+  "hide",
+  "higher",
+  "highlight",
+  "highlighttext",
+  "horizontal",
+  "hsl",
+  "hsla",
+  "hue",
+  "icon",
+  "ignore",
+  "inactiveborder",
+  "inactivecaption",
+  "inactivecaptiontext",
+  "infinite",
+  "infobackground",
+  "infotext",
+  "inherit",
+  "initial",
+  "inline",
+  "inline-axis",
+  "inline-block",
+  "inline-flex",
+  "inline-grid",
+  "inline-table",
+  "inset",
+  "inside",
+  "intrinsic",
+  "invert",
+  "italic",
+  "justify",
+  "keep-all",
+  "landscape",
+  "large",
+  "larger",
+  "left",
+  "level",
+  "lighter",
+  "lighten",
+  "line-through",
+  "linear",
+  "linear-gradient",
+  "lines",
+  "list-item",
+  "listbox",
+  "listitem",
+  "local",
+  "logical",
+  "loud",
+  "lower",
+  "lower-hexadecimal",
+  "lower-latin",
+  "lower-norwegian",
+  "lowercase",
+  "ltr",
+  "luminosity",
+  "manipulation",
+  "match",
+  "matrix",
+  "matrix3d",
+  "medium",
+  "menu",
+  "menutext",
+  "message-box",
+  "middle",
+  "min-intrinsic",
+  "mix",
+  "monospace",
+  "move",
+  "multiple",
+  "multiple_mask_images",
+  "multiply",
+  "n-resize",
+  "narrower",
+  "ne-resize",
+  "nesw-resize",
+  "no-close-quote",
+  "no-drop",
+  "no-open-quote",
+  "no-repeat",
+  "none",
+  "normal",
+  "not-allowed",
+  "nowrap",
+  "ns-resize",
+  "numbers",
+  "numeric",
+  "nw-resize",
+  "nwse-resize",
+  "oblique",
+  "opacity",
+  "open-quote",
+  "optimizeLegibility",
+  "optimizeSpeed",
+  "outset",
+  "outside",
+  "outside-shape",
+  "overlay",
+  "overline",
+  "padding",
+  "padding-box",
+  "painted",
+  "page",
+  "paused",
+  "perspective",
+  "pinch-zoom",
+  "plus-darker",
+  "plus-lighter",
+  "pointer",
+  "polygon",
+  "portrait",
+  "pre",
+  "pre-line",
+  "pre-wrap",
+  "preserve-3d",
+  "progress",
+  "push-button",
+  "radial-gradient",
+  "radio",
+  "read-only",
+  "read-write",
+  "read-write-plaintext-only",
+  "rectangle",
+  "region",
+  "relative",
+  "repeat",
+  "repeating-linear-gradient",
+  "repeating-radial-gradient",
+  "repeat-x",
+  "repeat-y",
+  "reset",
+  "reverse",
+  "rgb",
+  "rgba",
+  "ridge",
+  "right",
+  "rotate",
+  "rotate3d",
+  "rotateX",
+  "rotateY",
+  "rotateZ",
+  "round",
+  "row",
+  "row-resize",
+  "row-reverse",
+  "rtl",
+  "run-in",
+  "running",
+  "s-resize",
+  "sans-serif",
+  "saturation",
+  "scale",
+  "scale3d",
+  "scaleX",
+  "scaleY",
+  "scaleZ",
+  "screen",
+  "scroll",
+  "scrollbar",
+  "scroll-position",
+  "se-resize",
+  "self-start",
+  "self-end",
+  "semi-condensed",
+  "semi-expanded",
+  "separate",
+  "serif",
+  "show",
+  "single",
+  "skew",
+  "skewX",
+  "skewY",
+  "skip-white-space",
+  "slide",
+  "slider-horizontal",
+  "slider-vertical",
+  "sliderthumb-horizontal",
+  "sliderthumb-vertical",
+  "slow",
+  "small",
+  "small-caps",
+  "small-caption",
+  "smaller",
+  "soft-light",
+  "solid",
+  "source-atop",
+  "source-in",
+  "source-out",
+  "source-over",
+  "space",
+  "space-around",
+  "space-between",
+  "space-evenly",
+  "spell-out",
+  "square",
+  "start",
+  "static",
+  "status-bar",
+  "stretch",
+  "stroke",
+  "stroke-box",
+  "sub",
+  "subpixel-antialiased",
+  "svg_masks",
+  "super",
+  "sw-resize",
+  "symbolic",
+  "symbols",
+  "system-ui",
+  "table",
+  "table-caption",
+  "table-cell",
+  "table-column",
+  "table-column-group",
+  "table-footer-group",
+  "table-header-group",
+  "table-row",
+  "table-row-group",
+  "text",
+  "text-bottom",
+  "text-top",
+  "textarea",
+  "textfield",
+  "thick",
+  "thin",
+  "threeddarkshadow",
+  "threedface",
+  "threedhighlight",
+  "threedlightshadow",
+  "threedshadow",
+  "to",
+  "top",
+  "transform",
+  "translate",
+  "translate3d",
+  "translateX",
+  "translateY",
+  "translateZ",
+  "transparent",
+  "ultra-condensed",
+  "ultra-expanded",
+  "underline",
+  "unidirectional-pan",
+  "unset",
+  "up",
+  "upper-latin",
+  "uppercase",
+  "url",
+  "var",
+  "vertical",
+  "vertical-text",
+  "view-box",
+  "visible",
+  "visibleFill",
+  "visiblePainted",
+  "visibleStroke",
+  "visual",
+  "w-resize",
+  "wait",
+  "wave",
+  "wider",
+  "window",
+  "windowframe",
+  "windowtext",
+  "words",
+  "wrap",
+  "wrap-reverse",
+  "x-large",
+  "x-small",
+  "xor",
+  "xx-large",
+  "xx-small"
+].map((name) => ({ type: "keyword", label: name })).concat(/* @__PURE__ */ [
+  "aliceblue",
+  "antiquewhite",
+  "aqua",
+  "aquamarine",
+  "azure",
+  "beige",
+  "bisque",
+  "black",
+  "blanchedalmond",
+  "blue",
+  "blueviolet",
+  "brown",
+  "burlywood",
+  "cadetblue",
+  "chartreuse",
+  "chocolate",
+  "coral",
+  "cornflowerblue",
+  "cornsilk",
+  "crimson",
+  "cyan",
+  "darkblue",
+  "darkcyan",
+  "darkgoldenrod",
+  "darkgray",
+  "darkgreen",
+  "darkkhaki",
+  "darkmagenta",
+  "darkolivegreen",
+  "darkorange",
+  "darkorchid",
+  "darkred",
+  "darksalmon",
+  "darkseagreen",
+  "darkslateblue",
+  "darkslategray",
+  "darkturquoise",
+  "darkviolet",
+  "deeppink",
+  "deepskyblue",
+  "dimgray",
+  "dodgerblue",
+  "firebrick",
+  "floralwhite",
+  "forestgreen",
+  "fuchsia",
+  "gainsboro",
+  "ghostwhite",
+  "gold",
+  "goldenrod",
+  "gray",
+  "grey",
+  "green",
+  "greenyellow",
+  "honeydew",
+  "hotpink",
+  "indianred",
+  "indigo",
+  "ivory",
+  "khaki",
+  "lavender",
+  "lavenderblush",
+  "lawngreen",
+  "lemonchiffon",
+  "lightblue",
+  "lightcoral",
+  "lightcyan",
+  "lightgoldenrodyellow",
+  "lightgray",
+  "lightgreen",
+  "lightpink",
+  "lightsalmon",
+  "lightseagreen",
+  "lightskyblue",
+  "lightslategray",
+  "lightsteelblue",
+  "lightyellow",
+  "lime",
+  "limegreen",
+  "linen",
+  "magenta",
+  "maroon",
+  "mediumaquamarine",
+  "mediumblue",
+  "mediumorchid",
+  "mediumpurple",
+  "mediumseagreen",
+  "mediumslateblue",
+  "mediumspringgreen",
+  "mediumturquoise",
+  "mediumvioletred",
+  "midnightblue",
+  "mintcream",
+  "mistyrose",
+  "moccasin",
+  "navajowhite",
+  "navy",
+  "oldlace",
+  "olive",
+  "olivedrab",
+  "orange",
+  "orangered",
+  "orchid",
+  "palegoldenrod",
+  "palegreen",
+  "paleturquoise",
+  "palevioletred",
+  "papayawhip",
+  "peachpuff",
+  "peru",
+  "pink",
+  "plum",
+  "powderblue",
+  "purple",
+  "rebeccapurple",
+  "red",
+  "rosybrown",
+  "royalblue",
+  "saddlebrown",
+  "salmon",
+  "sandybrown",
+  "seagreen",
+  "seashell",
+  "sienna",
+  "silver",
+  "skyblue",
+  "slateblue",
+  "slategray",
+  "snow",
+  "springgreen",
+  "steelblue",
+  "tan",
+  "teal",
+  "thistle",
+  "tomato",
+  "turquoise",
+  "violet",
+  "wheat",
+  "white",
+  "whitesmoke",
+  "yellow",
+  "yellowgreen"
+].map((name) => ({ type: "constant", label: name })));
+var tags2 = /* @__PURE__ */ [
+  "a",
+  "abbr",
+  "address",
+  "article",
+  "aside",
+  "b",
+  "bdi",
+  "bdo",
+  "blockquote",
+  "body",
+  "br",
+  "button",
+  "canvas",
+  "caption",
+  "cite",
+  "code",
+  "col",
+  "colgroup",
+  "dd",
+  "del",
+  "details",
+  "dfn",
+  "dialog",
+  "div",
+  "dl",
+  "dt",
+  "em",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "header",
+  "hgroup",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "hr",
+  "html",
+  "i",
+  "iframe",
+  "img",
+  "input",
+  "ins",
+  "kbd",
+  "label",
+  "legend",
+  "li",
+  "main",
+  "meter",
+  "nav",
+  "ol",
+  "output",
+  "p",
+  "pre",
+  "ruby",
+  "section",
+  "select",
+  "small",
+  "source",
+  "span",
+  "strong",
+  "sub",
+  "summary",
+  "sup",
+  "table",
+  "tbody",
+  "td",
+  "template",
+  "textarea",
+  "tfoot",
+  "th",
+  "thead",
+  "tr",
+  "u",
+  "ul"
+].map((name) => ({ type: "type", label: name }));
+var identifier2 = /^(\w[\w-]*|-\w[\w-]*|)$/;
+var variable = /^-(-[\w-]*)?$/;
+function isVarArg(node, doc) {
+  var _a;
+  if (node.name == "(" || node.type.isError)
+    node = node.parent || node;
+  if (node.name != "ArgList")
+    return false;
+  let callee2 = (_a = node.parent) === null || _a === void 0 ? void 0 : _a.firstChild;
+  if ((callee2 === null || callee2 === void 0 ? void 0 : callee2.name) != "Callee")
+    return false;
+  return doc.sliceString(callee2.from, callee2.to) == "var";
+}
+var VariablesByNode = /* @__PURE__ */ new import_common.NodeWeakMap();
+var declSelector = ["Declaration"];
+function astTop(node) {
+  for (let cur2 = node; ; ) {
+    if (cur2.type.isTop)
+      return cur2;
+    if (!(cur2 = cur2.parent))
+      return node;
+  }
+}
+function variableNames(doc, node, isVariable) {
+  if (node.to - node.from > 4096) {
+    let known = VariablesByNode.get(node);
+    if (known)
+      return known;
+    let result = [], seen = /* @__PURE__ */ new Set(), cursor = node.cursor(import_common.IterMode.IncludeAnonymous);
+    if (cursor.firstChild())
+      do {
+        for (let option of variableNames(doc, cursor.node, isVariable))
+          if (!seen.has(option.label)) {
+            seen.add(option.label);
+            result.push(option);
+          }
+      } while (cursor.nextSibling());
+    VariablesByNode.set(node, result);
+    return result;
+  } else {
+    let result = [], seen = /* @__PURE__ */ new Set();
+    node.cursor().iterate((node2) => {
+      var _a;
+      if (isVariable(node2) && node2.matchContext(declSelector) && ((_a = node2.node.nextSibling) === null || _a === void 0 ? void 0 : _a.name) == ":") {
+        let name = doc.sliceString(node2.from, node2.to);
+        if (!seen.has(name)) {
+          seen.add(name);
+          result.push({ label: name, type: "variable" });
+        }
+      }
+    });
+    return result;
+  }
+}
+var defineCSSCompletionSource = (isVariable) => (context) => {
+  let { state, pos } = context, node = (0, import_language4.syntaxTree)(state).resolveInner(pos, -1);
+  let isDash = node.type.isError && node.from == node.to - 1 && state.doc.sliceString(node.from, node.to) == "-";
+  if (node.name == "PropertyName" || (isDash || node.name == "TagName") && /^(Block|Styles)$/.test(node.resolve(node.to).name))
+    return { from: node.from, options: properties(), validFor: identifier2 };
+  if (node.name == "ValueName")
+    return { from: node.from, options: values, validFor: identifier2 };
+  if (node.name == "PseudoClassName")
+    return { from: node.from, options: pseudoClasses, validFor: identifier2 };
+  if (isVariable(node) || (context.explicit || isDash) && isVarArg(node, state.doc))
+    return {
+      from: isVariable(node) || isDash ? node.from : pos,
+      options: variableNames(state.doc, astTop(node), isVariable),
+      validFor: variable
+    };
+  if (node.name == "TagName") {
+    for (let { parent } = node; parent; parent = parent.parent)
+      if (parent.name == "Block")
+        return { from: node.from, options: properties(), validFor: identifier2 };
+    return { from: node.from, options: tags2, validFor: identifier2 };
+  }
+  if (!context.explicit)
+    return null;
+  let above = node.resolve(pos), before = above.childBefore(pos);
+  if (before && before.name == ":" && above.name == "PseudoClassSelector")
+    return { from: pos, options: pseudoClasses, validFor: identifier2 };
+  if (before && before.name == ":" && above.name == "Declaration" || above.name == "ArgList")
+    return { from: pos, options: values, validFor: identifier2 };
+  if (above.name == "Block" || above.name == "Styles")
+    return { from: pos, options: properties(), validFor: identifier2 };
+  return null;
+};
+var cssLanguage = /* @__PURE__ */ import_language4.LRLanguage.define({
+  name: "css",
+  parser: /* @__PURE__ */ parser.configure({
+    props: [
+      /* @__PURE__ */ import_language4.indentNodeProp.add({
+        Declaration: /* @__PURE__ */ (0, import_language4.continuedIndent)()
+      }),
+      /* @__PURE__ */ import_language4.foldNodeProp.add({
+        Block: import_language4.foldInside
+      })
+    ]
+  }),
+  languageData: {
+    commentTokens: { block: { open: "/*", close: "*/" } },
+    indentOnInput: /^\s*\}$/,
+    wordChars: "-"
+  }
+});
+
+// src/codemirror-extensions/reconfigured-css.ts
+var import_language5 = require("@codemirror/language");
+var import_common2 = require("@lezer/common");
+var ClassSelectorCtx = ["ClassSelector"];
+var IdSelectorCtx = ["IdSelector"];
+var SelectorsByNode = {
+  ["class" /* CLASS */]: new import_common2.NodeWeakMap(),
+  ["id" /* ID */]: new import_common2.NodeWeakMap()
+};
+var Identifier = /^(\w[\w-]*|-\w[\w-]*|)$/;
+function getASTTop(node) {
+  for (let cur2 = node; ; ) {
+    if (cur2.type.isTop)
+      return cur2;
+    if (!(cur2 = cur2.parent))
+      return node;
+  }
+}
+function isSelectorIdentifier(node) {
+  if (node.name == "ClassName")
+    return "class" /* CLASS */;
+  if (node.name == "IdName")
+    return "id" /* ID */;
+  return false;
+}
+function touchSelection(selection, range) {
+  return selection.ranges.findIndex(
+    (selRange) => selRange.from <= range.to && selRange.to >= range.from
+  ) >= 0;
+}
+function getSelectorNames(state, node, type) {
+  if (node.to - node.from > 4096) {
+    const known = SelectorsByNode[type].get(node);
+    if (known)
+      return known;
+    const result = [], seen = /* @__PURE__ */ new Set(), cursor = node.cursor(import_common2.IterMode.IncludeAnonymous);
+    if (cursor.firstChild())
+      do {
+        for (const option of getSelectorNames(state, cursor.node, type))
+          if (!seen.has(option.label)) {
+            seen.add(option.label);
+            result.push(option);
+          }
+      } while (cursor.nextSibling());
+    SelectorsByNode[type].set(node, result);
+    return result;
+  } else {
+    const result = [], seen = /* @__PURE__ */ new Set(), { doc, selection } = state;
+    node.cursor().iterate((node2) => {
+      if (type == isSelectorIdentifier(node2) && !touchSelection(selection, node2)) {
+        const name = doc.sliceString(node2.from, node2.to);
+        if (!seen.has(name)) {
+          seen.add(name);
+          result.push({ label: name, type: "variable" });
+        }
+      }
+    });
+    return result;
+  }
+}
+var cssCompletionSource = (context) => {
+  let result = defineCSSCompletionSource((node) => node.name == "VariableName")(context);
+  if (!result) {
+    const { state, pos } = context, node = (0, import_language5.syntaxTree)(state).resolveInner(pos, -1);
+    if (node.matchContext(ClassSelectorCtx)) {
+      const isDot = node.name == ".";
+      result = {
+        from: isDot ? node.to : node.from,
+        options: getSelectorNames(state, getASTTop(node), "class" /* CLASS */),
+        validFor: Identifier
+      };
+    } else if (node.matchContext(IdSelectorCtx)) {
+      const isHash = node.name == "#";
+      result = {
+        from: isHash ? node.to : node.from,
+        options: getSelectorNames(state, getASTTop(node), "id" /* ID */),
+        validFor: Identifier
+      };
+    }
+  }
+  return result;
+};
+var css = () => new import_language5.LanguageSupport(cssLanguage, cssLanguage.data.of({ autocomplete: cssCompletionSource }));
+
+// src/codemirror-extensions/highlight-active-line.ts
+var import_view4 = require("@codemirror/view");
+function highlightActiveLine() {
+  return activeLineLayer;
+}
+var activeLineLayer = (0, import_view4.layer)({
+  above: false,
+  class: "cm-activeLineLayer",
+  markers(view) {
+    const selection = view.state.selection, markers = [], paddingTop = view.documentPadding.top, { width, left: contentLeft } = view.contentDOM.getBoundingClientRect(), { left: scrollerLeft } = view.scrollDOM.getBoundingClientRect();
+    for (const range of selection.ranges) {
+      const { top, height } = view.lineBlockAt(range.head), layer2 = new import_view4.RectangleMarker("cm-activeLine", contentLeft - scrollerLeft, top + paddingTop, width, height);
+      markers.push(layer2);
+    }
+    return markers;
+  },
+  update(update) {
+    return update.docChanged || update.selectionSet || update.viewportChanged || update.geometryChanged;
+  }
+});
 
 // src/codemirror-extensions/basic-extensions.ts
 var basicExtensions = [
-  import_view4.keymap.of([
+  import_view5.keymap.of([
     ...closeBracketsKeymap,
     // "{|}" -> backspace -> "|"
     ...import_commands2.defaultKeymap,
     ...import_search2.searchKeymap,
     ...import_commands2.historyKeymap,
     import_commands2.indentWithTab,
-    ...import_language5.foldKeymap,
+    ...import_language6.foldKeymap,
     ...completionKeymap,
     ...import_lint.lintKeymap
   ]),
   (0, import_commands2.history)(),
   css(),
-  (0, import_language5.foldGutter)(),
-  (0, import_view4.dropCursor)(),
+  (0, import_view5.lineNumbers)(),
+  (0, import_language6.foldGutter)(),
+  (0, import_view5.highlightActiveLineGutter)(),
+  (0, import_view5.dropCursor)(),
+  (0, import_view5.drawSelection)({ drawRangeCursor: true }),
   import_state3.EditorState.allowMultipleSelections.of(true),
-  (0, import_language5.indentOnInput)(),
-  import_view4.EditorView.lineWrapping,
-  (0, import_language5.bracketMatching)(),
+  highlightActiveLine(),
+  (0, import_language6.indentOnInput)(),
+  (0, import_language6.bracketMatching)(),
   autocompletion(),
   closeBrackets(),
   (0, import_search2.highlightSelectionMatches)(),
   obsidian
 ].filter((ext) => ext);
 
+// src/codemirror-extensions/compartments.ts
+var import_state4 = require("@codemirror/state");
+var lineWrap = new import_state4.Compartment();
+var indentSize = new import_state4.Compartment();
+
 // src/views/CssEditorView.ts
+var import_language7 = require("@codemirror/language");
 var VIEW_TYPE_CSS = "css-editor-view";
 var CssEditorView = class extends import_obsidian2.ItemView {
-  constructor(leaf) {
+  constructor(leaf, plugin) {
     var _a, _b;
     super(leaf);
     this.file = null;
     this.requestSave = (0, import_obsidian2.debounce)(this.save, 1e3);
+    const { settings } = plugin;
     this.navigation = true;
-    this.editor = new import_view5.EditorView({
+    this.editor = new import_view6.EditorView({
       parent: this.contentEl,
       extensions: [
         basicExtensions,
+        lineWrap.of(settings.lineWrap ? import_view6.EditorView.lineWrapping : []),
+        indentSize.of(import_language7.indentUnit.of("".padEnd(settings.indentSize))),
         ((_b = (_a = this.app.vault).getConfig) == null ? void 0 : _b.call(_a, "vimMode")) ? vim() : [],
-        import_view5.EditorView.updateListener.of((update) => {
+        import_view6.EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.requestSave(update.state.doc.toString());
             if (this.file) {
@@ -9995,6 +10118,9 @@ var CssEditorView = class extends import_obsidian2.ItemView {
   }
   getEditorData() {
     return this.editor.state.doc.toString();
+  }
+  dispatchEditorTransaction(...specs) {
+    this.editor.dispatch(...specs);
   }
   dispatchEditorData(data) {
     this.editor.dispatch({
@@ -10398,9 +10524,57 @@ var CssSnippetCreateModal = class extends import_obsidian6.Modal {
   }
 };
 
+// src/obsidian/setting-tab.ts
+var import_language8 = require("@codemirror/language");
+var import_view7 = require("@codemirror/view");
+var import_obsidian7 = require("obsidian");
+function updateCSSEditorView(app, spec) {
+  app.workspace.getLeavesOfType(VIEW_TYPE_CSS).forEach((leaf) => {
+    if (leaf.view instanceof CssEditorView) {
+      leaf.view.dispatchEditorTransaction(spec);
+    }
+  });
+}
+var CSSEditorSettingTab = class extends import_obsidian7.PluginSettingTab {
+  constructor(app, plugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+  display() {
+    this.containerEl.empty();
+    new import_obsidian7.Setting(this.containerEl).setName("Line wrap").setDesc("Toggle line wrap in the editor.").addToggle((toggle) => {
+      toggle.setValue(this.plugin.settings.lineWrap);
+      toggle.onChange((val) => {
+        this.plugin.settings.lineWrap = val;
+        this.plugin.saveSettings();
+        updateCSSEditorView(this.app, {
+          effects: lineWrap.reconfigure(val ? import_view7.EditorView.lineWrapping : [])
+        });
+      });
+    });
+    new import_obsidian7.Setting(this.containerEl).setName("Indent size").setDesc("Adjust the amount of spaces used for indentation.").addText((field) => {
+      field.setPlaceholder("2");
+      field.setValue(this.plugin.settings.indentSize.toString());
+      field.onChange((val) => {
+        val = val.replace(/\D/g, "");
+        field.setValue(val);
+        const size = parseInt(val);
+        this.plugin.settings.indentSize = size;
+        this.plugin.saveSettings();
+        updateCSSEditorView(this.app, {
+          effects: indentSize.reconfigure(import_language8.indentUnit.of("".padEnd(size)))
+        });
+      });
+    });
+  }
+};
+
 // src/main.ts
-var DEFAULT_SETTINGS = {};
-var CssEditorPlugin = class extends import_obsidian7.Plugin {
+var DEFAULT_SETTINGS = {
+  lineWrap: true,
+  indentSize: 2
+};
+var CssEditorPlugin = class extends import_obsidian8.Plugin {
   async onload() {
     await this.loadSettings();
     this.addCommand({
@@ -10463,7 +10637,9 @@ var CssEditorPlugin = class extends import_obsidian7.Plugin {
         () => !!this.app.workspace.getActiveViewOfType(CssEditorView)
       )
     );
-    this.registerView(VIEW_TYPE_CSS, (leaf) => new CssEditorView(leaf));
+    this.registerView(VIEW_TYPE_CSS, (leaf) => new CssEditorView(leaf, this));
+    this.settingTab = new CSSEditorSettingTab(this.app, this);
+    this.addSettingTab(this.settingTab);
   }
   onunload() {
   }

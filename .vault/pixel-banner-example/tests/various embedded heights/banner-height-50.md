@@ -1,6 +1,6 @@
 ---
 icon: 👁️
-banner: "[[file-folders.png]]"
+banner: "[[pixel-banner-images/file-folders.jpg]]"
 banner-height: 50
 content-start: 50
 icon-size: "50"

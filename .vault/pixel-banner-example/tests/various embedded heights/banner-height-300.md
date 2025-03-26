@@ -1,6 +1,6 @@
 ---
 icon: "😷"
-banner: "[[file-folders.png]]"
+banner: "[[file-folders.jpg]]"
 banner-height: 300
 content-start: 300
 icon-y: -50

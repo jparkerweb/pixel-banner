@@ -2,6 +2,7 @@
 banner-shuffle: shuffle-images
 banner-y: 10
 banner-height: 350
+icon: 😂
 ---
 # Add some Shuffle via Frontmatter ✨
 .

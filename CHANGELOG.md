@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.2.2 - 2025-03-26
+#### 🐛 Fixed
+- Fix alignment of the "prompt" text area on the `Generate with AI` modal
+
 ### v3.2.1 - 2025-03-26
 #### 🐛 Fixed
 - Resolved issue with the `content start` position of a Note without a banner
