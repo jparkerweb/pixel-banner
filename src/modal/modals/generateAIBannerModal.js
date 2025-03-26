@@ -658,7 +658,18 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         
-        const promptControl = promptContainer.createDiv({ cls: 'setting-item-control width-100 margin-top-10 flex-column' });
+        const promptControl = promptContainer.createDiv({
+            cls: 'setting-item-control',
+            attr: {
+                'style': `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    margin-top: 10px !important;
+                    width: 100% !important;
+                `
+            }
+        });
         const promptInput = promptControl.createEl('textarea', {
             cls: 'full-width-input',
             attr: {
