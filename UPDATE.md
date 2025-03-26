@@ -3,6 +3,10 @@
 </a>
 
 ## 🎉 What's New
+### v3.2.1 - 2025-03-26
+#### 🐛 Fixed
+- Resolved issue with the `content start` position of a Note without a banner
+
 ### v3.2.0 - 2025-03-25
 #### ✨ Added
 - Basic "Banner View" to hover previews
