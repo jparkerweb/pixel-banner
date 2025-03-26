@@ -506,6 +506,19 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     
     if (!isEmbedded && !bannerImage) {
         contentEl.classList.remove('pixel-banner');
+
+        // cleanup padding-top from preview & source sizers
+        const previewSizer = contentEl.querySelector('.markdown-preview-sizer');
+        if (previewSizer) {
+            // Remove only the 'padding-top' inline style from previewSizer
+            previewSizer.style.removeProperty('padding-top');
+        }
+        const sourceSizer = contentEl.querySelector('.cm-sizer');
+        if (sourceSizer) {
+            // Remove only the 'padding-top' inline style from sourceSizer
+            sourceSizer.style.removeProperty('padding-top');
+        }
+        
         if (existingBanner) {
             existingBanner.style.backgroundImage = '';
             existingBanner.style.display = 'none';

@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.2.1 - 2025-03-26
+#### 🐛 Fixed
+- Resolved issue with the `content start` position of a Note without a banner
+
 ### v3.2.0 - 2025-03-25
 #### ✨ Added
 - Basic "Banner View" to hover previews
@@ -15,7 +19,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 #### 🐛 Fixed
 - Resolved issue with the "Set Banner Icon" & "Adjust Position, Size & Style" buttons being disabled if the note was set to use a `shuffle banner`
-- Adjusted style to accomidate for mobile screen sizes
+- Adjusted style to accommodate for mobile screen sizes
 
 ### v3.1.0 - 2025-03-22
 #### ✨ Added
