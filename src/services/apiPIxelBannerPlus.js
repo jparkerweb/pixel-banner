@@ -34,7 +34,7 @@ async function verifyPixelBannerPlusCredentials(plugin) {
         return { serverOnline: true, verified: false, bannerTokens: 0 };
     } catch (error) {
         console.error('Failed to verify Pixel Banner Plus credentials:', error);
-        
+
         // Check for connection/network errors specifically
         const errorMessage = error.message.toLowerCase();
         const errorName = error.name.toLowerCase();
@@ -46,11 +46,15 @@ async function verifyPixelBannerPlusCredentials(plugin) {
                                   errorMessage.startsWith('err_') ||
                                   !navigator.onLine;
 
+        // If we get a 401, the server is online but credentials are invalid
+        const isUnauthorized = errorMessage.includes('401') || errorMessage.includes('unauthorized');
+
         console.log(`pixel banner plus error.message: ${error.message}`);
         console.log(`pixel banner plus isConnectionError: ${isConnectionError}`);
+        console.log(`pixel banner plus isUnauthorized: ${isUnauthorized}`);
         
         return { 
-            serverOnline: !isConnectionError, 
+            serverOnline: !isConnectionError || isUnauthorized, 
             verified: false, 
             bannerTokens: 0
         };
