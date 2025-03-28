@@ -2,6 +2,11 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.2.3 - 2025-03-28
+#### 📦 Updated
+- improved server connection check logic
+- remove unnecessary server calls for store banner voting
+
 ### v3.2.2 - 2025-03-26
 #### 🐛 Fixed
 - Fix alignment of the "prompt" text area on the `Generate with AI` modal
