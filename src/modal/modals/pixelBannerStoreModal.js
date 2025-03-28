@@ -707,12 +707,31 @@ export class PixelBannerStoreModal extends Modal {
         // Get all valid image IDs for the current view
         const imageIds = images.map(image => image.id || image.imageId || image.bannerId).filter(id => id && id !== 'unknown');
         
-        // Fetch vote stats for all images in the current view
+        // Store vote data from images array
         if (this.plugin.pixelBannerPlusEnabled && imageIds.length > 0) {
-            // First fetch vote statistics
-            this.fetchVoteStatsForImages(imageIds);
-            // Then fetch user votes to apply active classes
-            this.fetchUserVotesForImages(imageIds);
+            images.forEach(image => {
+                const id = image.id || image.imageId || image.bannerId;
+                if (!id || id === 'unknown') return;
+
+                // Store vote stats
+                this.voteStats[id] = {
+                    upvotes: image.upvotes || 0,
+                    downvotes: image.downvotes || 0,
+                    total: image.vote_score || 0
+                };
+
+                // Store user vote
+                if (image.user_vote === 1 || image.user_vote === 'up') {
+                    this.userVotes[id] = 'up';
+                } else if (image.user_vote === -1 || image.user_vote === 'down') {
+                    this.userVotes[id] = 'down';
+                } else {
+                    this.userVotes[id] = null;
+                }
+
+                // Update the display
+                this.updateVoteDisplay(id);
+            });
         }
         
         // Display images
@@ -991,93 +1010,6 @@ export class PixelBannerStoreModal extends Modal {
         }
     }
 
-    // Fetch vote stats for multiple images
-    async fetchVoteStatsForImages(imageIds) {
-        if (!imageIds || imageIds.length === 0) return;
-        
-        try {
-            for (const id of imageIds) {
-                const endpoint = PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_VOTES_STATS.replace(':id', id);
-                const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${endpoint}`, {
-                    headers: {
-                        'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
-                        'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    // Store the vote stats
-                    this.voteStats[id] = {
-                        upvotes: data.upvotes || 0,
-                        downvotes: data.downvotes || 0,
-                        total: (data.upvotes || 0) - (data.downvotes || 0)
-                    };
-                    
-                    // Update the display for this banner
-                    this.updateVoteDisplay(id);
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching vote stats:', error);
-        }
-    }
-    
-    // Fetch user's votes for multiple images
-    async fetchUserVotesForImages(imageIds) {
-        if (!imageIds || imageIds.length === 0 || !this.plugin.pixelBannerPlusEnabled) {
-            return;
-        }
-        
-        try {
-            for (const id of imageIds) {
-                try {
-                    const endpoint = PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_VOTES_USER_VOTE.replace(':id', id);
-                    const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${endpoint}`, {
-                        headers: {
-                            'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
-                            'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
-                            'Accept': 'application/json'
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        
-                        // Handle different response formats
-                        // Sometimes the API returns a string 'up'/'down', sometimes numeric 1/-1
-                        if (data.vote === 'up' || data.vote === 1) {
-                            this.userVotes[id] = 'up';
-                        } else if (data.vote === 'down' || data.vote === -1) {
-                            this.userVotes[id] = 'down';
-                        } else {
-                            this.userVotes[id] = null;
-                        }
-                        
-                        // Update the display for this banner
-                        this.updateVoteDisplay(id);
-                    } else {
-                        console.error(`Error fetching user vote for banner ${id}: ${response.status}`);
-                        // Set default value if there's an error
-                        this.userVotes[id] = null;
-                    }
-                } catch (error) {
-                    console.error(`Error processing vote for banner ${id}:`, error);
-                    // Continue with next image even if one fails
-                    this.userVotes[id] = null;
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching user votes:', error);
-        } finally {
-            // Once all votes are fetched, update all displays one more time
-            for (const id of imageIds) {
-                this.updateVoteDisplay(id);
-            }
-        }
-    }
-    
     // Update vote display for a specific banner
     updateVoteDisplay(bannerId) {
         if (!bannerId) return;

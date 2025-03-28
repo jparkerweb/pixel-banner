@@ -78,7 +78,7 @@ Enhance your Obsidian experience with beautiful, intelligent banners that make y
 ### 🎉 Happy Pixel Bannering 🤣
 
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
-  <img src="https://pixel-banner.online/img/pixel-banner-logo-v3.jpg" alt="Pixel Banner" style="max-width: 400px;">
+  <img src="https://pixel-banner.online/img/pixel-banner-logo-v3-trimmed.jpg" alt="Pixel Banner" style="max-width: 400px;">
 </a>
 
 ---

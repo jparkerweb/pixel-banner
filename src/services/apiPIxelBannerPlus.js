@@ -34,19 +34,27 @@ async function verifyPixelBannerPlusCredentials(plugin) {
         return { serverOnline: true, verified: false, bannerTokens: 0 };
     } catch (error) {
         console.error('Failed to verify Pixel Banner Plus credentials:', error);
-        
+
         // Check for connection/network errors specifically
-        const isConnectionError = error.name === 'TypeError' || 
-                                  error.message.includes('Network Error') ||
-                                  error.message.includes('Failed to fetch') ||
-                                  error.message.includes('network') ||
+        const errorMessage = error.message.toLowerCase();
+        const errorName = error.name.toLowerCase();
+        const isConnectionError = errorName === 'typeerror' || 
+                                  errorName === 'error' ||
+                                  errorMessage.includes('network error') ||
+                                  errorMessage.includes('failed to fetch') ||
+                                  errorMessage.includes('network') ||
+                                  errorMessage.startsWith('err_') ||
                                   !navigator.onLine;
 
-        // console.log(`error.message: ${error.message}`);
-        // console.log(`isConnectionError: ${isConnectionError}`);
+        // If we get a 401, the server is online but credentials are invalid
+        const isUnauthorized = errorMessage.includes('401') || errorMessage.includes('unauthorized');
+
+        console.log(`pixel banner plus error.message: ${error.message}`);
+        console.log(`pixel banner plus isConnectionError: ${isConnectionError}`);
+        console.log(`pixel banner plus isUnauthorized: ${isUnauthorized}`);
         
         return { 
-            serverOnline: !isConnectionError, 
+            serverOnline: !isConnectionError || isUnauthorized, 
             verified: false, 
             bannerTokens: 0
         };
@@ -57,18 +65,22 @@ async function verifyPixelBannerPlusCredentials(plugin) {
 // -- Get Pixel Banner Plus Info -- //
 // -------------------------------- //
 async function getPixelBannerInfo() {
-    const response = await makeRequest(
-        `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.INFO}`,
-        {
-            method: 'GET',
-        }
-    );
+    try {
+        const response = await makeRequest(
+            `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.INFO}`,
+            {
+                method: 'GET',
+            }
+        );
 
-    if (response.status === 200) {
-        const data = response.json;
-        return {
-            version: data.version,
-        };
+        if (response.status === 200) {
+            const data = response.json;
+            return {
+                version: data.version,
+            };
+        }
+    } catch (error) {
+        console.error('Failed to get Pixel Banner Plus info:', error);
     }
     return { version: '0.0.0' };
 }
