@@ -1,7 +1,7 @@
 import { Modal, MarkdownView } from 'obsidian';
 import {
     ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal,
-    EmojiSelectionModal, TargetPositionModal, WebAddressModal
+    EmojiSelectionModal, TargetPositionModal, WebAddressModal, DailyGameModal
 } from '../modals';
 import { flags } from '../../resources/flags.js';
 import { semver } from '../../utils/semver.js';
@@ -576,6 +576,17 @@ export class SelectPixelBannerModal extends Modal {
             versionInfo.addEventListener('click', openCommunityPlugins);
         }
 
+
+        // add button to open daily game modal
+        const dailyGameButton = accountInfo.createEl('button', {
+            cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
+            text: '🎮 Play Daily Game'
+        });
+        dailyGameButton.addEventListener('click', () => {
+            this.close();
+            new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey).open();
+        });
+        
         // Add styles
         this.addStyle();
         
