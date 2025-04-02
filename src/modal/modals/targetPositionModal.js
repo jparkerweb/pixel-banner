@@ -755,7 +755,6 @@ export class TargetPositionModal extends Modal {
                     if (refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
                         hasBannerIcon = true;
                     }
-                    console.log('hasBannerIcon after delay', hasBannerIcon);
                     resolve();
                 }, 400);
             });
