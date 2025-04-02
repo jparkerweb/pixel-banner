@@ -157,7 +157,7 @@ export class EmojiSelectionModal extends Modal {
                         setTimeout(() => {
                             this.app.metadataCache.off('changed', eventRef);
                             resolve();
-                        }, 500); // Reduced timeout as a fallback
+                        }, 500);
                     });
                     
                     // Open the targeting modal

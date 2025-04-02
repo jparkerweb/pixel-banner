@@ -495,8 +495,7 @@ export class SelectPixelBannerModal extends Modal {
             const buyTokensButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
                 text: '💵 Buy More Tokens'
-            });
-            
+            });            
             buyTokensButton.addEventListener('click', (event) => {
                 event.preventDefault();
                 window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
@@ -507,8 +506,7 @@ export class SelectPixelBannerModal extends Modal {
             const signupButton = accountInfo.createEl('button', {
                 cls: 'pixel-banner-account-button pixel-banner-signup-button',
                 text: '🚩 Signup for Free!'
-            });
-            
+            });            
             signupButton.addEventListener('click', (event) => {
                 event.preventDefault();
                 const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
@@ -577,15 +575,17 @@ export class SelectPixelBannerModal extends Modal {
         }
 
 
-        // add button to open daily game modal
-        const dailyGameButton = accountInfo.createEl('button', {
-            cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
-            text: '🎮 Play Daily Game'
-        });
-        dailyGameButton.addEventListener('click', () => {
-            this.close();
-            new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey).open();
-        });
+        if (pixelBannerPlusServerOnline) {
+            // add button to open daily game modal
+            const dailyGameButton = accountInfo.createEl('button', {
+                cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
+                text: '🎮 Play Daily Game'
+            });
+            dailyGameButton.addEventListener('click', () => {
+                this.close();
+                new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
+            });
+        }
         
         // Add styles
         this.addStyle();

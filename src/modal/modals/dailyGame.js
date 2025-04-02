@@ -1,13 +1,15 @@
 import { App, Modal, Setting, Plugin, PluginSettingTab } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
+import { SelectPixelBannerModal } from './selectPixelBannerModal';
 
 // Game Modal class
 export class DailyGameModal extends Modal {
-  constructor(app, userEmail, apiKey) {
+  constructor(app, userEmail, apiKey, plugin) {
     super(app);
     this.userEmail = userEmail;
     this.apiKey = apiKey;
     this.iframe = null;
+    this.plugin = plugin;
   }
 
   onOpen() {
@@ -35,7 +37,6 @@ export class DailyGameModal extends Modal {
     // Set modal title and size
     const { contentEl } = this;
     contentEl.addClass('pixel-banner-game-modal');
-    contentEl.createEl('h2', { text: 'Daily Game' });
     
     // Create a container for the game with specific dimensions
     const gameContainer = contentEl.createDiv({ cls: 'game-container' });
@@ -51,13 +52,45 @@ export class DailyGameModal extends Modal {
       }
     });
     
-    // Add a close button
-    new Setting(contentEl)
-      .addButton(btn => 
-        btn.setButtonText('Close')
-           .setCta()
-           .onClick(() => this.close())
-      );
+    // add div to hold buttons
+    const buttonContainer = contentEl.createDiv({
+        cls: 'button-container',
+        attr: {
+            style: `
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            `
+      }
+    });
+
+    // add "Buy More Tokens" button
+    const buyTokensButton = buttonContainer.createEl('button', {
+      cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
+      text: '💵 Buy More Tokens'
+    });            
+    buyTokensButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
+    });
+
+    // add "Back to Main Menu" button
+    const backToMainButton = buttonContainer.createEl('button', {
+      text: '⇠ Main Menu',
+      cls: 'cursor-pointer',
+      attr: {
+          style: `
+              margin-left: auto;
+              width: max-content;
+              min-width: auto;
+          `
+      }
+    });
+    // on click of back to main menu button, close this modal and open the Pixel Banner Menu modal
+    backToMainButton.addEventListener('click', () => {
+      this.close();
+      new SelectPixelBannerModal(this.app, this.plugin).open();
+    });
     
     // Send auth credentials to the iframe after it loads
     this.iframe.onload = () => {
@@ -125,7 +158,7 @@ export default class PixelBannerPlus extends Plugin {
     }
     
     // Open the game modal
-    const gameModal = new DailyGameModal(this.app, this.settings.apiKey, this.settings.userEmail);
+    const gameModal = new DailyGameModal(this.app, this.settings.apiKey, this.settings.userEmail, this);
     gameModal.open();
   }
   
