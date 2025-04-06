@@ -577,14 +577,38 @@ export class SelectPixelBannerModal extends Modal {
 
         if (pixelBannerPlusServerOnline) {
             // add button to open daily game modal
-            const dailyGameButton = accountInfo.createEl('button', {
-                cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
-                text: '🎮 Play Daily Game'
-            });
-            dailyGameButton.addEventListener('click', () => {
-                this.close();
-                new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
-            });
+            const isMobileDevice = window.navigator.userAgent.includes("Android") || 
+                                   window.navigator.userAgent.includes("iPhone") || 
+                                   window.navigator.userAgent.includes("iPad") || 
+                                   window.navigator.userAgent.includes("iPod");
+                                
+            if (!isMobileDevice) {
+                const dailyGameButtonContainer = accountInfo.createDiv({
+                    attr: {
+                        style: `
+                            display: flex;
+                            flex-direction: row;
+                            align-items: center;
+                            gap: 10px;
+                        `
+                    }
+                });
+                const dailyGameButton = dailyGameButtonContainer.createEl('button', {
+                    cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
+                    text: '🎮 Play Daily Game'
+                });
+                dailyGameButton.addEventListener('click', () => {
+                    this.close();
+                    new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
+                });
+
+                // show jackpot amount
+                const jackpotAmount = this.plugin.pixelBannerPlusJackpot;
+                const jackpotAmountElement = dailyGameButtonContainer.createEl('span', {
+                    text: `💰 Jackpot: ${jackpotAmount}`,
+                    cls: 'pixel-banner-jackpot-amount'
+                });
+            }
         }
         
         // Add styles

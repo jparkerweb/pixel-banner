@@ -776,6 +776,7 @@ export class PixelBannerPlugin extends Plugin {
         this.pixelBannerPlusServerOnline = result.serverOnline;
         this.pixelBannerPlusEnabled = result.verified;
         this.pixelBannerPlusBannerTokens = result.bannerTokens;
+        this.pixelBannerPlusJackpot = result.jackpot;
         return result;
     }
 

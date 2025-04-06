@@ -28,10 +28,11 @@ async function verifyPixelBannerPlusCredentials(plugin) {
             return {
                 serverOnline: true,
                 verified: data.success,
-                bannerTokens: data.banner_tokens
+                bannerTokens: data.banner_tokens,
+                jackpot: data.jackpot
             };
         }
-        return { serverOnline: true, verified: false, bannerTokens: 0 };
+        return { serverOnline: true, verified: false, bannerTokens: 0, jackpot: 0 };
     } catch (error) {
         console.error('Failed to verify Pixel Banner Plus credentials:', error);
 
@@ -56,7 +57,8 @@ async function verifyPixelBannerPlusCredentials(plugin) {
         return { 
             serverOnline: !isConnectionError || isUnauthorized, 
             verified: false, 
-            bannerTokens: 0
+            bannerTokens: 0,
+            jackpot: 0
         };
     }
 }
