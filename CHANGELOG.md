@@ -2,6 +2,13 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.2.4 - 2025-04-06
+#### 🐛 Fixed
+- resolved issue with default custom filed values for x/y position (new users were unable to set x/y on notes)
+
+#### 📦 Updated
+- added support for Markdown image syntax in Banner frontmatter: `"![](imgage-path|url)"`
+
 ### v3.2.3 - 2025-03-28
 #### 📦 Updated
 - improved server connection check logic
