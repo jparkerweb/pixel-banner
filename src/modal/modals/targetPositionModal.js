@@ -315,7 +315,14 @@ export class TargetPositionModal extends Modal {
     }
 
     onOpen() {
-        const { contentEl, modalEl, bgEl } = this;
+        const { contentEl } = this;
+        contentEl.empty();
+
+        this.setupUI(contentEl);
+    }
+
+    async setupUI(contentEl) {
+        const { modalEl, bgEl } = this;
         contentEl.empty();
         contentEl.addClass('target-position-modal');
         modalEl.style.opacity = "0.8";
@@ -742,12 +749,16 @@ export class TargetPositionModal extends Modal {
         
         if (!hasBannerIcon) {
             // no banner icon found, try one more time after a short delay
-            setTimeout(() => {
-                const refreshedFrontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-                if (!hasBannerIcon && refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
-                    hasBannerIcon = true;
-                }
-            }, 400);
+            await new Promise(resolve => {
+                setTimeout(async () => {
+                    const refreshedFrontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
+                    if (refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
+                        hasBannerIcon = true;
+                    }
+                    console.log('hasBannerIcon after delay', hasBannerIcon);
+                    resolve();
+                }, 400);
+            });
         }
         
         if (hasBannerIcon) {

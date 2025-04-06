@@ -17,6 +17,11 @@ function getInputType(input) {
         return 'obsidianLink';
     }
 
+    // Check if it's a Markdown image syntax (![](path.jpg) format)
+    if (input.match(/^!\[\]\(.*\)$/) || input.match(/^"?!\[\]\(.*\)"?$/)) {
+        return 'markdownImage';
+    }
+
     try {
         new URL(input);
         return 'url';
@@ -51,6 +56,28 @@ function getPathFromObsidianLink(link) {
     
     // Resolve
     return this.app.metadataCache.getFirstLinkpathDest(path, '');
+}
+
+function getPathFromMarkdownImage(link) {
+    // Remove surrounding quotes if they exist
+    let cleanLink = link.replace(/^["'](.*)["']$/, '$1');
+    
+    // Extract the URL from the Markdown image syntax ![](url)
+    const match = cleanLink.match(/^!\[\]\((.*)\)$/);
+    if (match && match[1]) {
+        const path = match[1];
+        
+        // Check if it's a URL
+        try {
+            new URL(path);
+            return path; // It's a URL, return as is
+        } catch (_) {
+            // It's a vault path, resolve it
+            return this.app.metadataCache.getFirstLinkpathDest(path, '');
+        }
+    }
+    
+    return null;
 }
 
 async function getVaultImageUrl(path) {
@@ -218,6 +245,7 @@ function createFolderImageSettings(folderImage) {
 export {
     getInputType, 
     getPathFromObsidianLink, 
+    getPathFromMarkdownImage, 
     getVaultImageUrl, 
     preloadImage, 
     getFolderPath, 

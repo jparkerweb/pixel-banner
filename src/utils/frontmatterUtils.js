@@ -10,8 +10,16 @@ export function getFrontmatterValue(frontmatter, fieldNames) {
     // Ensure fieldNames is an array
     const fields = Array.isArray(fieldNames) ? fieldNames : [fieldNames];
     
+    // Process all field names, splitting by commas if necessary
+    const processedFields = fields.flatMap(field => {
+        if (typeof field === 'string' && field.includes(',')) {
+            return field.split(',').map(f => f.trim()).filter(f => f.length > 0);
+        }
+        return field;
+    });
+    
     // Check each field name
-    for (const field of fields) {
+    for (const field of processedFields) {
         if (frontmatter.hasOwnProperty(field)) {
             const value = frontmatter[field];
             
