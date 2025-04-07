@@ -1720,7 +1720,7 @@ class ConfirmPurchaseModal extends Modal {
 
         // Confirm button
         const confirmButton = buttonContainer.createEl('button', {
-            text: '🪙 Purchase',
+            text: '🪙 Spend Token',
             cls: 'mod-cta radial-pulse-animation'
         });
         confirmButton.addEventListener('click', () => {

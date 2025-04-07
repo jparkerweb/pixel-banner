@@ -414,6 +414,7 @@ export class SelectPixelBannerModal extends Modal {
                 style: `
                     margin: 0;
                     cursor: help;
+                    width: max-content;
                 `
             }
         });
