@@ -9,7 +9,7 @@ import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafC
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
-import { getInputType, getPathFromObsidianLink, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
+import { getInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
@@ -75,6 +75,7 @@ export class PixelBannerPlugin extends Plugin {
     // --------------------------------------------
     getInputType(input) { return getInputType.call(this, input); }
     getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
+    getPathFromMarkdownImage(link) { return getPathFromMarkdownImage.call(this, link); }
     getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
     preloadImage(url) { return preloadImage.call(this, url); }
     getFolderPath(filePath) { return getFolderPath.call(this, filePath); }
@@ -514,6 +515,25 @@ export class PixelBannerPlugin extends Plugin {
             const file = this.getPathFromObsidianLink(input);
             if (file) {
                 return this.getVaultImageUrl(file.path);
+            }
+            return null;
+        }
+
+        if (type === 'markdownImage') {
+            const path = this.getPathFromMarkdownImage(input);
+            if (typeof path === 'string') {
+                // If path is a URL, return it directly
+                try {
+                    new URL(path);
+                    return path;
+                } catch (_) {
+                    // Not a URL, treat as a vault path
+                    return this.getVaultImageUrl(path);
+                }
+            }
+            
+            if (path) {
+                return this.getVaultImageUrl(path.path);
             }
             return null;
         }
