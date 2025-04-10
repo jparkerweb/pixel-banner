@@ -11,77 +11,43 @@ export class SelectPixelBannerModal extends Modal {
     constructor(app, plugin) {
         super(app);
         this.plugin = plugin;
-        this.isLoading = true; // Track loading state
+        this.isLoading = false;
+        this.isVerifyingAPI = true; // Track API verification state
     }
 
     async onOpen() {
         const { contentEl } = this;
         contentEl.empty();
         
-        // Show loading spinner immediately
-        this.showLoadingSpinner(contentEl);
+        // Initialize the basic modal UI immediately
+        await this.initializeBasicUI();
         
-        // Continue with initialization in the background
-        this.initializeModal().catch(error => {
-            console.error('Error initializing modal:', error);
-            this.hideLoadingSpinner();
-            contentEl.createEl('p', {
-                text: 'Failed to load Pixel Banner Menu. Please try again later.',
-                cls: 'pixel-banner-error'
-            });
+        // Initialize the API-dependent parts in the background
+        this.initializeAPIDependentSections().catch(error => {
+            console.error('Error initializing API-dependent sections:', error);
+            this.updateAPIStatusUI(false);
         });
     }
     
-    // Show loading spinner
-    showLoadingSpinner(container) {
-        this.isLoading = true;
-        this.loadingOverlay = container.createDiv({ 
-            cls: 'pixel-banner-loading-overlay',
-            attr: {
-                style: `
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: var(--background-primary);
-                    z-index: 100;
-                    animation: pixel-banner-fade-in 0.3s ease-in-out;
-                `
-            }
-        });
-        
-        this.loadingOverlay.createDiv({
-            cls: 'pixel-banner-spinner',
-            attr: {
-                style: `
-                width: 40px;
-                    height: 40px;
-                    border: 4px solid var(--background-modifier-border);
-                    border-top: 4px solid var(--text-accent);
-                    border-radius: 50%;
-                    animation: pixel-banner-spin 1s linear infinite;
-                `
-            }
-        });
+    // Create a loading spinner element
+    createLoadingSpinner() {
+        const spinner = document.createElement('div');
+        spinner.classList.add('pixel-banner-section-spinner');
+        spinner.innerHTML = `
+            <div class="pixel-banner-spinner" style="
+                width: 20px;
+                height: 20px;
+                border: 2px solid var(--background-modifier-border);
+                border-top: 2px solid var(--text-accent);
+                border-radius: 50%;
+                animation: pixel-banner-spin 1s linear infinite;
+            "></div>
+        `;
+        return spinner;
     }
     
-    // Hide loading spinner
-    hideLoadingSpinner() {
-        this.isLoading = false;
-        if (this.loadingOverlay) {
-            this.loadingOverlay.remove();
-            this.loadingOverlay = null;
-        }
-    }
-    
-    // Initialize modal content
-    async initializeModal() {
-        await this.plugin.verifyPixelBannerPlusCredentials();
-        await this.plugin.getPixelBannerInfo();
+    // Initialize the basic UI (non-API dependent)
+    async initializeBasicUI() {
         const { contentEl } = this;
         
         // Create title with the selected flag icon
@@ -170,19 +136,14 @@ export class SelectPixelBannerModal extends Modal {
         // Banner source buttons container
         const bannerSourceButtons = bannerSourceSection.createDiv({
             cls: 'pixel-banner-source-buttons',
-            attr: {
-                style: `
-                    display: ${this.plugin.pixelBannerPlusServerOnline ? 'flex !important' : 'flex'};
-                `
-            }
         });
         
-        // AI Generation Button
+        // AI Generation Button (with loading state initially)
         const aiButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button',
+            cls: 'pixel-banner-source-button pixel-banner-api-dependent',
             attr: {
                 style: `
-                    display: ${this.plugin.pixelBannerPlusServerOnline ? 'flex' : 'none'};
+                    position: relative;
                 `
             }
         });
@@ -192,18 +153,34 @@ export class SelectPixelBannerModal extends Modal {
             text: 'AI Banner', 
             cls: 'pixel-banner-button-text'
         });
-        // AI Generation Button Click Event
-        aiButton.addEventListener('click', () => {
-            this.close();
-            new GenerateAIBannerModal(this.app, this.plugin).open();
-        });
         
-        // Store Button
-        const storeButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button',
+        // Add loading overlay to AI button
+        const aiLoadingOverlay = aiButton.createDiv({
+            cls: 'pixel-banner-button-loading-overlay',
             attr: {
                 style: `
-                    display: ${this.plugin.pixelBannerPlusServerOnline ? 'flex' : 'none'};
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: var(--background-primary);
+                    opacity: 0.8;
+                    z-index: 10;
+                `
+            }
+        });
+        aiLoadingOverlay.appendChild(this.createLoadingSpinner());
+        
+        // Store Button (with loading state initially)
+        const storeButton = bannerSourceButtons.createEl('button', {
+            cls: 'pixel-banner-source-button pixel-banner-api-dependent',
+            attr: {
+                style: `
+                    position: relative;
                 `
             }
         });
@@ -213,13 +190,29 @@ export class SelectPixelBannerModal extends Modal {
             text: 'Store', 
             cls: 'pixel-banner-button-text' 
         });
-        // Store Button Click Event
-        storeButton.addEventListener('click', () => {
-            this.close();
-            new PixelBannerStoreModal(this.app, this.plugin).open();
+        
+        // Add loading overlay to Store button
+        const storeLoadingOverlay = storeButton.createDiv({
+            cls: 'pixel-banner-button-loading-overlay',
+            attr: {
+                style: `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: var(--background-primary);
+                    opacity: 0.8;
+                    z-index: 10;
+                `
+            }
         });
+        storeLoadingOverlay.appendChild(this.createLoadingSpinner());
 
-        // Vault Selection Button
+        // Vault Selection Button (immediately available)
         const vaultButton = bannerSourceButtons.createEl('button', {
             cls: 'pixel-banner-source-button'
         });
@@ -298,7 +291,7 @@ export class SelectPixelBannerModal extends Modal {
             ).open();
         });
 
-        // Web Address Button
+        // Web Address Button (immediately available)
         const webAddressButton = bannerSourceButtons.createEl('button', {
             cls: 'pixel-banner-source-button'
         });
@@ -396,14 +389,15 @@ export class SelectPixelBannerModal extends Modal {
             });
         }
 
-        // Pixel Banner Plus Account section
+        // Pixel Banner Plus Account section (with loading state initially)
         const accountSection = mainContainer.createDiv({
-            cls: 'pixel-banner-section',
+            cls: 'pixel-banner-section pixel-banner-api-dependent',
             attr: {
                 style: `
                     font-size: .9em;
                     margin-top: 10px;
                     gap: 5px;
+                    position: relative;
                 `
             }
         });
@@ -419,161 +413,35 @@ export class SelectPixelBannerModal extends Modal {
             }
         });
         
-        // Account info container
-        const accountInfo = accountSection.createDiv({ cls: 'pixel-banner-account-info' });
+        // Account info container (initially hidden)
+        const accountInfo = accountSection.createDiv({ 
+            cls: 'pixel-banner-account-info',
+            attr: {
+                style: 'visibility: hidden;'
+            }
+        });
 
-        const statusContainer = accountInfo.createDiv({
+        // Add loading overlay to Account section
+        const accountLoadingOverlay = accountSection.createDiv({
+            cls: 'pixel-banner-section-loading-overlay',
             attr: {
                 style: `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
                     display: flex;
-                    flex-direction: row;
-                    gap: 10px;
+                    justify-content: center;
                     align-items: center;
-                    cursor: help;
+                    background-color: var(--background-primary);
+                    opacity: 0.8;
+                    z-index: 10;
+                    min-height: 50px;
                 `
             }
         });
-        
-        // Connection Status        
-        const isConnected = this.plugin.pixelBannerPlusEnabled;
-        const pixelBannerPlusServerOnline = this.plugin.pixelBannerPlusServerOnline;
-        const statusText = pixelBannerPlusServerOnline ? (isConnected ? '✅ Authorized' : '❌ Not Authorized') : '🚨 Servers Offline 🚨';
-        const statusBorderColor = isConnected ? '#20bf6b' : '#FF0000';
-        
-        statusContainer.createEl('span', {
-            text: statusText,
-            cls: 'pixel-banner-status-value',
-            attr: {
-                style: `border: 1px dotted ${statusBorderColor};`
-            }
-        });
-        
-        // Available Tokens        
-        const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined ? 
-            `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` : '❓ Unknown';
-        
-        statusContainer.createEl('span', {
-            text: tokenCount,
-            cls: 'pixel-banner-status-value',
-            attr: {
-                style: `
-                    border: 1px dotted #F3B93B;
-                    display: ${pixelBannerPlusServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
-                `
-            }
-        });
-
-        // Open settings and navigate to Pixel Banner tab
-        const openPlusSettings = async () => {
-            this.close();
-            await this.app.setting.open();
-            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-            
-            // Find and click the Pixel Banner item in the settings sidebar
-            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-            for (const tab of settingsTabs) {
-                if (tab.textContent.includes('Pixel Banner')) {
-                    tab.click();
-                    break;
-                }
-            }
-            
-            // Find and click the Pixel Banner Plus item in the settings sidebar
-            const pixelBannerSettingsTabs = document.querySelectorAll('.pixel-banner-settings-tabs > button.pixel-banner-settings-tab');
-            for (const tab of pixelBannerSettingsTabs) {
-                if (tab.textContent.includes('Plus')) {
-                    tab.click();
-                    break;
-                }
-            }
-        };
-        // Plus Settings Listener for `accountTitle` and `statusContainer`
-        accountTitle.addEventListener('click', openPlusSettings);
-        statusContainer.addEventListener('click', openPlusSettings);            
-        
-        // Show Buy Tokens button if connected
-        if (pixelBannerPlusServerOnline && isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
-            const buyTokensButton = accountInfo.createEl('button', {
-                cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
-                text: '💵 Buy More Tokens'
-            });            
-            buyTokensButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
-            });
-        } 
-        // Show Signup button if not connected
-        else if (pixelBannerPlusServerOnline && !isConnected) {
-            const signupButton = accountInfo.createEl('button', {
-                cls: 'pixel-banner-account-button pixel-banner-signup-button',
-                text: '🚩 Signup for Free!'
-            });            
-            signupButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
-                window.open(signupUrl, '_blank');
-            });
-        }
-
-        // Version Info
-        const cloudVersion = this.plugin.pixelBannerVersion;
-        const currentVersion = this.plugin.settings.lastVersion;
-        
-        // check if cloudVersion is greater than currentVersion (these are semver versions, eg: 1.0.0)
-        const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
-        let versionText, cursor;
-        if (isCloudVersionGreater) {
-            versionText = `🔄 Update Available!`;
-            cursor = 'pointer';
-        } else {
-            versionText = ``;
-            // versionText = `✅ Up to Date`;
-            cursor = 'default';
-        }
-        const versionInfo = accountInfo.createDiv({
-            text: versionText,
-            attr: {
-                style: `
-                    display: flex;
-                    flex-direction: row;
-                    gap: 10px;
-                    align-items: center;
-                    cursor: ${cursor};
-                    margin-left: auto;
-                    animation: pixel-banner-scale-up-down 3s ease-in-out infinite;
-                `
-            }
-        });
-
-        if (isCloudVersionGreater) {
-            // Obsidian API call to update the plugin: plugin-id is "pexels-banner"
-            const openCommunityPlugins = async () => {
-                this.close();
-                await this.app.setting.open();
-                await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-                
-                // Find and click the Community Plugins item in the settings sidebar
-                const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-                for (const tab of settingsTabs) {
-                    if (tab.textContent.includes('Community plugins')) {
-                        tab.click();
-                        break;
-                    }
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
-                
-                // Find the "Check for updates" button
-                const allTheButtons = document.querySelectorAll('button.mod-cta');
-                for (const button of allTheButtons) {
-                    if (button.textContent.includes('Check for updates')) {
-                        button.click();
-                        break;
-                    }
-                }
-            };
-            versionInfo.addEventListener('click', openCommunityPlugins);
-        }
+        accountLoadingOverlay.appendChild(this.createLoadingSpinner());
 
 
         if (pixelBannerPlusServerOnline) {
@@ -614,9 +482,283 @@ export class SelectPixelBannerModal extends Modal {
         
         // Add styles
         this.addStyle();
+    }
+
+    // Initialize the API-dependent UI sections
+    async initializeAPIDependentSections() {
+        try {
+            await this.plugin.verifyPixelBannerPlusCredentials();
+            await this.plugin.getPixelBannerInfo();
+            this.updateAPIStatusUI(true);
+        } catch (error) {
+            console.error('Error initializing API-dependent sections:', error);
+            // Explicitly set server offline status
+            this.plugin.pixelBannerPlusServerOnline = false;
+            this.updateAPIStatusUI(false);
+        }
+    }
+    
+    // Update UI elements that depend on API status
+    updateAPIStatusUI(isOnline) {
+        this.isVerifyingAPI = false;
+        const { contentEl } = this;
         
-        // Hide loading spinner when everything is loaded
-        this.hideLoadingSpinner();
+        // If API calls failed, ensure server status is set to offline
+        if (!isOnline) {
+            this.plugin.pixelBannerPlusServerOnline = false;
+        }
+        
+        // Find all loading overlays
+        const apiButtons = contentEl.querySelectorAll('.pixel-banner-api-dependent');
+        
+        // Remove loading overlays
+        apiButtons.forEach(element => {
+            const loadingOverlay = element.querySelector('.pixel-banner-button-loading-overlay, .pixel-banner-section-loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.remove();
+            }
+            
+            // If element is a button, handle visibility/disabled state
+            if (element.tagName === 'BUTTON') {
+                if (isOnline && this.plugin.pixelBannerPlusServerOnline) {
+                    element.style.display = 'flex';
+                    element.classList.remove('pixel-banner-button-disabled');
+                    element.disabled = false;
+                    
+                    // Add click handlers
+                    if (element.textContent.includes('AI Banner')) {
+                        element.addEventListener('click', () => {
+                            this.close();
+                            new GenerateAIBannerModal(this.app, this.plugin).open();
+                        });
+                    } else if (element.textContent.includes('Store')) {
+                        element.addEventListener('click', () => {
+                            this.close();
+                            new PixelBannerStoreModal(this.app, this.plugin).open();
+                        });
+                    }
+                } else {
+                    element.style.display = 'none';
+                }
+            }
+        });
+        
+        // Update account section
+        const accountSection = contentEl.querySelector('.pixel-banner-section.pixel-banner-api-dependent');
+        if (accountSection) {
+            const accountInfo = accountSection.querySelector('.pixel-banner-account-info');
+            if (accountInfo) {
+                accountInfo.style.visibility = 'visible';
+                
+                // Clear existing content
+                accountInfo.empty();
+                
+                // Rebuild account info
+                const statusContainer = accountInfo.createDiv({
+                    attr: {
+                        style: `
+                            display: flex;
+                            flex-direction: row;
+                            gap: 10px;
+                            align-items: center;
+                            cursor: help;
+                        `
+                    }
+                });
+
+                // function to open settings and navigate to Pixel Banner tab
+                const openPlusSettings = async () => {
+                    this.close();
+                    await this.app.setting.open();
+                    await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+                    
+                    // Find and click the Pixel Banner item in the settings sidebar
+                    const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+                    for (const tab of settingsTabs) {
+                        if (tab.textContent.includes('Pixel Banner')) {
+                            tab.click();
+                            break;
+                        }
+                    }
+                    
+                    // Find and click the Pixel Banner Plus item in the settings sidebar
+                    const pixelBannerSettingsTabs = document.querySelectorAll('.pixel-banner-settings-tabs > button.pixel-banner-settings-tab');
+                    for (const tab of pixelBannerSettingsTabs) {
+                        if (tab.textContent.includes('Plus')) {
+                            tab.click();
+                            break;
+                        }
+                    }
+                };
+
+                // openPlusSettings click handler for account title
+                const accountTitle = accountSection.querySelector('.pixel-banner-section-title');
+                if (accountTitle) accountTitle.addEventListener('click', openPlusSettings);
+                
+                // Connection Status
+                const isConnected = this.plugin.pixelBannerPlusEnabled;
+                const pixelBannerPlusServerOnline = this.plugin.pixelBannerPlusServerOnline;
+                
+                // Always show server offline message if isOnline is false or server is actually offline
+                const statusText = (!isOnline || !pixelBannerPlusServerOnline) 
+                    ? '🚨 Servers Offline 🚨' 
+                    : (isConnected ? '✅ Authorized' : '❌ Not Authorized');
+                
+                const statusBorderColor = (!isOnline || !pixelBannerPlusServerOnline) 
+                    ? '#FF6B6B' 
+                    : (isConnected ? '#20bf6b' : '#FF0000');
+                
+                const statusEl = statusContainer.createEl('span', {
+                    text: statusText,
+                    cls: 'pixel-banner-status-value',
+                    attr: {
+                        style: `border: 1px dotted ${statusBorderColor};`
+                    }
+                });
+                statusEl.addEventListener('click', openPlusSettings);
+                // Available Tokens - only show if server is online
+                if (isOnline && pixelBannerPlusServerOnline) {
+                    const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined 
+                        ? `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` 
+                        : '❓ Unknown';
+                    
+                    const tokenCountEl = statusContainer.createEl('span', {
+                        text: tokenCount,
+                        cls: 'pixel-banner-status-value',
+                        attr: {
+                            style: `
+                                border: 1px dotted #F3B93B;
+                                display: ${pixelBannerPlusServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
+                            `
+                        }
+                    });
+                    tokenCountEl.addEventListener('click', openPlusSettings);
+                } else {
+                    // If offline, show a reconnect button
+                    const retryButton = statusContainer.createEl('button', {
+                        text: '🔄 Try Again',
+                        cls: 'pixel-banner-account-button pixel-banner-retry-button',
+                        attr: {
+                            style: `
+                                background-color: var(--background-accent) !important;
+                                color: var(--text-on-accent) !important;
+                                margin-left: 10px;
+                            `
+                        }
+                    });
+                    
+                    retryButton.addEventListener('click', async () => {
+                        // Clear status container and show loading again
+                        statusContainer.empty();
+                        statusContainer.createEl('span', {
+                            text: 'Connecting...',
+                            cls: 'pixel-banner-status-value'
+                        });
+                        
+                        // Add temporary loading spinner
+                        const tempSpinner = this.createLoadingSpinner();
+                        statusContainer.appendChild(tempSpinner);
+                        
+                        try {
+                            // Try to reconnect
+                            await this.plugin.verifyPixelBannerPlusCredentials();
+                            await this.plugin.getPixelBannerInfo();
+                            this.updateAPIStatusUI(true);
+                        } catch (error) {
+                            console.error('Error reconnecting:', error);
+                            this.plugin.pixelBannerPlusServerOnline = false;
+                            this.updateAPIStatusUI(false);
+                        }
+                    });
+                }
+                
+                // Show Buy Tokens button if connected
+                if (pixelBannerPlusServerOnline && isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
+                    const buyTokensButton = accountInfo.createEl('button', {
+                        cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
+                        text: '💵 Buy More Tokens'
+                    });
+                    
+                    buyTokensButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
+                    });
+                } 
+                // Show Signup button if not connected
+                else if (pixelBannerPlusServerOnline && !isConnected) {
+                    const signupButton = accountInfo.createEl('button', {
+                        cls: 'pixel-banner-account-button pixel-banner-signup-button',
+                        text: '🚩 Signup for Free!'
+                    });
+                    
+                    signupButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
+                        window.open(signupUrl, '_blank');
+                    });
+                }
+
+                // Version Info
+                const cloudVersion = this.plugin.pixelBannerVersion;
+                const currentVersion = this.plugin.settings.lastVersion;
+                
+                // check if cloudVersion is greater than currentVersion (these are semver versions, eg: 1.0.0)
+                const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
+                let versionText, cursor;
+                if (isCloudVersionGreater) {
+                    versionText = `🔄 Update Available!`;
+                    cursor = 'pointer';
+                } else {
+                    versionText = ``;
+                    // versionText = `✅ Up to Date`;
+                    cursor = 'default';
+                }
+                const versionInfo = accountInfo.createDiv({
+                    text: versionText,
+                    attr: {
+                        style: `
+                            display: flex;
+                            flex-direction: row;
+                            gap: 10px;
+                            align-items: center;
+                            cursor: ${cursor};
+                            margin-left: auto;
+                            animation: pixel-banner-scale-up-down 3s ease-in-out infinite;
+                        `
+                    }
+                });
+
+                if (isCloudVersionGreater) {
+                    // Obsidian API call to update the plugin: plugin-id is "pexels-banner"
+                    const openCommunityPlugins = async () => {
+                        this.close();
+                        await this.app.setting.open();
+                        await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+                        
+                        // Find and click the Community Plugins item in the settings sidebar
+                        const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+                        for (const tab of settingsTabs) {
+                            if (tab.textContent.includes('Community plugins')) {
+                                tab.click();
+                                break;
+                            }
+                        }
+
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
+                        
+                        // Find the "Check for updates" button
+                        const allTheButtons = document.querySelectorAll('button.mod-cta');
+                        for (const button of allTheButtons) {
+                            if (button.textContent.includes('Check for updates')) {
+                                button.click();
+                                break;
+                            }
+                        }
+                    };
+                    versionInfo.addEventListener('click', openCommunityPlugins);
+                }
+            }
+        }
     }
 
     addStyle() {
@@ -828,33 +970,38 @@ export class SelectPixelBannerModal extends Modal {
                 color: var(--text-on-accent) !important;
             }
             
+            .pixel-banner-retry-button {
+                background-color: var(--background-modifier-success) !important;
+                color: var(--text-on-accent) !important;
+                font-size: 0.8em !important;
+                padding: 4px 8px !important;
+                animation: pixel-banner-pulse 2s infinite;
+            }
+            
+            @keyframes pixel-banner-pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
             /* Loading spinner styles */
-            .pixel-banner-loading-overlay {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                background-color: var(--background-primary);
-                z-index: 100;
-                animation: pixel-banner-fade-in 0.3s ease-in-out;
+            @keyframes pixel-banner-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            @keyframes pixel-banner-fade-in {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+            
+            @keyframes pixel-banner-scale-up-down {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
             }
             
             @media (min-width: 400px) {
-                .pixel-banner-source-buttons,
-                .pixel-banner-customization-options {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    grid-auto-rows: 1fr;
-                }
-                
-                .pixel-banner-customization-options {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                
                 .pixel-banner-source-button,
                 .pixel-banner-customize-button {
                     padding: 16px 8px;
@@ -884,10 +1031,6 @@ export class SelectPixelBannerModal extends Modal {
         this.contentEl.empty();
         if (this.style) {
             this.style.remove();
-        }
-        // Remove loading overlay if it exists
-        if (this.loadingOverlay) {
-            this.loadingOverlay.remove();
         }
     }
 } 
