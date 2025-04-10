@@ -444,7 +444,7 @@ export class SelectPixelBannerModal extends Modal {
         accountLoadingOverlay.appendChild(this.createLoadingSpinner());
 
 
-        if (pixelBannerPlusServerOnline) {
+        if (this.plugin.pixelBannerPlusServerOnline) {
             // add button to open daily game modal
             const isMobileDevice = window.navigator.userAgent.includes("Android") || 
                                    window.navigator.userAgent.includes("iPhone") || 
