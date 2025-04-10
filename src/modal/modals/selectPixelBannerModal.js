@@ -443,43 +443,6 @@ export class SelectPixelBannerModal extends Modal {
         });
         accountLoadingOverlay.appendChild(this.createLoadingSpinner());
 
-
-        if (this.plugin.pixelBannerPlusServerOnline) {
-            // add button to open daily game modal
-            const isMobileDevice = window.navigator.userAgent.includes("Android") || 
-                                   window.navigator.userAgent.includes("iPhone") || 
-                                   window.navigator.userAgent.includes("iPad") || 
-                                   window.navigator.userAgent.includes("iPod");
-                                
-            if (!isMobileDevice) {
-                const dailyGameButtonContainer = accountInfo.createDiv({
-                    attr: {
-                        style: `
-                            display: flex;
-                            flex-direction: row;
-                            align-items: center;
-                            gap: 10px;
-                        `
-                    }
-                });
-                const dailyGameButton = dailyGameButtonContainer.createEl('button', {
-                    cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
-                    text: '🎮 Play Daily Game'
-                });
-                dailyGameButton.addEventListener('click', () => {
-                    this.close();
-                    new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
-                });
-
-                // show jackpot amount
-                const jackpotAmount = this.plugin.pixelBannerPlusJackpot;
-                const jackpotAmountElement = dailyGameButtonContainer.createEl('span', {
-                    text: `💰 Jackpot: ${jackpotAmount}`,
-                    cls: 'pixel-banner-jackpot-amount'
-                });
-            }
-        }
-        
         // Add styles
         this.addStyle();
     }
@@ -616,6 +579,7 @@ export class SelectPixelBannerModal extends Modal {
                     }
                 });
                 statusEl.addEventListener('click', openPlusSettings);
+                
                 // Available Tokens - only show if server is online
                 if (isOnline && pixelBannerPlusServerOnline) {
                     const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined 
@@ -633,6 +597,40 @@ export class SelectPixelBannerModal extends Modal {
                         }
                     });
                     tokenCountEl.addEventListener('click', openPlusSettings);
+                    
+                    // Add daily game button in the account info section when API is online
+                    const isMobileDevice = window.navigator.userAgent.includes("Android") || 
+                                           window.navigator.userAgent.includes("iPhone") || 
+                                           window.navigator.userAgent.includes("iPad") || 
+                                           window.navigator.userAgent.includes("iPod");
+                                        
+                    if (!isMobileDevice) {
+                        const dailyGameButtonContainer = accountInfo.createDiv({
+                            attr: {
+                                style: `
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+                                    gap: 10px;
+                                `
+                            }
+                        });
+                        const dailyGameButton = dailyGameButtonContainer.createEl('button', {
+                            cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
+                            text: '🕹️ Play Daily Game'
+                        });
+                        dailyGameButton.addEventListener('click', () => {
+                            this.close();
+                            new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
+                        });
+
+                        // show jackpot amount
+                        const jackpotAmount = this.plugin.pixelBannerPlusJackpot;
+                        const jackpotAmountElement = dailyGameButtonContainer.createEl('span', {
+                            text: `💰 Jackpot: ${jackpotAmount}`,
+                            cls: 'pixel-banner-jackpot-amount'
+                        });
+                    }
                 } else {
                     // If offline, show a reconnect button
                     const retryButton = statusContainer.createEl('button', {
