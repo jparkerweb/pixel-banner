@@ -18,6 +18,7 @@ async function verifyPixelBannerPlusCredentials(plugin) {
                 headers: {
                     'X-User-Email': plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             }

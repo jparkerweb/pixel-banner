@@ -159,6 +159,7 @@ export class GenerateAIBannerModal extends Modal {
                 headers: {
                     'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
@@ -367,6 +368,7 @@ export class GenerateAIBannerModal extends Modal {
             headers: {
                 'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
                 'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                 'Accept': 'application/json'
             }
         });
@@ -928,6 +930,13 @@ export class GenerateAIBannerModal extends Modal {
         
         // Hide loading spinner when everything is loaded
         this.hideLoadingSpinner();
+        
+        // Set focus on the prompt textarea
+        if (promptInput) {
+            setTimeout(() => {
+                promptInput.focus();
+            }, 100);
+        }
     }
 
     async getPromptInspiration() {
@@ -946,6 +955,7 @@ export class GenerateAIBannerModal extends Modal {
                 headers: {
                     'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             });
@@ -990,6 +1000,7 @@ export class GenerateAIBannerModal extends Modal {
                 headers: {
                     'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             });
@@ -1074,6 +1085,7 @@ export class GenerateAIBannerModal extends Modal {
                 headers: {
                     'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             });
@@ -1095,6 +1107,7 @@ export class GenerateAIBannerModal extends Modal {
                 headers: {
                     'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             });
@@ -1245,6 +1258,7 @@ export class GenerateAIBannerModal extends Modal {
                 headers: {
                     'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             });
