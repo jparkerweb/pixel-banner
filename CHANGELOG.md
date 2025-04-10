@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.2.5 - 2025-04-10
+#### 📦 Updated
+- main banner select modal now opens immediately and isn't blocked by server checks (improved experience for users that are "offline")
+
 ### v3.2.4 - 2025-04-06
 #### 🐛 Fixed
 - resolved issue with default custom filed values for x/y position (new users were unable to set x/y on notes)
