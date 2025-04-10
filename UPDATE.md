@@ -5,19 +5,19 @@
 ## 🎉 What's New
 ### v3.2.5 - 2025-04-10
 #### 📦 Updated
-- main banner select modal now opens immediately and isn't blocked by server checks (improved experience for users that are "offline")
+- Refactored the banner selection modal's UI to initialize basic elements immediately while API-dependent sections load in the background.
 
 ### v3.2.4 - 2025-04-06
 #### 🐛 Fixed
 
-- resolved issue with default custom filed values for x/y position (new users were unable to set x/y on notes)
+- Resolved issue with default custom filed values for x/y position (new users were unable to set x/y on notes)
 #### 📦 Updated
-- added support for Markdown image syntax in Banner frontmatter: `"![](imgage-path|url)"`
+- Added support for Markdown image syntax in Banner frontmatter: `"![](imgage-path|url)"`
 
 ### v3.2.3 - 2025-03-28
 #### 📦 Updated
-- improved server connection check logic
-- remove unnecessary server calls for store banner voting
+- Improved server connection check logic
+- Remove unnecessary server calls for store banner voting
 
 ### v3.2.2 - 2025-03-26
 #### 🐛 Fixed
