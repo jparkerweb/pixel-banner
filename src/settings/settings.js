@@ -80,6 +80,7 @@ const DEFAULT_SETTINGS = {
     bannerIconVeritalOffset: '0',
     openBannerIconModalAfterSelectingBanner: true,
     openTargetingModalAfterSelectingBannerOrIcon: true,
+    enableDailyGame: false,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {

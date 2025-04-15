@@ -138,6 +138,31 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
             });
         });
 
+    // Add the enableDailyGame setting
+    new Setting(pixelBannerPlusSettingsGroup)
+        .setName('Show Daily Game')
+        .setDesc('Enable the daily game feature in the banner selection modal for a chance to win the daily jackpot\'s Tokens')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.enableDailyGame)
+            .onChange(async (value) => {
+                plugin.settings.enableDailyGame = value;
+                await plugin.saveSettings();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.enableDailyGame = DEFAULT_SETTINGS.enableDailyGame;
+                await plugin.saveSettings();
+                
+                const toggleComponent = button.extraSettingsEl.parentElement.querySelector('.checkbox-container input');
+                if (toggleComponent) {
+                    toggleComponent.checked = DEFAULT_SETTINGS.enableDailyGame;
+                    toggleComponent.parentElement.classList.toggle('is-enabled', DEFAULT_SETTINGS.enableDailyGame);
+                    toggleComponent.dispatchEvent(new Event('change'));
+                }
+            }));
+
     // Create the initial Signup section
     updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
 
