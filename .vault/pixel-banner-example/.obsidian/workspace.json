@@ -172,6 +172,16 @@
             "id": "13b87dfd1df335cb",
             "type": "leaf",
             "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          },
+          {
+            "id": "a80eba74da7dc9d7",
+            "type": "leaf",
+            "state": {
               "type": "Saved Queries View",
               "state": {},
               "icon": "feather-mouse-pointer",
@@ -179,7 +189,7 @@
             }
           }
         ],
-        "currentTab": 6
+        "currentTab": 7
       }
     ],
     "direction": "horizontal",
@@ -196,6 +206,8 @@
       "pexels-banner:🚩 Pixel Banner Menu": false
     }
   },
-  "active": "13b87dfd1df335cb",
-  "lastOpenFiles": []
+  "active": "255111b5fae19b6a",
+  "lastOpenFiles": [
+    "Untitled.md"
+  ]
 }

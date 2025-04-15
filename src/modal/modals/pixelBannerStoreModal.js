@@ -185,6 +185,7 @@ export class PixelBannerStoreModal extends Modal {
                     headers: {
                         'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
                         'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                        'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                         'Accept': 'application/json'
                     }
                 }
@@ -533,6 +534,7 @@ export class PixelBannerStoreModal extends Modal {
                     headers: {
                         'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
                         'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                        'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                         'Accept': 'application/json'
                     }
                 }
@@ -590,6 +592,7 @@ export class PixelBannerStoreModal extends Modal {
                         'Content-Type': 'application/json',
                         'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
                         'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                        'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
@@ -886,6 +889,7 @@ export class PixelBannerStoreModal extends Modal {
                                     headers: {
                                         'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
                                         'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                                        'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                                         'Accept': 'application/json'
                                     }
                                 });
@@ -947,6 +951,7 @@ export class PixelBannerStoreModal extends Modal {
                                 headers: {
                                     'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
                                     'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                                     'Accept': 'application/json'
                                 }
                             });
@@ -1074,6 +1079,7 @@ export class PixelBannerStoreModal extends Modal {
                 headers: {
                     'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
                     'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 }
@@ -1113,6 +1119,7 @@ export class PixelBannerStoreModal extends Modal {
                 headers: {
                     'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
                     'x-api-key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 }
@@ -1720,7 +1727,7 @@ class ConfirmPurchaseModal extends Modal {
 
         // Confirm button
         const confirmButton = buttonContainer.createEl('button', {
-            text: '🪙 Purchase',
+            text: '🪙 Spend Token',
             cls: 'mod-cta radial-pulse-animation'
         });
         confirmButton.addEventListener('click', () => {
