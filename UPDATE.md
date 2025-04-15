@@ -3,6 +3,10 @@
 </a>
 
 ## 🎉 What's New
+### v3.3.2 - 2025-04-15
+#### 🐛 Fixed
+- Resolved authentication issues with the Pixel Banner Plus API
+
 ### v3.3.1 - 2025-04-15
 #### 📦 Updated
 - The `Daily Game` is `opt-in` and disabled by default (must be enabled in the Pixel Banner Plus settings)
