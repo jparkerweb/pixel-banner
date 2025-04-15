@@ -56,7 +56,7 @@ var PIXEL_BANNER_PLUS;
 var init_constants = __esm({
   "src/resources/constants.js"() {
     PIXEL_BANNER_PLUS = {
-      // API_URL: 'https://pixel-banner.online/',
+// API_URL: "https://pixel-banner.online/",
       API_URL: "http://localhost:3000/",
       ENDPOINTS: {
         VERIFY: "verify",
