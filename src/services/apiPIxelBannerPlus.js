@@ -18,6 +18,7 @@ async function verifyPixelBannerPlusCredentials(plugin) {
                 headers: {
                     'X-User-Email': plugin.settings.pixelBannerPlusEmail,
                     'X-API-Key': plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             }
@@ -28,13 +29,18 @@ async function verifyPixelBannerPlusCredentials(plugin) {
             return {
                 serverOnline: true,
                 verified: data.success,
-                bannerTokens: data.banner_tokens
+                bannerTokens: data.banner_tokens,
+                jackpot: data.jackpot,
+                dailyGameName: data.daily_game,
+                highScore: data.high_score,
+                topUser: data.top_user,
+                timeLeft: data.time_left,
             };
         }
-        return { serverOnline: true, verified: false, bannerTokens: 0 };
+        return { serverOnline: true, verified: false, bannerTokens: 0, jackpot: 0, dailyGameName: '', highScore: 0, topUser: '', timeLeft: '0' };
     } catch (error) {
         console.error('Failed to verify Pixel Banner Plus credentials:', error);
-
+        
         // Check for connection/network errors specifically
         const errorMessage = error.message.toLowerCase();
         const errorName = error.name.toLowerCase();
@@ -56,7 +62,12 @@ async function verifyPixelBannerPlusCredentials(plugin) {
         return { 
             serverOnline: !isConnectionError || isUnauthorized, 
             verified: false, 
-            bannerTokens: 0
+            bannerTokens: 0,
+            jackpot: 0,
+            dailyGameName: '',
+            highScore: 0,
+            topUser: '',
+            timeLeft: '0'
         };
     }
 }

@@ -625,7 +625,7 @@
     margin-bottom: 1rem;
 }
 
-.pixel-banner-search-container .twinkle-animation {
+.pixel-banner-twinkle-animation {
     animation: pixel-banner-twinkle 2s infinite;
     display: inline-block;
 }

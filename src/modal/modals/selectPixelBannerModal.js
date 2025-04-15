@@ -1,7 +1,7 @@
 import { Modal, MarkdownView } from 'obsidian';
 import {
     ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal,
-    EmojiSelectionModal, TargetPositionModal, WebAddressModal
+    EmojiSelectionModal, TargetPositionModal, WebAddressModal, DailyGameModal
 } from '../modals';
 import { flags } from '../../resources/flags.js';
 import { semver } from '../../utils/semver.js';
@@ -131,7 +131,15 @@ export class SelectPixelBannerModal extends Modal {
         
         // Create banner source section with heading
         const bannerSourceSection = mainContainer.createDiv({ cls: 'pixel-banner-section' });
-        bannerSourceSection.createEl('h3', { text: 'Select Banner Source', cls: 'pixel-banner-section-title' });
+        bannerSourceSection.createEl('h3', {
+            text: 'Select Banner Source',
+            cls: 'pixel-banner-section-title',
+            attr: {
+                style: `
+                    margin: 0;
+                `
+            }
+        });
         
         // Banner source buttons container
         const bannerSourceButtons = bannerSourceSection.createDiv({
@@ -310,7 +318,15 @@ export class SelectPixelBannerModal extends Modal {
 
         // Customization section
         const customizationSection = mainContainer.createDiv({ cls: 'pixel-banner-section' });
-        customizationSection.createEl('h3', { text: 'Customize Banner', cls: 'pixel-banner-section-title' });
+        customizationSection.createEl('h3', {
+            text: 'Customize Banner',
+            cls: 'pixel-banner-section-title',
+            attr: {
+                style: `
+                    margin: 0;
+                `
+            }
+        });
         
         // Customization options container
         const customizationOptions = customizationSection.createDiv({ cls: 'pixel-banner-customization-options' });
@@ -384,7 +400,7 @@ export class SelectPixelBannerModal extends Modal {
         if (!hasBanner) {
             const noBannerMessage = customizationSection.createDiv({ cls: 'pixel-banner-no-banner-message' });
             noBannerMessage.createEl('p', { 
-                text: 'No banner found for this note. Add a banner first to enable customization options.',
+                text: 'Add a banner first to enable customization options.',
                 cls: 'pixel-banner-message-text'
             });
         }
@@ -394,8 +410,6 @@ export class SelectPixelBannerModal extends Modal {
             cls: 'pixel-banner-section pixel-banner-api-dependent',
             attr: {
                 style: `
-                    font-size: .9em;
-                    margin-top: 10px;
                     gap: 5px;
                     position: relative;
                 `
@@ -408,6 +422,7 @@ export class SelectPixelBannerModal extends Modal {
                 style: `
                     margin: 0;
                     cursor: help;
+                    width: max-content;
                 `
             }
         });
@@ -568,16 +583,17 @@ export class SelectPixelBannerModal extends Modal {
                 
                 const statusBorderColor = (!isOnline || !pixelBannerPlusServerOnline) 
                     ? '#FF6B6B' 
-                    : (isConnected ? '#20bf6b' : '#FF0000');
+                    : (isConnected ? '#177d47' : '#FF0000');
                 
                 const statusEl = statusContainer.createEl('span', {
                     text: statusText,
                     cls: 'pixel-banner-status-value',
                     attr: {
-                        style: `border: 1px dotted ${statusBorderColor};`
+                        style: `border: 1px dashed ${statusBorderColor};`
                     }
                 });
                 statusEl.addEventListener('click', openPlusSettings);
+                
                 // Available Tokens - only show if server is online
                 if (isOnline && pixelBannerPlusServerOnline) {
                     const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined 
@@ -589,12 +605,154 @@ export class SelectPixelBannerModal extends Modal {
                         cls: 'pixel-banner-status-value',
                         attr: {
                             style: `
-                                border: 1px dotted #F3B93B;
+                                border: 1px dashed #bba00f;
                                 display: ${pixelBannerPlusServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
                             `
                         }
                     });
                     tokenCountEl.addEventListener('click', openPlusSettings);
+                    
+                    // Add daily game button in the account info section when API is online
+                    const isMobileDevice = window.navigator.userAgent.includes("Android") || 
+                                           window.navigator.userAgent.includes("iPhone") || 
+                                           window.navigator.userAgent.includes("iPad") || 
+                                           window.navigator.userAgent.includes("iPod");
+                                        
+                    if (!isMobileDevice) {
+                        const dailyGameContainer = accountInfo.createDiv({
+                            cls: 'pixel-banner-daily-game-container',
+                            attr: {
+                                style: `
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+                                    gap: 10px;
+                                    justify-content: space-between;
+                                    width: 100%;
+                                    border-top: 1px solid var(--modal-border-color);
+                                    padding-top: 20px;
+                                    margin-top: 10px;
+                                `
+                            }
+                        });
+
+                        // Current Daily Game Info Block
+                        const dailyGameInfoBlock = dailyGameContainer.createDiv({
+                            attr: {
+                                style: `
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: flex-start;
+                                    gap: 5px;
+                                    width: 100%;
+                                `
+                            }
+                        });
+                        const infoBlockRow1 = dailyGameInfoBlock.createEl('div');
+                        infoBlockRow1.createEl('span', { text: '🎮 Daily Game ' });
+                        infoBlockRow1.createEl('span', {
+                            text: this.plugin.pixelBannerPlusDailyGameName,
+                            attr: { 
+                                style: `
+                                    font-style: italic;
+                                    padding: 0px 8px;
+                                    border-radius: 7px;
+                                    line-height: 1.38;
+                                    color: var(--text-color);
+                                    background-color: var(--interactive-normal);
+                                    box-shadow: var(--input-shadow);
+                                `
+                            }
+                        });
+
+                        const infoBlockRow2 = dailyGameInfoBlock.createEl('div');
+                        infoBlockRow2.createEl('span', { text: '🏆 High Score ' });
+                        infoBlockRow2.createEl('span', {
+                            text: this.plugin.pixelBannerPlusHighScore,
+                            attr: { style: `
+                                font-style: italic;
+                                padding: 0px 8px;
+                                border-radius: 7px;
+                                line-height: 1.38;
+                                color: var(--text-color);
+                                background-color: var(--interactive-normal);
+                                box-shadow: var(--input-shadow);
+                            `}
+                        });
+                        
+                        const infoBlockRow3 = dailyGameInfoBlock.createEl('div');
+                        infoBlockRow3.createEl('span', { text: '💰 Current Jackpot ' });
+                        infoBlockRow3.createEl('span', {
+                            text: `🪙 ${this.plugin.pixelBannerPlusJackpot} Tokens`,
+                            attr: { style: `
+                                font-style: italic;
+                                padding: 0px 8px;
+                                border-radius: 7px;
+                                line-height: 1.38;
+                                color: var(--text-color);
+                                background-color: var(--interactive-normal);
+                                box-shadow: var(--input-shadow);
+                            ` } });
+                        
+                        const infoBlockRow4 = dailyGameInfoBlock.createEl('div');
+                        infoBlockRow4.createEl('span', { text: '⏰ Time Left ' });
+                        infoBlockRow4.createEl('span', {
+                            text: this.plugin.pixelBannerPlusTimeLeft,
+                            attr: { style: `
+                                font-style: italic;
+                                padding: 0px 8px;
+                                border-radius: 7px;
+                                line-height: 1.38;
+                                color: var(--text-color);
+                                background-color: var(--interactive-normal);
+                                box-shadow: var(--input-shadow);
+                            ` }
+                        });
+
+                        const infoBlockRow5 = dailyGameInfoBlock.createEl('div');
+                        infoBlockRow5.createEl('span', {
+                            text: '3 FREE',
+                            attr: {
+                                style: `
+                                    background: darkgreen;
+                                    color: white;
+                                    padding: 0px 4px;
+                                    border-radius: 5px;
+                                    letter-spacing: 1px;
+                                `
+                            }
+                        });
+                        infoBlockRow5.createEl('span', { text: ' plays per day!' });
+
+                        // Daily Game Button
+                        const dailyGameButton = dailyGameContainer.createEl('button', {
+                            cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
+                            attr: {
+                                style: `
+                                    min-width: 110px;
+                                `
+                            }
+                        });
+                        const dailyGameContent = dailyGameButton.createDiv({
+                            cls: 'pixel-banner-button-content',
+                            attr: {
+                                style: `
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                `
+                            }
+                        });
+                        dailyGameContent.createEl('span', { text: '🕹️', cls: 'pixel-banner-button-icon pixel-banner-twinkle-animation' });
+                        dailyGameContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+                            text: 'Play Daily Game', 
+                            cls: 'pixel-banner-button-text'
+                        });
+                        dailyGameButton.addEventListener('click', () => {
+                            this.close();
+                            new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
+                        });
+                    }
                 } else {
                     // If offline, show a reconnect button
                     const retryButton = statusContainer.createEl('button', {
@@ -729,9 +887,8 @@ export class SelectPixelBannerModal extends Modal {
             .pixel-banner-main-container {
                 display: flex;
                 flex-direction: column;
-                gap: 24px;
+                gap: 15px;
                 padding: 0 16px 16px;
-                overflow-y: auto;
                 max-height: 80vh;
                 width: 100%;
                 box-sizing: border-box;
@@ -742,6 +899,7 @@ export class SelectPixelBannerModal extends Modal {
                 flex-direction: column;
                 gap: 16px;
                 width: 100%;
+                padding: 14px;
             }
             
             .pixel-banner-section-title {
@@ -771,7 +929,6 @@ export class SelectPixelBannerModal extends Modal {
                 transition: all 0.2s ease;
                 flex: 1;
                 min-width: 80px;
-                min-height: 100px;
                 height: 100%;
                 box-sizing: border-box;
                 overflow: hidden;
@@ -840,7 +997,6 @@ export class SelectPixelBannerModal extends Modal {
                 transition: all 0.2s ease;
                 flex: 1;
                 min-width: 80px;
-                min-height: 100px;
                 height: 100%;
                 box-sizing: border-box;
                 overflow: hidden;
@@ -864,20 +1020,18 @@ export class SelectPixelBannerModal extends Modal {
             }
             
             .pixel-banner-no-banner-message {
-                margin-top: 8px;
-                padding: 12px;
                 background: var(--background-modifier-error-rgb);
                 border-radius: 8px;
-                opacity: 0.7;
                 width: 100%;
                 box-sizing: border-box;
             }
             
             .pixel-banner-message-text {
                 margin: 0;
-                color: var(--text-error);
+                color: var(--text-accent-hover);
                 font-size: 14px;
                 text-align: center;
+                text-transform: uppercase;
             }
             
             .pixel-banner-settings-button:hover {
@@ -887,9 +1041,9 @@ export class SelectPixelBannerModal extends Modal {
             /* Pixel Banner Plus Account styles */
             .pixel-banner-account-info {
                 display: flex;
-                flex-direction: row;
-                justify-content: flex-start;
-                align-items: center;
+                flex-direction: column;
+                justify-content: center;
+                align-items: flex-start;
                 flex-wrap: wrap;
                 gap: 10px;
                 width: 100%;
@@ -897,7 +1051,7 @@ export class SelectPixelBannerModal extends Modal {
             
             .pixel-banner-status-value {
                 padding: 3px 7px;
-                border-radius: 0px;
+                border-radius: 15px;
                 font-size: .8em;
                 letter-spacing: 1px;
                 background-color: var(--background-primary);
@@ -906,14 +1060,20 @@ export class SelectPixelBannerModal extends Modal {
             }
             
             .pixel-banner-account-button {
-                padding: 3px 7px;
-                border-radius: 5px;
-                cursor: pointer;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                font-size: .7em;
-                transition: all 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 12px 8px;
+                border-radius: 8px;
                 border: 1px solid var(--background-modifier-border);
+                background: var(--background-primary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                flex: 1;
+                min-width: 80px;
+                height: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
             }
             
             .pixel-banner-account-button:hover {
@@ -967,6 +1127,13 @@ export class SelectPixelBannerModal extends Modal {
                 .pixel-banner-source-button,
                 .pixel-banner-customize-button {
                     padding: 16px 8px;
+                }
+            }
+            
+            @media (max-width: 590px) {
+                .pixel-banner-daily-game-container {
+                    flex-direction: column !important;
+                    align-items: flex-start !important;
                 }
             }
             

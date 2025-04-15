@@ -796,6 +796,11 @@ export class PixelBannerPlugin extends Plugin {
         this.pixelBannerPlusServerOnline = result.serverOnline;
         this.pixelBannerPlusEnabled = result.verified;
         this.pixelBannerPlusBannerTokens = result.bannerTokens;
+        this.pixelBannerPlusJackpot = result.jackpot;
+        this.pixelBannerPlusDailyGameName = result.dailyGameName;
+        this.pixelBannerPlusHighScore = result.highScore || '0';
+        this.pixelBannerPlusTopUser = result.topUser;
+        this.pixelBannerPlusTimeLeft = result.timeLeft;
         return result;
     }
 
