@@ -1,10 +1,9 @@
-import { Modal } from 'obsidian';
+import { Modal, MarkdownView } from 'obsidian';
 import getCurrentTheme from '../../utils/getCurrentTheme';
 import { EmojiSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
 import { flags } from '../../resources/flags.js';
 import { getFrontmatterValue } from '../../utils/frontmatterUtils.js';
-import { MarkdownView } from 'obsidian';
 
 
 // ---------------------------
@@ -363,28 +362,56 @@ export class TargetPositionModal extends Modal {
                     font-weight: 600;
                     letter-spacing: 1px;
                     text-transform: uppercase;
+                    margin-top: 15px;
                     margin-bottom: 10px;
                 `
             }
         });
 
-        // add button to bannerImageHeader
-        const bannerImageHeaderButton = bannerImageHeader.createEl('button', {
-            text: '✏️ Change Image',
+        // banner image header buttons container
+        const bannerImageHeaderButtons = bannerImageHeader.createEl('div', {
+            cls: 'banner-image-header-buttons',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    gap: 5px;
+                `
+            }
+        });
+
+        // add Change Image button to bannerImageHeader
+        const bannerImageHeaderChangeButton = bannerImageHeaderButtons.createEl('button', {
+            text: '✏️ Change Banner',
             cls: 'banner-image-header-button cursor-pointer',
             attr: {
                 style: `
-                    margin-top: 15px;
                     text-transform: uppercase;
                     font-size: .8em;
                 `
             }
         });
-
         // on click of back to main menu button, close this modal and open the Pixel Banner Menu modal
-        bannerImageHeaderButton.addEventListener('click', () => {
+        bannerImageHeaderChangeButton.addEventListener('click', () => {
             this.close();
             new SelectPixelBannerModal(this.app, this.plugin).open();
+        });
+
+        // add Remove Image button to bannerImageHeader
+        const bannerImageHeaderRemoveButton = bannerImageHeaderButtons.createEl('button', {
+            text: '🗑️ Remove Banner',
+            cls: 'banner-image-header-button cursor-pointer',
+            attr: {
+                style: `
+                    text-transform: uppercase;
+                    font-size: .8em;
+                `
+            }
+        });
+        // on click of remove banner button, remove the banner from the frontmatter
+        bannerImageHeaderRemoveButton.addEventListener('click', () => {
+            this.resetPixelBannerNoteSettings(true);
         });
 
         // Create main container with flex layout
@@ -1885,8 +1912,8 @@ export class TargetPositionModal extends Modal {
             this.close();
         });
 
-        // Add event listener to reset the modal when the button is clicked
-        resetButton.addEventListener('click', () => {
+        // Define reset function to be used by both buttons
+        this.resetPixelBannerNoteSettings = (deleteBannerAndIcon = false) => {
             // Reset UI elements
             displaySelect.value = 'cover';
             zoomContainer.style.display = 'none';
@@ -2078,12 +2105,24 @@ export class TargetPositionModal extends Modal {
                 console.log('Removing flag color field:', flagColorField);
                 delete frontmatter[flagColorField];
                 
-                // Update the flag color radio buttons to reflect the global default
-                const defaultColor = this.plugin.settings.selectImageIconFlag;
-                const radios = flagRadioContainer.querySelectorAll('input[type="radio"]');
-                radios.forEach(radio => {
-                    radio.checked = radio.value === defaultColor;
-                });
+                // If deleteBannerAndIcon is true, also remove the banner image and banner icon fields
+                if (deleteBannerAndIcon) {
+                    // Get the banner image field
+                    const bannerField = Array.isArray(this.plugin.settings.customBannerField) 
+                        ? this.plugin.settings.customBannerField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerField;
+                    
+                    // Get the banner icon field
+                    const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField)
+                        ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconField;
+                    
+                    // Remove the banner image and icon
+                    delete frontmatter[bannerField];
+                    delete frontmatter[bannerIconField];
+                    
+                    console.log('Removed banner and banner icon fields:', bannerField, bannerIconField);
+                }
             });
             
             // After processing frontmatter, update the flag color radio buttons
@@ -2135,6 +2174,19 @@ export class TargetPositionModal extends Modal {
             
             // Update position indicator with default values
             updatePositionIndicator();
+
+            // Update the banner to ensure the note is re-rendered properly
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+                this.plugin.updateBanner(view, true);
+            }
+
+            this.close();
+        };
+
+        // Add event listener to reset the modal when the reset button is clicked
+        resetButton.addEventListener('click', () => {
+            this.resetPixelBannerNoteSettings();
         });
 
         // Create repeat toggle container (initially hidden)

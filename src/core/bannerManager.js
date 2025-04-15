@@ -154,11 +154,11 @@ async function addPixelBanner(plugin, el, ctx) {
             viewImageIcon.innerHTML = '🖼️';
 
             // We'll update this once we actually load an image below
-            viewImageIcon._updateVisibility = (newUrl) => {
+            viewImageIcon._updateVisibility = (newUrl, originalPath) => {
                 viewImageIcon.style.display = newUrl ? 'block' : 'none';
                 if (newUrl) {
                     viewImageIcon.onclick = () => {
-                        new ImageViewModal(plugin.app, newUrl).open();
+                        new ImageViewModal(plugin.app, newUrl, originalPath).open();
                     };
                 }
             };
@@ -291,7 +291,8 @@ async function addPixelBanner(plugin, el, ctx) {
             // If there's a "view image" icon, update it
             const viewImageIcon = container.querySelector(':scope > .view-image-icon');
             if (viewImageIcon && viewImageIcon._updateVisibility) {
-                viewImageIcon._updateVisibility(imageUrl);
+                const bannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
+                viewImageIcon._updateVisibility(imageUrl, bannerValue || file.path);
             }
 
             // Apply other styling (fade, borderRadius, etc.)
@@ -380,7 +381,8 @@ async function addPixelBanner(plugin, el, ctx) {
 
                                 const viewImageIcon = container.querySelector(':scope > .view-image-icon');
                                 if (viewImageIcon && viewImageIcon._updateVisibility) {
-                                    viewImageIcon._updateVisibility(newImageUrl);
+                                    const bannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
+                                    viewImageIcon._updateVisibility(newImageUrl, bannerValue || file.path);
                                 }
 
                                 // Update pin icon with new URL

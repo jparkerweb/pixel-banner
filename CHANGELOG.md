@@ -3,6 +3,11 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.3.3 - 2025-04-15
+#### ✨ Added
+- Added `🗑️ Remove Banner` button to the Targeting Modal for easy banner cleanup
+- New `Copy Path` button to the Image View Modal for a convenient way to copy banner paths
+
 ### v3.3.2 - 2025-04-15
 #### 🐛 Fixed
 - Resolved authentication issues with the Pixel Banner Plus API
