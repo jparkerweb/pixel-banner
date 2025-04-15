@@ -3,6 +3,10 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.3.1 - 2025-04-15
+#### 📦 Updated
+- The `Daily Game` is `opt-in` and optional (must be enabled in the Pixel Banner Plus settings)
+
 ### v3.3.0 - 2025-04-15
 #### ✨ Added
 - Introducing the NEW `Daily Game` section!

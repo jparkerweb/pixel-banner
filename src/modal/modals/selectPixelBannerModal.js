@@ -618,7 +618,8 @@ export class SelectPixelBannerModal extends Modal {
                                            window.navigator.userAgent.includes("iPad") || 
                                            window.navigator.userAgent.includes("iPod");
                                         
-                    if (!isMobileDevice) {
+                    // Only display the daily game container if not on mobile device AND the enableDailyGame setting is true
+                    if (!isMobileDevice && this.plugin.settings.enableDailyGame) {
                         const dailyGameContainer = accountInfo.createDiv({
                             cls: 'pixel-banner-daily-game-container',
                             attr: {
