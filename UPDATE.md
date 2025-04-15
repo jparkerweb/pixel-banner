@@ -1,4 +1,4 @@
-<a href="https://youtu.be/-LF0YlylWGA">
+<a href="https://www.youtube.com/watch?v=-LF0YlylWGA">
   <img src="https://pixel-banner.online/img/pixel-banner-games-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
 
