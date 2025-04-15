@@ -2,6 +2,18 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+## 🎉 What's New
+### v3.3.0 - 2025-04-15
+#### ✨ Added
+- Introducing the NEW `Daily Game` section!
+- Users get three FREE plays per day; Highest score wins the jackpot of Tokens!
+- Launch Game Library:
+  - 🧱 Brick Breaker
+  - 🐦 Flapping Bird
+  - 🐸 Frog Jump
+  - ⏹️ Pixel Stacker
+  - 🐍 Snake
+
 ### v3.2.5 - 2025-04-10
 #### 📦 Updated
 - Refactored the banner selection modal's UI to initialize basic elements immediately while API-dependent sections load in the background.
