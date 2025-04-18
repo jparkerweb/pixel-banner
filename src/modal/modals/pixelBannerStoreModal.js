@@ -244,8 +244,8 @@ export class PixelBannerStoreModal extends Modal {
 
         // Next Category button
         this.nextCategoryButton = this.categoryControlsContainer.createEl('button', {
-            text: 'Next Category',
-            cls: 'pixel-banner-store-next-category',
+            text: '▶️ Next Category',
+            cls: 'pixel-banner-store-next-category radial-pulse-animation',
             attr: {
                 style: `
                     display: ${this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
@@ -1281,8 +1281,7 @@ export class PixelBannerStoreModal extends Modal {
             }
             
             .pixel-banner-store-search-button,
-            .pixel-banner-store-stop-search-button,
-            .pixel-banner-store-search-all-button {
+            .pixel-banner-store-stop-search-button {
                 background-color: var(--interactive-accent) !important;
                 color: var(--text-on-accent) !important;
             }
