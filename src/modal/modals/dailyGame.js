@@ -48,7 +48,9 @@ export class DailyGameModal extends Modal {
         width: '100%',
         height: '600px',
         frameborder: '0',
-        allowfullscreen: 'true'
+        allowfullscreen: 'true',
+        allow: 'clipboard-write; encrypted-media',
+        sandbox: 'allow-scripts allow-same-origin allow-popups allow-forms'
       }
     });
     
@@ -109,11 +111,10 @@ export class DailyGameModal extends Modal {
     this.iframe.contentWindow.postMessage({
       type: 'auth',
       data: {
-        userEmail: this.userEmail,
-        apiKey: this.apiKey
+          userEmail: this.userEmail,
+          apiKey: this.apiKey
       }
-    }, '*');
-    // }, 'app://obsidian.md'); // Specify exact origin for security
+    }, PIXEL_BANNER_PLUS.API_URL);
   }
 
   onClose() {
