@@ -3,6 +3,13 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.3.4 - 2025-04-18
+#### 📦 Updated
+- Fixed background color on server connection retry button
+- Enhanced "Next Category" button to be more visible
+- Delay re-rendering of banner when resetting defaults in targeting modal
+- Added retry logic to authentication process
+
 ### v3.3.3 - 2025-04-15
 #### ✨ Added
 - Added `🗑️ Remove Banner` button to the Targeting Modal for easy banner cleanup
