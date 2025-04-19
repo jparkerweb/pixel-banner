@@ -957,6 +957,17 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         folderSpecific?.hideEmbeddedNoteBanners || 
         plugin.settings.hideEmbeddedNoteBanners || false;
 
+    // Get banner alignment
+    const bannerAlignment = getFrontmatterValue(frontmatter, plugin.settings.customBannerAlignmentField) || 'center';
+    
+    // Set alignment CSS variable based on the alignment value
+    let alignmentValue = '0 auto'; // Default for center
+    if (bannerAlignment === 'left') {
+        alignmentValue = '0 auto 0 0';
+    } else if (bannerAlignment === 'right') {
+        alignmentValue = '0 0 0 auto';
+    }
+
     bannerDiv.style.backgroundSize = imageDisplay || 'cover';
     bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
     if (hideEmbeddedNoteBanners && isEmbedded) {
@@ -995,6 +1006,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         container.style.setProperty('--pixel-banner-icon-border-radius', `${bannerIconBorderRadius}px`);
         container.style.setProperty('--pixel-banner-icon-vertical-offset', `${bannerIconVeritalOffset}px`);
         container.style.setProperty('--pixel-banner-embed-min-height', `${bannerHeightPlusIcon}`);
+        container.style.setProperty('--pixel-banner-alignment', alignmentValue);
     }
 }
 

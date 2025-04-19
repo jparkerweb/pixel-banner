@@ -20,6 +20,12 @@ export class TargetPositionModal extends Modal {
         const activeFile = this.app.workspace.getActiveFile();
         const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
 
+        // alignment field
+        const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField) 
+            ? this.plugin.settings.customBannerAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerAlignmentField;
+        this.currentAlignment = frontmatter?.[alignmentField] || 'center';
+
         // display field
         const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
             ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
@@ -303,6 +309,16 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (fm) => {
             fm[repeatField] = repeat;
+        });
+    }
+
+    updateBannerAlignment(alignment) {
+        const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField)
+            ? this.plugin.settings.customBannerAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerAlignmentField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (fm) => {
+            fm[alignmentField] = alignment;
         });
     }
 
@@ -862,6 +878,56 @@ export class TargetPositionModal extends Modal {
             contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
             this.updateBannerContentStartPosition(this.currentContentStartPosition);
         });
+
+
+        // Banner alignment select
+        const alignmentContainer = contentEl.createDiv({
+            cls: 'alignment-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    flex: 0 auto;
+                `
+            }
+        });
+
+        // Alignment label
+        alignmentContainer.createEl('div', { 
+            text: 'Banner Alignment',
+            cls: 'alignment-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Alignment select
+        const alignmentSelect = alignmentContainer.createEl('select', { cls: 'alignment-select' });
+        [
+            { value: 'left', text: 'Left' },
+            { value: 'center', text: 'Center' },
+            { value: 'right', text: 'Right' }
+        ].forEach(option => {
+            const optionEl = alignmentSelect.createEl('option', {
+                text: option.text,
+                value: option.value
+            });
+            if (option.value === this.currentAlignment) {
+                optionEl.selected = true;
+            }
+        });
+
+        // Event handler for alignment select
+        alignmentSelect.addEventListener('change', () => {
+            this.currentAlignment = alignmentSelect.value;
+            this.updateBannerAlignment(this.currentAlignment);
+        });
+
 
         // -----------------------
         // -- banner icon stuff --
@@ -2162,6 +2228,18 @@ export class TargetPositionModal extends Modal {
             contentStartPositionValue.setText(`${this.plugin.settings.contentStartPosition}px`);
             bannerIconXPositionValue.setText(`${this.plugin.settings.bannerIconXPosition}`);
             
+            // Reset max-width checkbox to checked (default is unset)
+            if (unsetCheckbox) {
+                unsetCheckbox.checked = true;
+                maxWidthValueDisplay.style.color = 'var(--text-muted)';
+                maxWidthValueDisplay.setText('unset');
+            }
+            
+            // Reset alignment to default (center)
+            if (alignmentSelect) {
+                alignmentSelect.value = 'center';
+            }
+            
             // Reset new banner icon value displays
             if (bannerIconSizeValue) bannerIconSizeValue.setText(`${this.plugin.settings.bannerIconSize}`);
             if (bannerIconPaddingXValue) bannerIconPaddingXValue.setText(`${this.plugin.settings.bannerIconPaddingX}`);
@@ -2201,19 +2279,19 @@ export class TargetPositionModal extends Modal {
                 const xField = Array.isArray(this.plugin.settings.customXPositionField) 
                     ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customXPositionField;
-                    
+
                 const yField = Array.isArray(this.plugin.settings.customYPositionField) 
                     ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customYPositionField;
-                    
+
                 const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField)
                     ? this.plugin.settings.customContentStartField[0].split(',')[0].trim()
                     : this.plugin.settings.customContentStartField;
-                    
+
                 const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField)
                     ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconXPositionField;
-                    
+
                 const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
                     ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
                     : this.plugin.settings.customImageRepeatField;
@@ -2271,11 +2349,16 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[bannerIconBorderRadiusField];
                 delete frontmatter[bannerIconVerticalOffsetField];
                 
+                // Remove alignment field
+                const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField)
+                    ? this.plugin.settings.customBannerAlignmentField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerAlignmentField;
+                delete frontmatter[alignmentField];
+                
                 // Remove flag color field (this ensures the note uses the global default flag color)
                 const flagColorField = Array.isArray(this.plugin.settings.customFlagColorField)
                     ? this.plugin.settings.customFlagColorField[0].split(',')[0].trim()
                     : this.plugin.settings.customFlagColorField;
-                console.log('Removing flag color field:', flagColorField);
                 delete frontmatter[flagColorField];
                 
                 // If deleteBannerAndIcon is true, also remove the banner image and banner icon fields
@@ -2293,14 +2376,11 @@ export class TargetPositionModal extends Modal {
                     // Remove the banner image and icon
                     delete frontmatter[bannerField];
                     delete frontmatter[bannerIconField];
-                    
-                    console.log('Removed banner and banner icon fields:', bannerField, bannerIconField);
                 }
             });
             
             // After processing frontmatter, update the flag color radio buttons
             if (flagRadioContainer) {
-                console.log('Updating flag radio buttons after reset');
                 const flagRadios = flagRadioContainer.querySelectorAll('input[type="radio"]');
                 flagRadios.forEach(radio => {
                     radio.checked = radio.value === this.plugin.settings.selectImageIconFlag;
@@ -2344,7 +2424,7 @@ export class TargetPositionModal extends Modal {
             // Update crosshair position visually
             verticalLine.style.left = `${this.currentX}%`;
             horizontalLine.style.top = `${this.currentY}%`;
-            
+
             // Update position indicator with default values
             updatePositionIndicator();
 
