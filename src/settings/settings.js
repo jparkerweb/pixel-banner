@@ -26,6 +26,7 @@ const DEFAULT_SETTINGS = {
     customImageDisplayField: ['banner-display'],
     customImageRepeatField: ['banner-repeat'],
     customBannerHeightField: ['banner-height'],
+    customBannerMaxWidthField: ['banner-max-width'],
     customFadeField: ['banner-fade'],
     customBorderRadiusField: ['banner-radius'],
     customTitleColorField: ['banner-inline-title-color'],

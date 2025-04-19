@@ -597,6 +597,9 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     let borderRadius = getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField) ?? 
         folderSpecific?.borderRadius ?? 
         plugin.settings.borderRadius;
+    let maxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
+        folderSpecific?.bannerMaxWidth || 
+        'unset';
 
     // Process this note's banner if it exists
     if (bannerImage) {
@@ -613,6 +616,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             bannerHeight,
             fade,
             borderRadius,
+            maxWidth,
             isReadingView: view.getMode && view.getMode() === 'preview'
         });
 
@@ -863,7 +867,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 const debouncedApplyBannerSettings = debounceAndSwallow(applyBannerSettings, 350);
 function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     // console.log('🔍 Applying banner settings');
-    const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius } = ctx;
+    const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius, maxWidth } = ctx;
     const folderSpecific = plugin.getFolderSpecificImage(ctx.file.path);
     
     // Get pixel banner y position
@@ -875,6 +879,11 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     const pixelBannerXPosition = getFrontmatterValue(frontmatter, plugin.settings.customXPositionField) || 
         folderSpecific?.xPosition || 
         plugin.settings.xPosition;
+
+    // Get pixel banner max width
+    const pixelBannerMaxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
+        folderSpecific?.bannerMaxWidth || 
+        'unset';
 
     // Get title color from frontmatter, folder settings, or default
     const titleColor = getFrontmatterValue(frontmatter, plugin.settings.customTitleColorField) || 
@@ -958,7 +967,9 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     bannerDiv.style.setProperty('--pixel-banner-fade', `${fade}%`);
     bannerDiv.style.setProperty('--pixel-banner-fade-in-animation-duration', `${plugin.settings.bannerFadeInAnimationDuration}ms`);
     bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
-
+    const maxWidthValue = pixelBannerMaxWidth === 'unset' ? 'unset' : `${pixelBannerMaxWidth}px`;
+    bannerDiv.style.setProperty('--pixel-banner-max-width', maxWidthValue);
+    
     let bannerIconStart = `${bannerIconSize}px`;
     let bannerHeightPlusIcon = `0px`;
     if (!hideEmbeddedNoteBanners) {
@@ -970,6 +981,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     if (container) {
         container.style.setProperty('--pixel-banner-y-position', `${pixelBannerYPosition}%`);
         container.style.setProperty('--pixel-banner-x-position', `${pixelBannerXPosition}%`);
+        container.style.setProperty('--pixel-banner-max-width', maxWidthValue); 
         container.style.setProperty('--pixel-banner-title-color', titleColor);
         container.style.setProperty('--pixel-banner-icon-size', `${bannerIconSize}px`);
         container.style.setProperty('--pixel-banner-icon-start', bannerIconStart);

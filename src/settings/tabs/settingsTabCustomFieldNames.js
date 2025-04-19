@@ -94,6 +94,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-height, height, banner-size'
         },
         {
+            setting: 'customBannerMaxWidthField',
+            name: 'Banner Max Width Field Names',
+            desc: 'Set custom field names for the banner maximum width in frontmatter',
+            values: '800px, 100%, 1200px',
+            placeholder: 'banner-max-width, max-width, banner-width'
+        },
+        {
             setting: 'customFadeField',
             name: 'Fade Field Names',
             desc: 'Set custom field names for the fade in frontmatter',
