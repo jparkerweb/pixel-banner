@@ -161,7 +161,14 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                     toggleComponent.parentElement.classList.toggle('is-enabled', DEFAULT_SETTINGS.enableDailyGame);
                     toggleComponent.dispatchEvent(new Event('change'));
                 }
-            }));
+            }))
+        .then(setting => {
+            // Set the HTML content for the name element
+            const nameEl = setting.nameEl;
+            if (nameEl) {
+                nameEl.innerHTML = '<span class="pixel-banner-twinkle-animation">🕹️</span> Show Daily Game';
+            }
+        });
 
     // Create the initial Signup section
     updateSignupSection(pixelBannerPlusSettingsGroup, plugin);

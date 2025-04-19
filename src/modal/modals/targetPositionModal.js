@@ -2176,10 +2176,12 @@ export class TargetPositionModal extends Modal {
             updatePositionIndicator();
 
             // Update the banner to ensure the note is re-rendered properly
-            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (view) {
-                this.plugin.updateBanner(view, true);
-            }
+            setTimeout(() => {
+                const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (view) {
+                    this.plugin.updateBanner(view, true);
+                }
+            }, 750);
 
             this.close();
         };

@@ -8,3 +8,4 @@ node_modules
 .aider*
 
 .cursor/mcp.json
+.vault

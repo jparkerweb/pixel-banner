@@ -593,6 +593,12 @@ export class SelectPixelBannerModal extends Modal {
                     }
                 });
                 statusEl.addEventListener('click', openPlusSettings);
+
+                // isMobileDevice check
+                const isMobileDevice = window.navigator.userAgent.includes("Android") || 
+                    window.navigator.userAgent.includes("iPhone") || 
+                    window.navigator.userAgent.includes("iPad") || 
+                    window.navigator.userAgent.includes("iPod");
                 
                 // Available Tokens - only show if server is online
                 if (isOnline && pixelBannerPlusServerOnline) {
@@ -611,15 +617,45 @@ export class SelectPixelBannerModal extends Modal {
                         }
                     });
                     tokenCountEl.addEventListener('click', openPlusSettings);
+
+                    if (!isMobileDevice && isConnected) {
+                        // Add game button to the title container
+                        const gameButton = statusContainer.createEl('button', {
+                            cls: 'pixel-banner-game-button',
+                            attr: {
+                                style: `
+                                    margin-left: auto;
+                                    margin-right: 10px;
+                                    padding: 4px 10px;
+                                    background: transparent;
+                                    border: none;
+                                    box-shadow: none;
+                                    cursor: pointer;
+                                    font-size: 14px;
+                                    display: none;
+                                    text-transform: uppercase;
+                                `
+                            }
+                        });
+                        gameButton.innerHTML = '🕹️';
+                        gameButton.title = 'Play Daily Game (optional)... chance to win Banner Tokens';
+                        gameButton.addEventListener('click', () => {
+                            this.close();
+                            new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
+                        });
+                        
+                        // Update the game button visibility
+                        const showGameButton = isOnline && 
+                                             this.plugin.pixelBannerPlusServerOnline && 
+                                             this.plugin.pixelBannerPlusEnabled && 
+                                             !this.plugin.settings.enableDailyGame;
+                        
+                        gameButton.style.display = showGameButton ? 'inline-block' : 'none';
+                    }
                     
                     // Add daily game button in the account info section when API is online
-                    const isMobileDevice = window.navigator.userAgent.includes("Android") || 
-                                           window.navigator.userAgent.includes("iPhone") || 
-                                           window.navigator.userAgent.includes("iPad") || 
-                                           window.navigator.userAgent.includes("iPod");
-                                        
                     // Only display the daily game container if not on mobile device AND the enableDailyGame setting is true
-                    if (!isMobileDevice && this.plugin.settings.enableDailyGame) {
+                    if (!isMobileDevice && this.plugin.settings.enableDailyGame && isConnected) {
                         const dailyGameContainer = accountInfo.createDiv({
                             cls: 'pixel-banner-daily-game-container',
                             attr: {
@@ -1094,7 +1130,7 @@ export class SelectPixelBannerModal extends Modal {
             }
             
             .pixel-banner-retry-button {
-                background-color: var(--background-modifier-success) !important;
+                background-color: var(--background-accent) !important;
                 color: var(--text-on-accent) !important;
                 font-size: 0.8em !important;
                 padding: 4px 8px !important;

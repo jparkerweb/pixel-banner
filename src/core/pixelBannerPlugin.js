@@ -1,7 +1,7 @@
 import { Plugin, MarkdownView, Notice } from 'obsidian';
 import { releaseNotes } from 'virtual:release-notes';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/settings.js';
-import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, SelectPixelBannerModal } from '../modal/modals.js';
+import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, SelectPixelBannerModal, DailyGameModal } from '../modal/modals.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
 import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, cleanupIconOverlay } from './bannerIconHelpers.js'; 
@@ -134,6 +134,15 @@ export class PixelBannerPlugin extends Plugin {
                     return this.pixelBannerPlusEnabled;
                 }
                 new GenerateAIBannerModal(this.app, this).open();
+            }
+        });
+
+        // Add daily game command
+        this.addCommand({
+            id: 'play-daily-game',
+            name: '🕹️ Play Daily Game',
+            callback: () => {
+                new DailyGameModal(this.app, this.settings.pixelBannerPlusEmail, this.settings.pixelBannerPlusApiKey, this).open();
             }
         });
 
