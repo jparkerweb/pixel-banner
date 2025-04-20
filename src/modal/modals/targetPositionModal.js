@@ -20,6 +20,12 @@ export class TargetPositionModal extends Modal {
         const activeFile = this.app.workspace.getActiveFile();
         const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
 
+        // alignment field
+        const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField) 
+            ? this.plugin.settings.customBannerAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerAlignmentField;
+        this.currentAlignment = frontmatter?.[alignmentField] || 'center';
+
         // display field
         const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
             ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
@@ -43,6 +49,26 @@ export class TargetPositionModal extends Modal {
             ? this.plugin.settings.customBannerHeightField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerHeightField;
         this.currentHeight = frontmatter?.[heightField] || this.plugin.settings.bannerHeight;
+
+        // max-width field
+        const maxWidthField = Array.isArray(this.plugin.settings.customBannerMaxWidthField)
+            ? this.plugin.settings.customBannerMaxWidthField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerMaxWidthField;
+        
+        // Check if there's a value in frontmatter for the max width field
+        const maxWidthValue = frontmatter?.[maxWidthField];
+        
+        // Try a direct lookup too
+        const directMaxWidth = frontmatter?.["banner-max-width"];
+        
+        // Fix isMaxWidthUnset to ensure it's false when a value exists
+        // Checking for max-width in two different ways
+        const maxWidthExists = (maxWidthValue !== undefined && maxWidthValue !== null) || 
+                               (directMaxWidth !== undefined && directMaxWidth !== null);
+        const isMaxWidthUnset = !maxWidthExists;
+        
+        // Get the current value, or use default if unset
+        this.currentMaxWidth = isMaxWidthUnset ? 1928 : (parseInt(maxWidthValue || directMaxWidth) || 1928);
 
         // content start position field
         const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField)
@@ -72,9 +98,6 @@ export class TargetPositionModal extends Modal {
 
     // Helper to update frontmatter with new display value
     updateDisplayMode(mode, zoom = null) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const displayField = Array.isArray(this.plugin.settings.customImageDisplayField) 
             ? this.plugin.settings.customImageDisplayField[0].split(',')[0].trim()
             : this.plugin.settings.customImageDisplayField;
@@ -88,7 +111,7 @@ export class TargetPositionModal extends Modal {
             newValue = `${zoom}%`;
         }
 
-        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (fm) => {
             fm[displayField] = newValue;
             
             // When changing to "contain" or "auto", use the current toggle state
@@ -104,88 +127,92 @@ export class TargetPositionModal extends Modal {
         });
     }
 
-    updateBannerHeight(height) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
+    updateBannerMaxWidth(maxWidth) {
+        const maxWidthField = Array.isArray(this.plugin.settings.customBannerMaxWidthField)
+            ? this.plugin.settings.customBannerMaxWidthField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerMaxWidthField;
 
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            if (maxWidth === 'unset') {
+                // Remove the max width field if it exists
+                if (maxWidthField in frontmatter) {
+                    delete frontmatter[maxWidthField];
+                }
+            } else {
+                frontmatter[maxWidthField] = maxWidth;
+            }
+        });
+
+        // Update the banner to ensure the note is re-rendered properly
+        setTimeout(() => {
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+                this.plugin.updateBanner(view, true);
+            }
+        }, 350);
+    }
+
+    updateBannerHeight(height) {
         const heightField = Array.isArray(this.plugin.settings.customBannerHeightField)
             ? this.plugin.settings.customBannerHeightField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerHeightField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[heightField] = height;
         });
     }
 
     updateBannerContentStartPosition(position) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField)
             ? this.plugin.settings.customContentStartField[0].split(',')[0].trim()
             : this.plugin.settings.customContentStartField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[contentStartPositionField] = position;
         });
     }
 
     updateBannerIconXPosition(position) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField)
             ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconXPositionField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconXPositionField] = position;
         });
     }
 
     updateBannerIconSize(size) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
             ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconSizeField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconSizeField] = size;
         });
     }
 
     updateBannerIconColor(color) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField)
             ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconColorField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconColorField] = color;
         });
     }
 
     updateBannerIconFontWeight(fontWeight) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconFontWeightField = Array.isArray(this.plugin.settings.customBannerIconFontWeightField)
             ? this.plugin.settings.customBannerIconFontWeightField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconFontWeightField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconFontWeightField] = fontWeight;
         });
     }
 
     updateBannerIconBgColor(color, alpha) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconBgColorField = Array.isArray(this.plugin.settings.customBannerIconBackgroundColorField)
             ? this.plugin.settings.customBannerIconBackgroundColorField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconBackgroundColorField;
@@ -220,86 +247,78 @@ export class TargetPositionModal extends Modal {
             }
         }
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconBgColorField] = finalColor;
         });
     }
 
     updateBannerIconPaddingX(paddingX) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconPaddingXField = Array.isArray(this.plugin.settings.customBannerIconPaddingXField)
             ? this.plugin.settings.customBannerIconPaddingXField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconPaddingXField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconPaddingXField] = paddingX;
         });
     }
 
     updateBannerIconPaddingY(paddingY) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconPaddingYField = Array.isArray(this.plugin.settings.customBannerIconPaddingYField)
             ? this.plugin.settings.customBannerIconPaddingYField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconPaddingYField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconPaddingYField] = paddingY;
         });
     }
 
     updateBannerIconBorderRadius(borderRadius) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField)
             ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconBorderRadiusField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconBorderRadiusField] = borderRadius;
         });
     }
 
     updateBannerIconVerticalOffset(verticalOffset) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const bannerIconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField)
             ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconVeritalOffsetField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconVerticalOffsetField] = verticalOffset;
         });
     }
 
     updateTitleColor(color) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const titleColorField = Array.isArray(this.plugin.settings.customTitleColorField)
             ? this.plugin.settings.customTitleColorField[0].split(',')[0].trim()
             : this.plugin.settings.customTitleColorField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[titleColorField] = color;
         });
     }
 
     updateRepeatMode(repeat) {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) return;
-
         const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
             ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
             : this.plugin.settings.customImageRepeatField;
 
-        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (fm) => {
             fm[repeatField] = repeat;
+        });
+    }
+
+    updateBannerAlignment(alignment) {
+        const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField)
+            ? this.plugin.settings.customBannerAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerAlignmentField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (fm) => {
+            fm[alignmentField] = alignment;
         });
     }
 
@@ -329,6 +348,9 @@ export class TargetPositionModal extends Modal {
         modalEl.style.height = "max-content";
         bgEl.style.opacity = "0";
 
+        // Get current frontmatter
+        const activeFile = this.app.workspace.getActiveFile();
+        const frontmatter = activeFile ? this.app.metadataCache.getFileCache(activeFile)?.frontmatter || {} : {};
 
         // add drag handle
         const dragHandle = contentEl.createDiv({
@@ -510,6 +532,137 @@ export class TargetPositionModal extends Modal {
             this.updateDisplayMode('cover-zoom', this.currentZoom);
         });
 
+        // Max Width control container
+        const maxWidthContainer = mainContainer.createDiv({
+            cls: 'max-width-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                `
+            }
+        });
+
+        // Max Width label
+        const maxWidthLabel = maxWidthContainer.createEl('div', { 
+            text: 'Max Width',
+            cls: 'max-width-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current max width from frontmatter or set to default
+        const maxWidthField = Array.isArray(this.plugin.settings.customBannerMaxWidthField)
+            ? this.plugin.settings.customBannerMaxWidthField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerMaxWidthField;
+        
+        // Check if there's a value in frontmatter for the max width field
+        const maxWidthValue = frontmatter?.[maxWidthField];
+        
+        // Try a direct lookup too
+        const directMaxWidth = frontmatter?.["banner-max-width"];
+        
+        // Fix isMaxWidthUnset to ensure it's false when a value exists
+        // Checking for max-width in two different ways
+        const maxWidthExists = (maxWidthValue !== undefined && maxWidthValue !== null) || 
+                               (directMaxWidth !== undefined && directMaxWidth !== null);
+        const isMaxWidthUnset = !maxWidthExists;
+        
+        // Get the current value, or use default if unset
+        this.currentMaxWidth = isMaxWidthUnset ? 1928 : (parseInt(maxWidthValue || directMaxWidth) || 1928);
+
+        // Unset checkbox container
+        const unsetContainer = maxWidthContainer.createDiv({
+            cls: 'unset-container',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    margin-bottom: 5px;
+                `
+            }
+        });
+
+        // Unset checkbox
+        const unsetCheckbox = unsetContainer.createEl('input', {
+            type: 'checkbox',
+            cls: 'unset-checkbox',
+        });
+        
+        // IMPORTANT - Set the checked state directly and correctly
+        const shouldBeChecked = isMaxWidthUnset;
+        unsetCheckbox.checked = shouldBeChecked;
+        
+        unsetContainer.createEl('span', {
+            text: 'unset'
+        });
+
+        // Max Width value display
+        const maxWidthValueDisplay = maxWidthContainer.createDiv({
+            cls: 'max-width-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                    ${isMaxWidthUnset ? 'color: var(--text-muted);' : ''}
+                `
+            }
+        });
+        maxWidthValueDisplay.setText(isMaxWidthUnset ? 'unset' : `${this.currentMaxWidth}px`);
+
+        // Max Width slider
+        const maxWidthSlider = maxWidthContainer.createEl('input', {
+            type: 'range',
+            cls: 'max-width-slider',
+            attr: {
+                min: '100',
+                max: '2560',
+                step: '10',
+                value: this.currentMaxWidth,
+                disabled: isMaxWidthUnset,
+                draggable: false,
+                style: `
+                    width: 15px;
+                    height: 30px;
+                    flex: 1;
+                    writing-mode: vertical-lr;
+                    direction: rtl;
+                    ${isMaxWidthUnset ? 'opacity: 0.5;' : ''}
+                `
+            }
+        });
+
+        // Toggle max width unset/set
+        unsetCheckbox.addEventListener('change', () => {
+            const isUnset = unsetCheckbox.checked;
+            maxWidthSlider.disabled = isUnset;
+            maxWidthSlider.style.opacity = isUnset ? '0.5' : '1';
+            maxWidthValueDisplay.style.color = isUnset ? 'var(--text-muted)' : '';
+            maxWidthValueDisplay.setText(isUnset ? 'unset' : `${this.currentMaxWidth}px`);
+            
+            if (isUnset) {
+                this.updateBannerMaxWidth('unset');
+            } else {
+                this.updateBannerMaxWidth(this.currentMaxWidth);
+            }
+        });
+
+        // Update max width on slider input
+        maxWidthSlider.addEventListener('input', () => {
+            this.currentMaxWidth = parseInt(maxWidthSlider.value);
+            maxWidthValueDisplay.setText(`${this.currentMaxWidth}px`);
+            this.updateBannerMaxWidth(this.currentMaxWidth);
+        });
+
         // Height control container
         const heightContainer = mainContainer.createDiv({
             cls: 'height-container',
@@ -531,7 +684,7 @@ export class TargetPositionModal extends Modal {
             cls: 'height-label',
             attr: {
                 style: `
-                    color: var(--text-muted);
+                    color: var(--text-muted); 
                     font-size: 0.9em;
                 `
             }
@@ -662,7 +815,6 @@ export class TargetPositionModal extends Modal {
         verticalLine.style.left = `${this.currentX}%`;
         horizontalLine.style.top = `${this.currentY}%`;
 
-        
         // Content Start Position control container
         const contentStartPositionContainer = mainContainer.createDiv({
             cls: 'content-start-position-container',
@@ -727,6 +879,56 @@ export class TargetPositionModal extends Modal {
             this.updateBannerContentStartPosition(this.currentContentStartPosition);
         });
 
+
+        // Banner alignment select
+        const alignmentContainer = contentEl.createDiv({
+            cls: 'alignment-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    flex: 0 auto;
+                `
+            }
+        });
+
+        // Alignment label
+        alignmentContainer.createEl('div', { 
+            text: 'Banner Alignment',
+            cls: 'alignment-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Alignment select
+        const alignmentSelect = alignmentContainer.createEl('select', { cls: 'alignment-select' });
+        [
+            { value: 'left', text: 'Left' },
+            { value: 'center', text: 'Center' },
+            { value: 'right', text: 'Right' }
+        ].forEach(option => {
+            const optionEl = alignmentSelect.createEl('option', {
+                text: option.text,
+                value: option.value
+            });
+            if (option.value === this.currentAlignment) {
+                optionEl.selected = true;
+            }
+        });
+
+        // Event handler for alignment select
+        alignmentSelect.addEventListener('change', () => {
+            this.currentAlignment = alignmentSelect.value;
+            this.updateBannerAlignment(this.currentAlignment);
+        });
+
+
         // -----------------------
         // -- banner icon stuff --
         // -----------------------
@@ -765,8 +967,6 @@ export class TargetPositionModal extends Modal {
         });
 
         // Check if note has banner icon
-        const activeFile = this.app.workspace.getActiveFile();
-        const frontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
         const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField)
             ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconField;
@@ -1087,11 +1287,9 @@ export class TargetPositionModal extends Modal {
             ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconColorField;
         
-        const currentTheme = getCurrentTheme();
-        let defaultColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
-
         // Parse the current color value
-        let currentIconColor = defaultColor;
+        let currentIconColor = this.plugin.settings.bannerIconColor;
+        
         if (frontmatter?.[iconColorField] || this.plugin.settings.bannerIconColor) {
             const colorValue = frontmatter?.[iconColorField] || this.plugin.settings.bannerIconColor;
             
@@ -1107,6 +1305,34 @@ export class TargetPositionModal extends Modal {
         
         this.currentBannerIconColor = currentIconColor;
 
+        // Make sure we have a valid hex color for the color picker
+        const ensureValidHexColor = (color) => {
+            // If no color or invalid format, return default black
+            if (!color || !/^#[0-9A-F]{6}$/i.test(color)) {
+                return '#000000';
+            }
+            return color;
+        };
+
+        // Banner Icon Color picker
+        const bannerIconColorPicker = bannerIconColorContainer.createEl('input', {
+            type: 'color',
+            cls: 'banner-icon-color-picker',
+            attr: {
+                value: ensureValidHexColor(this.currentBannerIconColor),
+                style: `
+                    width: 30px;
+                    height: 30px;
+                    cursor: pointer;
+                    padding: 0;
+                    background-color: transparent;
+                    margin-left: 5px;
+                    border: 1px solid;
+                    border-radius: 50%;
+                `
+            }
+        });
+
         // Banner Icon Color input
         const bannerIconColorInput = bannerIconColorContainer.createEl('input', {
             type: 'text',
@@ -1118,16 +1344,6 @@ export class TargetPositionModal extends Modal {
                     flex: 1;
                     max-width: 120px;
                 `
-            }
-        });
-
-        // Banner Icon Color picker
-        const bannerIconColorPicker = bannerIconColorContainer.createEl('input', {
-            type: 'color',
-            cls: 'banner-icon-color-picker',
-            attr: {
-                value: this.currentBannerIconColor && this.currentBannerIconColor.startsWith('#') ? 
-                    this.currentBannerIconColor : ''
             }
         });
 
@@ -1263,7 +1479,7 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customBannerIconBackgroundColorField;
         
         // Parse the current background color to extract color and alpha values
-        let currentColor = defaultColor;
+        let currentColor = this.plugin.settings.bannerIconBackgroundColor;
         let currentAlpha = 100;
         
         if (frontmatter?.[iconBgColorField] || this.plugin.settings.bannerIconBackgroundColor) {
@@ -1312,7 +1528,17 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-bg-color-picker',
             attr: {
                 value: this.currentBannerIconBgColor && this.currentBannerIconBgColor.startsWith('#') ? 
-                    this.currentBannerIconBgColor : defaultColor
+                    this.currentBannerIconBgColor : '',
+                style: `
+                    width: 30px;
+                    height: 30px;
+                    cursor: pointer;
+                    padding: 0;
+                    background-color: transparent;
+                    margin-left: 5px;
+                    border: 1px solid;
+                    border-radius: 50%;
+                `
             }
         });
 
@@ -1793,7 +2019,7 @@ export class TargetPositionModal extends Modal {
                 style: `
                     color: var(--text-muted);
                     font-size: 0.9em;
-                    min-width: 120px;
+                    min-width: 90px;
                 `
             }
         });
@@ -1836,7 +2062,7 @@ export class TargetPositionModal extends Modal {
                 placeholder: '#RRGGBB or color name',
                 style: `
                     flex: 1;
-                    max-width: 120px;
+                    max-width: 90px;
                 `
             }
         });
@@ -1847,7 +2073,15 @@ export class TargetPositionModal extends Modal {
             cls: 'title-color-picker',
             attr: {
                 value: this.currentTitleColor && this.currentTitleColor.startsWith('#') ? 
-                    this.currentTitleColor : (getCurrentTheme() === 'dark' ? '#ffffff' : '#000000')
+                    this.currentTitleColor : (getCurrentTheme() === 'dark' ? '#ffffff' : '#000000'),
+                style: `
+                    width: 30px;
+                    height: 30px;
+                    cursor: pointer;
+                    padding: 0;
+                    background-color: transparent;
+                    margin-left: 5px;
+                `
             }
         });
 
@@ -1952,7 +2186,7 @@ export class TargetPositionModal extends Modal {
                     const colorValue = this.plugin.settings.bannerIconBackgroundColor;
                     
                     // Check if it's an rgba color
-                    const rgbaMatch = colorValue.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+                    const rgbaMatch = colorValue?.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
                     if (rgbaMatch) {
                         // Convert RGB to hex
                         const r = parseInt(rgbaMatch[1]);
@@ -1962,7 +2196,7 @@ export class TargetPositionModal extends Modal {
                         defaultAlpha = Math.round(parseFloat(rgbaMatch[4]) * 100);
                     } 
                     // Check if it's a hex color
-                    else if (colorValue.startsWith('#')) {
+                    else if (colorValue?.startsWith('#')) {
                         defaultColor = colorValue;
                     }
                     // Otherwise, use as is
@@ -1994,6 +2228,18 @@ export class TargetPositionModal extends Modal {
             contentStartPositionValue.setText(`${this.plugin.settings.contentStartPosition}px`);
             bannerIconXPositionValue.setText(`${this.plugin.settings.bannerIconXPosition}`);
             
+            // Reset max-width checkbox to checked (default is unset)
+            if (unsetCheckbox) {
+                unsetCheckbox.checked = true;
+                maxWidthValueDisplay.style.color = 'var(--text-muted)';
+                maxWidthValueDisplay.setText('unset');
+            }
+            
+            // Reset alignment to default (center)
+            if (alignmentSelect) {
+                alignmentSelect.value = 'center';
+            }
+            
             // Reset new banner icon value displays
             if (bannerIconSizeValue) bannerIconSizeValue.setText(`${this.plugin.settings.bannerIconSize}`);
             if (bannerIconPaddingXValue) bannerIconPaddingXValue.setText(`${this.plugin.settings.bannerIconPaddingX}`);
@@ -2010,7 +2256,7 @@ export class TargetPositionModal extends Modal {
             // Update crosshair position visually
             verticalLine.style.left = `${this.currentX}%`;
             horizontalLine.style.top = `${this.currentY}%`;
-            
+
             // Update position indicator with default values
             updatePositionIndicator();
 
@@ -2026,22 +2272,26 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerHeightField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerHeightField;
                     
+                const maxWidthField = Array.isArray(this.plugin.settings.customBannerMaxWidthField)
+                    ? this.plugin.settings.customBannerMaxWidthField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerMaxWidthField;
+                    
                 const xField = Array.isArray(this.plugin.settings.customXPositionField) 
                     ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customXPositionField;
-                    
+
                 const yField = Array.isArray(this.plugin.settings.customYPositionField) 
                     ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customYPositionField;
-                    
+
                 const contentStartPositionField = Array.isArray(this.plugin.settings.customContentStartField)
                     ? this.plugin.settings.customContentStartField[0].split(',')[0].trim()
                     : this.plugin.settings.customContentStartField;
-                    
+
                 const bannerIconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField)
                     ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconXPositionField;
-                    
+
                 const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
                     ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
                     : this.plugin.settings.customImageRepeatField;
@@ -2082,6 +2332,7 @@ export class TargetPositionModal extends Modal {
                 // Remove benner image fields
                 delete frontmatter[displayField];
                 delete frontmatter[heightField];
+                delete frontmatter[maxWidthField];
                 delete frontmatter[xField];
                 delete frontmatter[yField];
                 delete frontmatter[contentStartPositionField];
@@ -2098,11 +2349,16 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[bannerIconBorderRadiusField];
                 delete frontmatter[bannerIconVerticalOffsetField];
                 
+                // Remove alignment field
+                const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField)
+                    ? this.plugin.settings.customBannerAlignmentField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerAlignmentField;
+                delete frontmatter[alignmentField];
+                
                 // Remove flag color field (this ensures the note uses the global default flag color)
                 const flagColorField = Array.isArray(this.plugin.settings.customFlagColorField)
                     ? this.plugin.settings.customFlagColorField[0].split(',')[0].trim()
                     : this.plugin.settings.customFlagColorField;
-                console.log('Removing flag color field:', flagColorField);
                 delete frontmatter[flagColorField];
                 
                 // If deleteBannerAndIcon is true, also remove the banner image and banner icon fields
@@ -2120,14 +2376,11 @@ export class TargetPositionModal extends Modal {
                     // Remove the banner image and icon
                     delete frontmatter[bannerField];
                     delete frontmatter[bannerIconField];
-                    
-                    console.log('Removed banner and banner icon fields:', bannerField, bannerIconField);
                 }
             });
             
             // After processing frontmatter, update the flag color radio buttons
             if (flagRadioContainer) {
-                console.log('Updating flag radio buttons after reset');
                 const flagRadios = flagRadioContainer.querySelectorAll('input[type="radio"]');
                 flagRadios.forEach(radio => {
                     radio.checked = radio.value === this.plugin.settings.selectImageIconFlag;
@@ -2171,7 +2424,7 @@ export class TargetPositionModal extends Modal {
             // Update crosshair position visually
             verticalLine.style.left = `${this.currentX}%`;
             horizontalLine.style.top = `${this.currentY}%`;
-            
+
             // Update position indicator with default values
             updatePositionIndicator();
 
@@ -2183,7 +2436,9 @@ export class TargetPositionModal extends Modal {
                 }
             }, 750);
 
-            this.close();
+            if (deleteBannerAndIcon) {
+                this.close();
+            }
         };
 
         // Add event listener to reset the modal when the reset button is clicked
@@ -2272,6 +2527,7 @@ export class TargetPositionModal extends Modal {
             // Prevent dragging if the target is a slider
             if (e.target === zoomSlider || 
                 e.target === heightSlider || 
+                e.target === maxWidthSlider ||
                 e.target === contentStartPositionSlider || 
                 e.target === bannerIconXPositionSlider ||
                 e.target === bannerIconSizeSlider ||

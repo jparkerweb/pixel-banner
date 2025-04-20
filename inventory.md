@@ -62,7 +62,7 @@ Handles adding and updating "pixel banners" (the large images at the top of note
 2. **updateBanner(plugin, view, isContentChange, updateMode)**  
    Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates.
 3. **applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded)**  
-   Applies style-based settings: fade, size, border radius, etc., to the banner `<div>`.
+   Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`.
 4. **applyContentStartPosition(plugin, el, contentStartPosition)**  
    Sets the vertical offset at which the note content begins below the banner.
 5. **applyBannerWidth(plugin, el)**  

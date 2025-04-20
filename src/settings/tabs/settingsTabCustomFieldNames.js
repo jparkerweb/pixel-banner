@@ -87,6 +87,20 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-repeat, image-repeat, repeat'
         },
         {
+            setting: 'customBannerMaxWidthField',
+            name: 'Banner Max Width Field Names',
+            desc: 'Set custom field names for the banner maximum width in frontmatter',
+            values: '800px, 100%, 1200px',
+            placeholder: 'banner-max-width, max-width, banner-width'
+        },
+        {
+            setting: 'customBannerAlignmentField',
+            name: 'Banner Alignment Field Names',
+            desc: 'Set custom field names for the banner alignment in frontmatter',
+            values: 'left, center, right',
+            placeholder: 'banner-alignment'
+        },
+        {
             setting: 'customBannerHeightField',
             name: 'Banner Height Field Names',
             desc: 'Set custom field names for the banner height in frontmatter',

@@ -81,7 +81,7 @@ export class EmojiSelectionModal extends Modal {
         });
 
         const setBannerButton = bannerIconContainer.createEl('button', {
-            text: 'Update Banner Icon',
+            text: '💾 Set Banner Icon',
             cls: 'set-banner-button',
             attr: {
                 style: `
