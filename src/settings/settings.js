@@ -49,7 +49,7 @@ const DEFAULT_SETTINGS = {
     imageDisplay: 'cover',
     imageRepeat: false,
     bannerHeight: 350,
-    fade: -75,
+    fade: -70,
     bannerFadeInAnimationDuration: 300,
     borderRadius: 17,
     showPinIcon: false,

@@ -437,9 +437,9 @@ export function createGeneralSettings(containerEl, plugin) {
     // Banner Fade setting
     new Setting(containerEl)
         .setName('Banner Fade')
-        .setDesc('Set the default fade effect for the banner image (-1500 to 100)')
+        .setDesc('Set the default fade effect for the banner image (-300 to 100)')
         .addSlider(slider => slider
-            .setLimits(-1500, 100, 5)
+            .setLimits(-300, 100, 5)
             .setValue(plugin.settings.fade)
             .setDynamicTooltip()
             .onChange(async (value) => {

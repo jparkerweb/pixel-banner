@@ -111,7 +111,7 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             setting: 'customFadeField',
             name: 'Fade Field Names',
             desc: 'Set custom field names for the fade in frontmatter',
-            values: '-75, -150, 0',
+            values: '-300, -50, 0, 100',
             placeholder: 'banner-fade, fade, fade-amount'
         },
         {
