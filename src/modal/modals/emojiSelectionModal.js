@@ -99,6 +99,63 @@ export class EmojiSelectionModal extends Modal {
             // If the value is empty, pass null to signal that the field should be removed
             // Otherwise pass the trimmed value as normal
             await this.onChoose(trimmedValue === '' ? null : trimmedValue);
+            
+            // If the icon input is empty, clean up all related icon properties from frontmatter
+            if (trimmedValue === '') {
+                const activeFile = this.app.workspace.getActiveFile();
+                if (activeFile) {
+                    await this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                        // Get frontmatter field names
+                        const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
+                            ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconField;
+                        
+                        const iconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField) 
+                            ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconSizeField;
+                        
+                        const iconYPositionField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField) 
+                            ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconVeritalOffsetField;
+                        
+                        const iconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField) 
+                            ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconXPositionField;
+                        
+                        const iconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField) 
+                            ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconColorField;
+                        
+                        const iconBgColorField = Array.isArray(this.plugin.settings.customBannerIconBackgroundColorField) 
+                            ? this.plugin.settings.customBannerIconBackgroundColorField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconBackgroundColorField;
+                        
+                        const iconXPaddingField = Array.isArray(this.plugin.settings.customBannerIconPaddingXField) 
+                            ? this.plugin.settings.customBannerIconPaddingXField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconPaddingXField;
+                        
+                        const iconYPaddingField = Array.isArray(this.plugin.settings.customBannerIconPaddingYField) 
+                            ? this.plugin.settings.customBannerIconPaddingYField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconPaddingYField;
+                        
+                        const iconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField) 
+                            ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconBorderRadiusField;
+                        
+                        // Remove all banner icon related fields
+                        delete frontmatter[bannerIconField];
+                        delete frontmatter[iconSizeField];
+                        delete frontmatter[iconYPositionField];
+                        delete frontmatter[iconXPositionField];
+                        delete frontmatter[iconColorField];
+                        delete frontmatter[iconBgColorField];
+                        delete frontmatter[iconXPaddingField];
+                        delete frontmatter[iconYPaddingField];
+                        delete frontmatter[iconBorderRadiusField];
+                    });
+                }
+            }
+            
             this.close();
             
             // Get the active file and view
@@ -166,7 +223,7 @@ export class EmojiSelectionModal extends Modal {
             }
         });
 
-        // button to clearn the banner icon
+        // button to clear the banner icon
         const clearBannerIconButton = bannerIconContainer.createEl('button', {
             text: 'Clear Icon',
             cls: 'clear-banner-icon-button cursor-pointer'
