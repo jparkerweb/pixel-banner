@@ -90,8 +90,15 @@ export class EmojiSelectionModal extends Modal {
                 `
             }
         });
+        
+        // button to remove the banner icon
+        const removeBannerIconButton = bannerIconContainer.createEl('button', {
+            text: '🗑️ Remove Icon',
+            cls: 'remove-banner-icon-button cursor-pointer'
+        });
 
-        setBannerButton.addEventListener('click', async () => {
+        // Handle set banner icon 
+        const handleSetBannerButtonClick = async () => {
             this.closedByButton = true;
             // Trim the input value before using it
             const trimmedValue = this.bannerIconInput.value.trim();
@@ -221,18 +228,13 @@ export class EmojiSelectionModal extends Modal {
                     new TargetPositionModal(this.app, this.plugin).open();
                 }
             }
-        });
-
-        // button to clear the banner icon
-        const clearBannerIconButton = bannerIconContainer.createEl('button', {
-            text: 'Clear Icon',
-            cls: 'clear-banner-icon-button cursor-pointer'
-        });
-        clearBannerIconButton.addEventListener('click', () => {
+        };
+        
+        setBannerButton.addEventListener('click', handleSetBannerButtonClick);
+        removeBannerIconButton.addEventListener('click', async () => {
             this.bannerIconInput.value = '';
-            this.bannerIconInput.focus();
+            await handleSetBannerButtonClick();
         });
-
 
         // Title
         contentEl.createEl('h5', { text: 'Emoji Selector' });

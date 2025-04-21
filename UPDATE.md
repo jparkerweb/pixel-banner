@@ -3,6 +3,11 @@
 </a>
 
 ## 🎉 What's New
+### v3.4.0 - 2025-04-21
+#### 📦 Updated
+- Set Banner Icon modal now has a "Remove Icon" button to claer the banner icon easily
+- Updated emoji selection modal to handle cleaning up banner icon properties if the icon is removed
+
 ### v3.4.0 - 2025-04-19
 #### ✨ Added
 - New `Max Width` setting for banners to control the maximum width of the banner

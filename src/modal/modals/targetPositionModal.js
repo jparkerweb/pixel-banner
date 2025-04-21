@@ -890,6 +890,7 @@ export class TargetPositionModal extends Modal {
                     gap: 10px;
                     align-items: center;
                     flex: 0 auto;
+                    margin-top: 10px;
                 `
             }
         });
