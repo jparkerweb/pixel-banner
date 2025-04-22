@@ -3,9 +3,10 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
-### v3.4.0 - 2025-04-21
+### v3.4.1 - 2025-04-22
 #### ✨ Added
 - Added `Banner Fade` slider control to the Targeting & Positioning UI
+- New `HiDream` AI Model support for Banner Image generation
 
 #### 📦 Updated
 - Set Banner Icon modal now has a "Remove Icon" button to claer the banner icon easily
