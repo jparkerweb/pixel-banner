@@ -19,6 +19,8 @@ export class GenerateAIBannerModal extends Modal {
         this.modalEl.addClass('pixel-banner-ai-modal');
         this.downloadHistory = new DownloadHistory();
         this.isLoading = true; // Track loading state
+        this.provider = 'TOGETHER'; // Default provider
+        this.resolution = '1360 × 768 (Landscape)'; // Default resolution
         
         // Add pagination state
         this.currentPage = 1;
@@ -166,7 +168,9 @@ export class GenerateAIBannerModal extends Modal {
                 body: JSON.stringify({
                     prompt: this.prompt,
                     width: this.width,
-                    height: this.height
+                    height: this.height,
+                    provider: this.provider,
+                    resolution: this.resolution
                 })
             });
 
@@ -564,7 +568,8 @@ export class GenerateAIBannerModal extends Modal {
                     letter-spacing: 1px;
                 }
                 .pixel-banner-inspiration-button,
-                .pixel-banner-inspiration-from-seed-button {
+                .pixel-banner-inspiration-from-seed-button,
+                .pixel-banner-rewrite-button {
                     padding: 4px 12px;
                     border-radius: 4px;
                     cursor: pointer;
@@ -575,11 +580,13 @@ export class GenerateAIBannerModal extends Modal {
                     margin-left: 10px;
                 }
                 .pixel-banner-inspiration-button:hover,
-                .pixel-banner-inspiration-from-seed-button:hover {
+                .pixel-banner-inspiration-from-seed-button:hover,
+                .pixel-banner-rewrite-button:hover {
                     background-color: var(--interactive-accent-hover);
                 }
                 .pixel-banner-inspiration-button:disabled,
-                .pixel-banner-inspiration-from-seed-button:disabled {
+                .pixel-banner-inspiration-from-seed-button:disabled,
+                .pixel-banner-rewrite-button:disabled {
                     opacity: 0.7;
                     cursor: not-allowed;
                     background-color: var(--interactive-accent);
@@ -600,6 +607,23 @@ export class GenerateAIBannerModal extends Modal {
                     .pixel-banner-generate-btn-container { flex-direction: column !important; }
                     .pixel-banner-generate-btn-container button { width: 100% !important; }
                 }
+                
+                .pixel-banner-ai-modal .setting-item-control select.dropdown {
+                    width: 100%;
+                    height: auto;
+                    border-radius: 4px;
+                    padding: 8px;
+                    background-color: var(--background-secondary);
+                    color: var(--text-normal);
+                    border: 1px solid var(--background-modifier-border);
+                }
+                
+                .pixel-banner-ai-modal .setting-item-control select.dropdown:focus {
+                    border-color: var(--interactive-accent);
+                    outline: none;
+                }
+                
+                /* ------------------- */
             `
         });
         // Title
@@ -622,7 +646,7 @@ export class GenerateAIBannerModal extends Modal {
             }
         });
         const promptDescription = promptAllowedSection.createEl('p', {
-            text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the 💡 inspiration button to get started, or grow a basic prompt into something special with the 🌱 grow your idea button.',
+            text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the "💡 INSPIRATION" button to get started, or grow a basic prompt into something special with the "🌱 GROW IDEA" button. You can also use the "✏️ REWRITE PROMPT" button to improve your existing prompt.',
             cls: 'pixel-banner-prompt-description',
             attr: {
                 'style': `
@@ -651,7 +675,7 @@ export class GenerateAIBannerModal extends Modal {
         promptContainer.createDiv({ cls: 'setting-item-name', text: '🖋️ Creative Banner Prompt' });
         promptContainer.createDiv({
             cls: 'setting-item-description', 
-            text: 'TIP ⇢ Type a few words and then press the "🌱" button to grow your idea into something special!',
+            text: 'TIP ⇢ Type a few words and then press the "🌱 GROW IDEA" button to transform your basic idea into something special!',
             attr: {
                 'style': `
                     color: var(--text-muted); 
@@ -684,18 +708,18 @@ export class GenerateAIBannerModal extends Modal {
             this.prompt = e.target.value;
         });
 
-        // create a div to hold the prompt inspiration buttons
+        // create a div to hold the prompt inspiration, grow idea, and rewrite buttons
         const promptInspirationContainer = promptControl.createDiv({ cls: 'pixel-banner-prompt-inspiration-container' });
 
         const inspirationButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-button',
-            text: '💡 Inspiration'
+            text: '💡 INSPIRATION'
         });
         inspirationButton.addEventListener('click', () => this.getPromptInspiration());
         
         const inspirationFromSeedButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-from-seed-button',
-            text: '🌱 Grow your Idea',
+            text: '🌱 GROW IDEA',
             attr: {
                 style: `
                     border-bottom: 1px solid var(--interactive-accent-hover);
@@ -704,14 +728,109 @@ export class GenerateAIBannerModal extends Modal {
         });
         inspirationFromSeedButton.addEventListener('click', () => this.getPromptInspirationFromSeed());
         
+        const rewritePromptButton = promptInspirationContainer.createEl('button', {
+            cls: 'pixel-banner-rewrite-button',
+            text: '✏️ REWRITE PROMPT',
+            attr: {
+                style: `
+                    border-bottom: 1px solid var(--interactive-accent-hover);
+                `
+            }
+        });
+        rewritePromptButton.addEventListener('click', () => this.rewritePrompt());
+        
         const inspirationClearButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-inspiration-clear-button',
-            text: '🗑️ Clear'
+            text: '🗑️ CLEAR'
         });
         inspirationClearButton.addEventListener('click', () => this.clearPromptInspiration());
 
-        // Width
-        const widthContainer = promptAllowedSection.createDiv({ cls: 'setting-item pixel-banner-ai-control-row', attr: { style: 'padding-bottom: 0;' } });
+        // AI Model Selection
+        const modelContainer = promptAllowedSection.createDiv({ 
+            cls: 'setting-item pixel-banner-ai-control-row',
+            attr: { style: 'padding-bottom: 0;' } 
+        });
+        
+        const modelInfo = modelContainer.createDiv({ cls: 'setting-item-info' });
+        modelInfo.createDiv({ cls: 'setting-item-name', text: 'AI Model' });
+        modelInfo.createDiv({ 
+            cls: 'setting-item-description', 
+            text: 'Select AI model for image generation',
+            attr: { style: 'font-size: 0.8em;' }
+        });
+        
+        const modelControl = modelContainer.createDiv({ 
+            cls: 'setting-item-control',
+            attr: { style: 'display: flex; gap: 15px;' }
+        });
+        
+        // FLUX Radio Button
+        const fluxContainer = modelControl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 5px;' } });
+        const fluxRadio = fluxContainer.createEl('input', { 
+            type: 'radio',
+            attr: {
+                id: 'flux-model',
+                name: 'provider',
+                value: 'TOGETHER',
+                checked: true, // Always set FLUX as default
+                style: `
+                    cursor: pointer;
+                `
+            }
+        });
+        fluxContainer.createEl('label', { 
+            attr: {
+                for: 'flux-model',
+                style: `
+                    cursor: pointer;
+                `
+            }
+        }).innerHTML = 'FLUX <span style="font-size: 0.77em; color: var(--text-muted); letter-spacing: 0.5px;"> ⋅ DEFAULT</span>';
+        
+        // HiDream Radio Button
+        const hidreamContainer = modelControl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 5px;' } });
+        const hidreamRadio = hidreamContainer.createEl('input', { 
+            type: 'radio',
+            attr: {
+                id: 'hidream-model',
+                name: 'provider',
+                value: 'REPLICATE',
+                checked: false,
+                style: `
+                    cursor: pointer;
+                `
+            }
+        });
+        hidreamContainer.createEl('label', { 
+            text: 'HiDream',
+            attr: {
+                for: 'hidream-model',
+                style: `
+                    cursor: pointer;
+                `
+            }
+        });
+        
+        // Add event listeners for the radio buttons
+        fluxRadio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.provider = 'TOGETHER';
+                this.updateInputVisibility();
+            }
+        });
+        
+        hidreamRadio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.provider = 'REPLICATE';
+                this.updateInputVisibility();
+            }
+        });
+
+        // Width (visible for FLUX)
+        const widthContainer = promptAllowedSection.createDiv({ 
+            cls: 'setting-item pixel-banner-ai-control-row flux-control', 
+            attr: { style: 'padding-bottom: 0;' } 
+        });
         const widthInfo = widthContainer.createDiv({ cls: 'setting-item-info' });
         widthInfo.createDiv({ cls: 'setting-item-name', text: 'Width' });
         widthInfo.createDiv({ cls: 'setting-item-description', text: this.width });
@@ -730,7 +849,9 @@ export class GenerateAIBannerModal extends Modal {
         });
 
         // Height
-        const heightContainer = promptAllowedSection.createDiv({ cls: 'setting-item pixel-banner-ai-control-row' });
+        const heightContainer = promptAllowedSection.createDiv({ 
+            cls: 'setting-item pixel-banner-ai-control-row flux-control'
+        });
         const heightInfo = heightContainer.createDiv({ cls: 'setting-item-info' });
         heightInfo.createDiv({ cls: 'setting-item-name', text: 'Height' });
         heightInfo.createDiv({ cls: 'setting-item-description', text: this.height });
@@ -746,6 +867,52 @@ export class GenerateAIBannerModal extends Modal {
         heightSlider.addEventListener('input', (e) => {
             this.height = parseInt(e.target.value);
             heightInfo.querySelector('.setting-item-description').textContent = this.height;
+        });
+
+        // Resolution (visible for HiDream)
+        const resolutionContainer = promptAllowedSection.createDiv({ 
+            cls: 'setting-item pixel-banner-ai-control-row hidream-control',
+            attr: { style: 'display: none;' } // Hidden by default
+        });
+        
+        const resolutionInfo = resolutionContainer.createDiv({ cls: 'setting-item-info' });
+        resolutionInfo.createDiv({ cls: 'setting-item-name', text: 'Resolution' });
+        resolutionInfo.createDiv({ 
+            cls: 'setting-item-description', 
+            text: 'Select image resolution and orientation',
+            attr: { style: 'font-size: 0.8em;' }
+        });
+        
+        const resolutionControl = resolutionContainer.createDiv({ cls: 'setting-item-control' });
+        const resolutionSelect = resolutionControl.createEl('select', { 
+            cls: 'dropdown',
+            attr: { id: 'resolution' }
+        });
+        
+        // Add resolution options
+        const resolutionOptions = [
+            { value: '1360 × 768 (Landscape)', text: '1360 × 768 (Landscape)' },
+            { value: '1248 × 832 (Landscape)', text: '1248 × 832 (Landscape)' },
+            { value: '1168 × 880 (Landscape)', text: '1168 × 880 (Landscape)' },
+            { value: '1024 × 1024 (Square)', text: '1024 × 1024 (Square)' },
+            { value: '880 × 1168 (Portrait)', text: '880 × 1168 (Portrait)' },
+            { value: '832 × 1248 (Portrait)', text: '832 × 1248 (Portrait)' },
+            { value: '768 × 1360 (Portrait)', text: '768 × 1360 (Portrait)' }
+        ];
+        
+        resolutionOptions.forEach((option, index) => {
+            const optionEl = resolutionSelect.createEl('option', {
+                text: option.text,
+                attr: {
+                    value: option.value,
+                    selected: index === 0 // Select first option by default
+                }
+            });
+        });
+        
+        resolutionSelect.addEventListener('change', (e) => {
+            this.resolution = e.target.value;
+            // We don't need to parse width and height here since the resolution is sent directly to API
         });
 
         // prompt disallowed section
@@ -937,6 +1104,31 @@ export class GenerateAIBannerModal extends Modal {
                 promptInput.focus();
             }, 100);
         }
+        
+        // Initialize the visibility of the inputs based on the default provider
+        this.updateInputVisibility();
+        
+        // Ensure radio buttons show correct visual state
+        setTimeout(() => {
+            // Force model selection with a delay to ensure DOM is ready
+            const fluxModelInput = document.getElementById('flux-model');
+            if (fluxModelInput) {
+                fluxModelInput.checked = true;
+                const event = new Event('change', { bubbles: true });
+                fluxModelInput.dispatchEvent(event);
+            }
+        }, 50);
+
+        // Set default resolution
+        setTimeout(() => {
+            const resolutionSelect = this.contentEl.querySelector('#resolution');
+            if (resolutionSelect) {
+                resolutionSelect.value = this.resolution;
+            }
+        }, 50);
+        
+        // Hide loading spinner after initialization
+        this.hideLoadingSpinner();
     }
 
     async getPromptInspiration() {
@@ -963,8 +1155,8 @@ export class GenerateAIBannerModal extends Modal {
             if (response.status === 200 && response.json.bannerIdea) {
                 const promptInput = this.contentEl.querySelector('#ai-banner-prompt');
                 if (promptInput) {
-                let promptIdea = response.json.bannerIdea?.toLowerCase();
-                promptIdea = promptIdea.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+                    let promptIdea = response.json.bannerIdea?.toLowerCase();
+                    promptIdea = promptIdea.trim();
                     promptInput.value = promptIdea;
                     this.prompt = promptIdea;
                 }
@@ -1008,8 +1200,8 @@ export class GenerateAIBannerModal extends Modal {
             if (response.status === 200 && response.json.bannerIdea) {
                 const promptInput = this.contentEl.querySelector('#ai-banner-prompt');
                 if (promptInput) {
-                let promptIdea = response.json.bannerIdea?.toLowerCase();
-                promptIdea = promptIdea.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+                    let promptIdea = response.json.bannerIdea?.toLowerCase();
+                    promptIdea = promptIdea.trim();
                     promptInput.value = promptIdea;
                     this.prompt = promptIdea;
                 }
@@ -1018,8 +1210,53 @@ export class GenerateAIBannerModal extends Modal {
             console.error('Failed to get prompt inspiration:', error);
             new Notice('Failed to get prompt inspiration. Please try again.');
         } finally {
-            inspirationFromSeedButton.textContent = originalText;
-            inspirationFromSeedButton.disabled = false;
+            rewritePromptButton.textContent = originalText;
+            rewritePromptButton.disabled = false;
+        }
+    }
+
+    async rewritePrompt() {
+        const rewritePromptButton = this.contentEl.querySelector('.pixel-banner-rewrite-button');
+        const originalText = rewritePromptButton.textContent;
+        const promptTextarea = this.contentEl.querySelector('#ai-banner-prompt');
+
+        let seed = promptTextarea.value.trim();
+        if (seed.length === 0) {
+            new Notice('Please enter at lease one word in the Prompt box to generate a rewritten prompt.');
+            return;
+        }
+        
+        try {
+            rewritePromptButton.textContent = '⏳';
+            rewritePromptButton.disabled = true;
+            
+            const inspirationUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.REWRITE_BANNER_IDEA, PIXEL_BANNER_PLUS.API_URL).toString();
+            const response = await requestUrl({
+                url: inspirationUrl + `/${seed}`,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.status === 200 && response.json.bannerIdea) {
+                const promptInput = this.contentEl.querySelector('#ai-banner-prompt');
+                if (promptInput) {
+                    let promptIdea = response.json.bannerIdea?.toLowerCase();
+                    promptIdea = promptIdea.trim();
+                    promptInput.value = promptIdea;
+                    this.prompt = promptIdea;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to rewrite prompt:', error);
+            new Notice('Failed to rewrite prompt. Please try again.');
+        } finally {
+            rewritePromptButton.textContent = originalText;
+            rewritePromptButton.disabled = false;
         }
     }
 
@@ -1378,6 +1615,20 @@ export class GenerateAIBannerModal extends Modal {
         // Remove loading overlay if it exists
         if (this.loadingOverlay) {
             this.loadingOverlay.remove();
+        }
+    }
+    
+    // Method to update visibility of inputs based on selected provider
+    updateInputVisibility() {
+        const fluxControls = document.querySelectorAll('.flux-control');
+        const hidreamControls = document.querySelectorAll('.hidream-control');
+        
+        if (this.provider === 'REPLICATE') {
+            fluxControls.forEach(el => el.style.display = 'none');
+            hidreamControls.forEach(el => el.style.display = 'flex');
+        } else {
+            fluxControls.forEach(el => el.style.display = 'flex');
+            hidreamControls.forEach(el => el.style.display = 'none');
         }
     }
 }
