@@ -12,7 +12,7 @@ export function createGeneralSettings(containerEl, plugin) {
 
     // Add the showSelectImageIcon setting
     const showSelectImageIconSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Show Select Image Icon')
+        .setName('Show Pixel Banner Flag')
         .setDesc('Show the banner selector icon in the top-left corner of notes')
         .addToggle(toggle => toggle
             .setValue(plugin.settings.showSelectImageIcon)
@@ -38,7 +38,7 @@ export function createGeneralSettings(containerEl, plugin) {
 
     // Add the selectImageIconOpacity setting
     const selectImageIconOpacitySetting = new Setting(SelectImageSettingsGroup)
-        .setName('Pixel Banner Icon Opacity')
+        .setName('Pixel Banner Flag Opacity')
         .setDesc('Set the opacity of the banner selector icon in the top-left corner (0-100)')
         .addSlider(slider => slider
             .setLimits(0, 100, 1)
