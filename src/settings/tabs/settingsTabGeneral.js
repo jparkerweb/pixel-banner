@@ -238,33 +238,6 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
-    // Image Vertical Position setting
-    new Setting(containerEl)
-        .setName('Image Vertical Position')
-        .setDesc('Set the vertical position of the image (0-100)')
-        .addSlider(slider => slider
-            .setLimits(0, 100, 1)
-            .setValue(plugin.settings.yPosition)
-            .setDynamicTooltip()
-            .onChange(async (value) => {
-                plugin.settings.yPosition = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-            })
-        )
-        .addExtraButton(button => button
-            .setIcon('reset')
-            .setTooltip('Reset to default')
-            .onClick(async () => {
-                plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the slider value
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.yPosition;
-                sliderEl.dispatchEvent(new Event('input'));
-            }));
-
     // Image Horizontal Position setting
     new Setting(containerEl)
         .setName('Image Horizontal Position')
@@ -292,6 +265,33 @@ export function createGeneralSettings(containerEl, plugin) {
                 sliderEl.dispatchEvent(new Event('input'));
             }));
 
+    // Image Vertical Position setting
+    new Setting(containerEl)
+        .setName('Image Vertical Position')
+        .setDesc('Set the vertical position of the image (0-100)')
+        .addSlider(slider => slider
+            .setLimits(0, 100, 1)
+            .setValue(plugin.settings.yPosition)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+                plugin.settings.yPosition = value;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            })
+        )
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+                // Update the slider value
+                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                sliderEl.value = DEFAULT_SETTINGS.yPosition;
+                sliderEl.dispatchEvent(new Event('input'));
+            }));
+    
     // Content Start Position setting
     new Setting(containerEl)
         .setName('Content Start Position')
@@ -437,9 +437,9 @@ export function createGeneralSettings(containerEl, plugin) {
     // Banner Fade setting
     new Setting(containerEl)
         .setName('Banner Fade')
-        .setDesc('Set the default fade effect for the banner image (-1500 to 100)')
+        .setDesc('Set the default fade effect for the banner image (-300 to 100)')
         .addSlider(slider => slider
-            .setLimits(-1500, 100, 5)
+            .setLimits(-300, 100, 5)
             .setValue(plugin.settings.fade)
             .setDynamicTooltip()
             .onChange(async (value) => {

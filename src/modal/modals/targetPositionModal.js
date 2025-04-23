@@ -88,6 +88,12 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customImageRepeatField;
         this.currentRepeat = frontmatter?.[repeatField] !== undefined ? frontmatter[repeatField] : this.plugin.settings.imageRepeat;
 
+        // fade field
+        const fadeField = Array.isArray(this.plugin.settings.customFadeField)
+            ? this.plugin.settings.customFadeField[0].split(',')[0].trim()
+            : this.plugin.settings.customFadeField;
+        this.currentFade = frontmatter?.[fadeField] !== undefined ? frontmatter[fadeField] : this.plugin.settings.fade;
+
         // Parse current display value for zoom percentage
         this.currentZoom = 100;
         if (this.currentDisplay && this.currentDisplay.endsWith('%')) {
@@ -319,6 +325,16 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (fm) => {
             fm[alignmentField] = alignment;
+        });
+    }
+
+    updateBannerFade(fade) {
+        const fadeField = Array.isArray(this.plugin.settings.customFadeField)
+            ? this.plugin.settings.customFadeField[0].split(',')[0].trim()
+            : this.plugin.settings.customFadeField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[fadeField] = fade;
         });
     }
 
@@ -880,24 +896,23 @@ export class TargetPositionModal extends Modal {
         });
 
 
-        // Banner alignment select
-        const alignmentContainer = contentEl.createDiv({
-            cls: 'alignment-container',
+        const bannerSettingsRow2 = contentEl.createDiv({
             attr: {
                 style: `
-                    display: flex;
-                    flex-direction: row;
-                    gap: 10px;
-                    align-items: center;
-                    flex: 0 auto;
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+                align-items: center;
+                flex: 0 auto;
+                margin-top: 10px;
                 `
             }
         });
-
+        
+        // Banner alignment select
         // Alignment label
-        alignmentContainer.createEl('div', { 
+        bannerSettingsRow2.createEl('div', {
             text: 'Banner Alignment',
-            cls: 'alignment-label',
             attr: {
                 style: `
                     color: var(--text-muted); 
@@ -907,7 +922,7 @@ export class TargetPositionModal extends Modal {
         });
 
         // Alignment select
-        const alignmentSelect = alignmentContainer.createEl('select', { cls: 'alignment-select' });
+        const alignmentSelect = bannerSettingsRow2.createEl('select', { cls: 'alignment-select' });
         [
             { value: 'left', text: 'Left' },
             { value: 'center', text: 'Center' },
@@ -926,6 +941,72 @@ export class TargetPositionModal extends Modal {
         alignmentSelect.addEventListener('change', () => {
             this.currentAlignment = alignmentSelect.value;
             this.updateBannerAlignment(this.currentAlignment);
+        });
+
+        // Add banner fade slider
+        const bannerFadeContainer = bannerSettingsRow2.createDiv({
+            cls: 'setting-item',
+            attr: {
+                style: `
+                    flex: 1;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                `
+            }
+        });
+        const bannerFadeHeader = bannerFadeContainer.createDiv({
+            text: 'Banner Fade',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        const bannerFadeSliderContainer = bannerFadeContainer.createDiv({
+            attr: {
+                style: `
+                    flex: 1;
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                `
+            }
+        });
+
+        const bannerFadeSlider = bannerFadeSliderContainer.createEl('input', {
+            type: 'range',
+            cls: 'slider',
+            attr: {
+                min: -300,
+                max: 100,
+                step: 5,
+                value: this.currentFade,
+                style: `
+                    flex: 1;
+                `
+            }
+        });
+
+        const bannerFadeValue = bannerFadeSliderContainer.createDiv({
+            text: this.currentFade,
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    min-width: 45px;
+                    text-align: right;
+                `
+            }
+        });
+
+        bannerFadeSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            this.updateBannerFade(value);
+            bannerFadeValue.setText(value.toString());
         });
 
 
@@ -2158,6 +2239,8 @@ export class TargetPositionModal extends Modal {
             heightSlider.value = this.plugin.settings.bannerHeight;
             contentStartPositionSlider.value = this.plugin.settings.contentStartPosition;
             bannerIconXPositionSlider.value = this.plugin.settings.bannerIconXPosition;
+            bannerFadeSlider.value = this.plugin.settings.fade;
+            bannerFadeValue.setText(this.plugin.settings.fade.toString());
             
             const currentTheme = getCurrentTheme();
             let defaultColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
@@ -2296,6 +2379,10 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
                     : this.plugin.settings.customImageRepeatField;
 
+                const fadeField = Array.isArray(this.plugin.settings.customFadeField)
+                    ? this.plugin.settings.customFadeField[0].split(',')[0].trim()
+                    : this.plugin.settings.customFadeField;
+
                 // New banner icon fields
                 const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
                     ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
@@ -2337,6 +2424,7 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[yField];
                 delete frontmatter[contentStartPositionField];
                 delete frontmatter[repeatField];
+                delete frontmatter[fadeField];
                 
                 // Remove banner icon fields
                 delete frontmatter[bannerIconXPositionField];
@@ -2493,7 +2581,7 @@ export class TargetPositionModal extends Modal {
                 checked: (this.currentDisplay === 'contain' || this.currentDisplay === 'auto') ? this.currentRepeat : this.plugin.settings.imageRepeat
             }
         });
-
+        
         // Update display select event handler
         displaySelect.addEventListener('change', () => {
             const mode = displaySelect.value;
@@ -2529,6 +2617,7 @@ export class TargetPositionModal extends Modal {
                 e.target === heightSlider || 
                 e.target === maxWidthSlider ||
                 e.target === contentStartPositionSlider || 
+                e.target === bannerFadeSlider ||
                 e.target === bannerIconXPositionSlider ||
                 e.target === bannerIconSizeSlider ||
                 e.target === bannerIconColorPicker ||
