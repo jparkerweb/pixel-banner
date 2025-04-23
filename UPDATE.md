@@ -3,6 +3,11 @@
 </a>
 
 ## 🎉 What's New
+### v3.4.2 - 2025-04-23
+#### 📦 Updated
+- Added an example section to the `3rd Party API Settings` tab for clarity
+- Minor General Setting tab formatting improvements
+
 ### v3.4.1 - 2025-04-22
 #### ✨ Added
 - Added `Banner Fade` slider control to the Targeting & Positioning UI
