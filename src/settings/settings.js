@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS = {
     numberOfImages: 10,
     defaultKeywords: 'nature, abstract, landscape, technology, art, cityscape, wildlife, ocean, mountains, forest, space, architecture, food, travel, science, music, sports, fashion, business, education, health, culture, history, weather, transportation, industry, people, animals, plants, patterns',
     xPosition: 50,
-    yPosition: 75,
+    yPosition: 60,
     customBannerField: ['banner'],
     customXPositionField: ['banner-x, x'],
     customYPositionField: ['banner-y, y'],

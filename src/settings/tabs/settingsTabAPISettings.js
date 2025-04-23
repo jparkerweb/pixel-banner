@@ -71,7 +71,7 @@ function random20characters() {
 export function createAPISettings(containerEl, plugin) {
     // section callout
     const calloutEl = containerEl.createEl('div', { cls: 'tab-callout' });
-    calloutEl.createEl('div', { text: '🌐 Optionally select which 3rd party API provider to use for fetching images. See the Examples tab for more information on referencing images by URL or local image. You can use any combination of API keyword, URL, or local image between notes.' });
+    calloutEl.createEl('div', { text: '🌐 Optionally select which 3rd party API provider to use for displaying random images.' });
 
     // Add API provider radio buttons
     new Setting(containerEl)
@@ -255,6 +255,47 @@ export function createAPISettings(containerEl, plugin) {
                 new Notice(isValid ? '✅ Unsplash API key is valid!' : '❌ Invalid Unsplash API key');
             }));
 
+
+    // Usage Example
+    const exampleContainer = containerEl.createEl('div', {
+        attr: {
+            style: `
+                margin: 20px 0;
+                padding: 20px;
+                border: 1px solid var(--modal-border-color);
+                border-radius: 7px;
+            `
+        }
+    })
+
+    exampleContainer.createEl('div', { text: 'Usage Example',
+        attr: {
+            style: `
+                font-weight: bold;
+                font-size: 1.1rem;
+                color: var(--color-accent);
+            `
+        }
+    });
+
+    exampleContainer.createEl('div', { text: 'Add keyword(s) to the banner frontmatter to display random API images matching the keywords.',
+        attr: {
+            style: `
+                margin: 10px 0;
+            `
+        }
+    });
+
+    exampleContainer.createEl('img', {
+        attr: {
+            src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/3rd-party-apis-example.jpg',
+            style: `
+                width: auto;
+                max-width: 100%;
+            `
+        }
+    });
+    
     // Images section
     new Setting(containerEl)
         .setName('Images')
