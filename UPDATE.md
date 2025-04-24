@@ -3,6 +3,10 @@
 </a>
 
 ## 🎉 What's New
+### v3.4.3 - 2025-04-24
+#### ✨ Added
+- New `Show Banner in Popover Previews` setting to control banner visibility in hover popovers (enabled by default)
+
 ### v3.4.2 - 2025-04-23
 #### 📦 Updated
 - Added an example section to the `3rd Party API Settings` tab for clarity

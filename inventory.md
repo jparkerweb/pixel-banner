@@ -337,6 +337,24 @@ Provides a central hub for accessing different banner selection methods.
 
 ---
 
+## `/src/modal/modals/dailyGame.js`
+**Class**: `DailyGameModal` (extends `Modal`)  
+Provides a daily game or challenge feature within the plugin.
+
+**Key Methods**:
+1. **onOpen()**  
+   Renders the daily game interface with game elements and instructions.
+2. **initializeGame()**  
+   Sets up the game state, rules, and initial layout for the player.
+3. **handleUserInteraction()**  
+   Processes user inputs and updates the game state accordingly.
+4. **updateGameUI()**  
+   Refreshes the UI based on current game state and progress.
+5. **onClose()**  
+   Cleans up the game state and modal content.
+
+---
+
 ## `/src/modal/modals.js`
 Exports all modals from the `modal/modals` directory.
 
@@ -352,6 +370,7 @@ Exports all modals from the `modal/modals` directory.
 - `SelectPixelBannerModal`
 - `PixelBannerStoreModal`
 - `WebAddressModal`
+- `DailyGameModal`
 
 ---
 
@@ -439,7 +458,7 @@ Various helper scripts:
 - **frontmatterUtils.js**  
   Typically includes something like `getFrontmatterValue(frontmatter, fields)` to retrieve relevant frontmatter fields.
 
-## `/src/utils/debounceFunction.js`
+## `/src/utils/debounce.js`
 Provides utility functions for debouncing function calls.
 
 **Methods**:
@@ -450,6 +469,20 @@ Provides utility functions for debouncing function calls.
 3. **debounceAndSwallow(func, wait)**  
    Executes first call, ignores subsequent calls within wait time.
 
-(Implementation details for some of these are not shown in the opened files, but references exist throughout the plugin.)
+## `/src/utils/getCurrentTheme.js`
+Utility for detecting the current Obsidian theme.
+
+**Methods**:
+1. **getCurrentTheme()**  
+   Returns the active theme in Obsidian (light or dark) for theme-aware rendering.
+
+## `/src/utils/semver.js`
+Provides semantic versioning utilities for the plugin.
+
+**Methods**:
+1. **compareVersions(v1, v2)**  
+   Compares two version strings to determine which is newer.
+2. **isNewerVersion(current, compare)**  
+   Checks if a version is newer than another version.
 
 ---
