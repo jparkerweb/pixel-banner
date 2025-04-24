@@ -16,7 +16,6 @@ async function addPixelBanner(plugin, el, ctx) {
     const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
     const isHoverPopover = viewContent.closest('.hover-popover') !== null;
     
-    
     // Add pixel-banner class to the appropriate container
     if (!isEmbedded && !isHoverPopover && viewContent.classList.contains('view-content')) {
         // set padding-top for source & preview elements as inline style for FAST rendering!
@@ -35,7 +34,7 @@ async function addPixelBanner(plugin, el, ctx) {
         viewContent.classList.add('pixel-banner');
         plugin.setupResizeObserver(viewContent);
         plugin.applyBannerWidth(viewContent);
-    } else if (isHoverPopover) {
+    } else if (isHoverPopover && plugin.settings.showBannerInPopoverPreviews) {
         // For hover popovers, add the class to the markdown preview element
         const previewEl = viewContent.querySelector('.markdown-preview-view');
         if (previewEl) {
@@ -56,7 +55,7 @@ async function addPixelBanner(plugin, el, ctx) {
         if (!container) {
             container = viewContent;
         }
-    } else if (isHoverPopover) {
+    } else if (isHoverPopover && plugin.settings.showBannerInPopoverPreviews) {
         // For hover popovers, find the proper container
         container = viewContent.querySelector('.markdown-preview-sizer') || 
                     viewContent.querySelector('.markdown-preview-view');
@@ -280,7 +279,7 @@ async function addPixelBanner(plugin, el, ctx) {
             }
             bannerDiv.style.display = 'block';
             
-            // if (isHoverPopover) {
+            // if (isHoverPopover && plugin.settings.showBannerInPopoverPreviews) {
             //     console.log('🖼️ Set banner image in hover popover:', {
             //         imageUrl: imageUrl,
             //         backgroundSize: bannerDiv.style.backgroundSize,

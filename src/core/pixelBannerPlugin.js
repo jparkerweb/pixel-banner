@@ -253,6 +253,9 @@ export class PixelBannerPlugin extends Plugin {
             const file = ctx.sourcePath ? this.app.vault.getAbstractFileByPath(ctx.sourcePath) : null;
             if (!file) return;
             
+            // Skip hover popovers if the setting is disabled
+            if (isHoverPopover && !this.settings.showBannerInPopoverPreviews) return;
+            
             // Get banner data from frontmatter
             const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
             

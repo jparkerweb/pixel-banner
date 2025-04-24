@@ -64,6 +64,7 @@ const DEFAULT_SETTINGS = {
     enableImageShuffle: false,
     hideEmbeddedNoteTitles: false,
     hideEmbeddedNoteBanners: false,
+    showBannerInPopoverPreviews: true,
     showSelectImageIcon: true,
     selectImageIconOpacity: 40,
     selectImageIconFlag: 'red',

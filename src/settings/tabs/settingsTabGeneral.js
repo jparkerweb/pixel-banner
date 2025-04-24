@@ -654,6 +654,33 @@ export function createGeneralSettings(containerEl, plugin) {
                 plugin.updateEmbeddedBannersVisibility();
             }));
 
+    // Show Banner in Popover Previews setting
+    new Setting(containerEl)
+        .setName('Show Banner in Popover Previews')
+        .setDesc('Show banners in popover note previews')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.showBannerInPopoverPreviews)
+            .onChange(async (value) => {
+                plugin.settings.showBannerInPopoverPreviews = value;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.showBannerInPopoverPreviews = DEFAULT_SETTINGS.showBannerInPopoverPreviews;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+                
+                const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
+                const toggleEl = checkboxContainer.querySelector('input');
+                if (toggleEl) {
+                    toggleEl.checked = DEFAULT_SETTINGS.showBannerInPopoverPreviews;
+                    checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.showBannerInPopoverPreviews);
+                }
+            }));
+
     // Add the showViewImageIcon setting
     const showViewImageIconSetting = new Setting(containerEl)
         .setName('Show View Image Icon')
