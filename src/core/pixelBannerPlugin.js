@@ -803,17 +803,29 @@ export class PixelBannerPlugin extends Plugin {
     // -- verify pixel banner plus credentials --
     // ------------------------------------------
     async verifyPixelBannerPlusCredentials() {
-        const result = await verifyPixelBannerPlusCredentials(this);
-        // console.log('🔍 verifyPixelBannerPlusCredentials result:', result);
-        this.pixelBannerPlusServerOnline = result.serverOnline;
-        this.pixelBannerPlusEnabled = result.verified;
-        this.pixelBannerPlusBannerTokens = result.bannerTokens;
-        this.pixelBannerPlusJackpot = result.jackpot;
-        this.pixelBannerPlusDailyGameName = result.dailyGameName;
-        this.pixelBannerPlusHighScore = result.highScore || '0';
-        this.pixelBannerPlusTopUser = result.topUser;
-        this.pixelBannerPlusTimeLeft = result.timeLeft;
-        return result;
+        if (this.settings.pixelBannerPlusEnabled) {
+            const result = await verifyPixelBannerPlusCredentials(this);
+            // console.log('🔍 verifyPixelBannerPlusCredentials result:', result);
+            this.pixelBannerPlusServerOnline = result.serverOnline;
+            this.pixelBannerPlusEnabled = result.verified;
+            this.pixelBannerPlusBannerTokens = result.bannerTokens;
+            this.pixelBannerPlusJackpot = result.jackpot;
+            this.pixelBannerPlusDailyGameName = result.dailyGameName;
+            this.pixelBannerPlusHighScore = result.highScore || '0';
+            this.pixelBannerPlusTopUser = result.topUser;
+            this.pixelBannerPlusTimeLeft = result.timeLeft;
+            return result;
+        }
+        return {
+            serverOnline: false,
+            verified: false,
+            bannerTokens: 0,
+            jackpot: 0,
+            dailyGameName: '',
+            highScore: '0',
+            topUser: '',
+            timeLeft: 0
+        };
     }
 
     // -------------------------------- //

@@ -8,6 +8,7 @@ import { createPixelBannerPlusSettings } from './tabs/settingsTabPixelBannerPlus
 const DEFAULT_SETTINGS = {
     pixelBannerPlusEmail: '',
     pixelBannerPlusApiKey: '',
+    pixelBannerPlusEnabled: true,
     apiProvider: 'all',
     pexelsApiKey: '',
     pixabayApiKey: '',

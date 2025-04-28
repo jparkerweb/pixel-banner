@@ -370,7 +370,7 @@ export class ImageSelectionModal extends Modal {
         const controlsRow = searchContainer.createDiv({ cls: 'controls-row' });
 
         // Generate with AI button
-        if (this.plugin.pixelBannerPlusServerOnline) {
+        if (this.plugin.pixelBannerPlusEnabled && this.plugin.pixelBannerPlusServerOnline) {
             const pixelBannerPlusGenAIButton = controlsRow.createEl('button');
             pixelBannerPlusGenAIButton.addClass('radial-pulse-animation');
             const sparkleSpan = pixelBannerPlusGenAIButton.createSpan({ cls: 'pixel-banner-twinkle-animation', text: '✨ ' });
