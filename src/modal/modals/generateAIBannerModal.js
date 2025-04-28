@@ -696,7 +696,7 @@ export class GenerateAIBannerModal extends Modal {
         });
 
         promptContainer.createDiv({ cls: 'setting-item-name', text: '🖋️ Creative Banner Prompt' });
-        promptContainer.createDiv({
+        promptContainer.createDiv({ 
             cls: 'setting-item-description', 
             text: 'TIP ⇢ Type a few words and then press the "🌱 GROW IDEA" button to transform your basic idea into something special!',
             attr: {
@@ -1233,8 +1233,8 @@ export class GenerateAIBannerModal extends Modal {
             console.error('Failed to get prompt inspiration:', error);
             new Notice('Failed to get prompt inspiration. Please try again.');
         } finally {
-            rewritePromptButton.textContent = originalText;
-            rewritePromptButton.disabled = false;
+            inspirationFromSeedButton.textContent = originalText;
+            inspirationFromSeedButton.disabled = false;
         }
     }
 
