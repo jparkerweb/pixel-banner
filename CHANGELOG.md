@@ -3,6 +3,12 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+#### ✨ Added
+- Add settings toggle to allow turning OFF all `Pixel Banner Plus` features, API calls and related content for those that don't want it
+
+#### 🐛 Fixed
+- Resolved conflict with Banner images showing in the hover popover preview for backlinks in the `Better Search Views` plugin
+
 ### v3.4.3 - 2025-04-24
 #### ✨ Added
 - New `Show Banner in Popover Previews` setting to control banner visibility in hover popovers (enabled by default)
