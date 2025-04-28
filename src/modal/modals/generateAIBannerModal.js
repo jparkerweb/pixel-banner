@@ -466,6 +466,29 @@ export class GenerateAIBannerModal extends Modal {
                     min-width: 150px;
                 }
 
+                .pixel-banner-image-controls {
+                    margin-top: 10px;
+                    display: flex;
+                    justify-content: center;
+                    gap: 10px;
+                }
+
+                .pixel-banner-generated-image-wrapper {
+                    width: 100%;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    background: var(--background-secondary);
+
+                }
+
+                .pixel-banner-generated-image {
+                    width: inherit;
+                    height: auto;
+                    display: block;
+                    animation: pixel-banner-fade-in 1300ms ease-in-out;
+                    margin: 0 auto;
+                }
+
                 /* History container styles */
                 .pixel-banner-history-container {
                     display: flex;

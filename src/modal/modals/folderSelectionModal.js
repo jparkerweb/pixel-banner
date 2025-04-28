@@ -29,6 +29,9 @@ export class FolderSelectionModal extends FuzzySuggestModal {
     addStyle() {
         const style = document.createElement('style');
         style.textContent = `
+            .prompt.pixel-banner-folder-select-modal {
+                top: unset !important;
+            }
             .pixel-banner-folder-select-modal .prompt {
                 position: fixed !important;
                 top: 50% !important;

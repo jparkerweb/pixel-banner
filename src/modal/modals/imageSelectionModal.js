@@ -83,6 +83,115 @@ export class ImageSelectionModal extends Modal {
         // Add styles for pagination
         const style = document.createElement('style');
         style.textContent = `
+            .pixel-banner-image-modal {
+                width: var(--dialog-max-width);
+                top: unset !important;
+            }
+
+            .pixel-banner-image-select-modal {
+                top: unset !important;
+                width: var(--dialog-max-width);
+                max-width: 1100px;
+            }
+
+            .pixel-banner-image-select-modal .pixel-banner-image-delete {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 24px;
+                height: 24px;
+                background-color: var(--background-secondary);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: .5;
+                transition: opacity 0.2s ease, background-color 0.2s ease;
+                cursor: pointer;
+                z-index: 2;
+            }
+
+            .pixel-banner-image-select-modal .pixel-banner-image-wrapper:hover .pixel-banner-image-delete {
+                opacity: 1;
+            }
+
+            .pixel-banner-image-select-modal .pixel-banner-image-delete:hover {
+                background-color: red;
+                color: white;
+                opacity: 1;
+            }
+
+            .pixel-banner-image-select-modal .pixel-banner-image-delete svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .pixel-banner-image-select-description {
+                margin-top: -15px;
+                font-size: 0.8em;
+                word-break: break-all;
+                color: var(--text-muted);
+                margin-bottom: 15px;
+            }
+
+            .pixel-banner-search-container {
+                margin-bottom: 1rem;
+            }
+            
+            .pixel-banner-search-container input {
+                width: 100%;
+                padding: 8px;
+                border-radius: 4px;
+                border: 1px solid var(--background-modifier-border);
+            }
+
+            .pixel-banner-search-container .search-row {
+                flex: 1;
+                display: flex;
+                gap: 8px;
+                margin: 0;
+            }
+
+            .pixel-banner-search-container .controls-row {
+                flex: 0 auto;
+                display: flex;
+                gap: 8px;
+                margin: 0;
+            }
+
+            .pixel-banner-image-thumbnail {
+                width: 100%;
+                height: 150px;
+                object-fit: cover;
+                border-radius: 2px;
+            }
+
+            .pixel-banner-image-path {
+                margin-top: 8px;
+                font-size: 0.8em;
+                word-break: break-all;
+                color: var(--text-muted);
+            }
+
+            .pixel-banner-image-error {
+                height: 150px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: var(--background-modifier-error);
+                color: var(--text-error);
+                border-radius: 2px;
+            }
+
+            .pixel-banner-image-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1rem;
+                padding: 0 1rem;
+                overflow-y: auto;
+                max-height: 60vh;
+            }
+
             .pixel-banner-pagination-button {
                 padding: 4px 8px;
                 border-radius: 4px;
@@ -199,6 +308,30 @@ export class ImageSelectionModal extends Modal {
             @media screen and (max-width: 550px) {
                 .pixel-banner-pagination { flex-direction: column !important; }
                 .pixel-banner-pagination .pixel-banner-controls { flex-direction: column !important; }
+            }
+
+            @media screen and (max-width: 775px) {
+                .pixel-banner-search-container {
+                    flex-direction: column !important;
+                    gap: 8px !important;
+                }
+
+                .pixel-banner-search-container .search-row {
+                    display: flex;
+                    width: 100%;
+                    gap: 8px;
+                }
+
+                .pixel-banner-search-container .controls-row {
+                    display: flex;
+                    width: 100%;
+                    gap: 8px;
+                    align-items: center;
+                }
+
+                .pixel-banner-search-container input[type="text"] {
+                    flex: 1;
+                }
             }
         `;
         document.head.appendChild(style);
