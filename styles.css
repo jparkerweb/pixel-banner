@@ -59,6 +59,8 @@
     width: unset !important;
     max-width: var(--pixel-banner-max-width, unset) !important;
     margin: var(--pixel-banner-alignment, 0 auto);
+    /* add transition to banner image background position */
+    transition: background-position 0.5s ease;
 }
 
 .markdown-embed-content .markdown-preview-view {
@@ -658,6 +660,14 @@
     pointer-events: none;
 }
 
+
+/* ----------------------------------- */
+/* -- various plugin conflict fixes -- */
+/* ----------------------------------- */
+/* better search views ⇢ hide banner images in backlink-pane */
+.backlink-pane .pixel-banner-image {
+    display: none !important;
+}
 
 /* ========================= */
 /* == misc helper classes == */
