@@ -21,12 +21,14 @@ export class SelectPixelBannerModal extends Modal {
         
         // Initialize the basic modal UI immediately
         await this.initializeBasicUI();
-        
-        // Initialize the API-dependent parts in the background
-        this.initializeAPIDependentSections().catch(error => {
-            console.error('Error initializing API-dependent sections:', error);
-            this.updateAPIStatusUI(false);
-        });
+
+        if (this.plugin.settings.pixelBannerPlusEnabled) {
+            // Initialize the API-dependent parts in the background
+            this.initializeAPIDependentSections().catch(error => {
+                console.error('Error initializing API-dependent sections:', error);
+                this.updateAPIStatusUI(false);
+            });
+        }
     }
     
     // Create a loading spinner element
@@ -146,79 +148,81 @@ export class SelectPixelBannerModal extends Modal {
             cls: 'pixel-banner-source-buttons',
         });
         
-        // AI Generation Button (with loading state initially)
-        const aiButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button pixel-banner-api-dependent',
-            attr: {
-                style: `
-                    position: relative;
-                `
-            }
-        });
-        const aiButtonContent = aiButton.createDiv({ cls: 'pixel-banner-button-content' });
-        aiButtonContent.createEl('span', { text: '✨', cls: 'pixel-banner-button-icon' });
-        aiButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'AI Banner', 
-            cls: 'pixel-banner-button-text'
-        });
-        
-        // Add loading overlay to AI button
-        const aiLoadingOverlay = aiButton.createDiv({
-            cls: 'pixel-banner-button-loading-overlay',
-            attr: {
-                style: `
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: var(--background-primary);
-                    opacity: 0.8;
-                    z-index: 10;
-                `
-            }
-        });
-        aiLoadingOverlay.appendChild(this.createLoadingSpinner());
-        
-        // Store Button (with loading state initially)
-        const storeButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button pixel-banner-api-dependent',
-            attr: {
-                style: `
-                    position: relative;
-                `
-            }
-        });
-        const storeButtonContent = storeButton.createDiv({ cls: 'pixel-banner-button-content' });
-        storeButtonContent.createEl('span', { text: '🏪', cls: 'pixel-banner-button-icon' });
-        storeButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Store', 
-            cls: 'pixel-banner-button-text' 
-        });
-        
-        // Add loading overlay to Store button
-        const storeLoadingOverlay = storeButton.createDiv({
-            cls: 'pixel-banner-button-loading-overlay',
-            attr: {
-                style: `
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: var(--background-primary);
-                    opacity: 0.8;
-                    z-index: 10;
-                `
-            }
-        });
-        storeLoadingOverlay.appendChild(this.createLoadingSpinner());
+        if (this.plugin.settings.pixelBannerPlusEnabled) {
+            // AI Generation Button (with loading state initially)
+            const aiButton = bannerSourceButtons.createEl('button', {
+                cls: 'pixel-banner-source-button pixel-banner-api-dependent',
+                attr: {
+                    style: `
+                        position: relative;
+                    `
+                }
+            });
+            const aiButtonContent = aiButton.createDiv({ cls: 'pixel-banner-button-content' });
+            aiButtonContent.createEl('span', { text: '✨', cls: 'pixel-banner-button-icon' });
+            aiButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+                text: 'AI Banner', 
+                cls: 'pixel-banner-button-text'
+            });
+            
+            // Add loading overlay to AI button
+            const aiLoadingOverlay = aiButton.createDiv({
+                cls: 'pixel-banner-button-loading-overlay',
+                attr: {
+                    style: `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        background-color: var(--background-primary);
+                        opacity: 0.8;
+                        z-index: 10;
+                    `
+                }
+            });
+            aiLoadingOverlay.appendChild(this.createLoadingSpinner());
+            
+            // Store Button (with loading state initially)
+            const storeButton = bannerSourceButtons.createEl('button', {
+                cls: 'pixel-banner-source-button pixel-banner-api-dependent',
+                attr: {
+                    style: `
+                        position: relative;
+                    `
+                }
+            });
+            const storeButtonContent = storeButton.createDiv({ cls: 'pixel-banner-button-content' });
+            storeButtonContent.createEl('span', { text: '🏪', cls: 'pixel-banner-button-icon' });
+            storeButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+                text: 'Store', 
+                cls: 'pixel-banner-button-text' 
+            });
+            
+            // Add loading overlay to Store button
+            const storeLoadingOverlay = storeButton.createDiv({
+                cls: 'pixel-banner-button-loading-overlay',
+                attr: {
+                    style: `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        background-color: var(--background-primary);
+                        opacity: 0.8;
+                        z-index: 10;
+                    `
+                }
+            });
+            storeLoadingOverlay.appendChild(this.createLoadingSpinner());
+        }
 
         // Vault Selection Button (immediately available)
         const vaultButton = bannerSourceButtons.createEl('button', {
@@ -405,57 +409,59 @@ export class SelectPixelBannerModal extends Modal {
             });
         }
 
-        // Pixel Banner Plus Account section (with loading state initially)
-        const accountSection = mainContainer.createDiv({
-            cls: 'pixel-banner-section pixel-banner-api-dependent',
-            attr: {
-                style: `
-                    gap: 5px;
-                    position: relative;
-                `
-            }
-        });
-        const accountTitle = accountSection.createEl('h3', {
-            text: 'Pixel Banner Plus Account',
-            cls: 'pixel-banner-section-title',
-            attr: {
-                style: `
-                    margin: 0;
-                    cursor: help;
-                    width: max-content;
-                `
-            }
-        });
-        
-        // Account info container (initially hidden)
-        const accountInfo = accountSection.createDiv({ 
-            cls: 'pixel-banner-account-info',
-            attr: {
-                style: 'visibility: hidden;'
-            }
-        });
+        if (this.plugin.settings.pixelBannerPlusEnabled) {
+            // Pixel Banner Plus Account section (with loading state initially)
+            const accountSection = mainContainer.createDiv({
+                cls: 'pixel-banner-section pixel-banner-api-dependent',
+                attr: {
+                    style: `
+                        gap: 5px;
+                        position: relative;
+                    `
+                }
+            });
+            const accountTitle = accountSection.createEl('h3', {
+                text: 'Pixel Banner Plus Account',
+                cls: 'pixel-banner-section-title',
+                attr: {
+                    style: `
+                        margin: 0;
+                        cursor: help;
+                        width: max-content;
+                    `
+                }
+            });
+            
+            // Account info container (initially hidden)
+            const accountInfo = accountSection.createDiv({ 
+                cls: 'pixel-banner-account-info',
+                attr: {
+                    style: 'visibility: hidden;'
+                }
+            });
 
-        // Add loading overlay to Account section
-        const accountLoadingOverlay = accountSection.createDiv({
-            cls: 'pixel-banner-section-loading-overlay',
-            attr: {
-                style: `
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: var(--background-primary);
-                    opacity: 0.8;
-                    z-index: 10;
-                    min-height: 50px;
-                `
-            }
-        });
-        accountLoadingOverlay.appendChild(this.createLoadingSpinner());
+            // Add loading overlay to Account section
+            const accountLoadingOverlay = accountSection.createDiv({
+                cls: 'pixel-banner-section-loading-overlay',
+                attr: {
+                    style: `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        background-color: var(--background-primary);
+                        opacity: 0.8;
+                        z-index: 10;
+                        min-height: 50px;
+                    `
+                }
+            });
+            accountLoadingOverlay.appendChild(this.createLoadingSpinner());
+        }
 
         // Add styles
         this.addStyle();
@@ -521,176 +527,193 @@ export class SelectPixelBannerModal extends Modal {
         });
         
         // Update account section
-        const accountSection = contentEl.querySelector('.pixel-banner-section.pixel-banner-api-dependent');
-        if (accountSection) {
-            const accountInfo = accountSection.querySelector('.pixel-banner-account-info');
-            if (accountInfo) {
-                accountInfo.style.visibility = 'visible';
-                
-                // Clear existing content
-                accountInfo.empty();
-                
-                // Rebuild account info
-                const statusContainer = accountInfo.createDiv({
-                    attr: {
-                        style: `
-                            display: flex;
-                            flex-direction: row;
-                            gap: 10px;
-                            align-items: center;
-                            cursor: help;
-                        `
-                    }
-                });
-
-                // function to open settings and navigate to Pixel Banner tab
-                const openPlusSettings = async () => {
-                    this.close();
-                    await this.app.setting.open();
-                    await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+        if (this.plugin.settings.pixelBannerPlusEnabled) {
+            const accountSection = contentEl.querySelector('.pixel-banner-section.pixel-banner-api-dependent');
+            if (accountSection) {
+                const accountInfo = accountSection.querySelector('.pixel-banner-account-info');
+                if (accountInfo) {
+                    accountInfo.style.visibility = 'visible';
                     
-                    // Find and click the Pixel Banner item in the settings sidebar
-                    const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-                    for (const tab of settingsTabs) {
-                        if (tab.textContent.includes('Pixel Banner')) {
-                            tab.click();
-                            break;
-                        }
-                    }
+                    // Clear existing content
+                    accountInfo.empty();
                     
-                    // Find and click the Pixel Banner Plus item in the settings sidebar
-                    const pixelBannerSettingsTabs = document.querySelectorAll('.pixel-banner-settings-tabs > button.pixel-banner-settings-tab');
-                    for (const tab of pixelBannerSettingsTabs) {
-                        if (tab.textContent.includes('Plus')) {
-                            tab.click();
-                            break;
-                        }
-                    }
-                };
-
-                // openPlusSettings click handler for account title
-                const accountTitle = accountSection.querySelector('.pixel-banner-section-title');
-                if (accountTitle) accountTitle.addEventListener('click', openPlusSettings);
-                
-                // Connection Status
-                const isConnected = this.plugin.pixelBannerPlusEnabled;
-                const pixelBannerPlusServerOnline = this.plugin.pixelBannerPlusServerOnline;
-                
-                // Always show server offline message if isOnline is false or server is actually offline
-                const statusText = (!isOnline || !pixelBannerPlusServerOnline) 
-                    ? '🚨 Servers Offline 🚨' 
-                    : (isConnected ? '✅ Authorized' : '❌ Not Authorized');
-                
-                const statusBorderColor = (!isOnline || !pixelBannerPlusServerOnline) 
-                    ? '#FF6B6B' 
-                    : (isConnected ? '#177d47' : '#FF0000');
-                
-                const statusEl = statusContainer.createEl('span', {
-                    text: statusText,
-                    cls: 'pixel-banner-status-value',
-                    attr: {
-                        style: `border: 1px dashed ${statusBorderColor};`
-                    }
-                });
-                statusEl.addEventListener('click', openPlusSettings);
-
-                // isMobileDevice check
-                const isMobileDevice = window.navigator.userAgent.includes("Android") || 
-                    window.navigator.userAgent.includes("iPhone") || 
-                    window.navigator.userAgent.includes("iPad") || 
-                    window.navigator.userAgent.includes("iPod");
-                
-                // Available Tokens - only show if server is online
-                if (isOnline && pixelBannerPlusServerOnline) {
-                    const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined 
-                        ? `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` 
-                        : '❓ Unknown';
-                    
-                    const tokenCountEl = statusContainer.createEl('span', {
-                        text: tokenCount,
-                        cls: 'pixel-banner-status-value',
+                    // Rebuild account info
+                    const statusContainer = accountInfo.createDiv({
                         attr: {
                             style: `
-                                border: 1px dashed #bba00f;
-                                display: ${pixelBannerPlusServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
+                                display: flex;
+                                flex-direction: row;
+                                gap: 10px;
+                                align-items: center;
+                                cursor: help;
                             `
                         }
                     });
-                    tokenCountEl.addEventListener('click', openPlusSettings);
 
-                    if (!isMobileDevice && isConnected) {
-                        // Add game button to the title container
-                        const gameButton = statusContainer.createEl('button', {
-                            cls: 'pixel-banner-game-button',
-                            attr: {
-                                style: `
-                                    margin-left: auto;
-                                    margin-right: 10px;
-                                    padding: 4px 10px;
-                                    background: transparent;
-                                    border: none;
-                                    box-shadow: none;
-                                    cursor: pointer;
-                                    font-size: 14px;
-                                    display: none;
-                                    text-transform: uppercase;
-                                `
+                    // function to open settings and navigate to Pixel Banner tab
+                    const openPlusSettings = async () => {
+                        this.close();
+                        await this.app.setting.open();
+                        await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+                        
+                        // Find and click the Pixel Banner item in the settings sidebar
+                        const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+                        for (const tab of settingsTabs) {
+                            if (tab.textContent.includes('Pixel Banner')) {
+                                tab.click();
+                                break;
                             }
-                        });
-                        gameButton.innerHTML = '🕹️';
-                        gameButton.title = 'Play Daily Game (optional)... chance to win Banner Tokens';
-                        gameButton.addEventListener('click', () => {
-                            this.close();
-                            new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
-                        });
+                        }
                         
-                        // Update the game button visibility
-                        const showGameButton = isOnline && 
-                                             this.plugin.pixelBannerPlusServerOnline && 
-                                             this.plugin.pixelBannerPlusEnabled && 
-                                             !this.plugin.settings.enableDailyGame;
-                        
-                        gameButton.style.display = showGameButton ? 'inline-block' : 'none';
-                    }
+                        // Find and click the Pixel Banner Plus item in the settings sidebar
+                        const pixelBannerSettingsTabs = document.querySelectorAll('.pixel-banner-settings-tabs > button.pixel-banner-settings-tab');
+                        for (const tab of pixelBannerSettingsTabs) {
+                            if (tab.textContent.includes('Plus')) {
+                                tab.click();
+                                break;
+                            }
+                        }
+                    };
+
+                    // openPlusSettings click handler for account title
+                    const accountTitle = accountSection.querySelector('.pixel-banner-section-title');
+                    if (accountTitle) accountTitle.addEventListener('click', openPlusSettings);
                     
-                    // Add daily game button in the account info section when API is online
-                    // Only display the daily game container if not on mobile device AND the enableDailyGame setting is true
-                    if (!isMobileDevice && this.plugin.settings.enableDailyGame && isConnected) {
-                        const dailyGameContainer = accountInfo.createDiv({
-                            cls: 'pixel-banner-daily-game-container',
-                            attr: {
-                                style: `
-                                    display: flex;
-                                    flex-direction: row;
-                                    align-items: center;
-                                    gap: 10px;
-                                    justify-content: space-between;
-                                    width: 100%;
-                                    border-top: 1px solid var(--modal-border-color);
-                                    padding-top: 20px;
-                                    margin-top: 10px;
-                                `
-                            }
-                        });
+                    // Connection Status
+                    const isConnected = this.plugin.pixelBannerPlusEnabled;
+                    const pixelBannerPlusServerOnline = this.plugin.pixelBannerPlusServerOnline;
+                    
+                    // Always show server offline message if isOnline is false or server is actually offline
+                    const statusText = (!isOnline || !pixelBannerPlusServerOnline) 
+                        ? '🚨 Servers Offline 🚨' 
+                        : (isConnected ? '✅ Authorized' : '❌ Not Authorized');
+                    
+                    const statusBorderColor = (!isOnline || !pixelBannerPlusServerOnline) 
+                        ? '#FF6B6B' 
+                        : (isConnected ? '#177d47' : '#FF0000');
+                    
+                    const statusEl = statusContainer.createEl('span', {
+                        text: statusText,
+                        cls: 'pixel-banner-status-value',
+                        attr: {
+                            style: `border: 1px dashed ${statusBorderColor};`
+                        }
+                    });
+                    statusEl.addEventListener('click', openPlusSettings);
 
-                        // Current Daily Game Info Block
-                        const dailyGameInfoBlock = dailyGameContainer.createDiv({
+                    // isMobileDevice check
+                    const isMobileDevice = window.navigator.userAgent.includes("Android") || 
+                        window.navigator.userAgent.includes("iPhone") || 
+                        window.navigator.userAgent.includes("iPad") || 
+                        window.navigator.userAgent.includes("iPod");
+                    
+                    // Available Tokens - only show if server is online
+                    if (isOnline && pixelBannerPlusServerOnline) {
+                        const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined 
+                            ? `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` 
+                            : '❓ Unknown';
+                        
+                        const tokenCountEl = statusContainer.createEl('span', {
+                            text: tokenCount,
+                            cls: 'pixel-banner-status-value',
                             attr: {
                                 style: `
-                                    display: flex;
-                                    flex-direction: column;
-                                    align-items: flex-start;
-                                    gap: 5px;
-                                    width: 100%;
+                                    border: 1px dashed #bba00f;
+                                    display: ${pixelBannerPlusServerOnline && this.plugin.pixelBannerPlusEnabled ? 'inline-flex' : 'none'};
                                 `
                             }
                         });
-                        const infoBlockRow1 = dailyGameInfoBlock.createEl('div');
-                        infoBlockRow1.createEl('span', { text: '🎮 Daily Game ' });
-                        infoBlockRow1.createEl('span', {
-                            text: this.plugin.pixelBannerPlusDailyGameName,
-                            attr: { 
-                                style: `
+                        tokenCountEl.addEventListener('click', openPlusSettings);
+
+                        if (!isMobileDevice && isConnected) {
+                            // Add game button to the title container
+                            const gameButton = statusContainer.createEl('button', {
+                                cls: 'pixel-banner-game-button',
+                                attr: {
+                                    style: `
+                                        margin-left: auto;
+                                        margin-right: 10px;
+                                        padding: 4px 10px;
+                                        background: transparent;
+                                        border: none;
+                                        box-shadow: none;
+                                        cursor: pointer;
+                                        font-size: 14px;
+                                        display: none;
+                                        text-transform: uppercase;
+                                    `
+                                }
+                            });
+                            gameButton.innerHTML = '🕹️';
+                            gameButton.title = 'Play Daily Game (optional)... chance to win Banner Tokens';
+                            gameButton.addEventListener('click', () => {
+                                this.close();
+                                new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
+                            });
+                            
+                            // Update the game button visibility
+                            const showGameButton = isOnline && 
+                                                this.plugin.pixelBannerPlusServerOnline && 
+                                                this.plugin.pixelBannerPlusEnabled && 
+                                                !this.plugin.settings.enableDailyGame;
+                            
+                            gameButton.style.display = showGameButton ? 'inline-block' : 'none';
+                        }
+                        
+                        // Add daily game button in the account info section when API is online
+                        // Only display the daily game container if not on mobile device AND the enableDailyGame setting is true
+                        if (!isMobileDevice && this.plugin.settings.enableDailyGame && isConnected) {
+                            const dailyGameContainer = accountInfo.createDiv({
+                                cls: 'pixel-banner-daily-game-container',
+                                attr: {
+                                    style: `
+                                        display: flex;
+                                        flex-direction: row;
+                                        align-items: center;
+                                        gap: 10px;
+                                        justify-content: space-between;
+                                        width: 100%;
+                                        border-top: 1px solid var(--modal-border-color);
+                                        padding-top: 20px;
+                                        margin-top: 10px;
+                                    `
+                                }
+                            });
+
+                            // Current Daily Game Info Block
+                            const dailyGameInfoBlock = dailyGameContainer.createDiv({
+                                attr: {
+                                    style: `
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: flex-start;
+                                        gap: 5px;
+                                        width: 100%;
+                                    `
+                                }
+                            });
+                            const infoBlockRow1 = dailyGameInfoBlock.createEl('div');
+                            infoBlockRow1.createEl('span', { text: '🎮 Daily Game ' });
+                            infoBlockRow1.createEl('span', {
+                                text: this.plugin.pixelBannerPlusDailyGameName,
+                                attr: { 
+                                    style: `
+                                        font-style: italic;
+                                        padding: 0px 8px;
+                                        border-radius: 7px;
+                                        line-height: 1.38;
+                                        color: var(--text-color);
+                                        background-color: var(--interactive-normal);
+                                        box-shadow: var(--input-shadow);
+                                    `
+                                }
+                            });
+
+                            const infoBlockRow2 = dailyGameInfoBlock.createEl('div');
+                            infoBlockRow2.createEl('span', { text: '🏆 High Score ' });
+                            infoBlockRow2.createEl('span', {
+                                text: this.plugin.pixelBannerPlusHighScore,
+                                attr: { style: `
                                     font-style: italic;
                                     padding: 0px 8px;
                                     border-radius: 7px;
@@ -698,221 +721,206 @@ export class SelectPixelBannerModal extends Modal {
                                     color: var(--text-color);
                                     background-color: var(--interactive-normal);
                                     box-shadow: var(--input-shadow);
+                                `}
+                            });
+                            
+                            const infoBlockRow3 = dailyGameInfoBlock.createEl('div');
+                            infoBlockRow3.createEl('span', { text: '💰 Current Jackpot ' });
+                            infoBlockRow3.createEl('span', {
+                                text: `🪙 ${this.plugin.pixelBannerPlusJackpot} Tokens`,
+                                attr: { style: `
+                                    font-style: italic;
+                                    padding: 0px 8px;
+                                    border-radius: 7px;
+                                    line-height: 1.38;
+                                    color: var(--text-color);
+                                    background-color: var(--interactive-normal);
+                                    box-shadow: var(--input-shadow);
+                                ` } });
+                            
+                            const infoBlockRow4 = dailyGameInfoBlock.createEl('div');
+                            infoBlockRow4.createEl('span', { text: '⏰ Time Left ' });
+                            infoBlockRow4.createEl('span', {
+                                text: this.plugin.pixelBannerPlusTimeLeft,
+                                attr: { style: `
+                                    font-style: italic;
+                                    padding: 0px 8px;
+                                    border-radius: 7px;
+                                    line-height: 1.38;
+                                    color: var(--text-color);
+                                    background-color: var(--interactive-normal);
+                                    box-shadow: var(--input-shadow);
+                                ` }
+                            });
+
+                            const infoBlockRow5 = dailyGameInfoBlock.createEl('div');
+                            infoBlockRow5.createEl('span', {
+                                text: '3 FREE',
+                                attr: {
+                                    style: `
+                                        background: darkgreen;
+                                        color: white;
+                                        padding: 0px 4px;
+                                        border-radius: 5px;
+                                        letter-spacing: 1px;
+                                    `
+                                }
+                            });
+                            infoBlockRow5.createEl('span', { text: ' plays per day!' });
+
+                            // Daily Game Button
+                            const dailyGameButton = dailyGameContainer.createEl('button', {
+                                cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
+                                attr: {
+                                    style: `
+                                        min-width: 110px;
+                                    `
+                                }
+                            });
+                            const dailyGameContent = dailyGameButton.createDiv({
+                                cls: 'pixel-banner-button-content',
+                                attr: {
+                                    style: `
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 10px;
+                                    `
+                                }
+                            });
+                            dailyGameContent.createEl('span', { text: '🕹️', cls: 'pixel-banner-button-icon pixel-banner-twinkle-animation' });
+                            dailyGameContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+                                text: 'Play Daily Game', 
+                                cls: 'pixel-banner-button-text'
+                            });
+                            dailyGameButton.addEventListener('click', () => {
+                                this.close();
+                                new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
+                            });
+                        }
+                    } else {
+                        // If offline, show a reconnect button
+                        const retryButton = statusContainer.createEl('button', {
+                            text: '🔄 Try Again',
+                            cls: 'pixel-banner-account-button pixel-banner-retry-button',
+                            attr: {
+                                style: `
+                                    background-color: var(--background-accent) !important;
+                                    color: var(--text-on-accent) !important;
+                                    margin-left: 10px;
                                 `
                             }
-                        });
-
-                        const infoBlockRow2 = dailyGameInfoBlock.createEl('div');
-                        infoBlockRow2.createEl('span', { text: '🏆 High Score ' });
-                        infoBlockRow2.createEl('span', {
-                            text: this.plugin.pixelBannerPlusHighScore,
-                            attr: { style: `
-                                font-style: italic;
-                                padding: 0px 8px;
-                                border-radius: 7px;
-                                line-height: 1.38;
-                                color: var(--text-color);
-                                background-color: var(--interactive-normal);
-                                box-shadow: var(--input-shadow);
-                            `}
                         });
                         
-                        const infoBlockRow3 = dailyGameInfoBlock.createEl('div');
-                        infoBlockRow3.createEl('span', { text: '💰 Current Jackpot ' });
-                        infoBlockRow3.createEl('span', {
-                            text: `🪙 ${this.plugin.pixelBannerPlusJackpot} Tokens`,
-                            attr: { style: `
-                                font-style: italic;
-                                padding: 0px 8px;
-                                border-radius: 7px;
-                                line-height: 1.38;
-                                color: var(--text-color);
-                                background-color: var(--interactive-normal);
-                                box-shadow: var(--input-shadow);
-                            ` } });
-                        
-                        const infoBlockRow4 = dailyGameInfoBlock.createEl('div');
-                        infoBlockRow4.createEl('span', { text: '⏰ Time Left ' });
-                        infoBlockRow4.createEl('span', {
-                            text: this.plugin.pixelBannerPlusTimeLeft,
-                            attr: { style: `
-                                font-style: italic;
-                                padding: 0px 8px;
-                                border-radius: 7px;
-                                line-height: 1.38;
-                                color: var(--text-color);
-                                background-color: var(--interactive-normal);
-                                box-shadow: var(--input-shadow);
-                            ` }
-                        });
-
-                        const infoBlockRow5 = dailyGameInfoBlock.createEl('div');
-                        infoBlockRow5.createEl('span', {
-                            text: '3 FREE',
-                            attr: {
-                                style: `
-                                    background: darkgreen;
-                                    color: white;
-                                    padding: 0px 4px;
-                                    border-radius: 5px;
-                                    letter-spacing: 1px;
-                                `
+                        retryButton.addEventListener('click', async () => {
+                            // Clear status container and show loading again
+                            statusContainer.empty();
+                            statusContainer.createEl('span', {
+                                text: 'Connecting...',
+                                cls: 'pixel-banner-status-value'
+                            });
+                            
+                            // Add temporary loading spinner
+                            const tempSpinner = this.createLoadingSpinner();
+                            statusContainer.appendChild(tempSpinner);
+                            
+                            try {
+                                // Try to reconnect
+                                await this.plugin.verifyPixelBannerPlusCredentials();
+                                await this.plugin.getPixelBannerInfo();
+                                this.updateAPIStatusUI(true);
+                            } catch (error) {
+                                console.error('Error reconnecting:', error);
+                                this.plugin.pixelBannerPlusServerOnline = false;
+                                this.updateAPIStatusUI(false);
                             }
-                        });
-                        infoBlockRow5.createEl('span', { text: ' plays per day!' });
-
-                        // Daily Game Button
-                        const dailyGameButton = dailyGameContainer.createEl('button', {
-                            cls: 'pixel-banner-account-button pixel-banner-daily-game-button',
-                            attr: {
-                                style: `
-                                    min-width: 110px;
-                                `
-                            }
-                        });
-                        const dailyGameContent = dailyGameButton.createDiv({
-                            cls: 'pixel-banner-button-content',
-                            attr: {
-                                style: `
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 10px;
-                                `
-                            }
-                        });
-                        dailyGameContent.createEl('span', { text: '🕹️', cls: 'pixel-banner-button-icon pixel-banner-twinkle-animation' });
-                        dailyGameContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-                            text: 'Play Daily Game', 
-                            cls: 'pixel-banner-button-text'
-                        });
-                        dailyGameButton.addEventListener('click', () => {
-                            this.close();
-                            new DailyGameModal(this.app, this.plugin.settings.pixelBannerPlusEmail, this.plugin.settings.pixelBannerPlusApiKey, this.plugin).open();
                         });
                     }
-                } else {
-                    // If offline, show a reconnect button
-                    const retryButton = statusContainer.createEl('button', {
-                        text: '🔄 Try Again',
-                        cls: 'pixel-banner-account-button pixel-banner-retry-button',
+                    
+                    // Show Buy Tokens button if connected
+                    if (pixelBannerPlusServerOnline && isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
+                        const buyTokensButton = accountInfo.createEl('button', {
+                            cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
+                            text: '💵 Buy More Tokens'
+                        });
+                        
+                        buyTokensButton.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
+                        });
+                    } 
+                    // Show Signup button if not connected
+                    else if (pixelBannerPlusServerOnline && !isConnected) {
+                        const signupButton = accountInfo.createEl('button', {
+                            cls: 'pixel-banner-account-button pixel-banner-signup-button',
+                            text: '🚩 Signup for Free!'
+                        });
+                        
+                        signupButton.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
+                            window.open(signupUrl, '_blank');
+                        });
+                    }
+
+                    // Version Info
+                    const cloudVersion = this.plugin.pixelBannerVersion;
+                    const currentVersion = this.plugin.settings.lastVersion;
+                    
+                    // check if cloudVersion is greater than currentVersion (these are semver versions, eg: 1.0.0)
+                    const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
+                    let versionText, cursor;
+                    if (isCloudVersionGreater) {
+                        versionText = `🔄 Update Available!`;
+                        cursor = 'pointer';
+                    } else {
+                        versionText = ``;
+                        // versionText = `✅ Up to Date`;
+                        cursor = 'default';
+                    }
+                    const versionInfo = accountInfo.createDiv({
+                        text: versionText,
                         attr: {
                             style: `
-                                background-color: var(--background-accent) !important;
-                                color: var(--text-on-accent) !important;
-                                margin-left: 10px;
+                                display: flex;
+                                flex-direction: row;
+                                gap: 10px;
+                                align-items: center;
+                                cursor: ${cursor};
+                                margin-left: auto;
+                                animation: pixel-banner-scale-up-down 3s ease-in-out infinite;
                             `
                         }
                     });
-                    
-                    retryButton.addEventListener('click', async () => {
-                        // Clear status container and show loading again
-                        statusContainer.empty();
-                        statusContainer.createEl('span', {
-                            text: 'Connecting...',
-                            cls: 'pixel-banner-status-value'
-                        });
-                        
-                        // Add temporary loading spinner
-                        const tempSpinner = this.createLoadingSpinner();
-                        statusContainer.appendChild(tempSpinner);
-                        
-                        try {
-                            // Try to reconnect
-                            await this.plugin.verifyPixelBannerPlusCredentials();
-                            await this.plugin.getPixelBannerInfo();
-                            this.updateAPIStatusUI(true);
-                        } catch (error) {
-                            console.error('Error reconnecting:', error);
-                            this.plugin.pixelBannerPlusServerOnline = false;
-                            this.updateAPIStatusUI(false);
-                        }
-                    });
-                }
-                
-                // Show Buy Tokens button if connected
-                if (pixelBannerPlusServerOnline && isConnected && this.plugin.pixelBannerPlusBannerTokens === 0) {
-                    const buyTokensButton = accountInfo.createEl('button', {
-                        cls: 'pixel-banner-account-button pixel-banner-buy-tokens-button',
-                        text: '💵 Buy More Tokens'
-                    });
-                    
-                    buyTokensButton.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        window.open(PIXEL_BANNER_PLUS.SHOP_URL, '_blank');
-                    });
-                } 
-                // Show Signup button if not connected
-                else if (pixelBannerPlusServerOnline && !isConnected) {
-                    const signupButton = accountInfo.createEl('button', {
-                        cls: 'pixel-banner-account-button pixel-banner-signup-button',
-                        text: '🚩 Signup for Free!'
-                    });
-                    
-                    signupButton.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        const signupUrl = PIXEL_BANNER_PLUS.API_URL + PIXEL_BANNER_PLUS.ENDPOINTS.SIGNUP;
-                        window.open(signupUrl, '_blank');
-                    });
-                }
 
-                // Version Info
-                const cloudVersion = this.plugin.pixelBannerVersion;
-                const currentVersion = this.plugin.settings.lastVersion;
-                
-                // check if cloudVersion is greater than currentVersion (these are semver versions, eg: 1.0.0)
-                const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
-                let versionText, cursor;
-                if (isCloudVersionGreater) {
-                    versionText = `🔄 Update Available!`;
-                    cursor = 'pointer';
-                } else {
-                    versionText = ``;
-                    // versionText = `✅ Up to Date`;
-                    cursor = 'default';
-                }
-                const versionInfo = accountInfo.createDiv({
-                    text: versionText,
-                    attr: {
-                        style: `
-                            display: flex;
-                            flex-direction: row;
-                            gap: 10px;
-                            align-items: center;
-                            cursor: ${cursor};
-                            margin-left: auto;
-                            animation: pixel-banner-scale-up-down 3s ease-in-out infinite;
-                        `
+                    if (isCloudVersionGreater) {
+                        // Obsidian API call to update the plugin: plugin-id is "pexels-banner"
+                        const openCommunityPlugins = async () => {
+                            this.close();
+                            await this.app.setting.open();
+                            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+                            
+                            // Find and click the Community Plugins item in the settings sidebar
+                            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+                            for (const tab of settingsTabs) {
+                                if (tab.textContent.includes('Community plugins')) {
+                                    tab.click();
+                                    break;
+                                }
+                            }
+
+                            await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
+                            
+                            // Find the "Check for updates" button
+                            const allTheButtons = document.querySelectorAll('button.mod-cta');
+                            for (const button of allTheButtons) {
+                                if (button.textContent.includes('Check for updates')) {
+                                    button.click();
+                                    break;
+                                }
+                            }
+                        };
+                        versionInfo.addEventListener('click', openCommunityPlugins);
                     }
-                });
-
-                if (isCloudVersionGreater) {
-                    // Obsidian API call to update the plugin: plugin-id is "pexels-banner"
-                    const openCommunityPlugins = async () => {
-                        this.close();
-                        await this.app.setting.open();
-                        await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-                        
-                        // Find and click the Community Plugins item in the settings sidebar
-                        const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-                        for (const tab of settingsTabs) {
-                            if (tab.textContent.includes('Community plugins')) {
-                                tab.click();
-                                break;
-                            }
-                        }
-
-                        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
-                        
-                        // Find the "Check for updates" button
-                        const allTheButtons = document.querySelectorAll('button.mod-cta');
-                        for (const button of allTheButtons) {
-                            if (button.textContent.includes('Check for updates')) {
-                                button.click();
-                                break;
-                            }
-                        }
-                    };
-                    versionInfo.addEventListener('click', openCommunityPlugins);
                 }
             }
         }

@@ -2688,6 +2688,245 @@ export class TargetPositionModal extends Modal {
     addStyle() {
         const style = document.createElement('style');
         style.textContent = `
+            /* --------------------------- */
+            /* -- Target Position Modal -- */
+            /* --------------------------- */
+            .target-position-modal {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            .target-position-modal .target-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                flex-grow: 1;
+                min-width: 200px;
+            }
+
+            .target-position-modal .target-area {
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                border-radius: 4px;
+            }
+
+            .target-position-modal .position-indicator {
+                padding: 4px;
+                border-radius: 4px;
+                background-color: var(--background-secondary);
+            }
+
+            .target-position-modal .crosshair-line {
+                position: absolute;
+                background-color: var(--text-accent);
+                pointer-events: none;
+            }
+
+            .target-position-modal .vertical {
+                width: 1px;
+                height: 100%;
+            }
+
+            .target-position-modal .horizontal {
+                width: 100%;
+                height: 1px;
+            }
+
+            .target-position-modal .control-panel {
+                background-color: var(--background-secondary);
+                padding: 15px;
+                border-radius: 8px;
+            }
+
+            .target-position-modal .display-mode-select {
+                width: 100%;
+                min-width: max-content;
+                padding: 6px;
+                border-radius: 4px;
+                border: 1px solid var(--background-modifier-border);
+                background-color: var(--background-primary);
+                color: var(--text-normal);
+            }
+
+            .target-position-modal .zoom-container {
+                position: relative;
+            }
+
+            .target-position-modal .zoom-slider {
+                width: 15px;
+                background-color: var(--background-primary);
+                border-radius: 5px;
+                cursor: pointer;
+                margin: 10px auto;
+                appearance: none;
+            }
+
+            .target-position-modal .zoom-slider::-webkit-slider-runnable-track {
+                width: 100%;
+                height: 200px;
+                background: var(--background-modifier-border);
+                border-radius: 5px;
+                border: none;
+            }
+
+            .target-position-modal .zoom-slider::-moz-range-track {
+                width: 100%;
+                height: 200px;
+                background: var(--background-modifier-border);
+                border-radius: 5px;
+                border: none;
+            }
+
+            .target-position-modal .zoom-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--text-accent);
+                cursor: pointer;
+                border: none;
+                margin-top: 90px;
+                position: relative;
+                left: -2px;
+            }
+
+            .target-position-modal .zoom-slider::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--text-accent);
+                cursor: pointer;
+                border: none;
+            }
+
+            .target-position-modal .zoom-value {
+                color: var(--text-muted);
+                text-align: center;
+            }
+
+            .target-position-modal .height-slider,
+            .target-position-modal .content-start-position-slider {
+                width: 15px;
+                background-color: var(--background-primary);
+                border-radius: 5px;
+                cursor: pointer;
+                margin: 10px auto;
+                appearance: none;
+            }
+
+            .target-position-modal .height-slider::-webkit-slider-runnable-track,
+            .target-position-modal .content-start-position-slider::-webkit-slider-runnable-track {
+                width: 100%;
+                height: 200px;
+                background: var(--background-modifier-border);
+                border-radius: 5px;
+                border: none;
+            }
+
+            .target-position-modal .height-slider::-moz-range-track,
+            .target-position-modal .content-start-position-slider::-moz-range-track {
+                width: 100%;
+                height: 200px;
+                background: var(--background-modifier-border);
+                border-radius: 5px;
+                border: none;
+            }
+
+            .target-position-modal .max-width-slider::-webkit-slider-runnable-track,
+            .target-position-modal .height-slider::-webkit-slider-runnable-track,
+            .target-position-modal .content-start-position-slider::-webkit-slider-runnable-track {
+                width: 100%;
+                height: 200px;
+                background: var(--background-modifier-border);
+                border-radius: 5px;
+                border: none;
+            }
+
+            .target-position-modal .max-width-slider::-moz-range-track,
+            .target-position-modal .height-slider::-moz-range-track,
+            .target-position-modal .content-start-position-slider::-moz-range-track {
+                width: 100%;
+                height: 200px;
+                background: var(--background-modifier-border);
+                border-radius: 5px;
+                border: none;
+            }
+
+            .target-position-modal .max-width-slider::-webkit-slider-thumb,
+            .target-position-modal .height-slider::-webkit-slider-thumb,
+            .target-position-modal .content-start-position-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--text-accent);
+                cursor: pointer;
+                border: none;
+                margin-top: 90px;
+                position: relative;
+                left: -2px;
+            }
+
+            .target-position-modal .max-width-slider:disabled {
+                opacity: 0;
+                cursor: not-allowed;
+            }
+
+            .target-position-modal .max-width-slider::-moz-range-thumb,
+            .target-position-modal .height-slider::-moz-range-thumb,
+            .target-position-modal .content-start-position-slider::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--text-accent);
+                cursor: pointer;
+                border: none;
+            }
+
+            .target-position-modal .height-value,
+            .target-position-modal .content-start-position-value {
+                color: var(--text-muted);
+                text-align: center;
+            }
+
+            .target-position-modal .max-width-container,
+            .target-position-modal .height-container,
+            .target-position-modal .content-start-position-container {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                align-items: center;
+                background-color: var(--background-secondary);
+                padding: 15px;
+                border-radius: 4px;
+            }
+
+            .target-position-modal .height-label,
+            .target-position-modal .content-start-position-label {
+                color: var(--text-muted);
+                font-size: 0.9em;
+            }
+
+            .target-position-modal .height-value,
+            .target-position-modal .content-start-position-value {
+                font-family: var(--font-monospace);
+                font-size: 0.9em;
+                color: var(--text-muted);
+            }
+
+            .target-position-modal .reset-button {
+                padding: 8px;
+                width: 100%;
+                font-size: 14px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+
+            .target-position-modal .reset-button:hover {
+                background-color: var(--interactive-accent-hover);
+            }
+
             .target-position-modal .target-area {
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             }

@@ -3,6 +3,9 @@ import { DEFAULT_SETTINGS } from '../settings';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 
 export function createPixelBannerPlusSettings(containerEl, plugin) {
+    // Ensure plugin runtime state is synced with settings
+    plugin.pixelBannerPlusEnabled = plugin.settings.pixelBannerPlusEnabled !== false;
+    
     // section callout
     const calloutElPixelBannerPlus = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
     calloutElPixelBannerPlus.createEl('h4', { 
@@ -15,9 +18,61 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
 
     // Create a group for the Pixel Banner Plus Settings
     const pixelBannerPlusSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
+    
+    // Create a container for all settings that depend on Plus being enabled
+    const plusDependentSettings = containerEl.createDiv({ cls: 'pixel-banner-plus-dependent-settings' });
 
-    // Pixel Banner Plus Email Address
+    // Helper function to update visibility of dependent settings
+    function updatePlusDependentSettingsVisibility(isEnabled) {
+        if (isEnabled) {
+            plusDependentSettings.style.display = 'block';
+        } else {
+            plusDependentSettings.style.display = 'none';
+        }
+    }
+
+    // Pixel Banner Plus Enabled Toggle
     new Setting(pixelBannerPlusSettingsGroup)
+        .setName('Pixel Banner Plus Enabled')
+        .setDesc('Enable or disable Pixel Banner Plus features')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.pixelBannerPlusEnabled !== false) // Use saved setting with proper default
+            .onChange(async (value) => {
+                plugin.pixelBannerPlusEnabled = value;
+                plugin.settings.pixelBannerPlusEnabled = value;
+                await plugin.saveSettings();
+                updatePlusDependentSettingsVisibility(value);
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.pixelBannerPlusEnabled = DEFAULT_SETTINGS.pixelBannerPlusEnabled;
+                plugin.pixelBannerPlusEnabled = plugin.settings.pixelBannerPlusEnabled;
+                await plugin.saveSettings();
+                
+                const toggleComponent = button.extraSettingsEl.parentElement.querySelector('.checkbox-container input');
+                if (toggleComponent) {
+                    toggleComponent.checked = plugin.settings.pixelBannerPlusEnabled;
+                    toggleComponent.parentElement.classList.toggle('is-enabled', plugin.settings.pixelBannerPlusEnabled);
+                    toggleComponent.dispatchEvent(new Event('change'));
+                }
+                updatePlusDependentSettingsVisibility(plugin.settings.pixelBannerPlusEnabled);
+            }))
+        .then(setting => {
+            // Set the HTML content for the name element
+            const nameEl = setting.nameEl;
+            if (nameEl) {
+                nameEl.innerHTML = '<span class="pixel-banner-twinkle-animation">✨</span> Pixel Banner Plus Enabled';
+            }
+        });
+
+    // Initialize visibility based on current state
+    updatePlusDependentSettingsVisibility(plugin.settings.pixelBannerPlusEnabled !== false);
+
+    const accountSettingsGroup = plusDependentSettings.createDiv({ cls: 'setting-group margin-top-0' });
+    // Pixel Banner Plus Email Address
+    new Setting(accountSettingsGroup)
         .setName('Pixel Banner Plus Email Address')
         .setDesc('Your email address for Pixel Banner Plus authentication')
         .addText(text => text
@@ -28,13 +83,14 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                 await plugin.saveSettings();
                 if (!value) {
                     plugin.pixelBannerPlusEnabled = false;
+                    plugin.settings.pixelBannerPlusEnabled = false;
                 }
             })
             .inputEl.style = 'width: 100%; max-width: 275px; padding: 5px 10px;'
         );
 
     // Pixel Banner Plus API Key
-    new Setting(pixelBannerPlusSettingsGroup)
+    new Setting(accountSettingsGroup)
         .setName('Pixel Banner Plus API Key')
         .setDesc('Your API key for Pixel Banner Plus authentication')
         .addText(text => text
@@ -45,13 +101,14 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                 await plugin.saveSettings();
                 if (!value) {
                     plugin.pixelBannerPlusEnabled = false;
+                    plugin.settings.pixelBannerPlusEnabled = false;
                 }
             })
             .inputEl.style = 'width: 100%; max-width: 275px; padding: 5px 10px;'
         );
 
     // Test API Key button
-    new Setting(pixelBannerPlusSettingsGroup)
+    new Setting(accountSettingsGroup)
         .setName('Establish Connection')
         .setDesc('Establish a connection to your Pixel Banner Plus account')
         .addButton(button => {
@@ -139,7 +196,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
         });
 
     // Add the enableDailyGame setting
-    new Setting(pixelBannerPlusSettingsGroup)
+    new Setting(accountSettingsGroup)
         .setName('Show Daily Game')
         .setDesc('Enable the daily game feature in the banner selection modal for a chance to win the daily jackpot\'s Tokens')
         .addToggle(toggle => toggle
@@ -171,10 +228,10 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
         });
 
     // Create the initial Signup section
-    updateSignupSection(pixelBannerPlusSettingsGroup, plugin);
+    updateSignupSection(plusDependentSettings, plugin);
 
     // Account Status Section
-    const accountStatusGroup = containerEl.createDiv({ cls: 'setting-group' });
+    const accountStatusGroup = plusDependentSettings.createDiv({ cls: 'setting-group' });
     accountStatusGroup.createEl('h3', { text: 'Account Status' });
     
     // Create the initial Account Status section
@@ -219,7 +276,15 @@ function updateSignupSection(containerEl, plugin) {
 function updateAccountStatusSection(containerEl, plugin) {
     // Clear existing content
     containerEl.empty();
-    containerEl.createEl('h3', { text: 'Account Status' });
+    containerEl.createEl('h3', {
+        text: 'Account Status',
+        attr: {
+            style: `
+                margin-top: 0;
+                margin-bottom: 0;
+            `
+        }
+    });
     
     // Connection Status
     new Setting(containerEl)
