@@ -664,10 +664,33 @@
 /* ----------------------------------- */
 /* -- various plugin conflict fixes -- */
 /* ----------------------------------- */
-/* better search views ⇢ hide banner images in backlink-pane */
+/* hide banner images and related icons in search-result-container */
+.search-result-container .select-image-icon,
+.search-result-container .pin-icon,
+.search-result-container .refresh-icon,
+.search-result-container .view-image-icon,
+.search-result-container .banner-icon-overlay,
+.search-result-container .pixel-banner-image {
+    display: none !important;
+}
+/* better search views ⇢ hide banner images and related icons in backlink-pane / outgoing-link-pane */
+.backlink-pane .select-image-icon,
+.backlink-pane .pin-icon,
+.backlink-pane .refresh-icon,
+.backlink-pane .view-image-icon,
+.backlink-pane .banner-icon-overlay,
 .backlink-pane .pixel-banner-image {
     display: none !important;
 }
+.outgoing-link-pane .select-image-icon,
+.outgoing-link-pane .pin-icon,
+.outgoing-link-pane .refresh-icon,
+.outgoing-link-pane .view-image-icon,
+.outgoing-link-pane .banner-icon-overlay,
+.outgoing-link-pane .pixel-banner-image {
+    display: none !important;
+}
+
 
 /* ========================= */
 /* == misc helper classes == */

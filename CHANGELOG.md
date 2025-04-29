@@ -3,6 +3,11 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.4.5 - 2025-04-30
+#### 📦 Updated
+- Additional improvements to compatability with `Better Search Views` plugin
+
+### v3.4.4 - 2025-04-28
 #### ✨ Added
 - Add settings toggle to allow turning OFF all `Pixel Banner Plus` features, API calls and related content for those that don't want it
 
