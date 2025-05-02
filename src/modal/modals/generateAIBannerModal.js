@@ -226,53 +226,9 @@ export class GenerateAIBannerModal extends Modal {
                         const bannerField = this.plugin.settings.customBannerField[0];
                         frontmatter[bannerField] = `[[${savedPath}]]`;
                     });
-                    
-                    // Check if we should open the banner icon modal after selecting a banner
-                    if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                        // Use the imported EmojiSelectionModal
-                        new EmojiSelectionModal(
-                            this.app, 
-                            this.plugin,
-                            async (emoji) => {
-                                // Get the active file again in case it changed
-                                const activeFile = this.plugin.app.workspace.getActiveFile();
-                                if (activeFile) {
-                                    await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                        const iconField = this.plugin.settings.customBannerIconField[0];
-                                        if (emoji) {
-                                            frontmatter[iconField] = emoji;
-                                        } else {
-                                            // If emoji is empty, remove the field from frontmatter
-                                            delete frontmatter[iconField];
-                                        }
-                                    });
-                                    
-                                    // Ensure the banner is updated to reflect the changes
-                                    const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-                                    if (view) {
-                                        // Clean up any existing banner icon overlays before updating
-                                        const contentEl = view.contentEl;
-                                        if (contentEl) {
-                                            const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
-                                            existingOverlays.forEach(overlay => {
-                                                this.plugin.returnIconOverlay(overlay);
-                                            });
-                                        }
-                                        
-                                        await this.plugin.updateBanner(view, true);
-                                    }
-                                    
-                                    // Check if we should open the targeting modal after setting the icon
-                                    if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                        new TargetPositionModal(this.app, this.plugin).open();
-                                    }
-                                }
-                            },
-                            true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                        ).open();
-                    } 
-                    // If not opening the banner icon modal, check if we should open the targeting modal
-                    else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+
+                    // Check if we should open the targeting modal
+                    if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                         new TargetPositionModal(this.app, this.plugin).open();
                     }
                 };
@@ -1436,53 +1392,9 @@ export class GenerateAIBannerModal extends Modal {
                 const bannerField = this.plugin.settings.customBannerField[0];
                 frontmatter[bannerField] = `[[${savedPath}]]`;
             });
-            
-            // Check if we should open the banner icon modal after selecting a banner
-            if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                // Use the imported EmojiSelectionModal
-                new EmojiSelectionModal(
-                    this.app, 
-                    this.plugin,
-                    async (emoji) => {
-                        // Get the active file again in case it changed
-                        const activeFile = this.plugin.app.workspace.getActiveFile();
-                        if (activeFile) {
-                            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                const iconField = this.plugin.settings.customBannerIconField[0];
-                                if (emoji) {
-                                    frontmatter[iconField] = emoji;
-                                } else {
-                                    // If emoji is empty, remove the field from frontmatter
-                                    delete frontmatter[iconField];
-                                }
-                            });
-                            
-                            // Ensure the banner is updated to reflect the changes
-                            const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-                            if (view) {
-                                // Clean up any existing banner icon overlays before updating
-                                const contentEl = view.contentEl;
-                                if (contentEl) {
-                                    const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
-                                    existingOverlays.forEach(overlay => {
-                                        this.plugin.returnIconOverlay(overlay);
-                                    });
-                                }
-                                
-                                await this.plugin.updateBanner(view, true);
-                            }
-                            
-                            // Check if we should open the targeting modal after setting the icon
-                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                new TargetPositionModal(this.app, this.plugin).open();
-                            }
-                        }
-                    },
-                    true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                ).open();
-            } 
-            // If not opening the banner icon modal, check if we should open the targeting modal
-            else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+
+            // Check if we should open the targeting modal
+            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                 new TargetPositionModal(this.app, this.plugin).open();
             }
         });

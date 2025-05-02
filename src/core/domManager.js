@@ -82,6 +82,7 @@ function updateFieldVisibility(view) {
         ...this.settings.customTitleColorField,
         ...this.settings.customBannerShuffleField,
         ...this.settings.customBannerIconField,
+        ...this.settings.customBannerIconImageField,
         ...this.settings.customBannerIconSizeField,
         ...this.settings.customBannerIconXPositionField,
         ...this.settings.customBannerIconOpacityField,

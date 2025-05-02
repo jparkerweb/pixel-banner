@@ -34,6 +34,7 @@ const DEFAULT_SETTINGS = {
     customTitleColorField: ['banner-inline-title-color'],
     customBannerShuffleField: ['banner-shuffle'],
     customBannerIconField: ['icon'],
+    customBannerIconImageField: ['icon-image'],
     customBannerIconSizeField: ['icon-size'],
     customBannerIconXPositionField: ['icon-x'],
     customBannerIconOpacityField: ['icon-opacity'],
@@ -70,6 +71,7 @@ const DEFAULT_SETTINGS = {
     selectImageIconOpacity: 40,
     selectImageIconFlag: 'red',
     defaultSelectImagePath: '',
+    defaultSelectIconPath: '',
     useShortPath: true,
     bannerGap: 12,
     bannerIconSize: 70,
@@ -82,7 +84,6 @@ const DEFAULT_SETTINGS = {
     bannerIconPaddingY: '0',
     bannerIconBorderRadius: '17',
     bannerIconVeritalOffset: '0',
-    openBannerIconModalAfterSelectingBanner: true,
     openTargetingModalAfterSelectingBannerOrIcon: true,
     enableDailyGame: false,
 };

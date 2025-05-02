@@ -556,10 +556,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         // Handle comma-delimited banner values in frontmatter
         if (typeof bannerImage === 'string' && !bannerImage.startsWith('[[')) {
             const bannerValues = bannerImage.includes(',') 
-                ? bannerImage.split(',')
-                    .map(v => v.trim())
-                    .filter(v => v.length > 0)
-                    .filter(Boolean)
+                ? bannerImage.split(',').map(v => v.trim()).filter(v => v.length > 0).filter(Boolean)
                 : [bannerImage];
             
             // Only select random if we have valid values
@@ -701,6 +698,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     }
 
     const bannerIcon = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconField);
+    const bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
 
     // Only clean up overlays that belong to the current container context
     if (isEmbedded) {
@@ -721,8 +719,9 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         });
     }
 
-    // Clean up existing persistent banner icon overlays if the icon field is removed or empty
-    if (!bannerIcon || (typeof bannerIcon === 'string' && !bannerIcon.trim())) {
+    // Clean up existing persistent banner icon overlays if both icon and icon-image fields are removed or empty
+    if ((!bannerIcon || (typeof bannerIcon === 'string' && !bannerIcon.trim())) && 
+        (!bannerIconImage || (typeof bannerIconImage === 'string' && !bannerIconImage.trim()))) {
         // For embedded notes
         if (isEmbedded) {
             const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
@@ -756,9 +755,10 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
     }
 
-    // Only proceed if we have a valid banner icon
-    if (bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) {
-        const cleanIcon = bannerIcon.trim();
+    // Proceed if we have a valid banner icon or banner icon image
+    if ((bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) || 
+        (bannerIconImage && typeof bannerIconImage === 'string' && bannerIconImage.trim())) {
+        const cleanIcon = bannerIcon ? bannerIcon.trim() : '';
         
         // Check cache first
         const cacheKey = plugin.generateCacheKey(view.file.path, plugin.app.workspace.activeLeaf.id);
@@ -815,8 +815,63 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             
             bannerIconOverlay.dataset.viewType = viewType;
             bannerIconOverlay.dataset.persistent = 'true';
-            bannerIconOverlay.textContent = cleanIcon;
+            bannerIconOverlay.textContent = '';
             bannerIconOverlay._isPersistentBannerIcon = true;
+            
+            // Clear any existing content
+            bannerIconOverlay.innerHTML = '';
+            
+            // Check for banner icon image
+            if (bannerIconImage) {
+                // Resolve the image path using existing utility functions
+                const inputType = plugin.getInputType(bannerIconImage);
+                let imagePath = null;
+                
+                // Use the same resolution logic as for banner images
+                switch (inputType) {
+                    case 'obsidianLink':
+                        const file = plugin.getPathFromObsidianLink(bannerIconImage);
+                        if (file) {
+                            // Get the image synchronously from the cached URLs if possible
+                            imagePath = plugin.loadedImages.get(file.path);
+                            if (!imagePath) {
+                                // If not in cache, we'll need to skip for now 
+                                // (it will be shown on the next render after cache is populated)
+                                plugin.getVaultImageUrl(file.path).then(url => {
+                                    if (url) plugin.loadedImages.set(file.path, url);
+                                });
+                            }
+                        }
+                        break;
+                    case 'vaultPath':
+                        // Get the image synchronously from the cached URLs if possible
+                        imagePath = plugin.loadedImages.get(bannerIconImage);
+                        if (!imagePath) {
+                            // If not in cache, we'll need to skip for now
+                            plugin.getVaultImageUrl(bannerIconImage).then(url => {
+                                if (url) plugin.loadedImages.set(bannerIconImage, url);
+                            });
+                        }
+                        break;
+                    case 'url':
+                        imagePath = bannerIconImage;
+                        break;
+                }
+                
+                // If we successfully resolved an image path, create and add the image element
+                if (imagePath) {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = imagePath;
+                    imgElement.className = 'banner-icon-image';
+                    bannerIconOverlay.appendChild(imgElement);
+                }
+            }
+            
+            // Add the text content as a text node
+            if (cleanIcon) {
+                const textNode = document.createTextNode(cleanIcon);
+                bannerIconOverlay.appendChild(textNode);
+            }
             
             // Apply styles
             bannerIconOverlay.style.display = 'block'; // Ensure visibility
@@ -951,7 +1006,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         bannerIconVeritalOffset = 0;
     }
 
-    // Get hide embedded note banners
+    // Get hide embedded note banners setting
     const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 
         folderSpecific?.hideEmbeddedNoteBanners || 
         plugin.settings.hideEmbeddedNoteBanners || false;

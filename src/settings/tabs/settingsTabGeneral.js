@@ -192,26 +192,42 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
-    // Add the openBannerIconModalAfterSelectingBanner setting
-    const openBannerIconModalSetting = new Setting(SelectImageSettingsGroup)
-        .setName('Open Banner Icon Modal after selecting a Banner')
-        .setDesc('Automatically open the Banner Icon selection modal after selecting a banner image')
-        .addToggle(toggle => toggle
-            .setValue(plugin.settings.openBannerIconModalAfterSelectingBanner)
-            .onChange(async (value) => {
-                plugin.settings.openBannerIconModalAfterSelectingBanner = value;
-                await plugin.saveSettings();
+    // Add the defaultSelectIconPath setting
+    const defaultSelectIconPathSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Default Select Icon Path')
+        .setDesc('Set a default folder path to filter images when selecting a banner icon image')
+        .addText(text => {
+            text.setPlaceholder('Example: Images/Icons')
+                .setValue(plugin.settings.defaultSelectIconPath)
+                .onChange(async (value) => {
+                    plugin.settings.defaultSelectIconPath = value;
+                    await plugin.saveSettings();
+                });
+            text.inputEl.style.width = '200px';
+            return text;
+        })
+        .addButton(button => button
+            .setButtonText('Browse')
+            .onClick(() => {
+                new FolderSuggestModal(plugin.app, (chosenPath) => {
+                    plugin.settings.defaultSelectIconPath = chosenPath;
+                    const textInput = defaultSelectIconPathSetting.components[0];
+                    if (textInput) {
+                        textInput.setValue(chosenPath);
+                    }
+                    plugin.saveSettings();
+                }).open();
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.openBannerIconModalAfterSelectingBanner = DEFAULT_SETTINGS.openBannerIconModalAfterSelectingBanner;
+                plugin.settings.defaultSelectIconPath = DEFAULT_SETTINGS.defaultSelectIconPath;
                 await plugin.saveSettings();
                 
-                const toggleComponent = openBannerIconModalSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.openBannerIconModalAfterSelectingBanner);
+                const textComponent = defaultSelectIconPathSetting.components[0];
+                if (textComponent) {
+                    textComponent.setValue(DEFAULT_SETTINGS.defaultSelectIconPath);
                 }
             }));
 

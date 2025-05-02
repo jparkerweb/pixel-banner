@@ -1,6 +1,6 @@
 import { Modal, MarkdownView } from 'obsidian';
 import getCurrentTheme from '../../utils/getCurrentTheme';
-import { EmojiSelectionModal } from '../modals';
+import { EmojiSelectionModal, IconImageSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
 import { flags } from '../../resources/flags.js';
 import { getFrontmatterValue } from '../../utils/frontmatterUtils.js';
@@ -771,8 +771,8 @@ export class TargetPositionModal extends Modal {
         });
 
         // Create crosshair lines
-        const verticalLine = targetArea.createDiv({ cls: 'vertical-line' });
-        const horizontalLine = targetArea.createDiv({ cls: 'horizontal-line' });
+        const verticalLine = targetArea.createDiv({ cls: 'crosshair-line vertical' });
+        const horizontalLine = targetArea.createDiv({ cls: 'crosshair-line horizontal' });
 
         // Position indicator
         const positionIndicator = targetContainer.createEl('div', { 
@@ -1013,6 +1013,7 @@ export class TargetPositionModal extends Modal {
         // -----------------------
         // -- banner icon stuff --
         // -----------------------
+
         // Function to open emoji picker
         const openEmojiPicker = () => {
             this.close();
@@ -1036,78 +1037,128 @@ export class TargetPositionModal extends Modal {
             ).open();
         };
 
-        // banner icon controls container
-        const bannerIconControlsContainer = contentEl.createDiv({
-            cls: 'main-container--banner-icon',
-            attr: {
-                style: `
-                    margin-top: 20px;
-                    display: none;
-                `
-            }
-        });
+        // Function to open image picker
+        const openImagePicker = () => {
+            const defaultIconImageFolder = this.plugin.settings.defaultSelectIconPath || ''
+            this.close();
+            new IconImageSelectionModal(
+                this.app, 
+                this.plugin,
+                async (file) => {
+                    if (!file) return;
+                    
+                    // Get active file
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (!activeFile) return;
+                    
+                    // Check if this is a web URL or local file
+                    if (file.isWebUrl) {
+                        // For web URLs, use the URL directly
+                        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                            // Get the correct field name
+                            const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                                ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                                : this.plugin.settings.customBannerIconImageField;
+                            
+                            // Set the frontmatter value as direct URL
+                            fm[iconImageField] = file.path;
+                        });
+                        
+                        // Reopen this modal
+                        new TargetPositionModal(this.app, this.plugin).open();
+                        return;
+                    }
+                    
+                    // For local files, preload the image into the cache
+                    if (file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/)) {
+                        try {
+                            // Get the vault URL for the image and load it into the cache
+                            const imageUrl = await this.plugin.getVaultImageUrl(file.path);
+                            if (imageUrl) {
+                                this.plugin.loadedImages.set(file.path, imageUrl);
+                                
+                                // Force a preload of the image to ensure it's in browser cache
+                                const preloadImg = new Image();
+                                preloadImg.src = imageUrl;
+                            }
+                        } catch (error) {
+                            console.error("Error preloading icon image:", error);
+                        }
+                    }
+                    
+                    // Update frontmatter with the image path
+                    this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                        // Get the correct field name
+                        const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                            ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconImageField;
+                        
+                        // Set the frontmatter value with proper Obsidian image link syntax
+                        fm[iconImageField] = `![[${file.path}]]`;
+                    });
+                    
+                    // Reopen this modal
+                    new TargetPositionModal(this.app, this.plugin).open();
+                },
+                defaultIconImageFolder
+            ).open();
+        };
 
         // Check if note has banner icon
         const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField)
             ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconField;
         
-        // check for banner icon in frontmatter
-        let hasBannerIcon = frontmatter && frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== '';
+        const bannerIconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField)
+            ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageField;
+        
+        // check for banner icon or banner icon image in frontmatter
+        let hasBannerIcon = frontmatter && (
+            (frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== '') ||
+            (frontmatter[bannerIconImageField] && frontmatter[bannerIconImageField].trim() !== '')
+        );
+
         
         if (!hasBannerIcon) {
             // no banner icon found, try one more time after a short delay
             await new Promise(resolve => {
                 setTimeout(async () => {
                     const refreshedFrontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-                    if (refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
+                    if (refreshedFrontmatter && (
+                        (refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') ||
+                        (refreshedFrontmatter[bannerIconImageField] && refreshedFrontmatter[bannerIconImageField].trim() !== '')
+                    )) {
                         hasBannerIcon = true;
                     }
                     resolve();
                 }, 400);
             });
         }
-        
-        if (hasBannerIcon) {
-            bannerIconControlsContainer.style.display = 'block';
-        } else {
-            // banner icon controls container
-            const addBannerIconContainer = contentEl.createDiv({
-                cls: 'main-container--banner-icon',
-                attr: {
-                    style: `
-                        display: flex;
-                        flex-direction: row;
-                        margin-top: 20px;
-                    `
-                }
-            });
 
-            // add button to addBannerIconContainer
-            const addBannerIconButton = addBannerIconContainer.createEl('button', {
-                text: '⭐ Add Banner Icon',
-                cls: 'banner-icon-header-button cursor-pointer',
-                attr: {
-                    style: `
-                        margin-top: 15px;
-                        margin-left: auto;
-                        text-transform: uppercase;
-                        font-size: .8em;
-                    `
-                }
-            });
-            addBannerIconButton.addEventListener('click', openEmojiPicker);
-        }
+        // banner icon controls container
+        const addBannerIconContainer = contentEl.createDiv({
+            cls: 'main-container--banner-icon',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    margin-top: 30px;
+                    margin-bottom: 10px;
+                    justify-content: space-between;
+                    align-items: center;
+                `
+            }
+        });
 
         // Banner Icon header
-        const bannerIconHeader = bannerIconControlsContainer.createEl('div', {
-            text: '⭐ Banner Icon Settings',
+        const bannerIconHeader = addBannerIconContainer.createEl('div', {
+            text: hasBannerIcon ? '⭐ Banner Icon Settings' : '',
             cls: 'banner-icon-header',
             attr: {
                 style: `
                     display: flex;
                     flex-direction: row;
-                    gap: 10px;
                     align-items: center;
                     justify-content: space-between;
                     color: var(--text-accent);
@@ -1115,24 +1166,69 @@ export class TargetPositionModal extends Modal {
                     font-weight: 600;
                     letter-spacing: 1px;
                     text-transform: uppercase;
-                    margin-bottom: 10px;
                 `
             }
         });
 
+        const bannerIconHeaderButtons = addBannerIconContainer.createDiv({
+            cls: 'banner-icon-header-buttons',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    justify-content: flex-end;
+                `
+            }
+        });
+
+        // Banner Icon Image check
+        const hasBannerIconImage = frontmatter && 
+            frontmatter[bannerIconImageField] && 
+            frontmatter[bannerIconImageField].trim() !== '';
+
         // add button to bannerIconHeader
-        const bannerIconHeaderButton = bannerIconHeader.createEl('button', {
-            text: '✏️ Edit Icon',
+        const bannerIconHeaderButtonIcon = bannerIconHeaderButtons.createEl('button', {
+            text: hasBannerIconImage ? '✏️ Edit Icon Image' : '⭐ Add Icon Image',
             cls: 'banner-icon-header-button cursor-pointer',
             attr: {
                 style: `
-                    margin-top: 15px;
                     text-transform: uppercase;
                     font-size: .8em;
                 `
             }
         });
-        bannerIconHeaderButton.addEventListener('click', openEmojiPicker);
+        bannerIconHeaderButtonIcon.addEventListener('click', openImagePicker);
+
+        // Banner Icon Text / Emoji check
+        const hasBannerIconText = frontmatter && 
+            frontmatter[bannerIconField] && 
+            frontmatter[bannerIconField].trim() !== '';
+            
+        // add button to bannerIconHeader
+        const bannerIconHeaderButtonText = bannerIconHeaderButtons.createEl('button', {
+            text: hasBannerIconText ? '📝 Edit Icon Text & Emoji' : '📰 Add Icon Text & Emoji',
+            cls: 'banner-icon-header-button cursor-pointer',
+            attr: {
+                style: `
+                    text-transform: uppercase;
+                    font-size: .8em;
+                `
+            }
+        });
+        bannerIconHeaderButtonText.addEventListener('click', openEmojiPicker);
+
+        // banner icon controls container
+        const bannerIconControlsContainer = contentEl.createDiv({
+            cls: 'main-container--banner-icon',
+            attr: {
+                style: `
+                    margin-top: 20px;
+                    display: ${hasBannerIcon ? 'block' : 'none'};
+                `
+            }
+        });
 
         // Banner Icon X Position control container
         const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({
@@ -2383,7 +2479,6 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customFadeField[0].split(',')[0].trim()
                     : this.plugin.settings.customFadeField;
 
-                // New banner icon fields
                 const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
                     ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconSizeField;
@@ -2455,6 +2550,11 @@ export class TargetPositionModal extends Modal {
                     const bannerField = Array.isArray(this.plugin.settings.customBannerField) 
                         ? this.plugin.settings.customBannerField[0].split(',')[0].trim()
                         : this.plugin.settings.customBannerField;
+
+                    // Get the banner icon image field
+                    const bannerIconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField)
+                        ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconImageField;
                     
                     // Get the banner icon field
                     const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField)
@@ -2463,6 +2563,7 @@ export class TargetPositionModal extends Modal {
                     
                     // Remove the banner image and icon
                     delete frontmatter[bannerField];
+                    delete frontmatter[bannerIconImageField];
                     delete frontmatter[bannerIconField];
                 }
             });
@@ -2930,7 +3031,7 @@ export class TargetPositionModal extends Modal {
             .target-position-modal .target-area {
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             }
-            .target-position-modal .vertical-line {
+            .target-position-modal .vertical {
                 position: absolute;
                 background-color: var(--text-accent);
                 pointer-events: none;
@@ -2940,7 +3041,7 @@ export class TargetPositionModal extends Modal {
                 pointer-events: auto;
                 cursor: move;
             }
-            .target-position-modal .horizontal-line {
+            .target-position-modal .horizontal {
                 position: absolute;
                 background-color: var(--text-accent);
                 pointer-events: none;

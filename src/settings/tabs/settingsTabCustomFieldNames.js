@@ -150,6 +150,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-icon, icon, header-icon'
         },
         {
+            setting: 'customBannerIconImageField',
+            name: 'Banner Icon Image Field Names',
+            desc: 'Set custom field names for the banner icon image in frontmatter',
+            values: '[[image.png]], "images/icon.jpg"',
+            placeholder: 'banner-icon-image, icon-image'
+        },
+        {
             setting: 'customBannerIconSizeField',
             name: 'Banner Icon Size Field Names',
             desc: 'Set custom field names for the banner icon size in frontmatter',

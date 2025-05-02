@@ -912,32 +912,8 @@ export class PixelBannerStoreModal extends Modal {
                                 await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                                 this.close();
                                 
-                                // Check if we should open the banner icon modal after selecting a banner
-                                if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                                    new EmojiSelectionModal(
-                                        this.app, 
-                                        this.plugin,
-                                        async (emoji) => {
-                                            const activeFile = this.app.workspace.getActiveFile();
-                                            if (activeFile) {
-                                                await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                                    const iconField = this.plugin.settings.customBannerIconField[0];
-                                                    frontmatter[iconField] = emoji;
-                                                });
-                                                
-                                                // Check if we should open the targeting modal after setting the icon
-                                                if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                                    // Add a small delay to ensure frontmatter is updated
-                                                    await new Promise(resolve => setTimeout(resolve, 200));
-                                                    new TargetPositionModal(this.app, this.plugin).open();
-                                                }
-                                            }
-                                        },
-                                        true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                                    ).open();
-                                } 
-                                // If not opening the banner icon modal, check if we should open the targeting modal
-                                else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                // Check if we should open the targeting modal
+                                if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                     new TargetPositionModal(this.app, this.plugin).open();
                                 }
                             } catch (error) {
@@ -966,33 +942,8 @@ export class PixelBannerStoreModal extends Modal {
                             await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                             this.close();
                             
-                            // Check if we should open the banner icon modal after selecting a banner
-                            if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                                // Use the imported EmojiSelectionModal
-                                new EmojiSelectionModal(
-                                    this.app, 
-                                    this.plugin,
-                                    async (emoji) => {
-                                        const activeFile = this.app.workspace.getActiveFile();
-                                        if (activeFile) {
-                                            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                                const iconField = this.plugin.settings.customBannerIconField[0];
-                                                frontmatter[iconField] = emoji;
-                                            });
-                                            
-                                            // Check if we should open the targeting modal after setting the icon
-                                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                                // Add a small delay to ensure frontmatter is updated
-                                                await new Promise(resolve => setTimeout(resolve, 200));
-                                                new TargetPositionModal(this.app, this.plugin).open();
-                                            }
-                                        }
-                                    },
-                                    true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                                ).open();
-                            } 
-                            // If not opening the banner icon modal, check if we should open the targeting modal
-                            else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                            // Check if we should open the targeting modal
+                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                 new TargetPositionModal(this.app, this.plugin).open();
                             }
                             
