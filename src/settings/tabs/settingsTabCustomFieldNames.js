@@ -225,6 +225,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             desc: 'Set custom field names for the banner icon vertical offset in frontmatter',
             values: '-50, 0, 50',
             placeholder: 'banner-icon-y, icon-y'
+        },
+        {
+            setting: 'customBannerIconImageAlignmentField',
+            name: 'Banner Icon Image Alignment Field Names',
+            desc: 'Set custom field names for the banner icon image alignment in frontmatter',
+            values: 'left, right',
+            placeholder: 'banner-icon-image-alignment, icon-image-alignment'
         }
     ];
 

@@ -45,6 +45,7 @@ const DEFAULT_SETTINGS = {
     customBannerIconPaddingYField: ['icon-padding-y'],
     customBannerIconBorderRadiusField: ['icon-border-radius'],
     customBannerIconVeritalOffsetField: ['icon-y'],
+    customBannerIconImageAlignmentField: ['banner-icon-image-alignment'],
     customFlagColorField: ['pixel-banner-flag-color'],
     folderImages: [],
     contentStartPosition: 355,
@@ -84,6 +85,7 @@ const DEFAULT_SETTINGS = {
     bannerIconPaddingY: '0',
     bannerIconBorderRadius: '17',
     bannerIconVeritalOffset: '0',
+    bannerIconImageAlignment: 'left',
     openTargetingModalAfterSelectingBannerOrIcon: true,
     enableDailyGame: false,
 };

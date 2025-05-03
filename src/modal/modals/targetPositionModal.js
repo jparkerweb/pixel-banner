@@ -82,6 +82,18 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customBannerIconXPositionField;
         this.currentBannerIconXPosition = frontmatter?.[bannerIconXPositionField] || this.plugin.settings.bannerIconXPosition;
 
+        // banner icon image alignment field
+        const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField)
+            ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageAlignmentField;
+        
+        // Add more detailed debug info
+        const frontmatterValue = frontmatter?.[bannerIconImageAlignmentField];
+        const defaultValue = this.plugin.settings.bannerIconImageAlignment;
+        
+        // Explicitly check for the "right" value to ensure proper initialization
+        this.currentBannerIconImageAlignment = (frontmatterValue === 'right') ? 'right' : 'left';
+
         // Add repeat field initialization
         const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
             ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
@@ -296,6 +308,24 @@ export class TargetPositionModal extends Modal {
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconVerticalOffsetField] = verticalOffset;
         });
+    }
+
+    updateBannerIconImageAlignment(alignment) {
+        const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField)
+            ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageAlignmentField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[bannerIconImageAlignmentField] = alignment;
+        });
+
+        // Update the banner to ensure the note is re-rendered properly
+        setTimeout(() => {
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+                this.plugin.updateBanner(view, true);
+            }
+        }, 350);
     }
 
     updateTitleColor(color) {
@@ -981,9 +1011,9 @@ export class TargetPositionModal extends Modal {
             type: 'range',
             cls: 'slider',
             attr: {
-                min: -300,
-                max: 100,
-                step: 5,
+                min: '-300',
+                max: '100',
+                step: '5',
                 value: this.currentFade,
                 style: `
                     flex: 1;
@@ -1119,7 +1149,11 @@ export class TargetPositionModal extends Modal {
             (frontmatter[bannerIconImageField] && frontmatter[bannerIconImageField].trim() !== '')
         );
 
-        
+        // Banner Icon Image check
+        const hasBannerIconImage = frontmatter && 
+            frontmatter[bannerIconImageField] && 
+            frontmatter[bannerIconImageField].trim() !== '';
+
         if (!hasBannerIcon) {
             // no banner icon found, try one more time after a short delay
             await new Promise(resolve => {
@@ -1183,11 +1217,6 @@ export class TargetPositionModal extends Modal {
             }
         });
 
-        // Banner Icon Image check
-        const hasBannerIconImage = frontmatter && 
-            frontmatter[bannerIconImageField] && 
-            frontmatter[bannerIconImageField].trim() !== '';
-
         // add button to bannerIconHeader
         const bannerIconHeaderButtonIcon = bannerIconHeaderButtons.createEl('button', {
             text: hasBannerIconImage ? '✏️ Edit Icon Image' : '⭐ Add Icon Image',
@@ -1227,6 +1256,139 @@ export class TargetPositionModal extends Modal {
                     margin-top: 20px;
                     display: ${hasBannerIcon ? 'block' : 'none'};
                 `
+            }
+        });
+
+        // Banner Icon Image Alignment radio control container
+        const bannerIconImageAlignmentContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-image-alignment-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-bottom: 15px;
+                `
+            }
+        });
+
+        // Banner Icon Image Alignment label
+        const bannerIconImageAlignmentLabel = bannerIconImageAlignmentContainer.createEl('div', { 
+            text: 'Icon Image Alignment',
+            cls: 'banner-icon-image-alignment-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                    min-width: 120px;
+                `
+            }
+        });
+
+        // Create radio options container
+        const bannerIconImageAlignmentRadioContainer = bannerIconImageAlignmentContainer.createDiv({
+            cls: 'banner-icon-image-alignment-radio-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 20px;
+                    align-items: center;
+                `
+            }
+        });
+
+        // Create left radio option
+        const leftRadioContainer = bannerIconImageAlignmentRadioContainer.createDiv({
+            cls: 'radio-container',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                `
+            }
+        });
+
+        // Determine which option should be checked
+        const isRightAlignment = this.currentBannerIconImageAlignment === 'right';
+        const isLeftAlignment = !isRightAlignment;
+
+        const leftRadio = leftRadioContainer.createEl('input', {
+            type: 'radio',
+            attr: {
+                id: 'icon-placement-left',
+                name: 'icon-image-placement',
+                value: 'left',
+                style: `cursor: pointer;`
+            }
+        });
+
+        leftRadioContainer.createEl('label', {
+            text: 'Left',
+            attr: {
+                for: 'icon-placement-left',
+                style: `
+                    cursor: pointer;
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Create right radio option
+        const rightRadioContainer = bannerIconImageAlignmentRadioContainer.createDiv({
+            cls: 'radio-container',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                `
+            }
+        });
+
+        const rightRadio = rightRadioContainer.createEl('input', {
+            type: 'radio',
+            attr: {
+                id: 'icon-placement-right',
+                name: 'icon-image-placement',
+                value: 'right',
+                style: `cursor: pointer;`
+            }
+        });
+
+        rightRadioContainer.createEl('label', {
+            text: 'Right',
+            attr: {
+                for: 'icon-placement-right',
+                style: `
+                    cursor: pointer;
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Set the checked property directly
+        setTimeout(() => {
+            leftRadio.checked = isLeftAlignment;
+            rightRadio.checked = isRightAlignment;
+        }, 50);
+
+        // Add event listeners to radio buttons
+        leftRadio.addEventListener('change', () => {
+            if (leftRadio.checked) {
+                this.currentBannerIconImageAlignment = 'left';
+                this.updateBannerIconImageAlignment(this.currentBannerIconImageAlignment);
+            }
+        });
+
+        rightRadio.addEventListener('change', () => {
+            if (rightRadio.checked) {
+                this.currentBannerIconImageAlignment = 'right';
+                this.updateBannerIconImageAlignment(this.currentBannerIconImageAlignment);
             }
         });
 
@@ -2471,6 +2633,10 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconXPositionField;
 
+                const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField)
+                    ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconImageAlignmentField;
+
                 const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
                     ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
                     : this.plugin.settings.customImageRepeatField;
@@ -2524,6 +2690,7 @@ export class TargetPositionModal extends Modal {
                 // Remove banner icon fields
                 delete frontmatter[bannerIconXPositionField];
                 delete frontmatter[bannerIconSizeField];
+                delete frontmatter[bannerIconImageAlignmentField];
                 delete frontmatter[bannerIconColorField];
                 delete frontmatter[bannerIconFontWeightField];
                 delete frontmatter[bannerIconBgColorField];
@@ -2573,6 +2740,14 @@ export class TargetPositionModal extends Modal {
                 const flagRadios = flagRadioContainer.querySelectorAll('input[type="radio"]');
                 flagRadios.forEach(radio => {
                     radio.checked = radio.value === this.plugin.settings.selectImageIconFlag;
+                });
+            }
+
+            // After processing frontmatter, update the banner icon image aligment radio buttons
+            if (bannerIconImageAlignmentRadioContainer) {
+                const bannerIconImageAlignmentRadios = bannerIconImageAlignmentRadioContainer.querySelectorAll('input[type="radio"]');
+                bannerIconImageAlignmentRadios.forEach(radio => {
+                    radio.checked = radio.value === this.plugin.settings.bannerIconImageAlignment;
                 });
             }
 

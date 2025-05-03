@@ -784,6 +784,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 paddingY: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField) || plugin.settings.bannerIconPaddingY,
                 borderRadius: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) || plugin.settings.bannerIconBorderRadius,
                 verticalOffset: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField) || plugin.settings.bannerIconVeritalOffset,
+                imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
                 viewType
             };
 
@@ -821,7 +822,11 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             // Clear any existing content
             bannerIconOverlay.innerHTML = '';
             
-            // Check for banner icon image
+            // Get the image alignment setting
+            const imageAlignment = currentIconState.imageAlignment === 'right' ? 'right' : 'left';
+            
+            // Create image element if we have a banner icon image
+            let imgElement = null;
             if (bannerIconImage) {
                 // Resolve the image path using existing utility functions
                 const inputType = plugin.getInputType(bannerIconImage);
@@ -858,19 +863,29 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                         break;
                 }
                 
-                // If we successfully resolved an image path, create and add the image element
+                // If we successfully resolved an image path, create the image element
                 if (imagePath) {
-                    const imgElement = document.createElement('img');
+                    imgElement = document.createElement('img');
                     imgElement.src = imagePath;
                     imgElement.className = 'banner-icon-image';
-                    bannerIconOverlay.appendChild(imgElement);
                 }
             }
             
-            // Add the text content as a text node
+            // Create text node if we have icon text
+            let textNode = null;
             if (cleanIcon) {
-                const textNode = document.createTextNode(cleanIcon);
-                bannerIconOverlay.appendChild(textNode);
+                textNode = document.createTextNode(cleanIcon);
+            }
+            
+            // Add elements to overlay based on alignment setting
+            if (imageAlignment === 'right') {
+                // Add text first, then image
+                if (textNode) bannerIconOverlay.appendChild(textNode);
+                if (imgElement) bannerIconOverlay.appendChild(imgElement);
+            } else {
+                // Default alignment: image first, then text
+                if (imgElement) bannerIconOverlay.appendChild(imgElement);
+                if (textNode) bannerIconOverlay.appendChild(textNode);
             }
             
             // Apply styles
