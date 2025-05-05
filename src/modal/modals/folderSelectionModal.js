@@ -14,10 +14,20 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         this.modalEl.addClass('pixel-banner-folder-select-modal');
         
         const titleDiv = document.createElement("p");
-        titleDiv.textContent = "💾 Choose a folder to save the Banner Image";
-        titleDiv.style.padding = "0 20px";
+        titleDiv.innerHTML = "💾 Choose a <strong>Folder</strong> to save the selected Banner in your vault";
+        titleDiv.style.margin = "10px 0";
+        titleDiv.style.padding = "20px 20px 0";
         titleDiv.style.color = "var(--text-accent)";
+        titleDiv.style.borderTop = "1px dashed var(--modal-border-color)";
         this.modalEl.appendChild(titleDiv);
+
+        const descriptionDiv = document.createElement("p");
+        descriptionDiv.innerHTML = "If you set a default value in settings it will be pre-filled above.<br>Select any folder in your vault to continue.";
+        descriptionDiv.style.margin = "0 0 20px 0";
+        descriptionDiv.style.padding = "0 20px";
+        descriptionDiv.style.color = "var(--text-muted)";
+        descriptionDiv.style.fontSize = ".9em";
+        this.modalEl.appendChild(descriptionDiv);
 
         // Set custom placeholder text
         this.setPlaceholder("Select or type folder path to save Banner Image");
@@ -31,6 +41,7 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         style.textContent = `
             .prompt.pixel-banner-folder-select-modal {
                 top: unset !important;
+                padding: 20px !important;
             }
             .pixel-banner-folder-select-modal .prompt {
                 position: fixed !important;
@@ -76,7 +87,8 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         // Pre-populate the search with the default folder
         const inputEl = this.inputEl;
         inputEl.value = this.defaultFolder;
-        inputEl.select();
+        inputEl.focus();
+        // inputEl.select();
         // Trigger the search to show matching results
         this.updateSuggestions();
     }

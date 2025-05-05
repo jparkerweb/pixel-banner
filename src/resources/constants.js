@@ -1,7 +1,8 @@
 export const PIXEL_BANNER_PLUS = {
-    // API_URL: 'https://pixel-banner.online/',
-    API_URL: 'http://localhost:3000/',
+    API_URL: 'https://pixel-banner.online/',
+    // API_URL: 'http://localhost:3000/',
     ENDPOINTS: {
+        PING: 'ping',
         VERIFY: 'verify',
         GENERATE: 'generate',
         GENERATE_BANNER_IDEA: 'generate-banner-idea',
@@ -21,8 +22,13 @@ export const PIXEL_BANNER_PLUS = {
         BANNER_VOTES_UPVOTE: 'api/banner-votes/:id/upvote',
         BANNER_VOTES_DOWNVOTE: 'api/banner-votes/:id/downvote',
         INFO: 'api/pixel-banner-info',
-        DAILY_GAME: 'games/daily-embed'
+        DAILY_GAME: 'games/daily-embed',
+        BANNER_ICON_CATEGORIES: 'api/icon-categories',
+        BANNER_ICONS: 'api/banner-icons',
+        BANNER_ICONS_SEARCH: 'api/banner-icons/search',
+        BANNER_ICONS_ID: 'api/banner-icons/:id',
     },
     SHOP_URL: 'https://ko-fi.com/s/7ce609ff2c',
-    DONATE_URL: 'https://ko-fi.com/jparkerweb'
+    DONATE_URL: 'https://ko-fi.com/jparkerweb',
+    BANNER_ICON_KEY: 'pixel-banner-icons'
 };

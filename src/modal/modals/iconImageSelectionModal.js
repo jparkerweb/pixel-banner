@@ -2,6 +2,7 @@ import { Modal, Notice, Setting } from "obsidian";
 import { IconFolderSelectionModal } from './iconFolderSelectionModal.js';
 import { SaveImageModal } from './saveImageModal.js';
 import { SelectPixelBannerModal } from './selectPixelBannerModal.js';
+import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
 
 
 // ------------------------------
@@ -19,6 +20,27 @@ export class IconImageSelectionModal extends Modal {
         this.sortOrder = 'name-asc';
         this.imageFiles = this.app.vault.getFiles()
             .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/));
+        
+        // Collections tab properties
+        this.iconCategories = [];
+        this.selectedIconCategory = null;
+        this.selectedIconCategoryIndex = 0;
+        this.iconsCurrentPage = 1;
+        this.iconsTotalPages = 1;
+        this.iconsSearchTerm = '';
+        this.isIconsSearchMode = false;
+        this.iconsPerPage = 12;
+        
+        // Flag to track if a targeting modal has been opened via the onChoose callback
+        this.targetingModalOpened = false;
+        
+        // Wrap the original onChoose function to track when it's called
+        const originalOnChoose = this.onChoose;
+        this.onChoose = (file) => {
+            // Set flag that we've called the callback which may open a targeting modal
+            this.targetingModalOpened = true;
+            originalOnChoose(file);
+        };
     }
 
     debounce(func, wait) {
@@ -91,6 +113,7 @@ export class IconImageSelectionModal extends Modal {
                 top: unset !important;
                 width: var(--dialog-max-width);
                 max-width: 1100px;
+                min-height: 50vh;
             }
 
             .pixel-banner-image-select-modal .pixel-banner-image-delete {
@@ -374,7 +397,23 @@ export class IconImageSelectionModal extends Modal {
                     padding: 8px 16px;
                     cursor: pointer;
                     border-bottom: 2px solid transparent;
+                    margin-right: 8px;
                     transition: all 0.2s ease;
+                `
+            }
+        });
+
+        // Collections tab - initially hidden
+        this.collectionsTab = tabContainer.createDiv({
+            cls: 'pixel-banner-tab',
+            text: '📑 Collections',
+            attr: {
+                style: `
+                    padding: 8px 16px;
+                    cursor: pointer;
+                    border-bottom: 2px solid transparent;
+                    transition: all 0.2s ease;
+                    display: none; /* Initially hidden */
                 `
             }
         });
@@ -398,6 +437,15 @@ export class IconImageSelectionModal extends Modal {
             }
         });
 
+        this.collectionsContent = contentEl.createDiv({
+            cls: 'pixel-banner-tab-content collections-content',
+            attr: {
+                style: `
+                    display: none;
+                `
+            }
+        });
+
         // Add styles for tabs
         const tabStyles = document.createElement('style');
         tabStyles.textContent = `
@@ -414,21 +462,36 @@ export class IconImageSelectionModal extends Modal {
             // Update tab styles
             localImageTab.classList.remove('active');
             webTab.classList.remove('active');
+            
+            if (this.collectionsTab) {
+                this.collectionsTab.classList.remove('active');
+            }
+            
             targetTab.classList.add('active');
 
             // Show/hide content
             if (targetTab === localImageTab) {
                 localImageContent.style.display = 'block';
                 webContent.style.display = 'none';
-            } else {
+                this.collectionsContent.style.display = 'none';
+            } else if (targetTab === webTab) {
                 localImageContent.style.display = 'none';
                 webContent.style.display = 'block';
+                this.collectionsContent.style.display = 'none';
+            } else {
+                localImageContent.style.display = 'none';
+                webContent.style.display = 'none';
+                this.collectionsContent.style.display = 'block';
             }
         };
 
         // Add click handlers to tabs
         localImageTab.addEventListener('click', () => switchTab(localImageTab));
         webTab.addEventListener('click', () => switchTab(webTab));
+        this.collectionsTab.addEventListener('click', () => switchTab(this.collectionsTab));
+
+        // Check if server is online
+        this.checkServerStatus();
 
         // Add search container to local image content
         const searchContainer = localImageContent.createDiv({ cls: 'pixel-banner-search-container' });
@@ -436,6 +499,9 @@ export class IconImageSelectionModal extends Modal {
         searchContainer.style.gap = '8px';
         searchContainer.style.alignItems = 'center';
         searchContainer.style.marginBottom = '1em';
+
+        // Create Collections tab content
+        this.initializeCollectionsTab(this.collectionsContent);
 
         // Create first row for search input and clear button
         const searchRow = searchContainer.createDiv({ cls: 'search-row' });
@@ -748,6 +814,775 @@ export class IconImageSelectionModal extends Modal {
         modalEl.style.top = `${modalEl.getBoundingClientRect().top}px`;
     }
 
+    async checkServerStatus() {
+        try {
+            const pingUrl = `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.PING}`;
+            const response = await fetch(pingUrl);
+            const data = await response.json();
+            
+            if (response.ok && data.response === "pong") {
+                this.collectionsTab.style.display = 'block';
+            } else {
+                console.log('Server response did not match expected format', data);
+            }
+        } catch (error) {
+            console.error(`Failed to connect to server: ${error.message}`);
+        }
+    }
+
+    async fetchIconCategories() {
+        try {
+            const url = `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_ICON_CATEGORIES}?key=${PIXEL_BANNER_PLUS.BANNER_ICON_KEY}`;
+            const headers = {
+                'Accept': 'application/json'
+            };
+            
+            const response = await fetch(url, {
+                headers: headers
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch icon categories');
+            }
+            
+            this.iconCategories = data.categories || [];
+            
+            if (this.iconCategories.length === 0) {
+                throw new Error('No icon categories found');
+            }
+            
+            return this.iconCategories;
+        } catch (error) {
+            console.error('Error fetching icon categories:', error);
+            throw error;
+        }
+    }
+
+    async fetchIconsByCategory() {
+        // Show loading state
+        this.showCollectionsLoading();
+        
+        try {
+            // Build the URL - if selectedIconCategory is null or "all", don't include category_id param
+            let url = `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_ICONS}?page=${this.iconsCurrentPage}&limit=${this.iconsPerPage}&key=${PIXEL_BANNER_PLUS.BANNER_ICON_KEY}`;
+            
+            // Only add category_id if we're not showing all icons
+            if (this.selectedIconCategory && this.selectedIconCategory !== 'all') {
+                url += `&category_id=${this.selectedIconCategory}`;
+            }
+            
+            const headers = {
+                'Accept': 'application/json'
+            };
+            
+            const response = await fetch(url, {
+                headers: headers
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch icons');
+            }
+            
+            this.renderIcons(data.bannerIcons, data.totalPages, data.totalCount);
+        } catch (error) {
+            console.error('Error fetching icons by category:', error);
+            this.showCollectionsError(error.message);
+        } finally {
+            this.hideCollectionsLoading();
+        }
+    }
+
+    initializeCollectionsTab(contentEl) {
+        // Show loading spinner
+        const loadingContainer = contentEl.createDiv({
+            cls: 'pixel-banner-loading-container',
+            attr: {
+                style: `
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 200px;
+                `
+            }
+        });
+
+        const loadingSpinner = loadingContainer.createDiv({
+            cls: 'pixel-banner-loading-spinner',
+            attr: {
+                style: `
+                    width: 40px;
+                    height: 40px;
+                    border: 4px solid var(--background-modifier-border);
+                    border-top: 4px solid var(--text-accent);
+                    border-radius: 50%;
+                    animation: pixel-banner-spin 1s linear infinite;
+                `
+            }
+        });
+
+        // Add animation for the spinner
+        const spinnerStyle = document.createElement('style');
+        spinnerStyle.textContent = `
+            @keyframes pixel-banner-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(spinnerStyle);
+        this.spinnerStyle = spinnerStyle;
+
+        // Fetch categories
+        this.fetchIconCategories().then(() => {
+            // Remove loading spinner
+            loadingContainer.remove();
+
+            // Create categories dropdown container
+            const categoriesContainer = contentEl.createDiv({
+                cls: 'pixel-banner-categories-container',
+                attr: {
+                    style: `
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 16px;
+                    `
+                }
+            });
+
+            // Categories dropdown label
+            categoriesContainer.createSpan({
+                text: 'Icon Categories:',
+                attr: {
+                    style: `
+                        font-size: 12px;
+                        color: var(--text-muted);
+                    `
+                }
+            });
+
+            // Categories dropdown
+            this.categoriesDropdown = categoriesContainer.createEl('select', {
+                cls: 'pixel-banner-categories-dropdown',
+                attr: {
+                    style: `
+                        border-radius: 4px;
+                        border: 1px solid var(--background-modifier-border);
+                        flex-grow: 1;
+                    `
+                }
+            });
+
+            // Add "ALL ICONS" option at the top
+            const allIconsOption = this.categoriesDropdown.createEl('option', {
+                text: '⭐ ALL ICONS',
+                value: 'all'
+            });
+            allIconsOption.selected = true;
+
+            // Populate categories dropdown with the rest of categories
+            this.iconCategories.forEach((category, index) => {
+                this.categoriesDropdown.createEl('option', {
+                    text: category.category,
+                    value: category.id
+                });
+            });
+
+            this.categoriesDropdown.addEventListener('change', async () => {
+                this.selectedIconCategory = this.categoriesDropdown.value;
+                this.selectedIconCategoryIndex = this.categoriesDropdown.selectedIndex;
+                this.iconsCurrentPage = 1;
+                
+                // Clear the search box when changing categories
+                this.iconSearchInput.value = '';
+                this.isIconsSearchMode = false;
+                
+                await this.fetchIconsByCategory();
+            });
+
+            // Add "Next Category" button
+            const nextCategoryButton = categoriesContainer.createEl('button', {
+                text: '▶️ Next Category',
+                cls: 'pixel-banner-next-category-button',
+                attr: {
+                    style: `
+                        padding: 8px 10px;
+                        border-radius: 4px;
+                        background-color: var(--interactive-accent);
+                        color: var(--text-on-accent);
+                        cursor: pointer;
+                        transition: background-color 0.2s ease;
+                    `
+                }
+            });
+
+            nextCategoryButton.addEventListener('click', async () => {
+                // Get the total number of options
+                const optionsCount = this.categoriesDropdown.options.length;
+                
+                // Calculate next index (current + 1, loop back to 0 if at the end)
+                let nextIndex = this.selectedIconCategoryIndex + 1;
+                if (nextIndex >= optionsCount) {
+                    nextIndex = 0;
+                }
+                
+                // Update the dropdown selection
+                this.categoriesDropdown.selectedIndex = nextIndex;
+                this.selectedIconCategory = this.categoriesDropdown.value;
+                this.selectedIconCategoryIndex = nextIndex;
+                
+                // Clear the search box when changing categories
+                this.iconSearchInput.value = '';
+                this.isIconsSearchMode = false;
+                
+                // Fetch icons for the new category
+                this.iconsCurrentPage = 1;
+                await this.fetchIconsByCategory();
+            });
+
+            // Create search container
+            const searchContainer = contentEl.createDiv({
+                cls: 'pixel-banner-search-container',
+                attr: {
+                    style: `
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 16px;
+                    `
+                }
+            });
+
+            // Create search input
+            this.iconSearchInput = searchContainer.createEl('input', {
+                type: 'text',
+                placeholder: 'Search icons...',
+                cls: 'pixel-banner-search-input',
+                attr: {
+                    style: `
+                        padding: 8px;
+                        border-radius: 4px;
+                        border: 1px solid var(--background-modifier-border);
+                        flex-grow: 1;
+                    `
+                }
+            });
+
+            // Create search button
+            const searchButton = searchContainer.createEl('button', {
+                text: 'Search',
+                cls: 'pixel-banner-search-button',
+                attr: {
+                    style: `
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        background-color: var(--interactive-accent);
+                        color: var(--text-on-accent);
+                    `
+                }
+            });
+
+            searchButton.addEventListener('click', () => {
+                this.searchIcons();
+            });
+
+            this.iconSearchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.searchIcons();
+                }
+            });
+
+            // Create clear search button
+            const clearSearchButton = searchContainer.createEl('button', {
+                text: 'Clear',
+                cls: 'pixel-banner-clear-search-button'
+            });
+
+            clearSearchButton.addEventListener('click', () => {
+                this.iconSearchInput.value = '';
+                this.isIconsSearchMode = false;
+                if (this.selectedIconCategory) {
+                    this.fetchIconsByCategory();
+                }
+            });
+
+            // Create collections grid
+            this.collectionsGridContainer = contentEl.createDiv({
+                cls: 'pixel-banner-collections-grid',
+                attr: {
+                    style: `
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                        gap: 12px;
+                        margin-top: 12px;
+                        max-height: 400px;
+                        overflow-y: auto;
+                        padding: 8px;
+                    `
+                }
+            });
+
+            // Create pagination container
+            this.collectionsPaginationContainer = contentEl.createDiv({
+                cls: 'pixel-banner-collections-pagination',
+                attr: {
+                    style: `
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-top: 12px;
+                        padding-top: 8px;
+                        border-top: 1px solid var(--background-modifier-border);
+                    `
+                }
+            });
+
+            // Start with "ALL ICONS" selected
+            this.selectedIconCategory = 'all';
+            this.selectedIconCategoryIndex = 0;
+            this.fetchIconsByCategory();
+            
+        }).catch(err => {
+            loadingContainer.remove();
+            contentEl.createEl('div', {
+                cls: 'pixel-banner-error',
+                text: `😭 Failed to load icon categories. Please try again later.`,
+                attr: {
+                    style: `
+                        color: var(--text-error);
+                        padding: 16px;
+                        border: 1px solid var(--background-modifier-error);
+                        border-radius: 4px;
+                        background-color: var(--background-modifier-error-rgb);
+                        margin-bottom: 16px;
+                    `
+                }
+            });
+        });
+    }
+
+    async onChooseIcon(icon) {
+        try {
+            const url = `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_ICONS_ID.replace(':id', icon.id)}?key=${PIXEL_BANNER_PLUS.BANNER_ICON_KEY}`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch icon details');
+            }
+            
+            const iconData = data.bannerIcon;
+            
+            // Extract extension from file_name or description, defaulting to the original format
+            // Look for extension in file_name first
+            let extension = 'svg'; // Default to svg as mentioned by user
+            let fileName = iconData.file_name || '';
+            
+            if (fileName) {
+                const parts = fileName.split('.');
+                if (parts.length > 1) {
+                    extension = parts[parts.length - 1].toLowerCase();
+                }
+            }
+            
+            // Convert base64 to array buffer for saving to vault
+            if (iconData.base64Image) {
+                // Get the default folder from plugin settings
+                const defaultFolder = this.plugin.settings.defaultSelectIconPath || '';
+                
+                // Show folder selection modal
+                const folderPath = await new Promise((resolve) => {
+                    new IconFolderSelectionModal(this.app, defaultFolder, (result) => {
+                        resolve(result);
+                    }).open();
+                });
+
+                if (!folderPath) {
+                    new Notice('No folder selected');
+                    return;
+                }
+
+                // Ensure the folder exists
+                if (!await this.app.vault.adapter.exists(folderPath)) {
+                    await this.app.vault.createFolder(folderPath);
+                }
+
+                // Get a safe filename
+                const suggestedName = `${iconData.description || 'icon'}.${extension}`;
+                const fileName = await new Promise((resolve) => {
+                    new SaveImageModal(this.app, suggestedName, (result) => {
+                        resolve(result);
+                    }).open();
+                });
+
+                if (!fileName) {
+                    new Notice('No file name provided');
+                    return;
+                }
+                
+                // Convert base64 to binary
+                const base64Data = iconData.base64Image.split(',')[1]; // Remove the data:image/png;base64, part
+                const binaryString = window.atob(base64Data);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                
+                try {
+                    // Create the file in the vault
+                    const fullPath = `${folderPath}/${fileName}`.replace(/\/+/g, '/');
+                    const newFile = await this.app.vault.createBinary(fullPath, bytes.buffer);
+                    
+                    // Call onChoose with the new file
+                    this.onChoose(newFile);
+                    this.close();
+                } catch (error) {
+                    new Notice(`Failed to save image: ${error.message}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error selecting icon:', error);
+            new Notice(`Failed to select icon: ${error.message}`);
+        }
+    }
+
+    showCollectionsLoading() {
+        if (this.collectionsGridContainer) {
+            this.collectionsGridContainer.empty();
+            
+            const loadingContainer = this.collectionsGridContainer.createDiv({
+                cls: 'pixel-banner-loading-container',
+                attr: {
+                    style: `
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 200px;
+                        grid-column: 1 / -1;
+                    `
+                }
+            });
+            
+            loadingContainer.createDiv({
+                cls: 'pixel-banner-loading-spinner',
+                attr: {
+                    style: `
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid var(--background-modifier-border);
+                        border-top: 4px solid var(--text-accent);
+                        border-radius: 50%;
+                        animation: pixel-banner-spin 1s linear infinite;
+                    `
+                }
+            });
+        }
+    }
+
+    hideCollectionsLoading() {
+        // Loading spinner is removed when rendering new content
+    }
+
+    showCollectionsError(message) {
+        if (this.collectionsGridContainer) {
+            this.collectionsGridContainer.empty();
+            
+            this.collectionsGridContainer.createEl('div', {
+                cls: 'pixel-banner-error',
+                text: `Error: ${message}`,
+                attr: {
+                    style: `
+                        color: var(--text-error);
+                        padding: 16px;
+                        border: 1px solid var(--background-modifier-error);
+                        border-radius: 4px;
+                        background-color: var(--background-modifier-error-rgb);
+                        margin-bottom: 16px;
+                        grid-column: 1 / -1;
+                    `
+                }
+            });
+        }
+    }
+
+    renderIcons(icons, totalPages, totalCount) {
+        this.collectionsGridContainer.empty();
+        this.collectionsPaginationContainer.empty();
+        
+        this.iconsTotalPages = totalPages || 1;
+        
+        if (!icons || icons.length === 0) {
+            this.collectionsGridContainer.createEl('div', {
+                cls: 'pixel-banner-no-icons',
+                text: this.isIconsSearchMode ? 'No icons found matching your search.' : 'No icons found in this category.',
+                attr: {
+                    style: `
+                        width: 100%;
+                        padding: 32px;
+                        text-align: center;
+                        color: var(--text-muted);
+                        background-color: var(--background-secondary);
+                        border-radius: 4px;
+                        grid-column: 1 / -1;
+                    `
+                }
+            });
+            return;
+        }
+        
+        // Create icons grid
+        icons.forEach(icon => {
+            const iconContainer = this.collectionsGridContainer.createDiv({
+                cls: 'pixel-banner-icon-item',
+                attr: {
+                    style: `
+                        border: 1px solid var(--background-modifier-border);
+                        border-radius: 4px;
+                        overflow: hidden;
+                        cursor: pointer;
+                        transition: transform 0.2s ease, box-shadow 0.2s ease;
+                    `
+                }
+            });
+            
+            iconContainer.addEventListener('mouseenter', () => {
+                iconContainer.style.transform = 'translateY(-2px)';
+                iconContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+            });
+            
+            iconContainer.addEventListener('mouseleave', () => {
+                iconContainer.style.transform = 'none';
+                iconContainer.style.boxShadow = 'none';
+            });
+            
+            // Image container
+            const imageContainer = iconContainer.createDiv({
+                attr: {
+                    style: `
+                        height: 120px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        background-color: var(--background-secondary);
+                        padding: 8px;
+                    `
+                }
+            });
+            
+            // Create image element
+            const image = imageContainer.createEl('img', {
+                attr: {
+                    src: icon.base64Image,
+                    alt: icon.description,
+                    style: `
+                        max-width: 100%;
+                        max-height: 100%;
+                        object-fit: contain;
+                    `
+                }
+            });
+            
+            // Icon info
+            const infoContainer = iconContainer.createDiv({
+                attr: {
+                    style: `
+                        padding: 8px;
+                        background-color: var(--background-primary);
+                    `
+                }
+            });
+            
+            infoContainer.createEl('div', {
+                text: icon.description,
+                attr: {
+                    style: `
+                        font-size: 12px;
+                        font-weight: 500;
+                        margin-bottom: 4px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    `
+                }
+            });
+            
+            infoContainer.createEl('div', {
+                text: icon.category,
+                attr: {
+                    style: `
+                        font-size: 10px;
+                        color: var(--text-muted);
+                    `
+                }
+            });
+            
+            // Add click handler
+            iconContainer.addEventListener('click', () => {
+                this.onChooseIcon(icon);
+            });
+        });
+        
+        // Create pagination if needed
+        if (totalPages > 1) {
+            // Pagination info
+            const paginationInfo = this.collectionsPaginationContainer.createEl('div', {
+                text: `Page ${this.iconsCurrentPage} of ${totalPages} (${totalCount} icons)`,
+                attr: {
+                    style: `
+                        font-size: 12px;
+                        color: var(--text-muted);
+                    `
+                }
+            });
+            
+            // Pagination controls
+            const paginationControls = this.collectionsPaginationContainer.createDiv({
+                attr: {
+                    style: `
+                        display: flex;
+                        gap: 4px;
+                    `
+                }
+            });
+            
+            // First page button
+            const firstPageButton = paginationControls.createEl('button', {
+                text: '<<',
+                cls: 'pixel-banner-pagination-button',
+                attr: {
+                    disabled: this.iconsCurrentPage === 1
+                }
+            });
+            firstPageButton.addEventListener('click', () => {
+                if (this.iconsCurrentPage !== 1) {
+                    this.iconsCurrentPage = 1;
+                    this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
+                }
+            });
+            
+            // Previous page button
+            const prevPageButton = paginationControls.createEl('button', {
+                text: '<',
+                cls: 'pixel-banner-pagination-button',
+                attr: {
+                    disabled: this.iconsCurrentPage === 1
+                }
+            });
+            prevPageButton.addEventListener('click', () => {
+                if (this.iconsCurrentPage > 1) {
+                    this.iconsCurrentPage--;
+                    this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
+                }
+            });
+            
+            // Page number
+            const pageNumber = paginationControls.createEl('span', {
+                text: this.iconsCurrentPage.toString(),
+                attr: {
+                    style: `
+                        padding: 4px 8px;
+                    `
+                }
+            });
+            
+            // Next page button
+            const nextPageButton = paginationControls.createEl('button', {
+                text: '>',
+                cls: 'pixel-banner-pagination-button',
+                attr: {
+                    disabled: this.iconsCurrentPage === totalPages
+                }
+            });
+            nextPageButton.addEventListener('click', () => {
+                if (this.iconsCurrentPage < totalPages) {
+                    this.iconsCurrentPage++;
+                    this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
+                }
+            });
+            
+            // Last page button
+            const lastPageButton = paginationControls.createEl('button', {
+                text: '>>',
+                cls: 'pixel-banner-pagination-button',
+                attr: {
+                    disabled: this.iconsCurrentPage === totalPages
+                }
+            });
+            lastPageButton.addEventListener('click', () => {
+                if (this.iconsCurrentPage !== totalPages) {
+                    this.iconsCurrentPage = totalPages;
+                    this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
+                }
+            });
+        }
+    }
+
+    async searchIcons() {
+        const searchTerm = this.iconSearchInput.value.trim();
+        if (!searchTerm) return;
+        
+        this.isIconsSearchMode = true;
+        this.iconsCurrentPage = 1;
+        
+        // Show loading state
+        this.showCollectionsLoading();
+        
+        try {
+            const url = `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_ICONS_SEARCH}?key=${PIXEL_BANNER_PLUS.BANNER_ICON_KEY}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    searchTerm,
+                    page: this.iconsCurrentPage,
+                    limit: this.iconsPerPage
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to search icons');
+            }
+            
+            this.renderIcons(data.bannerIcons, data.totalPages, data.totalCount);
+        } catch (error) {
+            console.error('Error searching icons:', error);
+            this.showCollectionsError(error.message);
+        } finally {
+            this.hideCollectionsLoading();
+        }
+    }
+
     updateImageGrid() {
         this.gridContainer.empty();
         this.paginationContainer.empty();
@@ -776,7 +1611,24 @@ export class IconImageSelectionModal extends Modal {
                 cls: 'pixel-banner-no-images',
                 text: filteredFiles.length === 0 ? 
                     '🔍 No images found matching your search.' : 
-                    'No images on this page.'
+                    'No images on this page.',
+                attr: {
+                    style: `
+                        width: 100%;
+                        height: 200px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.2em;
+                        color: var(--text-muted);
+                        border: 1px dashed var(--background-modifier-border);
+                        border-radius: 8px;
+                        background-color: var(--background-secondary);
+                        grid-column: 1 / -1;
+                        text-align: center;
+                        padding: 20px;
+                    `
+                }
             });
         }
 
@@ -961,6 +1813,23 @@ export class IconImageSelectionModal extends Modal {
         if (this.tabStyles) {
             this.tabStyles.remove();
         }
+        if (this.spinnerStyle) {
+            this.spinnerStyle.remove();
+        }
+        
+        // Only open targeting modal if:
+        // 1. The setting is enabled
+        // 2. A targeting modal hasn't already been opened via the onChoose callback
+        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon && !this.targetingModalOpened) {
+            // Only open if there's an active file
+            const activeFile = this.app.workspace.getActiveFile();
+            if (activeFile) {
+                // Import dynamically to avoid circular dependencies
+                const { TargetPositionModal } = require('./targetPositionModal');
+                new TargetPositionModal(this.app, this.plugin).open();
+            }
+        }
+        
         const { contentEl } = this;
         contentEl.empty();
     }

@@ -81,7 +81,7 @@ export class EmojiSelectionModal extends Modal {
         });
 
         const setBannerButton = bannerIconContainer.createEl('button', {
-            text: '💾 Set Icon Emoji & Text',
+            text: '💾 Insert / Update',
             cls: 'set-banner-button',
             attr: {
                 style: `
@@ -93,7 +93,7 @@ export class EmojiSelectionModal extends Modal {
         
         // button to remove the banner icon
         const removeBannerIconButton = bannerIconContainer.createEl('button', {
-            text: '🗑️ Remove Icon Text & Emoji',
+            text: '🗑️ Remove',
             cls: 'remove-banner-icon-button cursor-pointer'
         });
 

@@ -148,7 +148,60 @@ export class SelectPixelBannerModal extends Modal {
         const bannerSourceButtons = bannerSourceSection.createDiv({
             cls: 'pixel-banner-source-buttons',
         });
+
+        // Vault Selection Button (immediately available)
+        const vaultButton = bannerSourceButtons.createEl('button', {
+            cls: 'pixel-banner-source-button'
+        });
+        const vaultButtonContent = vaultButton.createDiv({ cls: 'pixel-banner-button-content' });
+        vaultButtonContent.createEl('span', { text: '💾', cls: 'pixel-banner-button-icon' });
+        vaultButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+            text: 'Your Vault', 
+            cls: 'pixel-banner-button-text' 
+        });
         
+        // Vault Selection Button Click Event
+        vaultButton.addEventListener('click', () => {
+            this.close();
+            new ImageSelectionModal(
+                this.app, 
+                this.plugin,
+                async (file) => {
+                    // This is the onChoose callback that will be used when an image is selected
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (activeFile) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                            const bannerField = this.plugin.settings.customBannerField[0];
+                            frontmatter[bannerField] = `[[${file.path}]]`;
+                        });
+                        
+                        // If not opening the banner icon modal, check if we should open the targeting modal
+                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                            new TargetPositionModal(this.app, this.plugin).open();
+                        }
+                    }
+                },
+                this.plugin.settings.defaultSelectImagePath
+            ).open();
+        });
+
+        // Web Address Button (immediately available)
+        const webAddressButton = bannerSourceButtons.createEl('button', {
+            cls: 'pixel-banner-source-button'
+        });
+        const webAddressButtonContent = webAddressButton.createDiv({ cls: 'pixel-banner-button-content' });
+        webAddressButtonContent.createEl('span', { text: '🌐', cls: 'pixel-banner-button-icon' });
+        webAddressButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+            text: 'URL', 
+            cls: 'pixel-banner-button-text' 
+        });
+
+        // Web Address Button Click Event
+        webAddressButton.addEventListener('click', () => {
+            this.close();
+            new WebAddressModal(this.app, this.plugin).open();
+        });
+
         if (this.plugin.settings.pixelBannerPlusEnabled) {
             // AI Generation Button (with loading state initially)
             const aiButton = bannerSourceButtons.createEl('button', {
@@ -224,59 +277,6 @@ export class SelectPixelBannerModal extends Modal {
             });
             storeLoadingOverlay.appendChild(this.createLoadingSpinner());
         }
-
-        // Vault Selection Button (immediately available)
-        const vaultButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button'
-        });
-        const vaultButtonContent = vaultButton.createDiv({ cls: 'pixel-banner-button-content' });
-        vaultButtonContent.createEl('span', { text: '💾', cls: 'pixel-banner-button-icon' });
-        vaultButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Your Vault', 
-            cls: 'pixel-banner-button-text' 
-        });
-        
-        // Vault Selection Button Click Event
-        vaultButton.addEventListener('click', () => {
-            this.close();
-            new ImageSelectionModal(
-                this.app, 
-                this.plugin,
-                async (file) => {
-                    // This is the onChoose callback that will be used when an image is selected
-                    const activeFile = this.app.workspace.getActiveFile();
-                    if (activeFile) {
-                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                            const bannerField = this.plugin.settings.customBannerField[0];
-                            frontmatter[bannerField] = `[[${file.path}]]`;
-                        });
-                        
-                        // If not opening the banner icon modal, check if we should open the targeting modal
-                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                            new TargetPositionModal(this.app, this.plugin).open();
-                        }
-                    }
-                },
-                this.plugin.settings.defaultSelectImagePath
-            ).open();
-        });
-
-        // Web Address Button (immediately available)
-        const webAddressButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button'
-        });
-        const webAddressButtonContent = webAddressButton.createDiv({ cls: 'pixel-banner-button-content' });
-        webAddressButtonContent.createEl('span', { text: '🌐', cls: 'pixel-banner-button-icon' });
-        webAddressButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'URL', 
-            cls: 'pixel-banner-button-text' 
-        });
-
-        // Web Address Button Click Event
-        webAddressButton.addEventListener('click', () => {
-            this.close();
-            new WebAddressModal(this.app, this.plugin).open();
-        });
 
         // Customization section
         const customizationSection = mainContainer.createDiv({ cls: 'pixel-banner-section' });
