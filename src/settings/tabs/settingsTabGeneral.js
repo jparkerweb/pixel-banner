@@ -621,7 +621,7 @@ export function createGeneralSettings(containerEl, plugin) {
     // Add hide embedded note titles setting
     const hideEmbeddedNoteTitlesSetting = new Setting(containerEl)
         .setName('Hide Embedded Note Titles')
-        .setDesc('Hide titles of embedded notes')
+        .setDesc("Hide titles of embedded notes if Obsidian's \"Show inline title\" setting is enabled")
         .addToggle(toggle => toggle
             .setValue(plugin.settings.hideEmbeddedNoteTitles)
             .onChange(async (value) => {
