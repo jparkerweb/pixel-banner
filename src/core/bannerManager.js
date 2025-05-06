@@ -1049,11 +1049,9 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     bannerDiv.style.setProperty('--pixel-banner-radius', `${borderRadius}px`);
     const maxWidthValue = pixelBannerMaxWidth === 'unset' ? 'unset' : `${pixelBannerMaxWidth}px`;
     bannerDiv.style.setProperty('--pixel-banner-max-width', maxWidthValue);
-    
-    let bannerIconStart = `${bannerIconSize}px`;
+    const bannerIconStart = `${(bannerHeight - (bannerIconSize / 2))}px`;
     let bannerHeightPlusIcon = `0px`;
     if (!hideEmbeddedNoteBanners) {
-        bannerIconStart = `${(bannerHeight - (bannerIconSize / 2))}px`;
         bannerHeightPlusIcon = `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px`;
     }
 
