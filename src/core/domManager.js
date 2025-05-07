@@ -76,6 +76,7 @@ function updateFieldVisibility(view) {
         ...this.settings.customContentStartField,
         ...this.settings.customImageDisplayField,
         ...this.settings.customImageRepeatField,
+        ...this.settings.customBannerMaxWidthField,
         ...this.settings.customBannerHeightField,
         ...this.settings.customFadeField,
         ...this.settings.customBorderRadiusField,

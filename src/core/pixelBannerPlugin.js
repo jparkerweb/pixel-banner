@@ -190,6 +190,7 @@ export class PixelBannerPlugin extends Plugin {
                     ...this.settings.customContentStartField,
                     ...this.settings.customImageDisplayField,
                     ...this.settings.customImageRepeatField,
+                    ...this.settings.customBannerMaxWidthField,
                     ...this.settings.customBannerHeightField,
                     ...this.settings.customFadeField,
                     ...this.settings.customBorderRadiusField,
@@ -608,6 +609,7 @@ export class PixelBannerPlugin extends Plugin {
                 customContentStartField: this.settings.customContentStartField,
                 customImageDisplayField: this.settings.customImageDisplayField,
                 customImageRepeatField: this.settings.customImageRepeatField,
+                customBannerMaxWidthField: this.settings.customBannerMaxWidthField,
                 bannerImage: frontmatter[this.settings.customBannerField]
             });
 
@@ -622,6 +624,7 @@ export class PixelBannerPlugin extends Plugin {
                         ...this.settings.customContentStartField,
                         ...this.settings.customImageDisplayField,
                         ...this.settings.customImageRepeatField,
+                        ...this.settings.customBannerMaxWidthField,
                         ...this.settings.customBannerHeightField,
                         ...this.settings.customFadeField,
                         ...this.settings.customBorderRadiusField,
