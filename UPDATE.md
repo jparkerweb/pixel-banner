@@ -3,7 +3,7 @@
 </a>
 
 ## 🎉 What's New
-### v3.5.0 - 2025-05-06
+### v3.5.0 - 2025-05-??
 #### ✨ Added
 - New "Icon Image" support to allow banner icons to contain both text/emojis and an image
 - Updated Targeting & Positioning UI to include new Icon Image settings (Icon Image source and alignment)
@@ -13,6 +13,9 @@
   - Online Collections (free downloadable icons)
 - Banner Icon Image alignment options include:
   - Left or Right of icon text/emojis
+
+#### 🐛 Fixed
+- Resolved issue with content being pushed down when banner was present in embedded notes
 
   <a href="https://www.youtube.com/watch?v=VWS1efySjZM">
     <img src="https://pixel-banner.online/img/pixel-banner-truck.jpg" alt="Pixel Banner" style="max-width: 400px;">
