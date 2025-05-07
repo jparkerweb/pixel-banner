@@ -29,7 +29,7 @@ export class IconImageSelectionModal extends Modal {
         this.iconsTotalPages = 1;
         this.iconsSearchTerm = '';
         this.isIconsSearchMode = false;
-        this.iconsPerPage = 12;
+        this.iconsPerPage = 10;
         
         // Flag to track if a targeting modal has been opened via the onChoose callback
         this.targetingModalOpened = false;
@@ -833,6 +833,7 @@ export class IconImageSelectionModal extends Modal {
     async fetchIconCategories() {
         try {
             const url = `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_ICON_CATEGORIES}?key=${PIXEL_BANNER_PLUS.BANNER_ICON_KEY}`;
+            
             const headers = {
                 'Accept': 'application/json'
             };
@@ -1469,11 +1470,13 @@ export class IconImageSelectionModal extends Modal {
             // First page button
             const firstPageButton = paginationControls.createEl('button', {
                 text: '<<',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    disabled: this.iconsCurrentPage === 1
-                }
+                cls: 'pixel-banner-pagination-button'
             });
+            
+            if (this.iconsCurrentPage === 1) {
+                firstPageButton.disabled = true;
+            }
+            
             firstPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage !== 1) {
                     this.iconsCurrentPage = 1;
@@ -1484,11 +1487,13 @@ export class IconImageSelectionModal extends Modal {
             // Previous page button
             const prevPageButton = paginationControls.createEl('button', {
                 text: '<',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    disabled: this.iconsCurrentPage === 1
-                }
+                cls: 'pixel-banner-pagination-button'
             });
+            
+            if (this.iconsCurrentPage === 1) {
+                prevPageButton.disabled = true;
+            }
+            
             prevPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage > 1) {
                     this.iconsCurrentPage--;
@@ -1509,11 +1514,13 @@ export class IconImageSelectionModal extends Modal {
             // Next page button
             const nextPageButton = paginationControls.createEl('button', {
                 text: '>',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    disabled: this.iconsCurrentPage === totalPages
-                }
+                cls: 'pixel-banner-pagination-button'
             });
+            
+            if (this.iconsCurrentPage === totalPages) {
+                nextPageButton.disabled = true;
+            }
+            
             nextPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage < totalPages) {
                     this.iconsCurrentPage++;
@@ -1524,11 +1531,13 @@ export class IconImageSelectionModal extends Modal {
             // Last page button
             const lastPageButton = paginationControls.createEl('button', {
                 text: '>>',
-                cls: 'pixel-banner-pagination-button',
-                attr: {
-                    disabled: this.iconsCurrentPage === totalPages
-                }
+                cls: 'pixel-banner-pagination-button'
             });
+            
+            if (this.iconsCurrentPage === totalPages) {
+                lastPageButton.disabled = true;
+            }
+            
             lastPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage !== totalPages) {
                     this.iconsCurrentPage = totalPages;
