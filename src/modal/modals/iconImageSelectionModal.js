@@ -216,9 +216,11 @@ export class IconImageSelectionModal extends Modal {
                 font-size: 14px;
                 line-height: 1;
             }
-            
+
+            button.pixel-banner-pagination-button:not([disabled]),
             .pixel-banner-pagination-button:hover:not(.disabled) {
-                background: var(--background-modifier-hover);
+                background-color: var(--interactive-accent);
+                color: var(--text-on-accent);
             }
             
             .pixel-banner-pagination-button.disabled {
@@ -1469,7 +1471,7 @@ export class IconImageSelectionModal extends Modal {
             
             // First page button
             const firstPageButton = paginationControls.createEl('button', {
-                text: '<<',
+                text: '«',
                 cls: 'pixel-banner-pagination-button'
             });
             
@@ -1486,7 +1488,7 @@ export class IconImageSelectionModal extends Modal {
             
             // Previous page button
             const prevPageButton = paginationControls.createEl('button', {
-                text: '<',
+                text: '‹',
                 cls: 'pixel-banner-pagination-button'
             });
             
@@ -1513,7 +1515,7 @@ export class IconImageSelectionModal extends Modal {
             
             // Next page button
             const nextPageButton = paginationControls.createEl('button', {
-                text: '>',
+                text: '›',
                 cls: 'pixel-banner-pagination-button'
             });
             
@@ -1530,7 +1532,7 @@ export class IconImageSelectionModal extends Modal {
             
             // Last page button
             const lastPageButton = paginationControls.createEl('button', {
-                text: '>>',
+                text: '››',
                 cls: 'pixel-banner-pagination-button'
             });
             
@@ -1741,7 +1743,7 @@ export class IconImageSelectionModal extends Modal {
             // First page button
             const firstPageButton = paginationControls.createEl('button', {
                 cls: `pixel-banner-pagination-button ${this.currentPage === 1 ? 'disabled' : ''}`,
-                text: '<<'
+                text: '««'
             });
             firstPageButton.addEventListener('click', () => {
                 if (this.currentPage !== 1) {
@@ -1753,7 +1755,7 @@ export class IconImageSelectionModal extends Modal {
             // Previous page button
             const prevPageButton = paginationControls.createEl('button', {
                 cls: `pixel-banner-pagination-button ${this.currentPage === 1 ? 'disabled' : ''}`,
-                text: '<'
+                text: '‹'
             });
             prevPageButton.addEventListener('click', () => {
                 if (this.currentPage > 1) {
@@ -1765,7 +1767,7 @@ export class IconImageSelectionModal extends Modal {
             // Next page button
             const nextPageButton = paginationControls.createEl('button', {
                 cls: `pixel-banner-pagination-button ${this.currentPage === totalPages ? 'disabled' : ''}`,
-                text: '>'
+                text: '›'
             });
             nextPageButton.addEventListener('click', () => {
                 if (this.currentPage < totalPages) {
@@ -1777,7 +1779,7 @@ export class IconImageSelectionModal extends Modal {
             // Last page button
             const lastPageButton = paginationControls.createEl('button', {
                 cls: `pixel-banner-pagination-button ${this.currentPage === totalPages ? 'disabled' : ''}`,
-                text: '>>'
+                text: '››'
             });
             lastPageButton.addEventListener('click', () => {
                 if (this.currentPage !== totalPages) {
