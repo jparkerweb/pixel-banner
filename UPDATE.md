@@ -14,6 +14,9 @@
 - Banner Icon Image alignment options include:
   - Left or Right of icon text/emojis
 
+#### 📦 Updated
+- Embedded notes now respect custom frontmatter settings (border radius, banner height, etc.)
+
 #### 🐛 Fixed
 - Resolved issue with content being pushed down when banner was present in embedded notes
 

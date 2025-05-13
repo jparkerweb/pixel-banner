@@ -156,7 +156,8 @@ function updateEmbeddedBannersVisibility() {
             document.head.appendChild(styleEl);
         }
         styleEl.textContent = `
-            .internal-embed .pixel-banner-image {
+            .internal-embed .pixel-banner-image,
+            .internal-embed .banner-icon-overlay {
                 display: none !important;
             }
             .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
