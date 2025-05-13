@@ -686,6 +686,12 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
+        
+        // Ensure the slider is enabled if max-width is set
+        if (!isMaxWidthUnset) {
+            maxWidthSlider.disabled = false;
+            maxWidthSlider.style.opacity = '1';
+        }
 
         // Toggle max width unset/set
         unsetCheckbox.addEventListener('change', () => {

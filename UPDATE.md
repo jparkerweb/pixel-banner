@@ -19,6 +19,7 @@
 
 #### 🐛 Fixed
 - Resolved issue with content being pushed down when banner was present in embedded notes
+- Resolved issue with max-width slider being disabled even when a custom max-width was set in frontmatter
 
   <a href="https://www.youtube.com/watch?v=VWS1efySjZM">
     <img src="https://pixel-banner.online/img/pixel-banner-truck.jpg" alt="Pixel Banner" style="max-width: 400px;">
