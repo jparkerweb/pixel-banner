@@ -626,6 +626,7 @@ export class PixelBannerPlugin extends Plugin {
                         ...this.settings.customImageRepeatField,
                         ...this.settings.customBannerMaxWidthField,
                         ...this.settings.customBannerHeightField,
+                        ...this.settings.customBannerAlignmentField,
                         ...this.settings.customFadeField,
                         ...this.settings.customBorderRadiusField,
                         ...this.settings.customTitleColorField,

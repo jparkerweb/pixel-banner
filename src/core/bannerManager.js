@@ -54,11 +54,18 @@ async function addPixelBanner(plugin, el, ctx) {
                 const maxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
                     folderSpecific?.bannerMaxWidth || 'unset';
                 const maxWidthValue = maxWidth === 'unset' ? 'unset' : `${maxWidth}px`;
+
+                const bannerYPosition = getFrontmatterValue(frontmatter, plugin.settings.customYPositionField) || 
+                    folderSpecific?.bannerYPosition || plugin.settings.bannerYPosition || 0;
+                const bannerXPosition = getFrontmatterValue(frontmatter, plugin.settings.customXPositionField) || 
+                    folderSpecific?.bannerXPosition || plugin.settings.bannerXPosition || 0;
+                const bannerTitleColor = getFrontmatterValue(frontmatter, plugin.settings.customTitleColorField) || 
+                    folderSpecific?.titleColor || plugin.settings.titleColor || 'var(--inline-title-color)';
                 
-                previewViewEl.style.setProperty('--pixel-banner-y-position', `${yPosition}%`);
-                previewViewEl.style.setProperty('--pixel-banner-x-position', `${xPosition}%`);
+                previewViewEl.style.setProperty('--pixel-banner-y-position', `${bannerYPosition}%`);
+                previewViewEl.style.setProperty('--pixel-banner-x-position', `${bannerXPosition}%`);
                 previewViewEl.style.setProperty('--pixel-banner-max-width', maxWidthValue);
-                previewViewEl.style.setProperty('--pixel-banner-title-color', 'var(--inline-title-color)');
+                previewViewEl.style.setProperty('--pixel-banner-title-color', bannerTitleColor);
                 
                 const bannerIconSize = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || 
                     folderSpecific?.bannerIconSize || plugin.settings.bannerIconSize || 70;
@@ -66,25 +73,65 @@ async function addPixelBanner(plugin, el, ctx) {
                     folderSpecific?.bannerIconXPosition || plugin.settings.bannerIconXPosition || 25;
                 const bannerIconOpacity = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField) || 
                     folderSpecific?.bannerIconOpacity || plugin.settings.bannerIconOpacity || 100;
+                const bannerIconColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || 
+                    folderSpecific?.bannerIconColor || plugin.settings.bannerIconColor || 'var(--text-normal)';
+                const bannerIconFontWeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || 
+                    folderSpecific?.bannerIconFontWeight || plugin.settings.bannerIconFontWeight || 'normal';
+                const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || 
+                    folderSpecific?.bannerIconBackgroundColor || plugin.settings.bannerIconBackgroundColor || 'transparent';
+                const bannerIconPaddingX = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField) || 
+                    folderSpecific?.bannerIconPaddingX || plugin.settings.bannerIconPaddingX || 0;
+                const bannerIconPaddingY = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField) || 
+                    folderSpecific?.bannerIconPaddingY || plugin.settings.bannerIconPaddingY || 0;
+                const bannerIconBorderRadius = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) || 
+                    folderSpecific?.bannerIconBorderRadius || plugin.settings.bannerIconBorderRadius || 17;
+                const bannerIconVerticalOffset = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField) || 
+                    folderSpecific?.bannerIconVeritalOffset || plugin.settings.bannerIconVeritalOffset || 0;
                 
                 previewViewEl.style.setProperty('--pixel-banner-icon-size', `${bannerIconSize}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-x', `${bannerIconXPosition}%`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-opacity', `${bannerIconOpacity}%`);
-                previewViewEl.style.setProperty('--pixel-banner-icon-color', 'var(--text-normal)');
-                previewViewEl.style.setProperty('--pixel-banner-icon-font-weight', 'normal');
-                previewViewEl.style.setProperty('--pixel-banner-icon-background-color', 'transparent');
-                previewViewEl.style.setProperty('--pixel-banner-icon-padding-x', '0px');
-                previewViewEl.style.setProperty('--pixel-banner-icon-padding-y', '0px');
-                previewViewEl.style.setProperty('--pixel-banner-icon-border-radius', '17px');
-                previewViewEl.style.setProperty('--pixel-banner-icon-vertical-offset', '0px');
+                previewViewEl.style.setProperty('--pixel-banner-icon-color', bannerIconColor);
+                previewViewEl.style.setProperty('--pixel-banner-icon-font-weight', bannerIconFontWeight);
+                previewViewEl.style.setProperty('--pixel-banner-icon-background-color', bannerIconBackgroundColor);
+                previewViewEl.style.setProperty('--pixel-banner-icon-padding-x', `${bannerIconPaddingX}px`);
+                previewViewEl.style.setProperty('--pixel-banner-icon-padding-y', `${bannerIconPaddingY}px`);
+                previewViewEl.style.setProperty('--pixel-banner-icon-border-radius', `${bannerIconBorderRadius}px`);
+                previewViewEl.style.setProperty('--pixel-banner-icon-vertical-offset', `${bannerIconVerticalOffset}px`);
                 
-                // Set minimum height for embedded notes with banners
+                // Set height for embedded notes with banners
                 const bannerHeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerHeightField) || 
                     folderSpecific?.bannerHeight || plugin.settings.bannerHeight || 150;
                 const embedMinHeight = `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2))}px`;
                 previewViewEl.style.setProperty('--pixel-banner-embed-min-height', embedMinHeight);
-                // Set banner height
                 previewViewEl.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
+
+                // set pixel banner fade
+                const bannerFade = getFrontmatterValue(frontmatter, plugin.settings.customBannerFadeField) || 
+                    folderSpecific?.bannerFade || plugin.settings.fade || -75;
+                previewViewEl.style.setProperty('--pixel-banner-fade', `${bannerFade}%`);
+
+                // set pixel banner border radius
+                let bannerRadius = getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField);
+                // If the radius is explicitly 0, keep it as 0
+                if (bannerRadius === 0) {
+                    bannerRadius = 0;
+                } else {
+                    // Otherwise use the fallback chain
+                    bannerRadius = bannerRadius || folderSpecific?.borderRadius || plugin.settings.borderRadius || 17;
+                }
+                previewViewEl.style.setProperty('--pixel-banner-radius', `${bannerRadius}px`);
+
+                // set pixel banner alignment
+                const bannerAlignment = getFrontmatterValue(frontmatter, plugin.settings.customBannerAlignmentField) || 'center';
+                let alignmentValue = '0 auto'; // Default for center
+                if (bannerAlignment === 'left') {
+                    alignmentValue = '0 auto 0 0';
+                } else if (bannerAlignment === 'right') {
+                    alignmentValue = '0 0 0 auto';
+                }
+                previewViewEl.style.setProperty('--pixel-banner-alignment', alignmentValue);
+
                 // Set banner icon start
                 previewViewEl.style.setProperty('--pixel-banner-icon-start', `${(bannerHeight - (bannerIconSize / 2))}px`);
 
@@ -96,17 +143,11 @@ async function addPixelBanner(plugin, el, ctx) {
                 if (Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)) === 0) {
                     bannerIconVeritalOffset = 0;
                 }
-                // Get banner-icon padding Y
-                const bannerIconPaddingY = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField) || 
-                    folderSpecific?.bannerIconPaddingY || 
-                    plugin.settings.bannerIconPaddingY || 0;
+                // calculate content start
                 const contentStart = !hideEmbeddedNoteBanners ? 
                     `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
                     '0px';
                 previewViewEl.style.setProperty('--pixel-banner-content-start', contentStart);
-                
-                // Set banner alignment
-                previewViewEl.style.setProperty('--pixel-banner-alignment', '0 auto');
             }
         }
     } else if (isHoverPopover && plugin.settings.showBannerInPopoverPreviews) {
@@ -318,6 +359,9 @@ async function addPixelBanner(plugin, el, ctx) {
             const imageDisplay = getFrontmatterValue(frontmatter, plugin.settings.customImageDisplayField) ||
                 folderSpecific?.imageDisplay ||
                 plugin.settings.imageDisplay;
+            const imageRepeat = getFrontmatterValue(frontmatter, plugin.settings.customImageRepeatField) ||
+                folderSpecific?.imageRepeat ||
+                plugin.settings.imageRepeat;
             const isSvg = imageUrl.includes('image/svg+xml') ||
                 (file.path && file.path.toLowerCase().endsWith('.svg'));
 
@@ -352,6 +396,7 @@ async function addPixelBanner(plugin, el, ctx) {
             } else {
                 bannerDiv.style.backgroundSize = imageDisplay || 'cover';
             }
+            bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
             bannerDiv.style.display = 'block';
             
             // For embedded notes, also set the background-image CSS variable on the pixel-banner-image element

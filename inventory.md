@@ -552,3 +552,9 @@ Provides semantic versioning utilities for the plugin.
    Checks if a version is newer than another version.
 
 ---
+
+## Other Notes
+
+- frontmatter fields are hidden in reading mode if hidePixelBannerFields is enabled. Update these files:
+   - `src/core/domManager.js` (fuction: updateFieldVisibility)
+   - `src/core/pixelBannerPlugin.js` (function: postProcessor)
