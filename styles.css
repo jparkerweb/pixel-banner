@@ -75,9 +75,6 @@
     position: relative;
     z-index: 1;
 }
-.markdown-embed-content .pixel-banner-image ~ .banner-icon-overlay {
-    transform: translateY(-25%);
-}
 
 /* collapse scrollbar gutter when no scrollbar is present */
 .pixel-banner .markdown-preview-view,
