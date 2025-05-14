@@ -224,7 +224,7 @@ export class GenerateAIBannerModal extends Modal {
                     // Open the target position modal after setting the banner
                     await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                         const bannerField = this.plugin.settings.customBannerField[0];
-                        frontmatter[bannerField] = `[[${savedPath}]]`;
+                        frontmatter[bannerField] = `![[${savedPath}]]`;
                     });
 
                     // Check if we should open the targeting modal
@@ -1390,7 +1390,7 @@ export class GenerateAIBannerModal extends Modal {
             // Open the target position modal after setting the banner
             await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                 const bannerField = this.plugin.settings.customBannerField[0];
-                frontmatter[bannerField] = `[[${savedPath}]]`;
+                frontmatter[bannerField] = `![[${savedPath}]]`;
             });
 
             // Check if we should open the targeting modal

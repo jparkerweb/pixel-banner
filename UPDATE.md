@@ -17,6 +17,7 @@
 
 #### 📦 Updated
 - Embedded notes now respect custom frontmatter settings (border radius, banner height, etc.)
+- Any system action that sets a banner (Vault, AI Gen, Store) now uses ![[image]] instead of [[image]] in the frontmatter
 
 #### 🐛 Fixed
 - Resolved issue with content being pushed down when banner was present in embedded notes

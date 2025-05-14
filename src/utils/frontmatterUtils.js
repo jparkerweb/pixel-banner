@@ -79,12 +79,12 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
             });
 
             cleanedFrontmatter = cleanedFrontmatter.trim();
-            const newFrontmatter = `${bannerField}: "[[${imageReference}]]"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+            const newFrontmatter = `${bannerField}: "![[${imageReference}]]"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
             return `---\n${newFrontmatter}\n---`;
         });
     } else {
         const cleanContent = fileContent.replace(/^\s+/, '');
-        updatedContent = `---\n${bannerField}: "[[${imageReference}]]"\n---\n\n${cleanContent}`;
+        updatedContent = `---\n${bannerField}: "![[${imageReference}]]"\n---\n\n${cleanContent}`;
     }
 
     updatedContent = updatedContent.replace(/^\s+/, '');

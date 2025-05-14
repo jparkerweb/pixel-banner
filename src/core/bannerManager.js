@@ -679,7 +679,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Handle comma-delimited banner values in frontmatter
-        if (typeof bannerImage === 'string' && !bannerImage.startsWith('[[')) {
+        if (typeof bannerImage === 'string' && (!bannerImage.startsWith('[[') || !bannerImage.startsWith('![['))) {
             const bannerValues = bannerImage.includes(',') 
                 ? bannerImage.split(',').map(v => v.trim()).filter(v => v.length > 0).filter(Boolean)
                 : [bannerImage];
@@ -693,11 +693,11 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Format internal links
-        if (bannerImage && !bannerImage.startsWith('[[') && !bannerImage.startsWith('http')) {
+        if (bannerImage && (!bannerImage.startsWith('[[') || !bannerImage.startsWith('![[')) && !bannerImage.startsWith('http')) {
             const file = plugin.app.vault.getAbstractFileByPath(bannerImage);
             if (file && 'extension' in file) {
                 if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
-                    bannerImage = `[[${bannerImage}]]`;
+                    bannerImage = `![[${bannerImage}]]`;
                 }
             }
         }
