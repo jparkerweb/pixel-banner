@@ -106,6 +106,12 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customFadeField;
         this.currentFade = frontmatter?.[fadeField] !== undefined ? frontmatter[fadeField] : this.plugin.settings.fade;
 
+        // border radius field
+        const borderRadiusField = Array.isArray(this.plugin.settings.customBorderRadiusField)
+            ? this.plugin.settings.customBorderRadiusField[0].split(',')[0].trim()
+            : this.plugin.settings.customBorderRadiusField;
+        this.currentBorderRadius = frontmatter?.[borderRadiusField] !== undefined ? frontmatter[borderRadiusField] : (this.plugin.settings.borderRadius || 0);
+
         // Parse current display value for zoom percentage
         this.currentZoom = 100;
         if (this.currentDisplay && this.currentDisplay.endsWith('%')) {
@@ -366,6 +372,24 @@ export class TargetPositionModal extends Modal {
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[fadeField] = fade;
         });
+    }
+
+    updateBannerBorderRadius(borderRadius) {
+        const borderRadiusField = Array.isArray(this.plugin.settings.customBorderRadiusField)
+            ? this.plugin.settings.customBorderRadiusField[0].split(',')[0].trim()
+            : this.plugin.settings.customBorderRadiusField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[borderRadiusField] = borderRadius;
+        });
+        
+        // Update the banner to ensure the note is re-rendered properly
+        setTimeout(() => {
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+                this.plugin.updateBanner(view, true);
+            }
+        }, 350);
     }
 
     onPositionChange(x, y) {
@@ -937,6 +961,7 @@ export class TargetPositionModal extends Modal {
                 style: `
                 display: flex;
                 flex-direction: row;
+                flex-wrap: wrap;
                 gap: 10px;
                 align-items: center;
                 flex: 0 auto;
@@ -1043,6 +1068,72 @@ export class TargetPositionModal extends Modal {
             const value = parseInt(e.target.value);
             this.updateBannerFade(value);
             bannerFadeValue.setText(value.toString());
+        });
+
+        // border radius slider
+        const borderRadiusContainer = bannerSettingsRow2.createDiv({
+            cls: 'setting-item',
+            attr: {
+                style: `
+                    flex: 1;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                `
+            }
+        });
+        const borderRadiusHeader = borderRadiusContainer.createDiv({
+            text: 'Border Radius',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        const borderRadiusSliderContainer = borderRadiusContainer.createDiv({
+            attr: {
+                style: `
+                    flex: 1;
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                `
+            }
+        });
+
+        const borderRadiusSlider = borderRadiusSliderContainer.createEl('input', {
+            type: 'range',
+            cls: 'slider',
+            attr: {
+                min: '0',
+                max: '50',
+                step: '1',
+                value: this.currentBorderRadius,
+                style: `
+                    flex: 1;
+                `
+            }
+        });
+
+        const borderRadiusValue = borderRadiusSliderContainer.createDiv({
+            text: this.currentBorderRadius.toString(),
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    min-width: 45px;
+                    text-align: right;
+                `
+            }
+        });
+
+        borderRadiusSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            this.updateBannerBorderRadius(value);
+            borderRadiusValue.setText(`${value}`);
         });
 
 
@@ -2900,6 +2991,7 @@ export class TargetPositionModal extends Modal {
                 e.target === maxWidthSlider ||
                 e.target === contentStartPositionSlider || 
                 e.target === bannerFadeSlider ||
+                e.target === borderRadiusSlider ||
                 e.target === bannerIconXPositionSlider ||
                 e.target === bannerIconSizeSlider ||
                 e.target === bannerIconColorPicker ||

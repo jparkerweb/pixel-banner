@@ -13,6 +13,7 @@
   - Online Collections (free downloadable icons)
 - Banner Icon Image alignment options include:
   - Left or Right of icon text/emojis
+- New Border Radius slider control available in the Position, Size & Style Modal
 
 #### 📦 Updated
 - Embedded notes now respect custom frontmatter settings (border radius, banner height, etc.)
