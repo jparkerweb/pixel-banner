@@ -1,7 +1,7 @@
 ---
-name: Bug report
+name: 🐛 Bug report
 about: Create a report to help us improve
-title: "\U0001F41B ..."
+title: "\U0001F41B "
 labels: bug
 assignees: ''
 ---
@@ -9,6 +9,10 @@ assignees: ''
 <!--
 Consider joining our Discord for additional support and conversation:
 https://discord.gg/sp8AQQhMJ7
+
+RECOMMENDATIONS before submitting this bug:
+- Custom theme and snippets: for cosmetic issues, please first try updating your theme and disabling your snippets. If still not fixed, please try to make the issue happen in the Sandbox Vault or disable community theme and snippets.
+- Community plugins: for bugs, please first try updating all your plugins to latest. If still not fixed, please try to make the issue happen in the Sandbox Vault or disable community plugins.
 //-->
 
 **Describe the bug**
