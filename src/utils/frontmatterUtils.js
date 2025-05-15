@@ -42,6 +42,43 @@ export function getFrontmatterValue(frontmatter, fieldNames) {
 // -----------------------------
 // -- update note frontmatter --
 // -----------------------------
+// ----------------------------
+// -- get value with zero check --
+// ----------------------------
+/**
+ * Gets a value from multiple sources, properly handling zero values
+ * @param {Array<any>} values - Array of values to check in order of priority
+ * @returns {any} The first non-falsy value found, properly handling zero values
+ * 
+ * @example
+ * // Returns the first valid value (handling zeros properly)
+ * const result = getValueWithZeroCheck([
+ *   getFrontmatterValue(frontmatter, customField),
+ *   folderSpecific?.someProperty,
+ *   settings.someProperty,
+ *   defaultValue
+ * ]);
+ */
+export function getValueWithZeroCheck(values) {
+    if (!Array.isArray(values)) {
+        console.warn('getValueWithZeroCheck expects an array of values');
+        return null;
+    }
+    
+    for (const value of values) {
+        // Explicitly check for zero to handle it properly
+        if (value === 0) return 0;
+        
+        // Return the first truthy value
+        if (value !== null && value !== undefined) return value;
+    }
+    
+    // If we get here, all values were falsy (null/undefined)
+    // Return the last value in the array (which would be the default)
+    return values[values.length - 1];
+}
+
+
 export async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
     const activeFile = plugin.app.workspace.getActiveFile();
     if (!activeFile) return;

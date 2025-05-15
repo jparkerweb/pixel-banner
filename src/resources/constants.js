@@ -4,7 +4,8 @@ export const PIXEL_BANNER_PLUS = {
     ENDPOINTS: {
         PING: 'ping',
         VERIFY: 'verify',
-        GENERATE: 'generate',
+        TEXT_TO_IMAGE_MODELS: 'text-to-image-models',
+        GENERATE: 'generatev2',
         GENERATE_BANNER_IDEA: 'generate-banner-idea',
         GENERATE_BANNER_IDEA_FROM_SEED: 'generate-banner-idea-from-seed',
         REWRITE_BANNER_IDEA: 'rewrite-banner-idea',

@@ -1,6 +1,6 @@
 import { MarkdownView, Notice } from 'obsidian';
 import { ImageViewModal, TargetPositionModal } from '../modal/modals.js';
-import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
+import { getFrontmatterValue, getValueWithZeroCheck } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { flags } from '../resources/flags.js';
 import { debounceImmediate, debounceAndSwallow } from '../utils/debounce.js';
@@ -55,10 +55,18 @@ async function addPixelBanner(plugin, el, ctx) {
                     folderSpecific?.bannerMaxWidth || 'unset';
                 const maxWidthValue = maxWidth === 'unset' ? 'unset' : `${maxWidth}px`;
 
-                const bannerYPosition = getFrontmatterValue(frontmatter, plugin.settings.customYPositionField) || 
-                    folderSpecific?.bannerYPosition || plugin.settings.bannerYPosition || 0;
-                const bannerXPosition = getFrontmatterValue(frontmatter, plugin.settings.customXPositionField) || 
-                    folderSpecific?.bannerXPosition || plugin.settings.bannerXPosition || 0;
+                const bannerYPosition = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customYPositionField),
+                    folderSpecific?.bannerYPosition,
+                    plugin.settings.bannerYPosition,
+                    0
+                ]);
+                const bannerXPosition = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customXPositionField),
+                    folderSpecific?.bannerXPosition,
+                    plugin.settings.bannerXPosition,
+                    0
+                ]);
                 const bannerTitleColor = getFrontmatterValue(frontmatter, plugin.settings.customTitleColorField) || 
                     folderSpecific?.titleColor || plugin.settings.titleColor || 'var(--inline-title-color)';
                 
@@ -69,24 +77,48 @@ async function addPixelBanner(plugin, el, ctx) {
                 
                 const bannerIconSize = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || 
                     folderSpecific?.bannerIconSize || plugin.settings.bannerIconSize || 70;
-                const bannerIconXPosition = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField) || 
-                    folderSpecific?.bannerIconXPosition || plugin.settings.bannerIconXPosition || 25;
-                const bannerIconOpacity = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField) || 
-                    folderSpecific?.bannerIconOpacity || plugin.settings.bannerIconOpacity || 100;
+                const bannerIconXPosition = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
+                    folderSpecific?.bannerIconXPosition,
+                    plugin.settings.bannerIconXPosition,
+                    25
+                ]);
+                const bannerIconOpacity = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
+                    folderSpecific?.bannerIconOpacity,
+                    plugin.settings.bannerIconOpacity,
+                    100
+                ]);
                 const bannerIconColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || 
                     folderSpecific?.bannerIconColor || plugin.settings.bannerIconColor || 'var(--text-normal)';
                 const bannerIconFontWeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || 
                     folderSpecific?.bannerIconFontWeight || plugin.settings.bannerIconFontWeight || 'normal';
                 const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || 
                     folderSpecific?.bannerIconBackgroundColor || plugin.settings.bannerIconBackgroundColor || 'transparent';
-                const bannerIconPaddingX = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField) || 
-                    folderSpecific?.bannerIconPaddingX || plugin.settings.bannerIconPaddingX || 0;
-                const bannerIconPaddingY = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField) || 
-                    folderSpecific?.bannerIconPaddingY || plugin.settings.bannerIconPaddingY || 0;
-                const bannerIconBorderRadius = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) || 
-                    folderSpecific?.bannerIconBorderRadius || plugin.settings.bannerIconBorderRadius || 17;
-                const bannerIconVerticalOffset = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField) || 
-                    folderSpecific?.bannerIconVeritalOffset || plugin.settings.bannerIconVeritalOffset || 0;
+                const bannerIconPaddingX = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
+                    folderSpecific?.bannerIconPaddingX,
+                    plugin.settings.bannerIconPaddingX,
+                    0
+                ]);
+                const bannerIconPaddingY = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
+                    folderSpecific?.bannerIconPaddingY,
+                    plugin.settings.bannerIconPaddingY,
+                    0
+                ]);
+                const bannerIconBorderRadius = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
+                    folderSpecific?.bannerIconBorderRadius,
+                    plugin.settings.bannerIconBorderRadius,
+                    17
+                ]);
+                const bannerIconVerticalOffset = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
+                    folderSpecific?.bannerIconVeritalOffset,
+                    plugin.settings.bannerIconVeritalOffset,
+                    0
+                ]);
                 
                 previewViewEl.style.setProperty('--pixel-banner-icon-size', `${bannerIconSize}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-x', `${bannerIconXPosition}%`);
@@ -107,19 +139,21 @@ async function addPixelBanner(plugin, el, ctx) {
                 previewViewEl.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
 
                 // set pixel banner fade
-                const bannerFade = getFrontmatterValue(frontmatter, plugin.settings.customBannerFadeField) || 
-                    folderSpecific?.bannerFade || plugin.settings.fade || -75;
+                const bannerFade = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerFadeField),
+                    folderSpecific?.bannerFade,
+                    plugin.settings.fade,
+                    -75
+                ]);
                 previewViewEl.style.setProperty('--pixel-banner-fade', `${bannerFade}%`);
 
                 // set pixel banner border radius
-                let bannerRadius = getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField);
-                // If the radius is explicitly 0, keep it as 0
-                if (bannerRadius === 0) {
-                    bannerRadius = 0;
-                } else {
-                    // Otherwise use the fallback chain
-                    bannerRadius = bannerRadius || folderSpecific?.borderRadius || plugin.settings.borderRadius || 17;
-                }
+                const bannerRadius = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField),
+                    folderSpecific?.borderRadius,
+                    plugin.settings.borderRadius,
+                    17
+                ]);
                 previewViewEl.style.setProperty('--pixel-banner-radius', `${bannerRadius}px`);
 
                 // set pixel banner alignment
@@ -136,13 +170,12 @@ async function addPixelBanner(plugin, el, ctx) {
                 previewViewEl.style.setProperty('--pixel-banner-icon-start', `${(bannerHeight - (bannerIconSize / 2))}px`);
 
                 // Get banner-icon vertical offset
-                let bannerIconVeritalOffset = Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)) ||
-                    folderSpecific?.bannerIconVeritalOffset || 
-                    plugin.settings.bannerIconVeritalOffset || 0;
-                // If the vertical offset is 0, set it to 0 (fix for falsey value)
-                if (Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)) === 0) {
-                    bannerIconVeritalOffset = 0;
-                }
+                let bannerIconVeritalOffset = Number(getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
+                    folderSpecific?.bannerIconVeritalOffset,
+                    plugin.settings.bannerIconVeritalOffset,
+                    0
+                ]));
                 // calculate content start
                 const contentStart = !hideEmbeddedNoteBanners ? 
                     `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
@@ -900,28 +933,36 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             const currentIconState = {
                 icon: cleanIcon,
                 size: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || plugin.settings.bannerIconSize,
-                xPosition: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField) || plugin.settings.bannerIconXPosition,
-                opacity: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField) || plugin.settings.bannerIconOpacity,
+                xPosition: getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
+                    plugin.settings.bannerIconXPosition,
+                ]),
+                opacity: getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
+                    plugin.settings.bannerIconOpacity,
+                ]),
                 color: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || plugin.settings.bannerIconColor,
                 fontWeight: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || plugin.settings.bannerIconFontWeight,
                 backgroundColor: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || plugin.settings.bannerIconBackgroundColor,
-                paddingX: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField) || plugin.settings.bannerIconPaddingX,
-                paddingY: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField) || plugin.settings.bannerIconPaddingY,
-                borderRadius: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) || plugin.settings.bannerIconBorderRadius,
-                verticalOffset: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField) || plugin.settings.bannerIconVeritalOffset,
+                paddingX: getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
+                    plugin.settings.bannerIconPaddingX,
+                ]),
+                paddingY: getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
+                    plugin.settings.bannerIconPaddingY,
+                ]),
+                borderRadius: getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
+                    plugin.settings.bannerIconBorderRadius,
+                ]),
+                verticalOffset: getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
+                    plugin.settings.bannerIconVeritalOffset,
+                ]),
                 imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
                 viewType
             };
-
-            // If the vertical offset is 0, set it to 0 (fix for falsey value)
-            if (getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField) === 0) {
-                currentIconState.verticalOffset = 0;
-            }
-
-            // if the border radius is 0, set it to 0 (fix for falsey value)
-            if (getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) === 0) {
-                currentIconState.borderRadius = 0;
-            }
             
             // Check if we already have a persistent icon overlay
             const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ? 
@@ -1065,14 +1106,18 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     const folderSpecific = plugin.getFolderSpecificImage(ctx.file.path);
     
     // Get pixel banner y position
-    const pixelBannerYPosition = getFrontmatterValue(frontmatter, plugin.settings.customYPositionField) || 
-        folderSpecific?.yPosition || 
-        plugin.settings.yPosition;
+    let pixelBannerYPosition = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customYPositionField),
+        folderSpecific?.yPosition,
+        plugin.settings.yPosition,
+    ]);
     
     // Get pixel banner x position
-    const pixelBannerXPosition = getFrontmatterValue(frontmatter, plugin.settings.customXPositionField) || 
-        folderSpecific?.xPosition || 
-        plugin.settings.xPosition;
+    let pixelBannerXPosition = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customXPositionField),
+        folderSpecific?.xPosition,
+        plugin.settings.xPosition,
+    ]);
 
     // Get pixel banner max width
     const pixelBannerMaxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
@@ -1085,19 +1130,27 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         plugin.settings.titleColor;
 
     // Get banner-icon size from frontmatter, folder settings, or default
-    const bannerIconSize = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || 
+    const bannerIconSize = 
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || 
         folderSpecific?.bannerIconSize || 
-        plugin.settings.bannerIconSize || 70;
+        plugin.settings.bannerIconSize || 
+        70;
 
     // Get banner-icon x position
-    const bannerIconXPosition = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField) || 
-        folderSpecific?.bannerIconXPosition || 
-        plugin.settings.bannerIconXPosition || 25;
+    const bannerIconXPosition = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
+        folderSpecific?.bannerIconXPosition,
+        plugin.settings.bannerIconXPosition,
+        25
+    ]);
 
     // Get banner-icon opacity
-    const bannerIconOpacity = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField) || 
-        folderSpecific?.bannerIconOpacity || 
-        plugin.settings.bannerIconOpacity || 100;
+    const bannerIconOpacity = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
+        folderSpecific?.bannerIconOpacity,
+        plugin.settings.bannerIconOpacity,
+        100
+    ]);
 
     // Get banner-icon color
     const bannerIconColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || 
@@ -1115,36 +1168,36 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         plugin.settings.bannerIconBackgroundColor || 'transparent';
 
     // Get banner-icon padding X
-    const bannerIconPaddingX = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField) || 
-        folderSpecific?.bannerIconPaddingX || 
-        plugin.settings.bannerIconPaddingX || 0;
+    const bannerIconPaddingX = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
+        folderSpecific?.bannerIconPaddingX,
+        plugin.settings.bannerIconPaddingX,
+        0
+    ]);
 
     // Get banner-icon padding Y
-    const bannerIconPaddingY = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField) || 
-        folderSpecific?.bannerIconPaddingY || 
-        plugin.settings.bannerIconPaddingY || 0;
+    const bannerIconPaddingY = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
+        folderSpecific?.bannerIconPaddingY,
+        plugin.settings.bannerIconPaddingY,
+        0
+    ]);
 
     // Get banner-icon border radius
-    let bannerIconBorderRadius = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) || 
-        folderSpecific?.bannerIconBorderRadius || 
-        plugin.settings.bannerIconBorderRadius || 17;
-    if (getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField) === 0) {
-        bannerIconBorderRadius = 0;
-    } else if (folderSpecific?.bannerIconBorderRadius === 0) {
-        bannerIconBorderRadius = 0;
-    } else if (plugin.settings.bannerIconBorderRadius === 0) {
-        bannerIconBorderRadius = 0;
-    }
+    const bannerIconBorderRadius = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
+        folderSpecific?.bannerIconBorderRadius,
+        plugin.settings.bannerIconBorderRadius,
+        17
+    ]);
 
     // Get banner-icon vertical offset
-    let bannerIconVeritalOffset = Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)) ||
-        folderSpecific?.bannerIconVeritalOffset || 
-        plugin.settings.bannerIconVeritalOffset || 0;
-
-    // If the vertical offset is 0, set it to 0 (fix for falsey value)
-    if (Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)) === 0) {
-        bannerIconVeritalOffset = 0;
-    }
+    const bannerIconVeritalOffset = getValueWithZeroCheck([
+        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)),
+        folderSpecific?.bannerIconVeritalOffset,
+        plugin.settings.bannerIconVeritalOffset,
+        0
+    ]);
 
     // Get hide embedded note banners setting
     const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 

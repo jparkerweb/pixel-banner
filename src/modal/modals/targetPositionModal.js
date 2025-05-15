@@ -3,7 +3,7 @@ import getCurrentTheme from '../../utils/getCurrentTheme';
 import { EmojiSelectionModal, IconImageSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
 import { flags } from '../../resources/flags.js';
-import { getFrontmatterValue } from '../../utils/frontmatterUtils.js';
+import { getFrontmatterValue, getValueWithZeroCheck } from '../../utils/frontmatterUtils.js';
 
 
 // ---------------------------
@@ -2254,13 +2254,10 @@ export class TargetPositionModal extends Modal {
         const iconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField)
             ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconBorderRadiusField;
-        if (frontmatter?.[iconBorderRadiusField] === 0) {
-            this.currentBannerIconBorderRadius = 0;
-        } else if (this.plugin.settings.bannerIconBorderRadius === 0) {
-            this.currentBannerIconBorderRadius = 0;
-        } else {
-            this.currentBannerIconBorderRadius = frontmatter?.[iconBorderRadiusField] || this.plugin.settings.bannerIconBorderRadius;
-        }
+        this.currentBannerIconBorderRadius = getValueWithZeroCheck([
+            frontmatter?.[iconBorderRadiusField],
+            this.plugin.settings.bannerIconBorderRadius,
+        ]);
 
         // Banner Icon Border Radius slider
         const bannerIconBorderRadiusSlider = bannerIconBorderRadiusContainer.createEl('input', {
