@@ -6,6 +6,7 @@ import {
 } from '../modals';
 import { flags } from '../../resources/flags.js';
 import { semver } from '../../utils/semver.js';
+import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
 
 export class SelectPixelBannerModal extends Modal {
@@ -664,7 +665,7 @@ export class SelectPixelBannerModal extends Modal {
                     // Available Tokens - only show if server is online
                     if (isOnline && pixelBannerPlusServerOnline) {
                         const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined 
-                            ? `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` 
+                            ? `🪙 ${decimalToFractionString(this.plugin.pixelBannerPlusBannerTokens)} Tokens` 
                             : '❓ Unknown';
                         
                         const tokenCountEl = statusContainer.createEl('span', {
@@ -781,7 +782,7 @@ export class SelectPixelBannerModal extends Modal {
                             const infoBlockRow3 = dailyGameInfoBlock.createEl('div');
                             infoBlockRow3.createEl('span', { text: '💰 Current Jackpot ' });
                             infoBlockRow3.createEl('span', {
-                                text: `🪙 ${this.plugin.pixelBannerPlusJackpot} Tokens`,
+                                text: `🪙 ${decimalToFractionString(this.plugin.pixelBannerPlusJackpot)} Tokens`,
                                 attr: { style: `
                                     font-style: italic;
                                     padding: 0px 8px;

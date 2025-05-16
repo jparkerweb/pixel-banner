@@ -1,6 +1,7 @@
 import { Modal, Notice, requestUrl, MarkdownView } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
+import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { DownloadHistory } from '../../utils/downloadHistory';
 import { TargetPositionModal, EmojiSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
@@ -153,8 +154,10 @@ export class GenerateAIBannerModal extends Modal {
             }
             
             .pixel-banner-model-token-cost {
-                color: var(--text-accent);
-                font-size: 0.9em;
+                border-left: 1px solid var(--text-accent);
+                font-size: 0.8em;
+                margin-left: 3px;
+                padding-left: 4px;
             }
         `;
         document.head.appendChild(styleEl);
@@ -280,7 +283,7 @@ export class GenerateAIBannerModal extends Modal {
                 }
             });
             
-            label.innerHTML = `${labelText} <span class="pixel-banner-model-token-cost">🪙 x${tokenCost}</span>`;
+            label.innerHTML = `${labelText} <span class="pixel-banner-model-token-cost">🪙 ${decimalToFractionString(tokenCost)}</span>`;
             
             // Set description as tooltip if available
             if (modelData.description) {
@@ -342,6 +345,23 @@ export class GenerateAIBannerModal extends Modal {
         
         const modelData = this.availableModels[this.selectedModelId];
         const controls = modelData.controls;
+
+        const modelDescription = this.controlsContainer.createDiv({ cls: 'setting-item-info' });
+        modelDescription.createDiv({ 
+            cls: 'setting-item-name', 
+            text: modelData.description,
+            attr: {
+                style: `
+                    border: 1px solid var(--text-accent);
+                    border-radius: 5px;
+                    padding: 5px 10px;
+                    font-size: 0.9em;
+                    color: var(--text-muted);
+                    font-style: italic;
+                    text-align: justify;
+                `
+            }
+        });
         
         if (!controls || Object.keys(controls).length === 0) {
             return;
@@ -531,7 +551,7 @@ export class GenerateAIBannerModal extends Modal {
                 const pixelBannerPlusBalanceEl = document.querySelector('.modal.pixel-banner-ai-modal .pixel-banner-plus-token-balance');
                 const tokenCountSpan = pixelBannerPlusBalanceEl.querySelector('span') || document.createElement('span');
                 tokenCountSpan.style.color = 'var(--text-accent)';
-                tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+                tokenCountSpan.innerText = decimalToFractionString(this.plugin.pixelBannerPlusBannerTokens);
                 if (!tokenCountSpan.parentElement) {
                     pixelBannerPlusBalanceEl.innerText = '🪙 Remaining Tokens: ';
                     pixelBannerPlusBalanceEl.appendChild(tokenCountSpan);
@@ -981,18 +1001,6 @@ export class GenerateAIBannerModal extends Modal {
                 `
             }
         });
-        const promptDescription = promptAllowedSection.createEl('p', {
-            text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the "💡 INSPIRATION" button to get started, or grow a basic prompt into something special with the "🌱 GROW IDEA" button. You can also use the "✏️ REWRITE PROMPT" button to improve your existing prompt.',
-            cls: 'pixel-banner-prompt-description',
-            attr: {
-                'style': `
-                    color: var(--text-muted); 
-                    max-width: 500px; 
-                    font-size: .9em;
-                    margin-bottom: 20px;
-                `
-            }
-        });
 
         // Prompt
         const promptContainer = promptAllowedSection.createDiv({
@@ -1011,7 +1019,7 @@ export class GenerateAIBannerModal extends Modal {
         promptContainer.createDiv({ cls: 'setting-item-name', text: '🖋️ Creative Banner Prompt' });
         promptContainer.createDiv({ 
             cls: 'setting-item-description', 
-            text: 'TIP ⇢ Type a few words and then press the "🌱 GROW IDEA" button to transform your basic idea into something special!',
+            text: 'TIP ⇢ Type a few words and then press the "🌱 GROW IDEA" button to transform your basic idea into something special! Select a Model and then click "✨ Generate Banner".',
             attr: {
                 'style': `
                     color: var(--text-muted); 
@@ -1084,7 +1092,12 @@ export class GenerateAIBannerModal extends Modal {
         // AI Model Selection
         const modelContainer = promptAllowedSection.createDiv({ 
             cls: 'setting-item pixel-banner-ai-control-row',
-            attr: { style: 'padding-bottom: 0;' } 
+            attr: {
+                style: `
+                    align-items: flex-start;
+                    padding-bottom: 0;
+                ` 
+            } 
         });
         
         // Check if we have models from the API
@@ -1176,7 +1189,7 @@ export class GenerateAIBannerModal extends Modal {
         tokenCountSpan.style.color = 'var(--text-accent)';
         tokenCountSpan.style.fontWeight = 'bold';
         tokenCountSpan.style.letterSpacing = '1px';
-        tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+        tokenCountSpan.innerText = decimalToFractionString(this.plugin.pixelBannerPlusBannerTokens);
         tokenBalance.setText('🪙 Remaining Tokens: ');
         tokenBalance.appendChild(tokenCountSpan);
         tokenCountSpan.classList.add('token-balance-animation');
@@ -1184,7 +1197,7 @@ export class GenerateAIBannerModal extends Modal {
         // Generate Button
         const generateButton = buttonContainer.createEl('button', {
             cls: 'mod-cta cursor-pointer radial-pulse-animation',
-            text: '✨ Generate Image',
+            text: '✨ Generate Banner',
             attr: {
                 'style': `
                     display: ${this.plugin.pixelBannerPlusEnabled && this.plugin.pixelBannerPlusBannerTokens > 0 ? 'block' : 'none'};

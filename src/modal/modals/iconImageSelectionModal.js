@@ -30,6 +30,7 @@ export class IconImageSelectionModal extends Modal {
         this.iconsSearchTerm = '';
         this.isIconsSearchMode = false;
         this.iconsPerPage = 10;
+        this._isPaginating = false;
         
         // Flag to track if a targeting modal has been opened via the onChoose callback
         this.targetingModalOpened = false;
@@ -898,6 +899,9 @@ export class IconImageSelectionModal extends Modal {
                 throw new Error(data.error || 'Failed to fetch icons');
             }
             
+            // Store the current page from the response to ensure synchronization
+            this.iconsCurrentPage = data.currentPage || this.iconsCurrentPage;
+            
             this.renderIcons(data.bannerIcons, data.totalPages, data.totalCount);
         } catch (error) {
             console.error('Error fetching icons by category:', error);
@@ -1125,6 +1129,7 @@ export class IconImageSelectionModal extends Modal {
                 cls: 'pixel-banner-collections-grid',
                 attr: {
                     style: `
+                        position: relative;
                         display: grid;
                         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
                         gap: 12px;
@@ -1132,6 +1137,7 @@ export class IconImageSelectionModal extends Modal {
                         max-height: 400px;
                         overflow-y: auto;
                         padding: 8px;
+                        min-height: 200px;
                     `
                 }
             });
@@ -1272,17 +1278,23 @@ export class IconImageSelectionModal extends Modal {
 
     showCollectionsLoading() {
         if (this.collectionsGridContainer) {
-            this.collectionsGridContainer.empty();
+            // this.collectionsGridContainer.empty();
+            // this.collectionsPaginationContainer.empty();
             
             const loadingContainer = this.collectionsGridContainer.createDiv({
                 cls: 'pixel-banner-loading-container',
                 attr: {
                     style: `
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        bottom: 0;
+                        left: 0;
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        height: 200px;
-                        grid-column: 1 / -1;
+                        background-color: var(--background-secondary);
+                        opacity: 0.7;
                     `
                 }
             });
@@ -1482,6 +1494,7 @@ export class IconImageSelectionModal extends Modal {
             firstPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage !== 1) {
                     this.iconsCurrentPage = 1;
+                    this._isPaginating = true;
                     this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
                 }
             });
@@ -1499,6 +1512,7 @@ export class IconImageSelectionModal extends Modal {
             prevPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage > 1) {
                     this.iconsCurrentPage--;
+                    this._isPaginating = true;
                     this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
                 }
             });
@@ -1526,6 +1540,7 @@ export class IconImageSelectionModal extends Modal {
             nextPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage < totalPages) {
                     this.iconsCurrentPage++;
+                    this._isPaginating = true;
                     this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
                 }
             });
@@ -1543,6 +1558,7 @@ export class IconImageSelectionModal extends Modal {
             lastPageButton.addEventListener('click', () => {
                 if (this.iconsCurrentPage !== totalPages) {
                     this.iconsCurrentPage = totalPages;
+                    this._isPaginating = true;
                     this.isIconsSearchMode ? this.searchIcons() : this.fetchIconsByCategory();
                 }
             });
@@ -1554,7 +1570,11 @@ export class IconImageSelectionModal extends Modal {
         if (!searchTerm) return;
         
         this.isIconsSearchMode = true;
-        this.iconsCurrentPage = 1;
+        
+        // Only reset to page 1 when initiating a new search, not when paginating
+        if (!this._isPaginating) {
+            this.iconsCurrentPage = 1;
+        }
         
         // Show loading state
         this.showCollectionsLoading();
@@ -1585,12 +1605,16 @@ export class IconImageSelectionModal extends Modal {
                 throw new Error(data.error || 'Failed to search icons');
             }
             
+            // Store the current page from the response to ensure synchronization
+            this.iconsCurrentPage = data.currentPage || this.iconsCurrentPage;
+            
             this.renderIcons(data.bannerIcons, data.totalPages, data.totalCount);
         } catch (error) {
             console.error('Error searching icons:', error);
             this.showCollectionsError(error.message);
         } finally {
             this.hideCollectionsLoading();
+            this._isPaginating = false;
         }
     }
 
