@@ -65,6 +65,11 @@
     /* add transition to banner image background position */
     transition: background-position 0.5s ease;
 }
+/* fix background color preventing banner from showing in reading mode for some themes */
+.markdown-reading-view,
+[class^=markdown-preview] {
+    background-color: transparent !important;
+}
 
 .markdown-embed-content .markdown-preview-view {
     min-height: var(--pixel-banner-embed-min-height, unset) !important;
@@ -303,7 +308,7 @@
     border-radius: 5px;
     padding: 20px;
     margin: 20px 0;
-    background-color: var(--background-secondary);
+    /* background-color: var(--background-secondary); */
 }
 .setting-item.folder-image-setting .folder-image-delete-container {
     position: absolute;

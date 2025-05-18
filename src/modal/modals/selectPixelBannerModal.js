@@ -92,7 +92,7 @@ export class SelectPixelBannerModal extends Modal {
                     margin-left: auto;
                     margin-right: 20px;
                     padding: 4px 10px;
-                    background: transparent;
+                    // background: transparent;
                     border: none;
                     cursor: pointer;
                     font-size: 14px;

@@ -3,6 +3,28 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.5.0 - 2025-05-17
+#### ✨ Added
+- New "Banner Icon Rotation" option to rotate the banner icon from 0 to 360 degrees
+- New "Icon Image" support to allow banner icons to contain both text/emojis and an image
+- Added Banner Icon Image contorls to the Position, Size & Style Modal (image source and alignment)
+- Banner Icon Image sources include:
+  - Local images
+  - Web URL
+  - Online Collections (FREE downloadable icons)
+- Banner Icon Image alignment options include:
+  - Left or Right (set the position of the icon image relative to the text/emojis)
+- New Border Radius slider control available in the Position, Size & Style Modal
+
+#### 📦 Updated
+- Embedded notes now respect custom frontmatter settings (border radius, banner height, etc.)
+- Any system action that sets the frontmatter value for a Banner or Icon Image now uses `![[image]]` format vs `[[image]]`
+
+#### 🐛 Fixed
+- Resolved issue with content being pushed down when banner was present in embedded notes
+- Resolved issue with max-width slider being disabled even when a custom max-width was set in frontmatter
+- Addressed background color preventing banner from showing in reading mode for some themes
+
 ### v3.4.5 - 2025-04-30
 #### 📦 Updated
 - Additional improvements to compatibility with `Better Search Views` plugin
