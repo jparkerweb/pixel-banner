@@ -1,7 +1,7 @@
-import { Modal, Notice, Setting } from "obsidian";
+import { Modal, Notice, Setting, MarkdownView } from "obsidian";
 import { IconFolderSelectionModal } from './iconFolderSelectionModal.js';
 import { SaveImageModal } from './saveImageModal.js';
-import { SelectPixelBannerModal } from './selectPixelBannerModal.js';
+import { TargetPositionModal } from "../modals";
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
 
 
@@ -360,9 +360,167 @@ export class IconImageSelectionModal extends Modal {
         // Title
         contentEl.createEl('h2', { text: '⭐ Select Banner Icon Image', cls: 'margin-top-0' });
         // Description
-        contentEl.createEl('div', {
+        const titleDescriptionRow = contentEl.createEl('div', {
             text: 'Select an image to use as a banner icon.',
-            cls: 'pixel-banner-image-select-description'
+            cls: 'pixel-banner-image-select-description',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                `
+            }
+        });
+
+        // Remove Icon Image Button
+        const removeIconImageButton = titleDescriptionRow.createEl('button', {
+            text: '🗑️ Remove',
+            cls: 'remove-icon-image-button cursor-pointer'
+        });
+
+        // Add event listener to remove icon image button
+        removeIconImageButton.addEventListener('click', async () => {
+            const activeFile = this.app.workspace.getActiveFile();
+            if (activeFile) {
+                await this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                    // Get frontmatter field names
+                    const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
+                        ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconField;
+
+                    const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField) 
+                        ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconImageAlignmentField;
+                    
+                    const iconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField) 
+                        ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconSizeField;
+
+                    const iconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField) 
+                        ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconRotateField;
+                    
+                    const iconYPositionField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField) 
+                        ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconVeritalOffsetField;
+                    
+                    const iconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField) 
+                        ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconXPositionField;
+                    
+                    const iconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField) 
+                        ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconColorField;
+                    
+                    const iconBgColorField = Array.isArray(this.plugin.settings.customBannerIconBackgroundColorField) 
+                        ? this.plugin.settings.customBannerIconBackgroundColorField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconBackgroundColorField;
+                    
+                    const iconXPaddingField = Array.isArray(this.plugin.settings.customBannerIconPaddingXField) 
+                        ? this.plugin.settings.customBannerIconPaddingXField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconPaddingXField;
+                    
+                    const iconYPaddingField = Array.isArray(this.plugin.settings.customBannerIconPaddingYField) 
+                        ? this.plugin.settings.customBannerIconPaddingYField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconPaddingYField;
+                    
+                    const iconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField) 
+                        ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconBorderRadiusField;
+                    
+                    // Get the banner icon image field name
+                    const bannerIconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                        ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconImageField;
+                    
+                    // Check if there's a text/emoji icon set
+                    const hasTextEmoji = frontmatter[bannerIconField] !== undefined && 
+                                         frontmatter[bannerIconField] !== null && 
+                                         frontmatter[bannerIconField] !== '';
+                    
+                    // Only remove all icon-related fields if there's no text/emoji
+                    if (!hasTextEmoji) {
+                        // Remove all banner icon related fields
+                        delete frontmatter[bannerIconField];
+                        delete frontmatter[bannerIconImageField];
+                        delete frontmatter[bannerIconImageAlignmentField];
+                        delete frontmatter[iconSizeField];
+                        delete frontmatter[iconRotateField];
+                        delete frontmatter[iconYPositionField];
+                        delete frontmatter[iconXPositionField];
+                        delete frontmatter[iconColorField];
+                        delete frontmatter[iconBgColorField];
+                        delete frontmatter[iconXPaddingField];
+                        delete frontmatter[iconYPaddingField];
+                        delete frontmatter[iconBorderRadiusField];
+                    } else {
+                        // If there is text/emoji, only remove the icon image field
+                        delete frontmatter[bannerIconImageField];
+                    }
+                });
+
+                // Call onChoose with null to indicate removal
+                this.onChoose(null);
+                this.close();
+            
+                // Get the active file and view
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (activeView) {
+                    // Clean up any existing banner icon overlays before updating
+                    const contentEl = activeView.contentEl;
+                    if (contentEl) {
+                        const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
+                        existingOverlays.forEach(overlay => {
+                            this.plugin.returnIconOverlay(overlay);
+                        });
+                    }
+                    
+                    // Force a full banner update
+                    await this.plugin.updateBanner(activeView, true, this.plugin.UPDATE_MODE.FULL_UPDATE);
+                }
+                
+                // Only open the targeting modal if we're not skipping it
+                // and the setting is enabled
+                if (!this.skipTargetingModal && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                    // Use metadataCache events instead of timeouts
+                    // Create a promise that resolves when the metadata is updated
+                    await new Promise(resolve => {
+                        // Store the current frontmatter state
+                        const initialFrontmatter = JSON.stringify(
+                            this.app.metadataCache.getFileCache(activeFile)?.frontmatter || {}
+                        );
+                        
+                        // Set up a one-time event listener for metadata changes
+                        const eventRef = this.app.metadataCache.on('changed', (file) => {
+                            // Only proceed if this is our active file
+                            if (file.path !== activeFile.path) return;
+                            
+                            // Get the updated frontmatter
+                            const updatedFrontmatter = JSON.stringify(
+                                this.app.metadataCache.getFileCache(file)?.frontmatter || {}
+                            );
+                            
+                            // If frontmatter has changed, we can proceed
+                            if (updatedFrontmatter !== initialFrontmatter) {
+                                // Remove the event listener
+                                this.app.metadataCache.off('changed', eventRef);
+                                
+                                // Resolve the promise
+                                resolve();
+                            }
+                        });
+                        
+                        // Set a timeout as a fallback in case the event doesn't fire
+                        setTimeout(() => {
+                            this.app.metadataCache.off('changed', eventRef);
+                            resolve();
+                        }, 500);
+                    });
+                    
+                    // Open the targeting modal
+                    new TargetPositionModal(this.app, this.plugin).open();
+                }
+            }
         });
 
         // Create tab container

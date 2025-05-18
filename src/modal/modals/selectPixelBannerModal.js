@@ -472,6 +472,7 @@ export class SelectPixelBannerModal extends Modal {
                     style: `
                         gap: 5px;
                         position: relative;
+                        min-height: 97px;
                     `
                 }
             });

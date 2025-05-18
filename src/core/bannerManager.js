@@ -119,6 +119,10 @@ async function addPixelBanner(plugin, el, ctx) {
                     plugin.settings.bannerIconVeritalOffset,
                     0
                 ]);
+                const bannerIconRotate = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField),
+                    0
+                ]);
                 
                 previewViewEl.style.setProperty('--pixel-banner-icon-size', `${bannerIconSize}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-x', `${bannerIconXPosition}%`);
@@ -130,6 +134,7 @@ async function addPixelBanner(plugin, el, ctx) {
                 previewViewEl.style.setProperty('--pixel-banner-icon-padding-y', `${bannerIconPaddingY}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-border-radius', `${bannerIconBorderRadius}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-vertical-offset', `${bannerIconVerticalOffset}px`);
+                previewViewEl.style.setProperty('--pixel-banner-icon-rotate', `${bannerIconRotate}deg`);
                 
                 // Set height for embedded notes with banners
                 const bannerHeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerHeightField) || 
@@ -1199,6 +1204,12 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         0
     ]);
 
+    // Get banner-icon rotate
+    const bannerIconRotate = getValueWithZeroCheck([
+        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField)),
+        0
+    ]);
+
     // Get hide embedded note banners setting
     const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 
         folderSpecific?.hideEmbeddedNoteBanners || 
@@ -1236,6 +1247,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         '--pixel-banner-icon-padding-y': `${bannerIconPaddingY}px`,
         '--pixel-banner-icon-border-radius': `${bannerIconBorderRadius}px`,
         '--pixel-banner-icon-vertical-offset': `${bannerIconVeritalOffset}px`,
+        '--pixel-banner-icon-rotate': `${bannerIconRotate}deg`,
         '--pixel-banner-embed-min-height': !hideEmbeddedNoteBanners ? 
             `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
             '0px',

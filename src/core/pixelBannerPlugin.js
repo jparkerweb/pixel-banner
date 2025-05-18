@@ -633,6 +633,7 @@ export class PixelBannerPlugin extends Plugin {
                         ...this.settings.customBannerShuffleField,
                         ...this.settings.customBannerIconField,
                         ...this.settings.customBannerIconSizeField,
+                        ...this.settings.customBannerIconRotateField,
                         ...this.settings.customBannerIconImageAlignmentField,
                         ...this.settings.customBannerIconXPositionField,
                         ...this.settings.customBannerIconOpacityField,

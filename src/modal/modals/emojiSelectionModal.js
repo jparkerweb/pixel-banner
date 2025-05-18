@@ -116,10 +116,18 @@ export class EmojiSelectionModal extends Modal {
                         const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
                             ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
                             : this.plugin.settings.customBannerIconField;
+
+                        const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField) 
+                            ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconImageAlignmentField;
                         
                         const iconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField) 
                             ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
                             : this.plugin.settings.customBannerIconSizeField;
+
+                        const iconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField) 
+                            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconRotateField;
                         
                         const iconYPositionField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField) 
                             ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
@@ -163,7 +171,9 @@ export class EmojiSelectionModal extends Modal {
                         if (!hasBannerIconImage) {
                             // Remove all banner icon related fields
                             delete frontmatter[bannerIconField];
+                            delete frontmatter[bannerIconImageAlignmentField];
                             delete frontmatter[iconSizeField];
+                            delete frontmatter[iconRotateField];
                             delete frontmatter[iconYPositionField];
                             delete frontmatter[iconXPositionField];
                             delete frontmatter[iconColorField];
@@ -172,8 +182,9 @@ export class EmojiSelectionModal extends Modal {
                             delete frontmatter[iconYPaddingField];
                             delete frontmatter[iconBorderRadiusField];
                         } else {
-                            // If there is a banner icon image, only remove the text/emoji field
+                            // If there is a banner icon image, only remove the text/emoji field and color
                             delete frontmatter[bannerIconField];
+                            delete frontmatter[iconColorField];
                         }
                     });
                 }

@@ -636,7 +636,8 @@
 /* ------------------------- */
 .banner-icon-overlay {
     --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
-    transform: translate(var(--pixel-banner-icon-translate-x), -15%);
+    transform: translate(var(--pixel-banner-icon-translate-x), -15%) rotate(var(--pixel-banner-icon-rotate, 0deg));
+    transform-origin: center !important;
     position: absolute !important;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);

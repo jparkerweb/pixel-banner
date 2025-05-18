@@ -164,6 +164,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-icon-size, icon-size'
         },
         {
+            setting: 'customBannerIconRotateField',
+            name: 'Banner Icon Rotate Field Names',
+            desc: 'Set custom field names for the banner icon rotate in frontmatter',
+            values: '50, 70, 100',
+            placeholder: 'banner-icon-rotate, icon-rotate'
+        },
+        {
             setting: 'customBannerIconXPositionField',
             name: 'Banner Icon X Position Field Names',
             desc: 'Set custom field names for the banner icon X position in frontmatter',

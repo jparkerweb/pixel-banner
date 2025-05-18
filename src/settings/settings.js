@@ -36,6 +36,7 @@ const DEFAULT_SETTINGS = {
     customBannerIconField: ['icon'],
     customBannerIconImageField: ['icon-image'],
     customBannerIconSizeField: ['icon-size'],
+    customBannerIconRotateField: ['icon-rotate'],
     customBannerIconXPositionField: ['icon-x'],
     customBannerIconOpacityField: ['icon-opacity'],
     customBannerIconColorField: ['icon-color'],

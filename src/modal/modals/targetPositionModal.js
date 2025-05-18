@@ -86,6 +86,15 @@ export class TargetPositionModal extends Modal {
         const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField)
             ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconImageAlignmentField;
+
+        // banner icon rotate field
+        const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconRotateField;
+        this.currentBannerIconRotate = getValueWithZeroCheck([
+            frontmatter?.[bannerIconRotateField],
+            0
+        ]);
         
         // Add more detailed debug info
         const frontmatterValue = frontmatter?.[bannerIconImageAlignmentField];
@@ -213,6 +222,16 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconSizeField] = size;
+        });
+    }
+
+    updateBannerIconRotate(rotate) {
+        const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconRotateField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[bannerIconRotateField] = rotate;
         });
     }
 
@@ -1522,7 +1541,7 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-x-position-slider',
             attr: {
                 min: '1',
-                max: '99',
+                max: '100',
                 step: '1',
                 value: this.currentBannerIconXPosition,
                 style: `
@@ -1690,6 +1709,76 @@ export class TargetPositionModal extends Modal {
             this.currentBannerIconSize = parseInt(bannerIconSizeSlider.value);
             bannerIconSizeValue.setText(`${this.currentBannerIconSize}`);
             this.updateBannerIconSize(this.currentBannerIconSize);
+        });
+
+        // Banner Icon Rotate control container
+        const bannerIconRotateContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-rotate-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Rotate label
+        const bannerIconRotateLabel = bannerIconRotateContainer.createEl('div', { 
+            text: 'Icon Rotation',
+            cls: 'banner-icon-rotate-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon rotate
+        const iconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconRotateField;
+        this.currentBannerIconRotate = frontmatter?.[iconRotateField] || 0;
+
+        // Banner Icon Rotate slider
+        const bannerIconRotateSlider = bannerIconRotateContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-rotate-slider',
+            attr: {
+                min: '0',
+                max: '365',
+                step: '5',
+                value: this.currentBannerIconRotate,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
+            }
+        });
+
+        // Banner Icon Rotate value display
+        const bannerIconRotateValue = bannerIconRotateContainer.createDiv({
+            cls: 'banner-icon-rotate-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconRotateValue.setText(`${this.currentBannerIconRotate}`);
+
+        // Banner Icon Rotate slider event listener
+        bannerIconRotateSlider.addEventListener('input', () => {
+            this.currentBannerIconRotate = parseInt(bannerIconRotateSlider.value);
+            bannerIconRotateValue.setText(`${this.currentBannerIconRotate}`);
+            this.updateBannerIconRotate(this.currentBannerIconRotate);
         });
 
         // Banner Icon Color control container
@@ -2265,7 +2354,7 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-border-radius-slider',
             attr: {
                 min: '0',
-                max: '100',
+                max: '200',
                 step: '1',
                 value: this.currentBannerIconBorderRadius,
                 style: `
@@ -2656,6 +2745,8 @@ export class TargetPositionModal extends Modal {
             if (bannerIconPaddingYSlider) bannerIconPaddingYSlider.value = this.plugin.settings.bannerIconPaddingY;
             if (bannerIconBorderRadiusSlider) bannerIconBorderRadiusSlider.value = this.plugin.settings.bannerIconBorderRadius;
             if (bannerIconVerticalOffsetSlider) bannerIconVerticalOffsetSlider.value = this.plugin.settings.bannerIconVeritalOffset;
+            if (bannerIconSizeSlider) bannerIconSizeSlider.value = this.plugin.settings.bannerIconSize;
+            if (bannerIconRotateSlider) bannerIconRotateSlider.value = 0;
             
             // Reset value displays
             zoomValue.setText('100%');
@@ -2681,6 +2772,7 @@ export class TargetPositionModal extends Modal {
             if (bannerIconPaddingYValue) bannerIconPaddingYValue.setText(`${this.plugin.settings.bannerIconPaddingY}`);
             if (bannerIconBorderRadiusValue) bannerIconBorderRadiusValue.setText(`${this.plugin.settings.bannerIconBorderRadius}`);
             if (bannerIconVerticalOffsetValue) bannerIconVerticalOffsetValue.setText(`${this.plugin.settings.bannerIconVeritalOffset}`);
+            if (bannerIconRotateValue) bannerIconRotateValue.setText(`${this.plugin.settings.bannerIconRotate}`);
             
             toggleInput.checked = false;
 
@@ -2738,10 +2830,6 @@ export class TargetPositionModal extends Modal {
                 const fadeField = Array.isArray(this.plugin.settings.customFadeField)
                     ? this.plugin.settings.customFadeField[0].split(',')[0].trim()
                     : this.plugin.settings.customFadeField;
-
-                const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
-                    ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
-                    : this.plugin.settings.customBannerIconSizeField;
                     
                 const bannerIconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField)
                     ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
@@ -2771,6 +2859,14 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconVeritalOffsetField;
 
+                const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
+                    ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconSizeField;
+
+                const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+                    ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconRotateField;
+
                 // Remove benner image fields
                 delete frontmatter[displayField];
                 delete frontmatter[heightField];
@@ -2783,7 +2879,6 @@ export class TargetPositionModal extends Modal {
                 
                 // Remove banner icon fields
                 delete frontmatter[bannerIconXPositionField];
-                delete frontmatter[bannerIconSizeField];
                 delete frontmatter[bannerIconImageAlignmentField];
                 delete frontmatter[bannerIconColorField];
                 delete frontmatter[bannerIconFontWeightField];
@@ -2792,6 +2887,8 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[bannerIconPaddingYField];
                 delete frontmatter[bannerIconBorderRadiusField];
                 delete frontmatter[bannerIconVerticalOffsetField];
+                delete frontmatter[bannerIconSizeField];
+                delete frontmatter[bannerIconRotateField];
                 
                 // Remove alignment field
                 const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField)
@@ -2991,6 +3088,7 @@ export class TargetPositionModal extends Modal {
                 e.target === borderRadiusSlider ||
                 e.target === bannerIconXPositionSlider ||
                 e.target === bannerIconSizeSlider ||
+                e.target === bannerIconRotateSlider ||
                 e.target === bannerIconColorPicker ||
                 e.target === bannerIconColorInput ||
                 e.target === bannerIconPaddingXSlider ||

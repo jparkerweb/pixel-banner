@@ -226,7 +226,7 @@ export class GenerateAIBannerModal extends Modal {
         modelInfo.createDiv({ cls: 'setting-item-name', text: 'AI Model' });
         modelInfo.createDiv({ 
             cls: 'setting-item-description', 
-            text: 'Select AI model for image generation',
+            text: 'Select an AI model for Banner generation',
             attr: { style: 'font-size: 0.8em;' }
         });
         
