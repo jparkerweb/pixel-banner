@@ -1,7 +1,8 @@
-import { Modal, Setting, Notice } from 'obsidian';
+import { Modal, Notice } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
-import { TargetPositionModal, EmojiSelectionModal } from '../modals';
+import { decimalToFractionString } from '../../utils/fractionTextDisplay';
+import { TargetPositionModal } from '../modals';
 import { flags } from '../../resources/flags.js';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
 
@@ -424,7 +425,7 @@ export class PixelBannerStoreModal extends Modal {
         
         // Available Tokens        
         const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined ? 
-            `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` : '❓ Unknown';
+            `🪙 ${decimalToFractionString(this.plugin.pixelBannerPlusBannerTokens)} Tokens` : '❓ Unknown';
         
         const tokenCountEl = pixelBannerPlusAccountStatus.createEl('span', {
             text: tokenCount,
@@ -783,8 +784,14 @@ export class PixelBannerStoreModal extends Modal {
                 
                 const metaDetails = details.createEl('div', { cls: 'pixel-banner-store-meta-details' });
                 
-                const costText = imageCost === 0 ? 'FREE' : `🪙`;
-                const costEl = metaDetails.createEl('div', { text: costText, cls: 'pixel-banner-store-cost' });
+                const costText = imageCost === 0 ? 'FREE' : `🪙 ${decimalToFractionString(imageCost)}`;
+                const costEl = metaDetails.createEl('div', {
+                    text: costText,
+                    cls: 'pixel-banner-store-cost',
+                    attr: {
+                        style: 'color: var(--text-normal);'
+                    }
+                });
                 if (imageCost === 0) {
                     costEl.addClass('free');
                 }
@@ -880,7 +887,7 @@ export class PixelBannerStoreModal extends Modal {
 
                 // Add click handler
                 card.addEventListener('click', async () => {
-                    const cost = parseInt(card.getAttribute('data-image-cost'));
+                    const cost = Number(card.getAttribute('data-image-cost'));
                     
                     if (cost > 0) {
                         new ConfirmPurchaseModal(this.app, cost, image.prompt, image.base64Image, async () => {
@@ -912,32 +919,8 @@ export class PixelBannerStoreModal extends Modal {
                                 await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                                 this.close();
                                 
-                                // Check if we should open the banner icon modal after selecting a banner
-                                if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                                    new EmojiSelectionModal(
-                                        this.app, 
-                                        this.plugin,
-                                        async (emoji) => {
-                                            const activeFile = this.app.workspace.getActiveFile();
-                                            if (activeFile) {
-                                                await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                                    const iconField = this.plugin.settings.customBannerIconField[0];
-                                                    frontmatter[iconField] = emoji;
-                                                });
-                                                
-                                                // Check if we should open the targeting modal after setting the icon
-                                                if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                                    // Add a small delay to ensure frontmatter is updated
-                                                    await new Promise(resolve => setTimeout(resolve, 200));
-                                                    new TargetPositionModal(this.app, this.plugin).open();
-                                                }
-                                            }
-                                        },
-                                        true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                                    ).open();
-                                } 
-                                // If not opening the banner icon modal, check if we should open the targeting modal
-                                else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                                // Check if we should open the targeting modal
+                                if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                     new TargetPositionModal(this.app, this.plugin).open();
                                 }
                             } catch (error) {
@@ -966,33 +949,8 @@ export class PixelBannerStoreModal extends Modal {
                             await handlePinIconClick(data.base64Image, this.plugin, null, filename);
                             this.close();
                             
-                            // Check if we should open the banner icon modal after selecting a banner
-                            if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                                // Use the imported EmojiSelectionModal
-                                new EmojiSelectionModal(
-                                    this.app, 
-                                    this.plugin,
-                                    async (emoji) => {
-                                        const activeFile = this.app.workspace.getActiveFile();
-                                        if (activeFile) {
-                                            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                                const iconField = this.plugin.settings.customBannerIconField[0];
-                                                frontmatter[iconField] = emoji;
-                                            });
-                                            
-                                            // Check if we should open the targeting modal after setting the icon
-                                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                                // Add a small delay to ensure frontmatter is updated
-                                                await new Promise(resolve => setTimeout(resolve, 200));
-                                                new TargetPositionModal(this.app, this.plugin).open();
-                                            }
-                                        }
-                                    },
-                                    true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                                ).open();
-                            } 
-                            // If not opening the banner icon modal, check if we should open the targeting modal
-                            else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                            // Check if we should open the targeting modal
+                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                                 new TargetPositionModal(this.app, this.plugin).open();
                             }
                             
@@ -1456,8 +1414,8 @@ export class PixelBannerStoreModal extends Modal {
                 margin-left: 5px;
             }
             .pixel-banner-store-cost.free {
-                color: var(--text-success);
-                font-weight: bold;
+                color: var(--text-success) !important;
+                font-weight: bold !important;
             }
             
             /* Vote Controls Styles */
@@ -1712,7 +1670,7 @@ class ConfirmPurchaseModal extends Modal {
 
         // Purchase explanation text
         const explanationText = buttonContainer.createEl('p', {
-            text: `🪙 ${this.cost} Banner Token${this.cost > 1 ? 's' : ''} (this is not a monitary transaction). Once purchased, the banner will be added to your vault, and will be free to download while listed in the store.`,
+            text: `🪙 ${decimalToFractionString(this.cost)} Banner Token${this.cost > 1 ? 's' : ''} (this is not a monitary transaction). Once purchased, the banner will be added to your vault, and will be free to download while listed in the store.`,
             cls: 'setting-item-description',
             attr: {
                 style: `
@@ -1726,7 +1684,7 @@ class ConfirmPurchaseModal extends Modal {
 
         // Confirm button
         const confirmButton = buttonContainer.createEl('button', {
-            text: '🪙 Spend Token',
+            text: `🪙 ${decimalToFractionString(this.cost)} Token${this.cost > 1 ? 's' : ''}`,
             cls: 'mod-cta radial-pulse-animation'
         });
         confirmButton.addEventListener('click', () => {

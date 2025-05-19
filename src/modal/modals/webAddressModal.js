@@ -31,7 +31,7 @@ export class WebAddressModal extends Modal {
         // Title container
         const titleContainer = mainContainer.createEl('h2', {
             cls: 'pixel-banner-web-address-title',
-            text: 'Enter Image URL',
+            text: '🌐 Enter Banner URL',
             attr: {
                 style: `
                     margin-top: 10px;
@@ -212,48 +212,8 @@ export class WebAddressModal extends Modal {
                     frontmatter[bannerField] = url;
                 });
                 
-                // Check if we should open the banner icon modal after selecting a banner
-                if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                    this.close();
-                    new EmojiSelectionModal(
-                        this.app, 
-                        this.plugin,
-                        async (emoji) => {
-                            if (activeFile) {
-                                await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                    const iconField = this.plugin.settings.customBannerIconField[0];
-                                    if (emoji) {
-                                        frontmatter[iconField] = emoji;
-                                    } else {
-                                        delete frontmatter[iconField];
-                                    }
-                                });
-                                
-                                // Ensure banner is updated
-                                const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-                                if (view) {
-                                    const contentEl = view.contentEl;
-                                    if (contentEl) {
-                                        const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
-                                        existingOverlays.forEach(overlay => {
-                                            this.plugin.returnIconOverlay(overlay);
-                                        });
-                                    }
-                                    
-                                    await this.plugin.updateBanner(view, true);
-                                }
-                                
-                                // Check if we should open targeting modal
-                                if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                    new TargetPositionModal(this.app, this.plugin).open();
-                                }
-                            }
-                        },
-                        this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
-                    ).open();
-                } 
                 // If not opening banner icon modal, check if we should open targeting modal
-                else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                     this.close();
                     new TargetPositionModal(this.app, this.plugin).open();
                 } else {

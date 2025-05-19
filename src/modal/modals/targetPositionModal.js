@@ -1,9 +1,9 @@
 import { Modal, MarkdownView } from 'obsidian';
 import getCurrentTheme from '../../utils/getCurrentTheme';
-import { EmojiSelectionModal } from '../modals';
+import { EmojiSelectionModal, IconImageSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
 import { flags } from '../../resources/flags.js';
-import { getFrontmatterValue } from '../../utils/frontmatterUtils.js';
+import { getFrontmatterValue, getValueWithZeroCheck } from '../../utils/frontmatterUtils.js';
 
 
 // ---------------------------
@@ -82,6 +82,27 @@ export class TargetPositionModal extends Modal {
             : this.plugin.settings.customBannerIconXPositionField;
         this.currentBannerIconXPosition = frontmatter?.[bannerIconXPositionField] || this.plugin.settings.bannerIconXPosition;
 
+        // banner icon image alignment field
+        const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField)
+            ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageAlignmentField;
+
+        // banner icon rotate field
+        const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconRotateField;
+        this.currentBannerIconRotate = getValueWithZeroCheck([
+            frontmatter?.[bannerIconRotateField],
+            0
+        ]);
+        
+        // Add more detailed debug info
+        const frontmatterValue = frontmatter?.[bannerIconImageAlignmentField];
+        const defaultValue = this.plugin.settings.bannerIconImageAlignment;
+        
+        // Explicitly check for the "right" value to ensure proper initialization
+        this.currentBannerIconImageAlignment = (frontmatterValue === 'right') ? 'right' : 'left';
+
         // Add repeat field initialization
         const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
             ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
@@ -93,6 +114,12 @@ export class TargetPositionModal extends Modal {
             ? this.plugin.settings.customFadeField[0].split(',')[0].trim()
             : this.plugin.settings.customFadeField;
         this.currentFade = frontmatter?.[fadeField] !== undefined ? frontmatter[fadeField] : this.plugin.settings.fade;
+
+        // border radius field
+        const borderRadiusField = Array.isArray(this.plugin.settings.customBorderRadiusField)
+            ? this.plugin.settings.customBorderRadiusField[0].split(',')[0].trim()
+            : this.plugin.settings.customBorderRadiusField;
+        this.currentBorderRadius = frontmatter?.[borderRadiusField] !== undefined ? frontmatter[borderRadiusField] : (this.plugin.settings.borderRadius || 0);
 
         // Parse current display value for zoom percentage
         this.currentZoom = 100;
@@ -198,6 +225,16 @@ export class TargetPositionModal extends Modal {
         });
     }
 
+    updateBannerIconRotate(rotate) {
+        const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconRotateField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[bannerIconRotateField] = rotate;
+        });
+    }
+
     updateBannerIconColor(color) {
         const bannerIconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField)
             ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
@@ -298,6 +335,24 @@ export class TargetPositionModal extends Modal {
         });
     }
 
+    updateBannerIconImageAlignment(alignment) {
+        const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField)
+            ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageAlignmentField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[bannerIconImageAlignmentField] = alignment;
+        });
+
+        // Update the banner to ensure the note is re-rendered properly
+        setTimeout(() => {
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+                this.plugin.updateBanner(view, true);
+            }
+        }, 350);
+    }
+
     updateTitleColor(color) {
         const titleColorField = Array.isArray(this.plugin.settings.customTitleColorField)
             ? this.plugin.settings.customTitleColorField[0].split(',')[0].trim()
@@ -336,6 +391,24 @@ export class TargetPositionModal extends Modal {
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[fadeField] = fade;
         });
+    }
+
+    updateBannerBorderRadius(borderRadius) {
+        const borderRadiusField = Array.isArray(this.plugin.settings.customBorderRadiusField)
+            ? this.plugin.settings.customBorderRadiusField[0].split(',')[0].trim()
+            : this.plugin.settings.customBorderRadiusField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[borderRadiusField] = borderRadius;
+        });
+        
+        // Update the banner to ensure the note is re-rendered properly
+        setTimeout(() => {
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+                this.plugin.updateBanner(view, true);
+            }
+        }, 350);
     }
 
     onPositionChange(x, y) {
@@ -656,6 +729,12 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
+        
+        // Ensure the slider is enabled if max-width is set
+        if (!isMaxWidthUnset) {
+            maxWidthSlider.disabled = false;
+            maxWidthSlider.style.opacity = '1';
+        }
 
         // Toggle max width unset/set
         unsetCheckbox.addEventListener('change', () => {
@@ -771,8 +850,8 @@ export class TargetPositionModal extends Modal {
         });
 
         // Create crosshair lines
-        const verticalLine = targetArea.createDiv({ cls: 'vertical-line' });
-        const horizontalLine = targetArea.createDiv({ cls: 'horizontal-line' });
+        const verticalLine = targetArea.createDiv({ cls: 'crosshair-line vertical' });
+        const horizontalLine = targetArea.createDiv({ cls: 'crosshair-line horizontal' });
 
         // Position indicator
         const positionIndicator = targetContainer.createEl('div', { 
@@ -901,6 +980,7 @@ export class TargetPositionModal extends Modal {
                 style: `
                 display: flex;
                 flex-direction: row;
+                flex-wrap: wrap;
                 gap: 10px;
                 align-items: center;
                 flex: 0 auto;
@@ -981,9 +1061,9 @@ export class TargetPositionModal extends Modal {
             type: 'range',
             cls: 'slider',
             attr: {
-                min: -300,
-                max: 100,
-                step: 5,
+                min: '-300',
+                max: '100',
+                step: '5',
                 value: this.currentFade,
                 style: `
                     flex: 1;
@@ -1009,10 +1089,77 @@ export class TargetPositionModal extends Modal {
             bannerFadeValue.setText(value.toString());
         });
 
+        // border radius slider
+        const borderRadiusContainer = bannerSettingsRow2.createDiv({
+            cls: 'setting-item',
+            attr: {
+                style: `
+                    flex: 1;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                `
+            }
+        });
+        const borderRadiusHeader = borderRadiusContainer.createDiv({
+            text: 'Border Radius',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        const borderRadiusSliderContainer = borderRadiusContainer.createDiv({
+            attr: {
+                style: `
+                    flex: 1;
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                `
+            }
+        });
+
+        const borderRadiusSlider = borderRadiusSliderContainer.createEl('input', {
+            type: 'range',
+            cls: 'slider',
+            attr: {
+                min: '0',
+                max: '50',
+                step: '1',
+                value: this.currentBorderRadius,
+                style: `
+                    flex: 1;
+                `
+            }
+        });
+
+        const borderRadiusValue = borderRadiusSliderContainer.createDiv({
+            text: this.currentBorderRadius.toString(),
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    min-width: 45px;
+                    text-align: right;
+                `
+            }
+        });
+
+        borderRadiusSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            this.updateBannerBorderRadius(value);
+            borderRadiusValue.setText(`${value}`);
+        });
+
 
         // -----------------------
         // -- banner icon stuff --
         // -----------------------
+
         // Function to open emoji picker
         const openEmojiPicker = () => {
             this.close();
@@ -1036,78 +1183,132 @@ export class TargetPositionModal extends Modal {
             ).open();
         };
 
-        // banner icon controls container
-        const bannerIconControlsContainer = contentEl.createDiv({
-            cls: 'main-container--banner-icon',
-            attr: {
-                style: `
-                    margin-top: 20px;
-                    display: none;
-                `
-            }
-        });
+        // Function to open image picker
+        const openImagePicker = () => {
+            const defaultIconImageFolder = this.plugin.settings.defaultSelectIconPath || ''
+            this.close();
+            new IconImageSelectionModal(
+                this.app, 
+                this.plugin,
+                async (file) => {
+                    if (!file) return;
+                    
+                    // Get active file
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (!activeFile) return;
+                    
+                    // Check if this is a web URL or local file
+                    if (file.isWebUrl) {
+                        // For web URLs, use the URL directly
+                        this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                            // Get the correct field name
+                            const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                                ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                                : this.plugin.settings.customBannerIconImageField;
+                            
+                            // Set the frontmatter value as direct URL
+                            fm[iconImageField] = file.path;
+                        });
+                        
+                        // Reopen this modal
+                        new TargetPositionModal(this.app, this.plugin).open();
+                        return;
+                    }
+                    
+                    // For local files, preload the image into the cache
+                    if (file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/)) {
+                        try {
+                            // Get the vault URL for the image and load it into the cache
+                            const imageUrl = await this.plugin.getVaultImageUrl(file.path);
+                            if (imageUrl) {
+                                this.plugin.loadedImages.set(file.path, imageUrl);
+                                
+                                // Force a preload of the image to ensure it's in browser cache
+                                const preloadImg = new Image();
+                                preloadImg.src = imageUrl;
+                            }
+                        } catch (error) {
+                            console.error("Error preloading icon image:", error);
+                        }
+                    }
+                    
+                    // Update frontmatter with the image path
+                    this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                        // Get the correct field name
+                        const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                            ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconImageField;
+                        
+                        // Set the frontmatter value with proper Obsidian image link syntax
+                        fm[iconImageField] = `![[${file.path}]]`;
+                    });
+                    
+                    // Reopen this modal
+                    new TargetPositionModal(this.app, this.plugin).open();
+                },
+                defaultIconImageFolder
+            ).open();
+        };
 
         // Check if note has banner icon
         const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField)
             ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconField;
         
-        // check for banner icon in frontmatter
-        let hasBannerIcon = frontmatter && frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== '';
+        const bannerIconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField)
+            ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageField;
         
+        // check for banner icon or banner icon image in frontmatter
+        let hasBannerIcon = frontmatter && (
+            (frontmatter[bannerIconField] && frontmatter[bannerIconField].trim() !== '') ||
+            (frontmatter[bannerIconImageField] && frontmatter[bannerIconImageField].trim() !== '')
+        );
+
+        // Banner Icon Image check
+        const hasBannerIconImage = frontmatter && 
+            frontmatter[bannerIconImageField] && 
+            frontmatter[bannerIconImageField].trim() !== '';
+
         if (!hasBannerIcon) {
             // no banner icon found, try one more time after a short delay
             await new Promise(resolve => {
                 setTimeout(async () => {
                     const refreshedFrontmatter = this.app.metadataCache.getFileCache(activeFile)?.frontmatter;
-                    if (refreshedFrontmatter && refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') {
+                    if (refreshedFrontmatter && (
+                        (refreshedFrontmatter[bannerIconField] && refreshedFrontmatter[bannerIconField].trim() !== '') ||
+                        (refreshedFrontmatter[bannerIconImageField] && refreshedFrontmatter[bannerIconImageField].trim() !== '')
+                    )) {
                         hasBannerIcon = true;
                     }
                     resolve();
                 }, 400);
             });
         }
-        
-        if (hasBannerIcon) {
-            bannerIconControlsContainer.style.display = 'block';
-        } else {
-            // banner icon controls container
-            const addBannerIconContainer = contentEl.createDiv({
-                cls: 'main-container--banner-icon',
-                attr: {
-                    style: `
-                        display: flex;
-                        flex-direction: row;
-                        margin-top: 20px;
-                    `
-                }
-            });
 
-            // add button to addBannerIconContainer
-            const addBannerIconButton = addBannerIconContainer.createEl('button', {
-                text: '⭐ Add Banner Icon',
-                cls: 'banner-icon-header-button cursor-pointer',
-                attr: {
-                    style: `
-                        margin-top: 15px;
-                        margin-left: auto;
-                        text-transform: uppercase;
-                        font-size: .8em;
-                    `
-                }
-            });
-            addBannerIconButton.addEventListener('click', openEmojiPicker);
-        }
+        // banner icon controls container
+        const addBannerIconContainer = contentEl.createDiv({
+            cls: 'main-container--banner-icon',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    margin-top: 30px;
+                    margin-bottom: 10px;
+                    justify-content: space-between;
+                    align-items: center;
+                `
+            }
+        });
 
         // Banner Icon header
-        const bannerIconHeader = bannerIconControlsContainer.createEl('div', {
-            text: '⭐ Banner Icon Settings',
+        const bannerIconHeader = addBannerIconContainer.createEl('div', {
+            text: hasBannerIcon ? '⭐ Banner Icon Settings' : '',
             cls: 'banner-icon-header',
             attr: {
                 style: `
                     display: flex;
                     flex-direction: row;
-                    gap: 10px;
                     align-items: center;
                     justify-content: space-between;
                     color: var(--text-accent);
@@ -1115,24 +1316,197 @@ export class TargetPositionModal extends Modal {
                     font-weight: 600;
                     letter-spacing: 1px;
                     text-transform: uppercase;
-                    margin-bottom: 10px;
+                `
+            }
+        });
+
+        const bannerIconHeaderButtons = addBannerIconContainer.createDiv({
+            cls: 'banner-icon-header-buttons',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    justify-content: flex-end;
                 `
             }
         });
 
         // add button to bannerIconHeader
-        const bannerIconHeaderButton = bannerIconHeader.createEl('button', {
-            text: '✏️ Edit Icon',
+        const bannerIconHeaderButtonIcon = bannerIconHeaderButtons.createEl('button', {
+            text: hasBannerIconImage ? '✏️ Edit Icon Image' : '⭐ Add Icon Image',
             cls: 'banner-icon-header-button cursor-pointer',
             attr: {
                 style: `
-                    margin-top: 15px;
                     text-transform: uppercase;
                     font-size: .8em;
                 `
             }
         });
-        bannerIconHeaderButton.addEventListener('click', openEmojiPicker);
+        bannerIconHeaderButtonIcon.addEventListener('click', openImagePicker);
+
+        // Banner Icon Text / Emoji check
+        const hasBannerIconText = frontmatter && 
+            frontmatter[bannerIconField] && 
+            frontmatter[bannerIconField].trim() !== '';
+            
+        // add button to bannerIconHeader
+        const bannerIconHeaderButtonText = bannerIconHeaderButtons.createEl('button', {
+            text: hasBannerIconText ? '📝 Edit Icon Text & Emoji' : '📰 Add Icon Text & Emoji',
+            cls: 'banner-icon-header-button cursor-pointer',
+            attr: {
+                style: `
+                    text-transform: uppercase;
+                    font-size: .8em;
+                `
+            }
+        });
+        bannerIconHeaderButtonText.addEventListener('click', openEmojiPicker);
+
+        // banner icon controls container
+        const bannerIconControlsContainer = contentEl.createDiv({
+            cls: 'main-container--banner-icon',
+            attr: {
+                style: `
+                    margin-top: 20px;
+                    display: ${hasBannerIcon ? 'block' : 'none'};
+                `
+            }
+        });
+
+        // Banner Icon Image Alignment radio control container
+        const bannerIconImageAlignmentContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-image-alignment-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-bottom: 15px;
+                `
+            }
+        });
+
+        // Banner Icon Image Alignment label
+        const bannerIconImageAlignmentLabel = bannerIconImageAlignmentContainer.createEl('div', { 
+            text: 'Icon Image Alignment',
+            cls: 'banner-icon-image-alignment-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                    min-width: 120px;
+                `
+            }
+        });
+
+        // Create radio options container
+        const bannerIconImageAlignmentRadioContainer = bannerIconImageAlignmentContainer.createDiv({
+            cls: 'banner-icon-image-alignment-radio-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 20px;
+                    align-items: center;
+                `
+            }
+        });
+
+        // Create left radio option
+        const leftRadioContainer = bannerIconImageAlignmentRadioContainer.createDiv({
+            cls: 'radio-container',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                `
+            }
+        });
+
+        // Determine which option should be checked
+        const isRightAlignment = this.currentBannerIconImageAlignment === 'right';
+        const isLeftAlignment = !isRightAlignment;
+
+        const leftRadio = leftRadioContainer.createEl('input', {
+            type: 'radio',
+            attr: {
+                id: 'icon-placement-left',
+                name: 'icon-image-placement',
+                value: 'left',
+                style: `cursor: pointer;`
+            }
+        });
+
+        leftRadioContainer.createEl('label', {
+            text: 'Left',
+            attr: {
+                for: 'icon-placement-left',
+                style: `
+                    cursor: pointer;
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Create right radio option
+        const rightRadioContainer = bannerIconImageAlignmentRadioContainer.createDiv({
+            cls: 'radio-container',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                `
+            }
+        });
+
+        const rightRadio = rightRadioContainer.createEl('input', {
+            type: 'radio',
+            attr: {
+                id: 'icon-placement-right',
+                name: 'icon-image-placement',
+                value: 'right',
+                style: `cursor: pointer;`
+            }
+        });
+
+        rightRadioContainer.createEl('label', {
+            text: 'Right',
+            attr: {
+                for: 'icon-placement-right',
+                style: `
+                    cursor: pointer;
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Set the checked property directly
+        setTimeout(() => {
+            leftRadio.checked = isLeftAlignment;
+            rightRadio.checked = isRightAlignment;
+        }, 50);
+
+        // Add event listeners to radio buttons
+        leftRadio.addEventListener('change', () => {
+            if (leftRadio.checked) {
+                this.currentBannerIconImageAlignment = 'left';
+                this.updateBannerIconImageAlignment(this.currentBannerIconImageAlignment);
+            }
+        });
+
+        rightRadio.addEventListener('change', () => {
+            if (rightRadio.checked) {
+                this.currentBannerIconImageAlignment = 'right';
+                this.updateBannerIconImageAlignment(this.currentBannerIconImageAlignment);
+            }
+        });
 
         // Banner Icon X Position control container
         const bannerIconXPositionContainer = bannerIconControlsContainer.createDiv({
@@ -1167,7 +1541,7 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-x-position-slider',
             attr: {
                 min: '1',
-                max: '99',
+                max: '100',
                 step: '1',
                 value: this.currentBannerIconXPosition,
                 style: `
@@ -1335,6 +1709,76 @@ export class TargetPositionModal extends Modal {
             this.currentBannerIconSize = parseInt(bannerIconSizeSlider.value);
             bannerIconSizeValue.setText(`${this.currentBannerIconSize}`);
             this.updateBannerIconSize(this.currentBannerIconSize);
+        });
+
+        // Banner Icon Rotate control container
+        const bannerIconRotateContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-rotate-container',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Rotate label
+        const bannerIconRotateLabel = bannerIconRotateContainer.createEl('div', { 
+            text: 'Icon Rotation',
+            cls: 'banner-icon-rotate-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon rotate
+        const iconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconRotateField;
+        this.currentBannerIconRotate = frontmatter?.[iconRotateField] || 0;
+
+        // Banner Icon Rotate slider
+        const bannerIconRotateSlider = bannerIconRotateContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-rotate-slider',
+            attr: {
+                min: '0',
+                max: '365',
+                step: '5',
+                value: this.currentBannerIconRotate,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
+            }
+        });
+
+        // Banner Icon Rotate value display
+        const bannerIconRotateValue = bannerIconRotateContainer.createDiv({
+            cls: 'banner-icon-rotate-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconRotateValue.setText(`${this.currentBannerIconRotate}`);
+
+        // Banner Icon Rotate slider event listener
+        bannerIconRotateSlider.addEventListener('input', () => {
+            this.currentBannerIconRotate = parseInt(bannerIconRotateSlider.value);
+            bannerIconRotateValue.setText(`${this.currentBannerIconRotate}`);
+            this.updateBannerIconRotate(this.currentBannerIconRotate);
         });
 
         // Banner Icon Color control container
@@ -1899,13 +2343,10 @@ export class TargetPositionModal extends Modal {
         const iconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField)
             ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconBorderRadiusField;
-        if (frontmatter?.[iconBorderRadiusField] === 0) {
-            this.currentBannerIconBorderRadius = 0;
-        } else if (this.plugin.settings.bannerIconBorderRadius === 0) {
-            this.currentBannerIconBorderRadius = 0;
-        } else {
-            this.currentBannerIconBorderRadius = frontmatter?.[iconBorderRadiusField] || this.plugin.settings.bannerIconBorderRadius;
-        }
+        this.currentBannerIconBorderRadius = getValueWithZeroCheck([
+            frontmatter?.[iconBorderRadiusField],
+            this.plugin.settings.bannerIconBorderRadius,
+        ]);
 
         // Banner Icon Border Radius slider
         const bannerIconBorderRadiusSlider = bannerIconBorderRadiusContainer.createEl('input', {
@@ -1913,7 +2354,7 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-border-radius-slider',
             attr: {
                 min: '0',
-                max: '100',
+                max: '200',
                 step: '1',
                 value: this.currentBannerIconBorderRadius,
                 style: `
@@ -2304,6 +2745,8 @@ export class TargetPositionModal extends Modal {
             if (bannerIconPaddingYSlider) bannerIconPaddingYSlider.value = this.plugin.settings.bannerIconPaddingY;
             if (bannerIconBorderRadiusSlider) bannerIconBorderRadiusSlider.value = this.plugin.settings.bannerIconBorderRadius;
             if (bannerIconVerticalOffsetSlider) bannerIconVerticalOffsetSlider.value = this.plugin.settings.bannerIconVeritalOffset;
+            if (bannerIconSizeSlider) bannerIconSizeSlider.value = this.plugin.settings.bannerIconSize;
+            if (bannerIconRotateSlider) bannerIconRotateSlider.value = 0;
             
             // Reset value displays
             zoomValue.setText('100%');
@@ -2329,6 +2772,7 @@ export class TargetPositionModal extends Modal {
             if (bannerIconPaddingYValue) bannerIconPaddingYValue.setText(`${this.plugin.settings.bannerIconPaddingY}`);
             if (bannerIconBorderRadiusValue) bannerIconBorderRadiusValue.setText(`${this.plugin.settings.bannerIconBorderRadius}`);
             if (bannerIconVerticalOffsetValue) bannerIconVerticalOffsetValue.setText(`${this.plugin.settings.bannerIconVeritalOffset}`);
+            if (bannerIconRotateValue) bannerIconRotateValue.setText(`${this.plugin.settings.bannerIconRotate}`);
             
             toggleInput.checked = false;
 
@@ -2375,6 +2819,10 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconXPositionField;
 
+                const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField)
+                    ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconImageAlignmentField;
+
                 const repeatField = Array.isArray(this.plugin.settings.customImageRepeatField)
                     ? this.plugin.settings.customImageRepeatField[0].split(',')[0].trim()
                     : this.plugin.settings.customImageRepeatField;
@@ -2382,11 +2830,6 @@ export class TargetPositionModal extends Modal {
                 const fadeField = Array.isArray(this.plugin.settings.customFadeField)
                     ? this.plugin.settings.customFadeField[0].split(',')[0].trim()
                     : this.plugin.settings.customFadeField;
-
-                // New banner icon fields
-                const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
-                    ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
-                    : this.plugin.settings.customBannerIconSizeField;
                     
                 const bannerIconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField)
                     ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
@@ -2416,6 +2859,14 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconVeritalOffsetField;
 
+                const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
+                    ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconSizeField;
+
+                const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
+                    ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconRotateField;
+
                 // Remove benner image fields
                 delete frontmatter[displayField];
                 delete frontmatter[heightField];
@@ -2428,7 +2879,7 @@ export class TargetPositionModal extends Modal {
                 
                 // Remove banner icon fields
                 delete frontmatter[bannerIconXPositionField];
-                delete frontmatter[bannerIconSizeField];
+                delete frontmatter[bannerIconImageAlignmentField];
                 delete frontmatter[bannerIconColorField];
                 delete frontmatter[bannerIconFontWeightField];
                 delete frontmatter[bannerIconBgColorField];
@@ -2436,6 +2887,8 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[bannerIconPaddingYField];
                 delete frontmatter[bannerIconBorderRadiusField];
                 delete frontmatter[bannerIconVerticalOffsetField];
+                delete frontmatter[bannerIconSizeField];
+                delete frontmatter[bannerIconRotateField];
                 
                 // Remove alignment field
                 const alignmentField = Array.isArray(this.plugin.settings.customBannerAlignmentField)
@@ -2455,6 +2908,11 @@ export class TargetPositionModal extends Modal {
                     const bannerField = Array.isArray(this.plugin.settings.customBannerField) 
                         ? this.plugin.settings.customBannerField[0].split(',')[0].trim()
                         : this.plugin.settings.customBannerField;
+
+                    // Get the banner icon image field
+                    const bannerIconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField)
+                        ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconImageField;
                     
                     // Get the banner icon field
                     const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField)
@@ -2463,6 +2921,7 @@ export class TargetPositionModal extends Modal {
                     
                     // Remove the banner image and icon
                     delete frontmatter[bannerField];
+                    delete frontmatter[bannerIconImageField];
                     delete frontmatter[bannerIconField];
                 }
             });
@@ -2472,6 +2931,14 @@ export class TargetPositionModal extends Modal {
                 const flagRadios = flagRadioContainer.querySelectorAll('input[type="radio"]');
                 flagRadios.forEach(radio => {
                     radio.checked = radio.value === this.plugin.settings.selectImageIconFlag;
+                });
+            }
+
+            // After processing frontmatter, update the banner icon image aligment radio buttons
+            if (bannerIconImageAlignmentRadioContainer) {
+                const bannerIconImageAlignmentRadios = bannerIconImageAlignmentRadioContainer.querySelectorAll('input[type="radio"]');
+                bannerIconImageAlignmentRadios.forEach(radio => {
+                    radio.checked = radio.value === this.plugin.settings.bannerIconImageAlignment;
                 });
             }
 
@@ -2618,8 +3085,10 @@ export class TargetPositionModal extends Modal {
                 e.target === maxWidthSlider ||
                 e.target === contentStartPositionSlider || 
                 e.target === bannerFadeSlider ||
+                e.target === borderRadiusSlider ||
                 e.target === bannerIconXPositionSlider ||
                 e.target === bannerIconSizeSlider ||
+                e.target === bannerIconRotateSlider ||
                 e.target === bannerIconColorPicker ||
                 e.target === bannerIconColorInput ||
                 e.target === bannerIconPaddingXSlider ||
@@ -2930,7 +3399,7 @@ export class TargetPositionModal extends Modal {
             .target-position-modal .target-area {
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             }
-            .target-position-modal .vertical-line {
+            .target-position-modal .vertical {
                 position: absolute;
                 background-color: var(--text-accent);
                 pointer-events: none;
@@ -2940,7 +3409,7 @@ export class TargetPositionModal extends Modal {
                 pointer-events: auto;
                 cursor: move;
             }
-            .target-position-modal .horizontal-line {
+            .target-position-modal .horizontal {
                 position: absolute;
                 background-color: var(--text-accent);
                 pointer-events: none;
