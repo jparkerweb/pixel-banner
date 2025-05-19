@@ -27,6 +27,6 @@
 - Resolved issue with max-width slider being disabled even when a custom max-width was set in frontmatter
 - Addressed background color preventing banner from showing in reading mode for some themes
 
-<a href="https://www.youtube.com/watch?v=VWS1efySjZM">
+<a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
