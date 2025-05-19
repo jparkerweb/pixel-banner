@@ -1,5 +1,5 @@
 import { MarkdownView, Notice } from 'obsidian';
-import { EmojiSelectionModal } from '../modal/modals.js';
+import { EmojiSelectionModal, IconImageSelectionModal } from '../modal/modals.js';
 
 
 // Helper to normalize color values for comparison
@@ -231,12 +231,141 @@ export async function handleSetBannerIcon(plugin) {
 export function cleanupIconOverlay(plugin, view) {
     if (!view || !view.contentEl) return;
     
-    // Find all banner icon overlays, not just the first one
-    const existingOverlays = view.contentEl.querySelectorAll('.banner-icon-overlay');
-    if (existingOverlays.length > 0) {
-        existingOverlays.forEach(overlay => {
-            plugin.returnIconOverlay(overlay);
-            overlay.remove();
-        });
+    // Query for all banner icon overlays in the view
+    const bannerIconOverlays = view.contentEl.querySelectorAll('.banner-icon-overlay');
+    
+    // Remove each overlay and return it to the pool if possible
+    bannerIconOverlays.forEach(overlay => {
+        if (overlay) {
+            returnIconOverlay(plugin, overlay);
+        }
+    });
+}
+
+export async function handleSetBannerIconImage(plugin) {
+    const activeFile = plugin.app.workspace.getActiveFile();
+    if (!activeFile) {
+        new Notice('No active file');
+        return;
     }
+
+    new IconImageSelectionModal(
+        plugin.app,
+        plugin,
+        async (selectedImage) => {
+            if (!selectedImage) {
+                // If no image was selected (cancelled), just return
+                return;
+            }
+            
+            // Extract the file path from the file object if it's an object
+            // IconImageSelectionModal passes a full file object, not just a path string
+            const imagePath = selectedImage.path ? selectedImage.path : selectedImage;
+            
+            let fileContent = await plugin.app.vault.read(activeFile);
+            const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+            const hasFrontmatter = frontmatterRegex.test(fileContent);
+            
+            // Get the correct field name from settings
+            const bannerIconImageField = Array.isArray(plugin.settings.customBannerIconImageField) && 
+                plugin.settings.customBannerIconImageField.length > 0 ? 
+                plugin.settings.customBannerIconImageField[0].split(',')[0].trim() : 'icon-image';
+
+            fileContent = fileContent.replace(/^\s+/, '');
+
+            let updatedContent;
+            if (hasFrontmatter) {
+                updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+                    let cleanedFrontmatter = frontmatter.trim();
+                    
+                    // Make sure the field exists in settings before trying to iterate
+                    if (Array.isArray(plugin.settings.customBannerIconImageField)) {
+                        plugin.settings.customBannerIconImageField.forEach(field => {
+                            // Handle comma-separated field names
+                            const fieldNames = field.split(',').map(f => f.trim());
+                            fieldNames.forEach(fieldName => {
+                                const fieldRegex = new RegExp(`${fieldName}:\\s*.+\\n?`, 'g');
+                                cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
+                            });
+                        });
+                    }
+
+                    cleanedFrontmatter = cleanedFrontmatter.trim();
+                    const newFrontmatter = `${bannerIconImageField}: "${imagePath}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+                    return `---\n${newFrontmatter}\n---`;
+                });
+            } else {
+                const cleanContent = fileContent.replace(/^\s+/, '');
+                updatedContent = `---\n${bannerIconImageField}: "${imagePath}"\n---\n\n${cleanContent}`;
+            }
+
+            updatedContent = updatedContent.replace(/^\s+/, '');
+            
+            if (updatedContent !== fileContent) {
+                await plugin.app.vault.modify(activeFile, updatedContent);
+
+                // Wait for metadata update
+                const metadataUpdated = new Promise(resolve => {
+                    let eventRef = null;
+                    let resolved = false;
+
+                    const cleanup = () => {
+                        if (eventRef) {
+                            plugin.app.metadataCache.off('changed', eventRef);
+                            eventRef = null;
+                        }
+                    };
+
+                    const timeoutId = setTimeout(() => {
+                        if (!resolved) {
+                            resolved = true;
+                            cleanup();
+                            resolve();
+                        }
+                    }, 2000);
+
+                    eventRef = plugin.app.metadataCache.on('changed', (file) => {
+                        if (file.path === activeFile.path && !resolved) {
+                            resolved = true;
+                            clearTimeout(timeoutId);
+                            cleanup();
+                            setTimeout(resolve, 50);
+                        }
+                    });
+                });
+
+                await metadataUpdated;
+
+                // attempt to update banner with retries
+                const maxRetries = 3;
+                const retryDelay = 150;
+                let success = false;
+
+                for (let i = 0; i < maxRetries && !success; i++) {
+                    const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                    if (view) {
+                        try {
+                            const cache = plugin.app.metadataCache.getFileCache(activeFile);
+                            if (!cache || !cache.frontmatter || cache.frontmatter[bannerIconImageField] !== imagePath) {
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                                continue;
+                            }
+
+                            await plugin.updateBanner(view, true);
+                            success = true;
+                            new Notice(`Banner icon image updated: ${imagePath.split('/').pop()}`);
+                        } catch (error) {
+                            if (i < maxRetries - 1) {
+                                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                            }
+                        }
+                    }
+                }
+
+                if (!success) {
+                    new Notice('Banner icon image set, but banner update failed. Try reopening the note.');
+                }
+            }
+        }
+    ).open();
 }
