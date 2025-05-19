@@ -1751,7 +1751,7 @@ export class TargetPositionModal extends Modal {
             cls: 'banner-icon-rotate-slider',
             attr: {
                 min: '0',
-                max: '365',
+                max: '360',
                 step: '5',
                 value: this.currentBannerIconRotate,
                 style: `

@@ -3,11 +3,11 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
-### v3.5.0 - 2025-05-17
+### v3.5.0 - 2025-05-18
 #### ✨ Added
 - New "Banner Icon Rotation" option to rotate the banner icon from 0 to 360 degrees
 - New "Icon Image" support to allow banner icons to contain both text/emojis and an image
-- Added Banner Icon Image contorls to the Position, Size & Style Modal (image source and alignment)
+- Added Banner Icon Image controls to the Position, Size & Style Modal (image source and alignment)
 - Banner Icon Image sources include:
   - Local images
   - Web URL
@@ -15,10 +15,12 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 - Banner Icon Image alignment options include:
   - Left or Right (set the position of the icon image relative to the text/emojis)
 - New Border Radius slider control available in the Position, Size & Style Modal
+- Four new AI Models to choose from when generating an image for a banner
 
 #### 📦 Updated
 - Embedded notes now respect custom frontmatter settings (border radius, banner height, etc.)
 - Any system action that sets the frontmatter value for a Banner or Icon Image now uses `![[image]]` format vs `[[image]]`
+- Updated Token currency to allow for fractional tokens (e.g. 0.5 tokens) for better pricing where applicable
 
 #### 🐛 Fixed
 - Resolved issue with content being pushed down when banner was present in embedded notes
