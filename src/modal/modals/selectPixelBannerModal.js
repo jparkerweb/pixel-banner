@@ -208,6 +208,7 @@ export class SelectPixelBannerModal extends Modal {
             const aiButton = bannerSourceButtons.createEl('button', {
                 cls: 'pixel-banner-source-button pixel-banner-api-dependent',
                 attr: {
+                    id: 'pixel-banner-plus-ai-button',
                     style: `
                         position: relative;
                     `
@@ -245,6 +246,7 @@ export class SelectPixelBannerModal extends Modal {
             const storeButton = bannerSourceButtons.createEl('button', {
                 cls: 'pixel-banner-source-button pixel-banner-api-dependent',
                 attr: {
+                    id: 'pixel-banner-plus-store-button',
                     style: `
                         position: relative;
                     `
@@ -638,6 +640,19 @@ export class SelectPixelBannerModal extends Modal {
                     // Connection Status
                     const isConnected = this.plugin.pixelBannerPlusEnabled;
                     const pixelBannerPlusServerOnline = this.plugin.pixelBannerPlusServerOnline;
+
+                    if (!isConnected) {
+                        const aiButton = document.getElementById('pixel-banner-plus-ai-button');
+                        const storeButton = document.getElementById('pixel-banner-plus-store-button');
+
+                        aiButton.disabled = true;
+                        aiButton.classList.add('pixel-banner-button-disabled');
+                        aiButton.title = "You need an authorize Pixel Banner Plus account to use this feature";
+                        
+                        storeButton.disabled = true;
+                        storeButton.classList.add('pixel-banner-button-disabled');
+                        storeButton.title = "You need an authorize Pixel Banner Plus account to use this feature";
+                    }
                     
                     // Always show server offline message if isOnline is false or server is actually offline
                     const statusText = (!isOnline || !pixelBannerPlusServerOnline) 
