@@ -37,7 +37,7 @@ export class EmojiSelectionModal extends Modal {
 
         // Title
         contentEl.createEl('h3', {
-            text: '⭐ Set Banner Icon',
+            text: '📰 Set Banner Icon Emoji & Text',
             cls: 'banner-icon-title margin-top-0'
         });
 
@@ -81,7 +81,7 @@ export class EmojiSelectionModal extends Modal {
         });
 
         const setBannerButton = bannerIconContainer.createEl('button', {
-            text: '💾 Set Banner Icon',
+            text: '💾 Insert / Update',
             cls: 'set-banner-button',
             attr: {
                 style: `
@@ -93,7 +93,7 @@ export class EmojiSelectionModal extends Modal {
         
         // button to remove the banner icon
         const removeBannerIconButton = bannerIconContainer.createEl('button', {
-            text: '🗑️ Remove Icon',
+            text: '🗑️ Remove',
             cls: 'remove-banner-icon-button cursor-pointer'
         });
 
@@ -116,10 +116,18 @@ export class EmojiSelectionModal extends Modal {
                         const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
                             ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
                             : this.plugin.settings.customBannerIconField;
+
+                        const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField) 
+                            ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconImageAlignmentField;
                         
                         const iconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField) 
                             ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
                             : this.plugin.settings.customBannerIconSizeField;
+
+                        const iconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField) 
+                            ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconRotateField;
                         
                         const iconYPositionField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField) 
                             ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
@@ -149,16 +157,35 @@ export class EmojiSelectionModal extends Modal {
                             ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
                             : this.plugin.settings.customBannerIconBorderRadiusField;
                         
-                        // Remove all banner icon related fields
-                        delete frontmatter[bannerIconField];
-                        delete frontmatter[iconSizeField];
-                        delete frontmatter[iconYPositionField];
-                        delete frontmatter[iconXPositionField];
-                        delete frontmatter[iconColorField];
-                        delete frontmatter[iconBgColorField];
-                        delete frontmatter[iconXPaddingField];
-                        delete frontmatter[iconYPaddingField];
-                        delete frontmatter[iconBorderRadiusField];
+                        // Get the banner icon image field name
+                        const bannerIconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                            ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconImageField;
+                        
+                        // Check if there's a custom banner icon image set
+                        const hasBannerIconImage = frontmatter[bannerIconImageField] !== undefined && 
+                                                 frontmatter[bannerIconImageField] !== null && 
+                                                 frontmatter[bannerIconImageField] !== '';
+                        
+                        // Only remove icon-related fields if there's no banner icon image
+                        if (!hasBannerIconImage) {
+                            // Remove all banner icon related fields
+                            delete frontmatter[bannerIconField];
+                            delete frontmatter[bannerIconImageAlignmentField];
+                            delete frontmatter[iconSizeField];
+                            delete frontmatter[iconRotateField];
+                            delete frontmatter[iconYPositionField];
+                            delete frontmatter[iconXPositionField];
+                            delete frontmatter[iconColorField];
+                            delete frontmatter[iconBgColorField];
+                            delete frontmatter[iconXPaddingField];
+                            delete frontmatter[iconYPaddingField];
+                            delete frontmatter[iconBorderRadiusField];
+                        } else {
+                            // If there is a banner icon image, only remove the text/emoji field and color
+                            delete frontmatter[bannerIconField];
+                            delete frontmatter[iconColorField];
+                        }
                     });
                 }
             }

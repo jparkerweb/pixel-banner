@@ -150,11 +150,25 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-icon, icon, header-icon'
         },
         {
+            setting: 'customBannerIconImageField',
+            name: 'Banner Icon Image Field Names',
+            desc: 'Set custom field names for the banner icon image in frontmatter',
+            values: '[[image.png]], "images/icon.jpg"',
+            placeholder: 'banner-icon-image, icon-image'
+        },
+        {
             setting: 'customBannerIconSizeField',
             name: 'Banner Icon Size Field Names',
             desc: 'Set custom field names for the banner icon size in frontmatter',
             values: '50, 70, 100',
             placeholder: 'banner-icon-size, icon-size'
+        },
+        {
+            setting: 'customBannerIconRotateField',
+            name: 'Banner Icon Rotate Field Names',
+            desc: 'Set custom field names for the banner icon rotate in frontmatter',
+            values: '50, 70, 100',
+            placeholder: 'banner-icon-rotate, icon-rotate'
         },
         {
             setting: 'customBannerIconXPositionField',
@@ -218,6 +232,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             desc: 'Set custom field names for the banner icon vertical offset in frontmatter',
             values: '-50, 0, 50',
             placeholder: 'banner-icon-y, icon-y'
+        },
+        {
+            setting: 'customBannerIconImageAlignmentField',
+            name: 'Banner Icon Image Alignment Field Names',
+            desc: 'Set custom field names for the banner icon image alignment in frontmatter',
+            values: 'left, right',
+            placeholder: 'banner-icon-image-alignment, icon-image-alignment'
         }
     ];
 

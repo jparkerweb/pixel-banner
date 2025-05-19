@@ -1,6 +1,7 @@
 import { Modal, Notice, requestUrl, MarkdownView } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
+import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { DownloadHistory } from '../../utils/downloadHistory';
 import { TargetPositionModal, EmojiSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
@@ -12,15 +13,17 @@ export class GenerateAIBannerModal extends Modal {
     constructor(app, plugin) {
         super(app);
         this.plugin = plugin;
-        this.width = 1440;
-        this.height = 480;
         this.prompt = '';
         this.imageContainer = null;
         this.modalEl.addClass('pixel-banner-ai-modal');
         this.downloadHistory = new DownloadHistory();
         this.isLoading = true; // Track loading state
-        this.provider = 'TOGETHER'; // Default provider
-        this.resolution = '1360 × 768 (Landscape)'; // Default resolution
+        
+        // Properties for dynamic model handling
+        this.availableModels = {};
+        this.selectedModelId = null;
+        this.controlValues = {}; // Store control values for submission
+        this.controlsContainer = null;
         
         // Add pagination state
         this.currentPage = 1;
@@ -107,6 +110,55 @@ export class GenerateAIBannerModal extends Modal {
                 border-radius: 50%;
                 animation: pixel-banner-spin 1s linear infinite;
             }
+            
+            /* Dynamic controls styles */
+            .pixel-banner-dynamic-controls .setting-item {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--background-modifier-border);
+            }
+            
+            .pixel-banner-dynamic-controls .setting-item:last-child {
+                border-bottom: none;
+            }
+            
+            .pixel-banner-dynamic-controls input[type="range"] {
+                width: 100%;
+            }
+            
+            .pixel-banner-dynamic-controls select.dropdown {
+                width: 100%;
+                padding: 8px;
+                border-radius: 4px;
+                background-color: var(--background-secondary);
+                color: var(--text-normal);
+                border: 1px solid var(--background-modifier-border);
+            }
+            
+            .pixel-banner-model-option {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                margin-right: 15px;
+                margin-bottom: 5px;
+            }
+            
+            .pixel-banner-model-option label {
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .pixel-banner-model-token-cost {
+                border-left: 1px solid var(--text-accent);
+                font-size: 0.8em;
+                margin-left: 3px;
+                padding-left: 4px;
+            }
         `;
         document.head.appendChild(styleEl);
         this.styleEl = styleEl;
@@ -132,9 +184,305 @@ export class GenerateAIBannerModal extends Modal {
             this.loadingOverlay = null;
         }
     }
+    
+    // Fetch available AI models from the API
+    async fetchAvailableModels() {
+        try {
+            const modelUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.TEXT_TO_IMAGE_MODELS, PIXEL_BANNER_PLUS.API_URL).toString();
+            const response = await requestUrl({
+                url: modelUrl,
+                method: 'GET',
+                headers: {
+                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.status === 200) {
+                this.availableModels = response.json;
+                return true;
+            } else {
+                throw new Error('Failed to fetch models');
+            }
+        } catch (error) {
+            console.error('Error fetching models:', error);
+            return false;
+        }
+    }
+    
+    // Helper method to capitalize first letter of a string
+    capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
+    // Render model selection UI
+    renderModelSelection(container) {
+        // Clear any existing content
+        container.empty();
+        
+        const modelInfo = container.createDiv({ cls: 'setting-item-info' });
+        modelInfo.createDiv({ cls: 'setting-item-name', text: 'AI Model' });
+        modelInfo.createDiv({ 
+            cls: 'setting-item-description', 
+            text: 'Select an AI model for Banner generation',
+            attr: { style: 'font-size: 0.8em;' }
+        });
+        
+        const modelControl = container.createDiv({ 
+            cls: 'setting-item-control',
+            attr: { style: 'display: flex; flex-wrap: wrap; gap: 15px;' }
+        });
+        
+        let isFirstEnabled = true;
+        let hasEnabledModels = false;
+        let firstEnabledModelId = null;
+        const radioButtons = [];
+        
+        // Create radio button for each enabled model
+        Object.entries(this.availableModels).forEach(([modelId, modelData]) => {
+            // Skip disabled models
+            if (modelData.enabled === false) {
+                return;
+            }
+            
+            hasEnabledModels = true;
+            
+            const modelContainer = modelControl.createDiv({ 
+                cls: 'pixel-banner-model-option',
+                attr: { style: 'display: flex; align-items: center; gap: 5px;' } 
+            });
+            
+            const radio = modelContainer.createEl('input', { 
+                type: 'radio',
+                attr: {
+                    id: `model-${modelId}`,
+                    name: 'textToImageModel',
+                    value: modelId,
+                    checked: isFirstEnabled, // Select first model by default
+                    style: 'cursor: pointer;'
+                }
+            });
+            
+            // Add to radio buttons array for later initialization
+            radioButtons.push({
+                element: radio,
+                modelId: modelId,
+                shouldBeChecked: isFirstEnabled
+            });
+            
+            // Show token cost with model name
+            const tokenCost = modelData.tokens || 1;
+            let labelText = modelData.name;
+            
+            const label = modelContainer.createEl('label', { 
+                attr: {
+                    for: `model-${modelId}`,
+                    style: 'cursor: pointer;'
+                }
+            });
+            
+            label.innerHTML = `${labelText} <span class="pixel-banner-model-token-cost">🪙 ${decimalToFractionString(tokenCost)}</span>`;
+            
+            // Set description as tooltip if available
+            if (modelData.description) {
+                modelContainer.setAttribute('title', modelData.description);
+            }
+            
+            // Handle model selection
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    // Store previous model ID to check if it changed
+                    const previousModelId = this.selectedModelId;
+                    
+                    // Update selected model
+                    this.selectedModelId = modelId;
+                    
+                    // Only re-render controls if model changed
+                    if (previousModelId !== this.selectedModelId) {
+                        this.renderModelControls();
+                    }
+                }
+            });
+            
+            // Set first enabled model as selected
+            if (isFirstEnabled) {
+                this.selectedModelId = modelId;
+                firstEnabledModelId = modelId;
+                isFirstEnabled = false;
+            }
+        });
+        
+        // Use a small delay to ensure the DOM is fully updated before setting radio button state
+        setTimeout(() => {
+            radioButtons.forEach(item => {
+                if (item.shouldBeChecked) {
+                    // Ensure the radio button is checked
+                    item.element.checked = true;
+                    
+                    // Dispatch a change event to trigger any listeners
+                    const event = new Event('change', { bubbles: true });
+                    item.element.dispatchEvent(event);
+                }
+            });
+        }, 50);
+        
+        return hasEnabledModels;
+    }
+    
+    // Render dynamic controls based on selected model
+    renderModelControls() {
+        if (!this.selectedModelId || !this.availableModels[this.selectedModelId]) {
+            return;
+        }
+        
+        // Clear existing controls
+        this.controlsContainer.empty();
+        
+        // Reset control values for the newly selected model
+        this.controlValues = {};
+        
+        const modelData = this.availableModels[this.selectedModelId];
+        const controls = modelData.controls;
+
+        const modelDescription = this.controlsContainer.createDiv({ cls: 'setting-item-info' });
+        modelDescription.createDiv({ 
+            cls: 'setting-item-name', 
+            text: modelData.description,
+            attr: {
+                style: `
+                    border: 1px solid var(--text-accent);
+                    border-radius: 5px;
+                    padding: 5px 10px;
+                    font-size: 0.9em;
+                    color: var(--text-muted);
+                    font-style: italic;
+                    text-align: justify;
+                `
+            }
+        });
+        
+        if (!controls || Object.keys(controls).length === 0) {
+            return;
+        }
+        
+        // Store references to created form elements for delayed initialization
+        const formElements = [];
+        
+        // Create each control based on type
+        Object.entries(controls).forEach(([controlKey, control]) => {
+            const controlContainer = this.controlsContainer.createDiv({ 
+                cls: 'setting-item pixel-banner-ai-control-row' 
+            });
+            
+            const controlInfo = controlContainer.createDiv({ cls: 'setting-item-info' });
+            controlInfo.createDiv({ 
+                cls: 'setting-item-name', 
+                text: this.capitalizeFirstLetter(controlKey) 
+            });
+            
+            // Initialize control value with default
+            this.controlValues[controlKey] = control.defaultValue;
+            
+            const controlValueDisplay = controlInfo.createDiv({ 
+                cls: 'setting-item-description',
+                text: control.defaultValue
+            });
+            
+            const controlElement = controlContainer.createDiv({ cls: 'setting-item-control' });
+            
+            if (control.type === 'slider') {
+                // Create slider
+                const slider = controlElement.createEl('input', { 
+                    type: 'range',
+                    attr: {
+                        id: `control-${this.selectedModelId}-${controlKey}`,
+                        min: control.min,
+                        max: control.max,
+                        step: control.step,
+                        value: control.defaultValue
+                    }
+                });
+                
+                slider.addEventListener('input', (e) => {
+                    const value = parseInt(e.target.value);
+                    this.controlValues[controlKey] = value;
+                    controlValueDisplay.textContent = value;
+                });
+                
+                // Add to list of elements to initialize
+                formElements.push({
+                    element: slider,
+                    type: 'slider',
+                    value: control.defaultValue
+                });
+            } 
+            else if (control.type === 'select') {
+                // Create select dropdown
+                const select = controlElement.createEl('select', { 
+                    cls: 'dropdown',
+                    attr: {
+                        id: `control-${this.selectedModelId}-${controlKey}`,
+                        style: 'width: 100%;'
+                    }
+                });
+                
+                control.options.forEach(option => {
+                    const optElement = select.createEl('option', {
+                        text: option,
+                        attr: {
+                            value: option,
+                            selected: option === control.defaultValue
+                        }
+                    });
+                });
+                
+                select.addEventListener('change', (e) => {
+                    this.controlValues[controlKey] = e.target.value;
+                    controlValueDisplay.textContent = e.target.value;
+                });
+                
+                // Add to list of elements to initialize
+                formElements.push({
+                    element: select,
+                    type: 'select',
+                    value: control.defaultValue
+                });
+            }
+        });
+        
+        // Use a small delay to ensure the DOM is fully updated before setting values
+        setTimeout(() => {
+            // Initialize form elements with their default values
+            formElements.forEach(item => {
+                if (item.type === 'slider') {
+                    // For sliders, we need to set the value and dispatch an input event
+                    item.element.value = item.value;
+                    const event = new Event('input', { bubbles: true });
+                    item.element.dispatchEvent(event);
+                } else if (item.type === 'select') {
+                    // For selects, we need to set the value and dispatch a change event
+                    item.element.value = item.value;
+                    const event = new Event('change', { bubbles: true });
+                    item.element.dispatchEvent(event);
+                }
+            });
+        }, 50); // 50ms delay should be enough for DOM updates
+    }
 
     async generateImage() {
         if (!this.imageContainer) return;
+        if (!this.prompt) {
+            new Notice('Please enter a prompt');
+            return;
+        }
+        
+        // Check if we have a selected model
+        if (!this.selectedModelId && Object.keys(this.availableModels).length > 0) {
+            new Notice('Please select an AI model');
+            return;
+        }
         
         // Store existing image data if present
         const existingImage = this.imageContainer.querySelector('.pixel-banner-generated-image');
@@ -154,7 +502,36 @@ export class GenerateAIBannerModal extends Modal {
                 await this.refreshHistoryContainer();
             }
 
+            // Use the new generatev2 endpoint
             const generateUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE, PIXEL_BANNER_PLUS.API_URL).toString();
+            
+            // Prepare request body
+            const modelData = this.availableModels[this.selectedModelId];
+            
+            // Only include control values that are defined for this model
+            const modelControlValues = {};
+            if (modelData.controls) {
+                Object.keys(modelData.controls).forEach(controlKey => {
+                    if (this.controlValues[controlKey] !== undefined) {
+                        modelControlValues[controlKey] = this.controlValues[controlKey];
+                    } else {
+                        // Use default value if not set
+                        modelControlValues[controlKey] = modelData.controls[controlKey].defaultValue;
+                    }
+                });
+            }
+            
+            const requestBody = {
+                prompt: this.prompt,
+                textToImageModel: this.selectedModelId,
+                controlValues: modelControlValues
+            };
+            
+            // Check if the model has appendToPrompt and add it to the prompt
+            if (modelData.appendToPrompt) {
+                requestBody.prompt += " " + modelData.appendToPrompt;
+            }
+            
             const response = await requestUrl({
                 url: generateUrl,
                 method: 'POST',
@@ -165,13 +542,7 @@ export class GenerateAIBannerModal extends Modal {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    prompt: this.prompt,
-                    width: this.width,
-                    height: this.height,
-                    provider: this.provider,
-                    resolution: this.resolution
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (response.status === 200 && response.json.image) {
@@ -180,7 +551,7 @@ export class GenerateAIBannerModal extends Modal {
                 const pixelBannerPlusBalanceEl = document.querySelector('.modal.pixel-banner-ai-modal .pixel-banner-plus-token-balance');
                 const tokenCountSpan = pixelBannerPlusBalanceEl.querySelector('span') || document.createElement('span');
                 tokenCountSpan.style.color = 'var(--text-accent)';
-                tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+                tokenCountSpan.innerText = decimalToFractionString(this.plugin.pixelBannerPlusBannerTokens);
                 if (!tokenCountSpan.parentElement) {
                     pixelBannerPlusBalanceEl.innerText = '🪙 Remaining Tokens: ';
                     pixelBannerPlusBalanceEl.appendChild(tokenCountSpan);
@@ -224,55 +595,11 @@ export class GenerateAIBannerModal extends Modal {
                     // Open the target position modal after setting the banner
                     await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                         const bannerField = this.plugin.settings.customBannerField[0];
-                        frontmatter[bannerField] = `[[${savedPath}]]`;
+                        frontmatter[bannerField] = `![[${savedPath}]]`;
                     });
-                    
-                    // Check if we should open the banner icon modal after selecting a banner
-                    if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                        // Use the imported EmojiSelectionModal
-                        new EmojiSelectionModal(
-                            this.app, 
-                            this.plugin,
-                            async (emoji) => {
-                                // Get the active file again in case it changed
-                                const activeFile = this.plugin.app.workspace.getActiveFile();
-                                if (activeFile) {
-                                    await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                        const iconField = this.plugin.settings.customBannerIconField[0];
-                                        if (emoji) {
-                                            frontmatter[iconField] = emoji;
-                                        } else {
-                                            // If emoji is empty, remove the field from frontmatter
-                                            delete frontmatter[iconField];
-                                        }
-                                    });
-                                    
-                                    // Ensure the banner is updated to reflect the changes
-                                    const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-                                    if (view) {
-                                        // Clean up any existing banner icon overlays before updating
-                                        const contentEl = view.contentEl;
-                                        if (contentEl) {
-                                            const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
-                                            existingOverlays.forEach(overlay => {
-                                                this.plugin.returnIconOverlay(overlay);
-                                            });
-                                        }
-                                        
-                                        await this.plugin.updateBanner(view, true);
-                                    }
-                                    
-                                    // Check if we should open the targeting modal after setting the icon
-                                    if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                        new TargetPositionModal(this.app, this.plugin).open();
-                                    }
-                                }
-                            },
-                            true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                        ).open();
-                    } 
-                    // If not opening the banner icon modal, check if we should open the targeting modal
-                    else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+
+                    // Check if we should open the targeting modal
+                    if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                         new TargetPositionModal(this.app, this.plugin).open();
                     }
                 };
@@ -406,6 +733,12 @@ export class GenerateAIBannerModal extends Modal {
     async initializeModal() {
         await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
+        
+        // Fetch available models if the user has Pixel Banner Plus enabled
+        let modelsLoaded = false;
+        if (this.plugin.pixelBannerPlusEnabled) {
+            modelsLoaded = await this.fetchAvailableModels();
+        }
 
         // add style tag
         const styleTag = contentEl.createEl('style', {
@@ -668,18 +1001,6 @@ export class GenerateAIBannerModal extends Modal {
                 `
             }
         });
-        const promptDescription = promptAllowedSection.createEl('p', {
-            text: 'Simply enter a prompt, optionally adjust the width and height, and let AI generate a banner for you. Dont have any prompt ideas? Use the "💡 INSPIRATION" button to get started, or grow a basic prompt into something special with the "🌱 GROW IDEA" button. You can also use the "✏️ REWRITE PROMPT" button to improve your existing prompt.',
-            cls: 'pixel-banner-prompt-description',
-            attr: {
-                'style': `
-                    color: var(--text-muted); 
-                    max-width: 500px; 
-                    font-size: .9em;
-                    margin-bottom: 20px;
-                `
-            }
-        });
 
         // Prompt
         const promptContainer = promptAllowedSection.createDiv({
@@ -698,7 +1019,7 @@ export class GenerateAIBannerModal extends Modal {
         promptContainer.createDiv({ cls: 'setting-item-name', text: '🖋️ Creative Banner Prompt' });
         promptContainer.createDiv({ 
             cls: 'setting-item-description', 
-            text: 'TIP ⇢ Type a few words and then press the "🌱 GROW IDEA" button to transform your basic idea into something special!',
+            text: 'TIP ⇢ Type a few words and then press the "🌱 GROW IDEA" button to transform your basic idea into something special! Select a Model and then click "✨ Generate Banner".',
             attr: {
                 'style': `
                     color: var(--text-muted); 
@@ -771,172 +1092,53 @@ export class GenerateAIBannerModal extends Modal {
         // AI Model Selection
         const modelContainer = promptAllowedSection.createDiv({ 
             cls: 'setting-item pixel-banner-ai-control-row',
-            attr: { style: 'padding-bottom: 0;' } 
-        });
-        
-        const modelInfo = modelContainer.createDiv({ cls: 'setting-item-info' });
-        modelInfo.createDiv({ cls: 'setting-item-name', text: 'AI Model' });
-        modelInfo.createDiv({ 
-            cls: 'setting-item-description', 
-            text: 'Select AI model for image generation',
-            attr: { style: 'font-size: 0.8em;' }
-        });
-        
-        const modelControl = modelContainer.createDiv({ 
-            cls: 'setting-item-control',
-            attr: { style: 'display: flex; gap: 15px;' }
-        });
-        
-        // FLUX Radio Button
-        const fluxContainer = modelControl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 5px;' } });
-        const fluxRadio = fluxContainer.createEl('input', { 
-            type: 'radio',
             attr: {
-                id: 'flux-model',
-                name: 'provider',
-                value: 'TOGETHER',
-                checked: true, // Always set FLUX as default
                 style: `
-                    cursor: pointer;
-                `
-            }
-        });
-        fluxContainer.createEl('label', { 
-            attr: {
-                for: 'flux-model',
-                style: `
-                    cursor: pointer;
-                `
-            }
-        }).innerHTML = 'FLUX <span style="font-size: 0.77em; color: var(--text-muted); letter-spacing: 0.5px;"> ⋅ DEFAULT</span>';
-        
-        // HiDream Radio Button
-        const hidreamContainer = modelControl.createDiv({ attr: { style: 'display: flex; align-items: center; gap: 5px;' } });
-        const hidreamRadio = hidreamContainer.createEl('input', { 
-            type: 'radio',
-            attr: {
-                id: 'hidream-model',
-                name: 'provider',
-                value: 'REPLICATE',
-                checked: false,
-                style: `
-                    cursor: pointer;
-                `
-            }
-        });
-        hidreamContainer.createEl('label', { 
-            text: 'HiDream',
-            attr: {
-                for: 'hidream-model',
-                style: `
-                    cursor: pointer;
-                `
-            }
+                    align-items: flex-start;
+                    padding-bottom: 0;
+                ` 
+            } 
         });
         
-        // Add event listeners for the radio buttons
-        fluxRadio.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                this.provider = 'TOGETHER';
-                this.updateInputVisibility();
-            }
-        });
-        
-        hidreamRadio.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                this.provider = 'REPLICATE';
-                this.updateInputVisibility();
-            }
-        });
-
-        // Width (visible for FLUX)
-        const widthContainer = promptAllowedSection.createDiv({ 
-            cls: 'setting-item pixel-banner-ai-control-row flux-control', 
-            attr: { style: 'padding-bottom: 0;' } 
-        });
-        const widthInfo = widthContainer.createDiv({ cls: 'setting-item-info' });
-        widthInfo.createDiv({ cls: 'setting-item-name', text: 'Width' });
-        widthInfo.createDiv({ cls: 'setting-item-description', text: this.width });
-        
-        const widthControl = widthContainer.createDiv({ cls: 'setting-item-control' });
-        const widthSlider = widthControl.createEl('input', { type: 'range' });
-        widthSlider.setAttrs({
-            min: 256,
-            max: 1440,
-            step: 32,
-            value: this.width
-        });
-        widthSlider.addEventListener('input', (e) => {
-            this.width = parseInt(e.target.value);
-            widthInfo.querySelector('.setting-item-description').textContent = this.width;
-        });
-
-        // Height
-        const heightContainer = promptAllowedSection.createDiv({ 
-            cls: 'setting-item pixel-banner-ai-control-row flux-control'
-        });
-        const heightInfo = heightContainer.createDiv({ cls: 'setting-item-info' });
-        heightInfo.createDiv({ cls: 'setting-item-name', text: 'Height' });
-        heightInfo.createDiv({ cls: 'setting-item-description', text: this.height });
-        
-        const heightControl = heightContainer.createDiv({ cls: 'setting-item-control' });
-        const heightSlider = heightControl.createEl('input', { type: 'range' });
-        heightSlider.setAttrs({
-            min: 256,
-            max: 1440,
-            step: 32,
-            value: this.height
-        });
-        heightSlider.addEventListener('input', (e) => {
-            this.height = parseInt(e.target.value);
-            heightInfo.querySelector('.setting-item-description').textContent = this.height;
-        });
-
-        // Resolution (visible for HiDream)
-        const resolutionContainer = promptAllowedSection.createDiv({ 
-            cls: 'setting-item pixel-banner-ai-control-row hidream-control',
-            attr: { style: 'display: none;' } // Hidden by default
-        });
-        
-        const resolutionInfo = resolutionContainer.createDiv({ cls: 'setting-item-info' });
-        resolutionInfo.createDiv({ cls: 'setting-item-name', text: 'Resolution' });
-        resolutionInfo.createDiv({ 
-            cls: 'setting-item-description', 
-            text: 'Select image resolution and orientation',
-            attr: { style: 'font-size: 0.8em;' }
-        });
-        
-        const resolutionControl = resolutionContainer.createDiv({ cls: 'setting-item-control' });
-        const resolutionSelect = resolutionControl.createEl('select', { 
-            cls: 'dropdown',
-            attr: { id: 'resolution' }
-        });
-        
-        // Add resolution options
-        const resolutionOptions = [
-            { value: '1360 × 768 (Landscape)', text: '1360 × 768 (Landscape)' },
-            { value: '1248 × 832 (Landscape)', text: '1248 × 832 (Landscape)' },
-            { value: '1168 × 880 (Landscape)', text: '1168 × 880 (Landscape)' },
-            { value: '1024 × 1024 (Square)', text: '1024 × 1024 (Square)' },
-            { value: '880 × 1168 (Portrait)', text: '880 × 1168 (Portrait)' },
-            { value: '832 × 1248 (Portrait)', text: '832 × 1248 (Portrait)' },
-            { value: '768 × 1360 (Portrait)', text: '768 × 1360 (Portrait)' }
-        ];
-        
-        resolutionOptions.forEach((option, index) => {
-            const optionEl = resolutionSelect.createEl('option', {
-                text: option.text,
-                attr: {
-                    value: option.value,
-                    selected: index === 0 // Select first option by default
-                }
+        // Check if we have models from the API
+        if (!modelsLoaded || Object.keys(this.availableModels).length === 0) {
+            modelContainer.empty();
+            modelContainer.createEl('p', {
+                text: 'No AI models available. Please try again later.',
+                cls: 'pixel-banner-error'
             });
+            return;
+        }
+        
+        // Render dynamic model selection
+        const hasModels = this.renderModelSelection(modelContainer);
+        
+        if (!hasModels) {
+            modelContainer.empty();
+            modelContainer.createEl('p', {
+                text: 'No enabled AI models available.',
+                cls: 'pixel-banner-error'
+            });
+            return;
+        }
+        
+        // Add dynamic controls container
+        this.controlsContainer = promptAllowedSection.createDiv({
+            cls: 'pixel-banner-dynamic-controls',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 15px;
+                    margin-top: 10px;
+                    width: 100%;
+                    max-width: 500px;
+                `
+            }
         });
         
-        resolutionSelect.addEventListener('change', (e) => {
-            this.resolution = e.target.value;
-            // We don't need to parse width and height here since the resolution is sent directly to API
-        });
+        // Render controls for the initially selected model
+        this.renderModelControls();
 
         // prompt disallowed section
         const promptDisallowedSection = contentEl.createDiv({
@@ -987,7 +1189,7 @@ export class GenerateAIBannerModal extends Modal {
         tokenCountSpan.style.color = 'var(--text-accent)';
         tokenCountSpan.style.fontWeight = 'bold';
         tokenCountSpan.style.letterSpacing = '1px';
-        tokenCountSpan.innerText = this.plugin.pixelBannerPlusBannerTokens;
+        tokenCountSpan.innerText = decimalToFractionString(this.plugin.pixelBannerPlusBannerTokens);
         tokenBalance.setText('🪙 Remaining Tokens: ');
         tokenBalance.appendChild(tokenCountSpan);
         tokenCountSpan.classList.add('token-balance-animation');
@@ -995,7 +1197,7 @@ export class GenerateAIBannerModal extends Modal {
         // Generate Button
         const generateButton = buttonContainer.createEl('button', {
             cls: 'mod-cta cursor-pointer radial-pulse-animation',
-            text: '✨ Generate Image',
+            text: '✨ Generate Banner',
             attr: {
                 'style': `
                     display: ${this.plugin.pixelBannerPlusEnabled && this.plugin.pixelBannerPlusBannerTokens > 0 ? 'block' : 'none'};
@@ -1127,28 +1329,6 @@ export class GenerateAIBannerModal extends Modal {
                 promptInput.focus();
             }, 100);
         }
-        
-        // Initialize the visibility of the inputs based on the default provider
-        this.updateInputVisibility();
-        
-        // Ensure radio buttons show correct visual state
-        setTimeout(() => {
-            // Force model selection with a delay to ensure DOM is ready
-            const fluxModelInput = document.getElementById('flux-model');
-            if (fluxModelInput) {
-                fluxModelInput.checked = true;
-                const event = new Event('change', { bubbles: true });
-                fluxModelInput.dispatchEvent(event);
-            }
-        }, 50);
-
-        // Set default resolution
-        setTimeout(() => {
-            const resolutionSelect = this.contentEl.querySelector('#resolution');
-            if (resolutionSelect) {
-                resolutionSelect.value = this.resolution;
-            }
-        }, 50);
         
         // Hide loading spinner after initialization
         this.hideLoadingSpinner();
@@ -1434,55 +1614,11 @@ export class GenerateAIBannerModal extends Modal {
             // Open the target position modal after setting the banner
             await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                 const bannerField = this.plugin.settings.customBannerField[0];
-                frontmatter[bannerField] = `[[${savedPath}]]`;
+                frontmatter[bannerField] = `![[${savedPath}]]`;
             });
-            
-            // Check if we should open the banner icon modal after selecting a banner
-            if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                // Use the imported EmojiSelectionModal
-                new EmojiSelectionModal(
-                    this.app, 
-                    this.plugin,
-                    async (emoji) => {
-                        // Get the active file again in case it changed
-                        const activeFile = this.plugin.app.workspace.getActiveFile();
-                        if (activeFile) {
-                            await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                const iconField = this.plugin.settings.customBannerIconField[0];
-                                if (emoji) {
-                                    frontmatter[iconField] = emoji;
-                                } else {
-                                    // If emoji is empty, remove the field from frontmatter
-                                    delete frontmatter[iconField];
-                                }
-                            });
-                            
-                            // Ensure the banner is updated to reflect the changes
-                            const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-                            if (view) {
-                                // Clean up any existing banner icon overlays before updating
-                                const contentEl = view.contentEl;
-                                if (contentEl) {
-                                    const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
-                                    existingOverlays.forEach(overlay => {
-                                        this.plugin.returnIconOverlay(overlay);
-                                    });
-                                }
-                                
-                                await this.plugin.updateBanner(view, true);
-                            }
-                            
-                            // Check if we should open the targeting modal after setting the icon
-                            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                new TargetPositionModal(this.app, this.plugin).open();
-                            }
-                        }
-                    },
-                    true // Skip the targeting modal in EmojiSelectionModal since we handle it in the callback
-                ).open();
-            } 
-            // If not opening the banner icon modal, check if we should open the targeting modal
-            else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+
+            // Check if we should open the targeting modal
+            if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
                 new TargetPositionModal(this.app, this.plugin).open();
             }
         });
@@ -1641,17 +1777,5 @@ export class GenerateAIBannerModal extends Modal {
         }
     }
     
-    // Method to update visibility of inputs based on selected provider
-    updateInputVisibility() {
-        const fluxControls = document.querySelectorAll('.flux-control');
-        const hidreamControls = document.querySelectorAll('.hidream-control');
-        
-        if (this.provider === 'REPLICATE') {
-            fluxControls.forEach(el => el.style.display = 'none');
-            hidreamControls.forEach(el => el.style.display = 'flex');
-        } else {
-            fluxControls.forEach(el => el.style.display = 'flex');
-            hidreamControls.forEach(el => el.style.display = 'none');
-        }
-    }
+    // This method was removed as it's no longer needed with the dynamic model approach
 }

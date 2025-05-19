@@ -10,6 +10,9 @@
     0% { opacity: 0; }
     100% { opacity: 1; }
 }
+.pixel-banner-icon-fade-in {
+    animation: pixel-banner-fade-in 0.4s ease-in-out;
+}
 
 @keyframes pixel-banner-icon-fade-in {
     from { opacity: 0; }
@@ -62,6 +65,11 @@
     /* add transition to banner image background position */
     transition: background-position 0.5s ease;
 }
+/* fix background color preventing banner from showing in reading mode for some themes */
+.markdown-reading-view,
+[class^=markdown-preview] {
+    background-color: transparent !important;
+}
 
 .markdown-embed-content .markdown-preview-view {
     min-height: var(--pixel-banner-embed-min-height, unset) !important;
@@ -74,9 +82,6 @@
 .markdown-embed-content .pixel-banner-image ~ div {
     position: relative;
     z-index: 1;
-}
-.markdown-embed-content .pixel-banner-image ~ .banner-icon-overlay {
-    transform: translateY(-25%);
 }
 
 /* collapse scrollbar gutter when no scrollbar is present */
@@ -171,8 +176,8 @@
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
     padding-top: unset !important;
 }
-.internal-embed > .markdown-embed-content .cm-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher,
-.internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher {
+.internal-embed > .markdown-embed-content .cm-sizer:first-of-type > .pixel-banner-image ~ .markdown-preview-pusher,
+.internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image ~ .markdown-preview-pusher {
     height: var(--pixel-banner-content-start, 0.1px) !important;
 }
 
@@ -303,7 +308,7 @@
     border-radius: 5px;
     padding: 20px;
     margin: 20px 0;
-    background-color: var(--background-secondary);
+    /* background-color: var(--background-secondary); */
 }
 .setting-item.folder-image-setting .folder-image-delete-container {
     position: absolute;
@@ -636,7 +641,8 @@
 /* ------------------------- */
 .banner-icon-overlay {
     --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
-    transform: translate(var(--pixel-banner-icon-translate-x), -15%);
+    transform: translate(var(--pixel-banner-icon-translate-x), -15%) rotate(var(--pixel-banner-icon-rotate, 0deg));
+    transform-origin: center !important;
     position: absolute !important;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
@@ -658,6 +664,15 @@
     width: max-content !important;
     max-width: var(--pixel-banner-width) !important;
     pointer-events: none;
+    display: flex !important;
+    align-items: center;
+    gap: 0.3em;
+    flex-wrap: nowrap;
+    text-wrap: nowrap;
+}
+/* banner icon image */
+.banner-icon-overlay > img {
+    height: 1em;
 }
 
 

@@ -1,8 +1,52 @@
-# Inventory of `/src` Directory
+# Inventory of Pixel Banner Plugin
 
-Below is a concise overview of all files and their primary functions or methods. This document should help future developers quickly locate and understand the key points in the codebase. If any changes are made to the codebase, please update this inventory file accordingly.
+**Last Updated:** May 5, 2025
+
+Below is a concise overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key points in the codebase.
 
 ---
+
+## Root Files
+
+### `manifest.json`
+**Description**:  
+- Plugin manifest containing metadata like ID, name, version, minimum app version, description, author info, and funding URL.
+- Current Version: 3.4.5
+
+### `package.json`
+**Description**:  
+- Node.js package definition with build scripts and dependencies.
+- Key scripts: `test-build`, `build`, `clean`
+- Key development dependencies: esbuild, builtin-modules, fs-extra, marked, emojilib
+
+### `build.mjs`
+**Description**:  
+- Build script that uses esbuild to compile the project and copy necessary files to the target directory.
+- Core function: `copyFiles()` - Copies styles.css, main.js, and manifest.json to the target directory.
+
+### `styles.css`
+**Description**:  
+- Global styles for the plugin, including banner appearance, controls, modals, and UI components.
+
+---
+
+## `/scripts` Directory
+
+### `/scripts/esbuild.config.mjs`
+**Description**:  
+- Configures esbuild for bundling the plugin
+- Creates a virtual module for release notes from UPDATE.md
+- Sets up build options including minification, sourcemaps, and external dependencies
+- Handles both production and development builds
+
+### `/scripts/copy-build.mjs`
+**Description**:  
+- Helper script to copy built files to the test vault location
+- Ensures the plugin can be tested in a local Obsidian environment
+
+---
+
+## `/src` Directory Files
 
 ## `/src/main.js`
 **Exports**:  
@@ -231,6 +275,26 @@ Lists user's images from the vault to pick from, or to upload a new one.
 
 ---
 
+## `/src/modal/modals/iconImageSelectionModal.js`
+**Class**: `IconImageSelectionModal` (extends `Modal`)  
+**Description**:
+- Provides an interface for selecting icon images from various sources (local vault, collections, etc.)
+- Manages pagination, searching, and categorization of icon images
+
+**Key Methods**:
+1. **onOpen()**  
+   Initializes the modal UI with tabs for vault files, collections, and other sources.
+2. **loadIconCategories()**  
+   Fetches icon categories from the Pixel Banner Plus API.
+3. **loadIconsByCategory()**  
+   Loads icons for a specific category with pagination support.
+4. **searchIcons()**  
+   Searches for icons based on a query term.
+5. **setSelectedIcon()**  
+   Sets the selected icon and passes it to the callback function.
+
+---
+
 ## `/src/modal/modals/pixelBannerStoreModal.js`
 **Class**: `PixelBannerStoreModal` (extends `Modal`)  
 Provides interface to browse and select banners from the Pixel Banner Plus store.
@@ -248,6 +312,26 @@ Provides interface to browse and select banners from the Pixel Banner Plus store
    Cleans up the modal content and styles.
 
 The modal uses the Pixel Banner Plus API endpoints to fetch categories and their associated images, displaying them in a responsive grid layout with cost information and truncated prompts.
+
+---
+
+## `/src/modal/modals/selectPixelBannerModal.js`
+**Class**: `SelectPixelBannerModal` (extends `Modal`)  
+**Description**:  
+- The main selection modal for choosing the banner source type or modification method.
+- Presents different options for banner images based on available features and API status.
+
+**Key Methods**:
+1. **onOpen()**  
+   Initializes the UI and begins API verification if necessary.
+2. **initializeBasicUI()**  
+   Sets up the core UI elements that don't depend on API status.
+3. **initializeAPIDependentSections()**  
+   Configures UI sections that require API access.
+4. **updateAPIStatusUI()**  
+   Updates the UI to reflect current API connection status.
+5. **createBannerSelectionOptions()**  
+   Generates clickable options for different banner sources.
 
 ---
 
@@ -316,24 +400,6 @@ Helps visually set or tweak the X/Y offsets for the banner and icon.
    Injects styles for crosshair lines, etc.  
 5. **onClose()**  
    Removes the style element.
-
----
-
-## `/src/modal/modals/selectPixelBannerModal.js`
-**Class**: `SelectPixelBannerModal` (extends `Modal`)  
-Provides a central hub for accessing different banner selection methods.
-
-**Key Methods**:
-1. **onOpen()**  
-   Renders the loading spinner and initializes the modal.
-2. **showLoadingSpinner()** and **hideLoadingSpinner()**  
-   Manage loading state with a spinner overlay.
-3. **initializeModal()**  
-   Renders buttons for different banner sources (AI, Store, Vault, URL) and customization options.
-4. **addStyle()**  
-   Adds custom styling for the modal buttons.
-5. **onClose()**  
-   Cleans up the modal content and styles.
 
 ---
 
@@ -486,3 +552,9 @@ Provides semantic versioning utilities for the plugin.
    Checks if a version is newer than another version.
 
 ---
+
+## Other Notes
+
+- frontmatter fields are hidden in reading mode if hidePixelBannerFields is enabled. Update these files:
+   - `src/core/domManager.js` (fuction: updateFieldVisibility)
+   - `src/core/pixelBannerPlugin.js` (function: postProcessor)

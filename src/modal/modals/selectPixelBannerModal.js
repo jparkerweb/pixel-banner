@@ -1,10 +1,12 @@
 import { Modal, MarkdownView } from 'obsidian';
 import {
     ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal,
-    EmojiSelectionModal, TargetPositionModal, WebAddressModal, DailyGameModal
+    EmojiSelectionModal, TargetPositionModal, WebAddressModal, DailyGameModal,
+    IconImageSelectionModal
 } from '../modals';
 import { flags } from '../../resources/flags.js';
 import { semver } from '../../utils/semver.js';
+import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
 
 export class SelectPixelBannerModal extends Modal {
@@ -90,7 +92,7 @@ export class SelectPixelBannerModal extends Modal {
                     margin-left: auto;
                     margin-right: 20px;
                     padding: 4px 10px;
-                    background: transparent;
+                    // background: transparent;
                     border: none;
                     cursor: pointer;
                     font-size: 14px;
@@ -98,8 +100,8 @@ export class SelectPixelBannerModal extends Modal {
                 `
             }
         });
-        settingsButton.innerHTML = '⚙️ Settings';
-        settingsButton.title = 'Open Pixel Banner Settings';
+        settingsButton.innerHTML = '⚙️ Plugin Settings';
+        settingsButton.title = 'Open Pixel Banner Plugin Settings';
         settingsButton.addEventListener('click', () => {
             this.close();
             
@@ -134,7 +136,7 @@ export class SelectPixelBannerModal extends Modal {
         // Create banner source section with heading
         const bannerSourceSection = mainContainer.createDiv({ cls: 'pixel-banner-section' });
         bannerSourceSection.createEl('h3', {
-            text: 'Select Banner Source',
+            text: 'Choose a Banner',
             cls: 'pixel-banner-section-title',
             attr: {
                 style: `
@@ -147,7 +149,60 @@ export class SelectPixelBannerModal extends Modal {
         const bannerSourceButtons = bannerSourceSection.createDiv({
             cls: 'pixel-banner-source-buttons',
         });
+
+        // Vault Selection Button (immediately available)
+        const vaultButton = bannerSourceButtons.createEl('button', {
+            cls: 'pixel-banner-source-button'
+        });
+        const vaultButtonContent = vaultButton.createDiv({ cls: 'pixel-banner-button-content' });
+        vaultButtonContent.createEl('span', { text: '💾', cls: 'pixel-banner-button-icon' });
+        vaultButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+            text: 'Your Vault', 
+            cls: 'pixel-banner-button-text' 
+        });
         
+        // Vault Selection Button Click Event
+        vaultButton.addEventListener('click', () => {
+            this.close();
+            new ImageSelectionModal(
+                this.app, 
+                this.plugin,
+                async (file) => {
+                    // This is the onChoose callback that will be used when an image is selected
+                    const activeFile = this.app.workspace.getActiveFile();
+                    if (activeFile) {
+                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                            const bannerField = this.plugin.settings.customBannerField[0];
+                            frontmatter[bannerField] = `![[${file.path}]]`;
+                        });
+                        
+                        // If not opening the banner icon modal, check if we should open the targeting modal
+                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
+                            new TargetPositionModal(this.app, this.plugin).open();
+                        }
+                    }
+                },
+                this.plugin.settings.defaultSelectImagePath
+            ).open();
+        });
+
+        // Web Address Button (immediately available)
+        const webAddressButton = bannerSourceButtons.createEl('button', {
+            cls: 'pixel-banner-source-button'
+        });
+        const webAddressButtonContent = webAddressButton.createDiv({ cls: 'pixel-banner-button-content' });
+        webAddressButtonContent.createEl('span', { text: '🌐', cls: 'pixel-banner-button-icon' });
+        webAddressButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+            text: 'URL', 
+            cls: 'pixel-banner-button-text' 
+        });
+
+        // Web Address Button Click Event
+        webAddressButton.addEventListener('click', () => {
+            this.close();
+            new WebAddressModal(this.app, this.plugin).open();
+        });
+
         if (this.plugin.settings.pixelBannerPlusEnabled) {
             // AI Generation Button (with loading state initially)
             const aiButton = bannerSourceButtons.createEl('button', {
@@ -224,102 +279,6 @@ export class SelectPixelBannerModal extends Modal {
             storeLoadingOverlay.appendChild(this.createLoadingSpinner());
         }
 
-        // Vault Selection Button (immediately available)
-        const vaultButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button'
-        });
-        const vaultButtonContent = vaultButton.createDiv({ cls: 'pixel-banner-button-content' });
-        vaultButtonContent.createEl('span', { text: '💾', cls: 'pixel-banner-button-icon' });
-        vaultButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Your Vault', 
-            cls: 'pixel-banner-button-text' 
-        });
-        
-        // Vault Selection Button Click Event
-        vaultButton.addEventListener('click', () => {
-            this.close();
-            new ImageSelectionModal(
-                this.app, 
-                this.plugin,
-                async (file) => {
-                    // This is the onChoose callback that will be used when an image is selected
-                    const activeFile = this.app.workspace.getActiveFile();
-                    if (activeFile) {
-                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                            const bannerField = this.plugin.settings.customBannerField[0];
-                            frontmatter[bannerField] = `[[${file.path}]]`;
-                        });
-                        
-                        // Check if we should open the banner icon modal after selecting a banner
-                        if (this.plugin.settings.openBannerIconModalAfterSelectingBanner) {
-                            new EmojiSelectionModal(
-                                this.app, 
-                                this.plugin,
-                                async (emoji) => {
-                                    const activeFile = this.app.workspace.getActiveFile();
-                                    if (activeFile) {
-                                        await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                                            const iconField = this.plugin.settings.customBannerIconField[0];
-                                            if (emoji) {
-                                                frontmatter[iconField] = emoji;
-                                            } else {
-                                                // If emoji is empty, remove the field from frontmatter
-                                                delete frontmatter[iconField];
-                                            }
-                                        });
-                                        
-                                        // Ensure the banner is updated to reflect the changes
-                                        const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-                                        if (view) {
-                                            // Clean up any existing banner icon overlays before updating
-                                            const contentEl = view.contentEl;
-                                            if (contentEl) {
-                                                const existingOverlays = contentEl.querySelectorAll('.banner-icon-overlay');
-                                                existingOverlays.forEach(overlay => {
-                                                    this.plugin.returnIconOverlay(overlay);
-                                                });
-                                            }
-                                            
-                                            await this.plugin.updateBanner(view, true);
-                                        }
-                                        
-                                        // Check if we should open the targeting modal after setting the icon
-                                        if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                                            new TargetPositionModal(this.app, this.plugin).open();
-                                        }
-                                    }
-                                },
-                                // Skip the targeting modal in the EmojiSelectionModal if we're going to open it here
-                                this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon
-                            ).open();
-                        } 
-                        // If not opening the banner icon modal, check if we should open the targeting modal
-                        else if (this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
-                            new TargetPositionModal(this.app, this.plugin).open();
-                        }
-                    }
-                },
-                this.plugin.settings.defaultSelectImagePath
-            ).open();
-        });
-
-        // Web Address Button (immediately available)
-        const webAddressButton = bannerSourceButtons.createEl('button', {
-            cls: 'pixel-banner-source-button'
-        });
-        const webAddressButtonContent = webAddressButton.createDiv({ cls: 'pixel-banner-button-content' });
-        webAddressButtonContent.createEl('span', { text: '🌐', cls: 'pixel-banner-button-icon' });
-        webAddressButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'URL', 
-            cls: 'pixel-banner-button-text' 
-        });
-
-        // Web Address Button Click Event
-        webAddressButton.addEventListener('click', () => {
-            this.close();
-            new WebAddressModal(this.app, this.plugin).open();
-        });
-
         // Customization section
         const customizationSection = mainContainer.createDiv({ cls: 'pixel-banner-section' });
         customizationSection.createEl('h3', {
@@ -335,14 +294,103 @@ export class SelectPixelBannerModal extends Modal {
         // Customization options container
         const customizationOptions = customizationSection.createDiv({ cls: 'pixel-banner-customization-options' });
         
+        // Banner Icon Image Button
+        const bannerIconImageButton = customizationOptions.createEl('button', {
+            cls: 'pixel-banner-customize-button'
+        });
+        const bannerIconImageContent = bannerIconImageButton.createDiv({ cls: 'pixel-banner-button-content' });
+        bannerIconImageContent.createEl('span', { text: '⭐', cls: 'pixel-banner-button-icon' });
+        bannerIconImageContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
+            text: 'Icon Image', 
+            cls: 'pixel-banner-button-text' 
+        });
+
+        // Disable the Icon Image button if no banner exists
+        if (!hasBanner) {
+            bannerIconImageButton.disabled = true;
+            bannerIconImageButton.classList.add('pixel-banner-button-disabled');
+            bannerIconImageButton.title = 'You need to add a banner first';
+        }
+
+        // Add click handler for the Icon Image button
+        bannerIconImageButton.addEventListener('click', () => {
+            this.close();
+            
+            // Function to handle image selection
+            const onChooseBannerIconImage = async (file) => {
+                if (!file) return;
+                
+                // Get active file
+                const activeFile = this.app.workspace.getActiveFile();
+                if (!activeFile) return;
+                
+                // Check if this is a web URL or local file
+                if (file.isWebUrl) {
+                    // For web URLs, use the URL directly
+                    this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                        // Get the correct field name
+                        const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                            ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconImageField;
+                        
+                        // Set the frontmatter value as direct URL
+                        fm[iconImageField] = file.path;
+                    });
+                    
+                    // Open the targeting modal after selecting an icon image
+                    new TargetPositionModal(this.app, this.plugin).open();
+                    return;
+                }
+                
+                // For local files, preload the image into the cache
+                if (file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/)) {
+                    try {
+                        // Get the vault URL for the image and load it into the cache
+                        const imageUrl = await this.plugin.getVaultImageUrl(file.path);
+                        if (imageUrl) {
+                            this.plugin.loadedImages.set(file.path, imageUrl);
+                            
+                            // Force a preload of the image to ensure it's in browser cache
+                            const preloadImg = new Image();
+                            preloadImg.src = imageUrl;
+                        }
+                    } catch (error) {
+                        console.error("Error preloading icon image:", error);
+                    }
+                }
+                
+                // Update frontmatter with the image path
+                this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                    // Get the correct field name
+                    const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
+                        ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconImageField;
+                    
+                    // Set the frontmatter value
+                    fm[iconImageField] = `![[${file.path}]]`;
+                });
+                
+                // Open the targeting modal after selecting an icon image
+                new TargetPositionModal(this.app, this.plugin).open();
+            };
+            
+            // Open the Banner Image Selection modal with the default icon path
+            new IconImageSelectionModal(
+                this.app,
+                this.plugin,
+                onChooseBannerIconImage,
+                this.plugin.settings.defaultSelectIconPath
+            ).open();
+        });
+
         // Banner Icon Button
         const bannerIconButton = customizationOptions.createEl('button', {
             cls: 'pixel-banner-customize-button'
         });
         const bannerIconContent = bannerIconButton.createDiv({ cls: 'pixel-banner-button-content' });
-        bannerIconContent.createEl('span', { text: '⭐', cls: 'pixel-banner-button-icon' });
+        bannerIconContent.createEl('span', { text: '📰', cls: 'pixel-banner-button-icon' });
         bannerIconContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Set Banner Icon', 
+            text: 'Icon Emoji & Text', 
             cls: 'pixel-banner-button-text' 
         });
         
@@ -384,7 +432,7 @@ export class SelectPixelBannerModal extends Modal {
         const targetingIconContent = targetingIconButton.createDiv({ cls: 'pixel-banner-button-content' });
         targetingIconContent.createEl('span', { text: '🎯', cls: 'pixel-banner-button-icon' });
         targetingIconContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-            text: 'Adjust Position, Size, & Style', 
+            text: 'Position, Size, & Style', 
             cls: 'pixel-banner-button-text' 
         });
 
@@ -399,6 +447,13 @@ export class SelectPixelBannerModal extends Modal {
             this.close();
             new TargetPositionModal(this.app, this.plugin).open();
         });
+        
+        // Set focus on the targeting icon button
+        setTimeout(() => {
+            if (hasBanner && targetingIconButton) {
+                targetingIconButton.focus();
+            }
+        }, 1000);
         
         // No Banner Message
         if (!hasBanner) {
@@ -417,6 +472,7 @@ export class SelectPixelBannerModal extends Modal {
                     style: `
                         gap: 5px;
                         position: relative;
+                        min-height: 97px;
                     `
                 }
             });
@@ -610,7 +666,7 @@ export class SelectPixelBannerModal extends Modal {
                     // Available Tokens - only show if server is online
                     if (isOnline && pixelBannerPlusServerOnline) {
                         const tokenCount = this.plugin.pixelBannerPlusBannerTokens !== undefined 
-                            ? `🪙 ${this.plugin.pixelBannerPlusBannerTokens.toString()} Tokens` 
+                            ? `🪙 ${decimalToFractionString(this.plugin.pixelBannerPlusBannerTokens)} Tokens` 
                             : '❓ Unknown';
                         
                         const tokenCountEl = statusContainer.createEl('span', {
@@ -727,7 +783,7 @@ export class SelectPixelBannerModal extends Modal {
                             const infoBlockRow3 = dailyGameInfoBlock.createEl('div');
                             infoBlockRow3.createEl('span', { text: '💰 Current Jackpot ' });
                             infoBlockRow3.createEl('span', {
-                                text: `🪙 ${this.plugin.pixelBannerPlusJackpot} Tokens`,
+                                text: `🪙 ${decimalToFractionString(this.plugin.pixelBannerPlusJackpot)} Tokens`,
                                 attr: { style: `
                                     font-style: italic;
                                     padding: 0px 8px;
