@@ -115,6 +115,7 @@ export class IconImageSelectionModal extends Modal {
                 width: var(--dialog-max-width);
                 max-width: 1100px;
                 min-height: 50vh;
+                max-height: 95vh;
             }
 
             .pixel-banner-image-select-modal .pixel-banner-image-delete {
