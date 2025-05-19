@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/s
 import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, SelectPixelBannerModal, DailyGameModal } from '../modal/modals.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
-import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, cleanupIconOverlay } from './bannerIconHelpers.js'; 
+import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, handleSetBannerIconImage, cleanupIconOverlay } from './bannerIconHelpers.js'; 
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
@@ -411,10 +411,40 @@ export class PixelBannerPlugin extends Plugin {
             callback: () => this.openBannerStore()
         });
 
-        // Add command for setting banner icon
+        // Add command for setting banner icon image
+        this.addCommand({
+            id: 'set-banner-icon-image',
+            name: '⭐ Select Banner Icon Image',
+            checkCallback: (checking) => {
+                const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!activeView || !activeView.file) return false;
+
+                // Get the current banner settings and check all possible banner fields
+                const frontmatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
+                let hasBanner = false;
+
+                // Check all custom banner fields
+                for (const field of this.settings.customBannerField) {
+                    if (frontmatter?.[field]) {
+                        hasBanner = true;
+                        break;
+                    }
+                }
+                
+                if (checking) return hasBanner;
+
+                if (hasBanner) {
+                    // Bind this context explicitly
+                    handleSetBannerIconImage(this);
+                }
+                return true;
+            }
+        });
+
+        // Add command for setting banner icon text / emoji
         this.addCommand({
             id: 'set-banner-icon',
-            name: '⭐ Set Banner Icon',
+            name: '📰 Set Banner Icon Text / Emoji',
             checkCallback: (checking) => {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (!activeView || !activeView.file) return false;

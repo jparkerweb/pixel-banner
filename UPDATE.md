@@ -3,6 +3,10 @@
 </a>
 
 ## 🎉 What's New
+### v3.5.1 - 2025-05-19
+#### ✨ Added
+- Added Command Palette command for selecting a `Banner Icon Image`
+
 ### v3.5.0 - 2025-05-18
 #### ✨ Added
 - New "Banner Icon Rotation" option to rotate the banner icon from 0 to 360 degrees

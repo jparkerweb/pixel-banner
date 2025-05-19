@@ -1184,7 +1184,7 @@ export class TargetPositionModal extends Modal {
         };
 
         // Function to open image picker
-        const openImagePicker = () => {
+        const openIconImagePicker = () => {
             const defaultIconImageFolder = this.plugin.settings.defaultSelectIconPath || ''
             this.close();
             new IconImageSelectionModal(
@@ -1344,7 +1344,7 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
-        bannerIconHeaderButtonIcon.addEventListener('click', openImagePicker);
+        bannerIconHeaderButtonIcon.addEventListener('click', openIconImagePicker);
 
         // Banner Icon Text / Emoji check
         const hasBannerIconText = frontmatter && 
