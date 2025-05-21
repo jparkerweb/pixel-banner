@@ -238,7 +238,6 @@ export class IconImageSelectionModal extends Modal {
             .pixel-banner-image-container {
                 cursor: pointer;
                 border-radius: 6px;
-                overflow: hidden;
                 border: 1px solid var(--background-modifier-border);
                 transition: transform 0.2s ease, box-shadow 0.2s ease;
                 position: relative;
@@ -1344,6 +1343,7 @@ export class IconImageSelectionModal extends Modal {
         try {
             const url = `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.BANNER_ICONS_ID.replace(':id', icon.id)}?key=${PIXEL_BANNER_PLUS.BANNER_ICON_KEY}`;
             
+            // Get the icon details from the API
             const response = await fetch(url, {
                 headers: {
                     'Accept': 'application/json'
@@ -1362,13 +1362,25 @@ export class IconImageSelectionModal extends Modal {
             
             const iconData = data.bannerIcon;
             
-            // Extract extension from file_name or description, defaulting to the original format
-            // Look for extension in file_name first
-            let extension = 'svg'; // Default to svg as mentioned by user
-            let fileName = iconData.file_name || '';
+            // Extract extension from the base64 image string's MIME type
+            let extension = 'png'; // Default as fallback
             
-            if (fileName) {
-                const parts = fileName.split('.');
+            // Check if we have a base64 image with MIME type info
+            if (iconData.base64Image) {
+                
+                // regex to handle MIME type formats
+                const mimeTypeMatch = iconData.base64Image.match(/data:image\/([\w\+\-\.]+);base64/);
+                
+                if (mimeTypeMatch && mimeTypeMatch[1]) {
+                    extension = mimeTypeMatch[1];
+                    
+                    if (extension === 'jpeg') extension = 'jpg';
+                    if (extension === 'svg+xml') extension = 'svg';
+                }
+            }
+            // Fallback: try to get extension from file_name
+            else if (iconData.file_name) {
+                const parts = iconData.file_name.split('.');
                 if (parts.length > 1) {
                     extension = parts[parts.length - 1].toLowerCase();
                 }
@@ -1396,21 +1408,31 @@ export class IconImageSelectionModal extends Modal {
                     await this.app.vault.createFolder(folderPath);
                 }
 
-                // Get a safe filename
-                const suggestedName = `${iconData.description || 'icon'}.${extension}`;
-                const fileName = await new Promise((resolve) => {
+                // Get a safe filename without extension - we'll add it later
+                const suggestedName = `${iconData.description || 'icon'}`;
+                const userFileName = await new Promise((resolve) => {
                     new SaveImageModal(this.app, suggestedName, (result) => {
                         resolve(result);
                     }).open();
                 });
 
-                if (!fileName) {
+                if (!userFileName) {
                     new Notice('No file name provided');
                     return;
                 }
                 
+                // Remove any extension the user might have added
+                let baseName = userFileName;
+                if (baseName.includes('.')) {
+                    baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+                }
+                
+                // Add the correct extension from our MIME type detection
+                const finalFileName = `${baseName}.${extension}`;
+                
                 // Convert base64 to binary
-                const base64Data = iconData.base64Image.split(',')[1]; // Remove the data:image/png;base64, part
+                const base64Parts = iconData.base64Image.split(',');
+                const base64Data = base64Parts[1];
                 const binaryString = window.atob(base64Data);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let i = 0; i < binaryString.length; i++) {
@@ -1419,7 +1441,7 @@ export class IconImageSelectionModal extends Modal {
                 
                 try {
                     // Create the file in the vault
-                    const fullPath = `${folderPath}/${fileName}`.replace(/\/+/g, '/');
+                    const fullPath = `${folderPath}/${finalFileName}`.replace(/\/+/g, '/');
                     const newFile = await this.app.vault.createBinary(fullPath, bytes.buffer);
                     
                     // Call onChoose with the new file

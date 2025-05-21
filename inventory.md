@@ -1,6 +1,6 @@
 # Inventory of Pixel Banner Plugin
 
-**Last Updated:** May 5, 2025
+**Last Updated:** May 19, 2025
 
 Below is a concise overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key points in the codebase.
 
@@ -11,7 +11,7 @@ Below is a concise overview of all files and their primary functions or methods.
 ### `manifest.json`
 **Description**:  
 - Plugin manifest containing metadata like ID, name, version, minimum app version, description, author info, and funding URL.
-- Current Version: 3.4.5
+- Current Version: 3.5.1
 
 ### `package.json`
 **Description**:  
@@ -92,7 +92,11 @@ Provides utility methods for managing the "icon overlay" feature on banners.
    Checks whether the existing icon overlay's styling or state differs from the desired icon state and thus needs an update.
 5. **handleSetBannerIcon(plugin)**  
    Opens an emoji selection modal and updates frontmatter with the chosen banner icon.
-6. **cleanupIconOverlay(plugin, view)**  
+6. **handleSetBannerIconImage(plugin)**  
+   Opens the Icon Image Selection modal for adding images to banner icons, supporting local images, web URLs, and online collections.
+7. **applyIconRotation(iconElement, rotationDegrees)**  
+   Applies rotation transformation to the banner icon based on user-defined degree values (0-360 degrees).
+8. **cleanupIconOverlay(plugin, view)**  
    Removes any non-persistent icon overlays from the specified view.
 
 ---
@@ -403,6 +407,54 @@ Helps visually set or tweak the X/Y offsets for the banner and icon.
 
 ---
 
+## `/src/modal/modals/iconImageSelectionModal.js`
+**Class**: `IconImageSelectionModal` (extends `Modal`)  
+Provides image selection for banner icons, allowing users to choose from local images, web URLs, or online collections.
+
+**Key Methods**:
+1. **onOpen()**  
+   Builds the modal interface with tabs for different icon image sources.
+2. **renderCollectionsTab()**  
+   Creates the interface for browsing and selecting from online icon collections.
+3. **renderLocalTab()**  
+   Displays local vault images that can be used as banner icons.
+4. **renderWebTab()**  
+   Provides an interface for entering web URLs for icon images.
+5. **handleImageSelection(imagePath)**  
+   Processes the selected image and updates the banner icon.
+
+---
+
+## `/src/modal/modals/iconFolderSelectionModal.js`
+**Class**: `IconFolderSelectionModal` (extends `FuzzySuggestModal`)  
+Allows selection of a folder containing images to use as banner icons.
+
+**Key Methods**:
+1. **getItems()**  
+   Returns a list of folders from the vault.
+2. **onChooseItem(folder)**  
+   Sets the selected folder as the source for banner icons.
+
+---
+
+## `/src/modal/modals/targetPositionModal.js`
+**Class**: `TargetPositionModal` (extends `Modal`)  
+Provides an interactive UI for adjusting banner position, size, and appearance with enhanced controls for icon styling.
+
+**Key Methods**:
+1. **onOpen()**  
+   Builds the UI with controls for banner position, size, alignment, and icon settings.
+2. **createBannerControls()**  
+   Creates sliders and inputs for banner position, size, and display settings.
+3. **createBorderRadiusControl()**  
+   Creates the new border radius slider control for adjusting banner corner rounding.
+4. **createIconControls()**  
+   Creates controls for banner icon styling, including size, position, opacity, and rotation.
+5. **onClose()**  
+   Cleans up the modal and saves any changes to banner settings.
+
+---
+
 ## `/src/modal/modals/dailyGame.js`
 **Class**: `DailyGameModal` (extends `Modal`)  
 Provides a daily game or challenge feature within the plugin.
@@ -437,6 +489,8 @@ Exports all modals from the `modal/modals` directory.
 - `PixelBannerStoreModal`
 - `WebAddressModal`
 - `DailyGameModal`
+- `IconImageSelectionModal`
+- `IconFolderSelectionModal`
 
 ---
 

@@ -219,7 +219,6 @@ export class ImageSelectionModal extends Modal {
             .pixel-banner-image-container {
                 cursor: pointer;
                 border-radius: 6px;
-                overflow: hidden;
                 border: 1px solid var(--background-modifier-border);
                 transition: transform 0.2s ease, box-shadow 0.2s ease;
                 position: relative;
