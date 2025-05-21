@@ -3,6 +3,11 @@
 </a>
 
 ## 🎉 What's New
+### v3.5.2 - 2025-05-21
+#### 🐛 Fixed
+- Updated styles to remove overflow on images for mobile devices
+- Resolved issue with icon image selection modal not using the correct extension for non-svg images
+
 ### v3.5.1 - 2025-05-19
 #### ✨ Added
 - Added Command Palette command for selecting a `Banner Icon Image`
