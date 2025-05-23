@@ -164,6 +164,20 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-icon-size, icon-size'
         },
         {
+            setting: 'customBannerIconImageSizeMultiplierField',
+            name: 'Banner Icon Image Size Multiplier Field Names',
+            desc: 'Set custom field names for the banner icon image size multiplier in frontmatter',
+            values: '.5, 1.5, 2',
+            placeholder: 'banner-icon-image-size-multiplier, icon-image-size-multiplier'
+        },
+        {
+            setting: 'customBannerIconTextVerticalOffsetField',
+            name: 'Banner Icon Text Vertical Offset Field Names',
+            desc: 'Set custom field names for the banner icon text vertical offset in frontmatter',
+            values: '-10, 0, 10',
+            placeholder: 'banner-icon-text-vertical-offset, icon-text-vertical-offset'
+        },
+        {
             setting: 'customBannerIconRotateField',
             name: 'Banner Icon Rotate Field Names',
             desc: 'Set custom field names for the banner icon rotate in frontmatter',

@@ -396,6 +396,10 @@ export class IconImageSelectionModal extends Modal {
                         ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
                         : this.plugin.settings.customBannerIconSizeField;
 
+                    const iconImageSizeMultiplierField = Array.isArray(this.plugin.settings.customBannerIconImageSizeMultiplierField) 
+                        ? this.plugin.settings.customBannerIconImageSizeMultiplierField[0].split(',')[0].trim()
+                        : this.plugin.settings.customBannerIconImageSizeMultiplierField;
+
                     const iconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField) 
                         ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
                         : this.plugin.settings.customBannerIconRotateField;
@@ -445,6 +449,7 @@ export class IconImageSelectionModal extends Modal {
                         delete frontmatter[bannerIconImageField];
                         delete frontmatter[bannerIconImageAlignmentField];
                         delete frontmatter[iconSizeField];
+                        delete frontmatter[iconImageSizeMultiplierField];
                         delete frontmatter[iconRotateField];
                         delete frontmatter[iconYPositionField];
                         delete frontmatter[iconXPositionField];
@@ -456,6 +461,8 @@ export class IconImageSelectionModal extends Modal {
                     } else {
                         // If there is text/emoji, only remove the icon image field
                         delete frontmatter[bannerIconImageField];
+                        delete frontmatter[iconImageSizeMultiplierField];
+                        delete frontmatter[bannerIconImageAlignmentField];
                     }
                 });
 

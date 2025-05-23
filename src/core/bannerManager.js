@@ -123,6 +123,16 @@ async function addPixelBanner(plugin, el, ctx) {
                     getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField),
                     0
                 ]);
+                const bannerIconImageSizeMultiplier = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageSizeMultiplierField),
+                    plugin.settings.bannerIconImageSizeMultiplier,
+                    1
+                ]);
+                const bannerIconTextVerticalOffset = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconTextVerticalOffsetField),
+                    plugin.settings.bannerIconTextVerticalOffset,
+                    0
+                ]);
                 
                 previewViewEl.style.setProperty('--pixel-banner-icon-size', `${bannerIconSize}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-x', `${bannerIconXPosition}%`);
@@ -135,6 +145,8 @@ async function addPixelBanner(plugin, el, ctx) {
                 previewViewEl.style.setProperty('--pixel-banner-icon-border-radius', `${bannerIconBorderRadius}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-vertical-offset', `${bannerIconVerticalOffset}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-rotate', `${bannerIconRotate}deg`);
+                previewViewEl.style.setProperty('--pixel-banner-icon-image-size-multiplier', `${bannerIconImageSizeMultiplier}em`);
+                previewViewEl.style.setProperty('--pixel-banner-icon-text-vertical-offset', `${bannerIconTextVerticalOffset}px`);
                 
                 // Set height for embedded notes with banners
                 const bannerHeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerHeightField) || 
@@ -1042,21 +1054,23 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 }
             }
             
-            // Create text node if we have icon text
-            let textNode = null;
+            // Create text element if we have icon text
+            let textElement = null;
             if (cleanIcon) {
-                textNode = document.createTextNode(cleanIcon);
+                textElement = document.createElement('div');
+                textElement.className = 'banner-icon-text';
+                textElement.textContent = cleanIcon;
             }
             
             // Add elements to overlay based on alignment setting
             if (imageAlignment === 'right') {
                 // Add text first, then image
-                if (textNode) bannerIconOverlay.appendChild(textNode);
+                if (textElement) bannerIconOverlay.appendChild(textElement);
                 if (imgElement) bannerIconOverlay.appendChild(imgElement);
             } else {
                 // Default alignment: image first, then text
                 if (imgElement) bannerIconOverlay.appendChild(imgElement);
-                if (textNode) bannerIconOverlay.appendChild(textNode);
+                if (textElement) bannerIconOverlay.appendChild(textElement);
             }
             
             // Apply styles
@@ -1206,7 +1220,21 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
 
     // Get banner-icon rotate
     const bannerIconRotate = getValueWithZeroCheck([
-        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField)),
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField),
+        0
+    ]);
+
+    // Get banner-icon image size multiplier
+    const bannerIconImageSizeMultiplier = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageSizeMultiplierField),
+        plugin.settings.bannerIconImageSizeMultiplier,
+        1
+    ]);
+
+    // Get banner-icon text vertical offset
+    const bannerIconTextVerticalOffset = getValueWithZeroCheck([
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconTextVerticalOffsetField),
+        plugin.settings.bannerIconTextVerticalOffset,
         0
     ]);
 
@@ -1248,6 +1276,8 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         '--pixel-banner-icon-border-radius': `${bannerIconBorderRadius}px`,
         '--pixel-banner-icon-vertical-offset': `${bannerIconVeritalOffset}px`,
         '--pixel-banner-icon-rotate': `${bannerIconRotate}deg`,
+        '--pixel-banner-icon-image-size-multiplier': `${bannerIconImageSizeMultiplier}em`,
+        '--pixel-banner-icon-text-vertical-offset': `${bannerIconTextVerticalOffset}px`,
         '--pixel-banner-embed-min-height': !hideEmbeddedNoteBanners ? 
             `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
             '0px',

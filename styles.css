@@ -672,7 +672,12 @@
 }
 /* banner icon image */
 .banner-icon-overlay > img {
-    height: 1em;
+    height: var(--pixel-banner-icon-image-size-multiplier, 1em);
+}
+/* banner icon text */
+.banner-icon-overlay > .banner-icon-text {
+    position: relative;
+    top: var(--pixel-banner-icon-text-vertical-offset, 0);
 }
 
 
