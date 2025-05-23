@@ -990,6 +990,10 @@ export function createGeneralSettings(containerEl, plugin) {
             .onClick(async () => {
                 plugin.settings.bannerIconPaddingX = DEFAULT_SETTINGS.bannerIconPaddingX;
                 await plugin.saveSettings();
+                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingX;
+                const event = new Event('input', { bubbles: true, cancelable: true });
+                sliderInput.dispatchEvent(event);
             }));
 
     // Banner Icon Padding Y
@@ -1010,6 +1014,10 @@ export function createGeneralSettings(containerEl, plugin) {
             .onClick(async () => {
                 plugin.settings.bannerIconPaddingY = DEFAULT_SETTINGS.bannerIconPaddingY;
                 await plugin.saveSettings();
+                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingY;
+                const event = new Event('input', { bubbles: true, cancelable: true });
+                sliderInput.dispatchEvent(event);
             }));
 
     // Banner Icon Border Radius

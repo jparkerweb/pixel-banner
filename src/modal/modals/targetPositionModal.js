@@ -2929,7 +2929,7 @@ export class TargetPositionModal extends Modal {
                 alignmentSelect.value = 'center';
             }
             
-            // Reset new banner icon value displays
+            // Reset banner icon value displays
             if (bannerIconSizeValue) bannerIconSizeValue.setText(`${this.plugin.settings.bannerIconSize}`);
             if (bannerIconImageSizeMultiplierValue) bannerIconImageSizeMultiplierValue.setText(`${this.plugin.settings.bannerIconImageSizeMultiplier}`);
             if (bannerIconTextVerticalOffsetValue) bannerIconTextVerticalOffsetValue.setText(`${this.plugin.settings.bannerIconTextVerticalOffset}`);
@@ -3028,6 +3028,10 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconSizeField;
 
+                const bannerIconTextVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconTextVerticalOffsetField)
+                    ? this.plugin.settings.customBannerIconTextVerticalOffsetField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconTextVerticalOffsetField;
+
                 const bannerIconImageSizeMultiplierField = Array.isArray(this.plugin.settings.customBannerIconImageSizeMultiplierField)
                     ? this.plugin.settings.customBannerIconImageSizeMultiplierField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconImageSizeMultiplierField;
@@ -3057,6 +3061,7 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[bannerIconBorderRadiusField];
                 delete frontmatter[bannerIconVerticalOffsetField];
                 delete frontmatter[bannerIconSizeField];
+                delete frontmatter[bannerIconTextVerticalOffsetField];
                 delete frontmatter[bannerIconImageSizeMultiplierField];
                 delete frontmatter[bannerIconRotateField];
                 

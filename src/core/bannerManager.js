@@ -99,13 +99,13 @@ async function addPixelBanner(plugin, el, ctx) {
                     getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
                     folderSpecific?.bannerIconPaddingX,
                     plugin.settings.bannerIconPaddingX,
-                    0
+                    10
                 ]);
                 const bannerIconPaddingY = getValueWithZeroCheck([
                     getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
                     folderSpecific?.bannerIconPaddingY,
                     plugin.settings.bannerIconPaddingY,
-                    0
+                    10
                 ]);
                 const bannerIconBorderRadius = getValueWithZeroCheck([
                     getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
@@ -1191,7 +1191,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
         folderSpecific?.bannerIconPaddingX,
         plugin.settings.bannerIconPaddingX,
-        0
+        10
     ]);
 
     // Get banner-icon padding Y
@@ -1199,7 +1199,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
         folderSpecific?.bannerIconPaddingY,
         plugin.settings.bannerIconPaddingY,
-        0
+        10
     ]);
 
     // Get banner-icon border radius
