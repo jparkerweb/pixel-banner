@@ -11,7 +11,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   allows for adjusting the vertical offset of the Icon Text relative to the Icon Image if set (perfect for fine-tuning center alignment of text)
 
 #### 📦 Updated
-- Updated some labels on the "Postion, Size & Style" modal for clairty
+- Updated some labels on the "Position, Size & Style" modal for clarity
 
 ### v3.5.2 - 2025-05-21
 #### 🐛 Fixed
