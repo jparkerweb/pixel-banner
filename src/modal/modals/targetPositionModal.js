@@ -225,6 +225,16 @@ export class TargetPositionModal extends Modal {
         });
     }
 
+    updateBannerIconImageSizeMultiplier(sizeMultiplier) {
+        const bannerIconImageSizeMultiplierField = Array.isArray(this.plugin.settings.customBannerIconImageSizeMultiplierField)
+            ? this.plugin.settings.customBannerIconImageSizeMultiplierField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageSizeMultiplierField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[bannerIconImageSizeMultiplierField] = sizeMultiplier;
+        });
+    }
+
     updateBannerIconRotate(rotate) {
         const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
             ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
@@ -332,6 +342,16 @@ export class TargetPositionModal extends Modal {
 
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconVerticalOffsetField] = verticalOffset;
+        });
+    }
+
+    updateBannerIconTextVerticalOffset(textVerticalOffset) {
+        const bannerIconTextVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconTextVerticalOffsetField)
+            ? this.plugin.settings.customBannerIconTextVerticalOffsetField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconTextVerticalOffsetField;
+
+        this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
+            frontmatter[bannerIconTextVerticalOffsetField] = textVerticalOffset;
         });
     }
 
@@ -1525,7 +1545,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon X Position label
         const bannerIconXPositionLabel = bannerIconXPositionContainer.createEl('div', { 
-            text: 'X Position',
+            text: 'Icon X Position',
             cls: 'banner-icon-x-position-label',
             attr: {
                 style: `
@@ -1589,7 +1609,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Vertical Offset label
         const bannerIconVerticalOffsetLabel = bannerIconVerticalOffsetContainer.createEl('div', { 
-            text: 'Y Position',
+            text: 'Icon Y Position',
             cls: 'banner-icon-vertical-offset-label',
             attr: {
                 style: `
@@ -1659,7 +1679,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Size label
         const bannerIconSizeLabel = bannerIconSizeContainer.createEl('div', { 
-            text: 'Size',
+            text: 'Icon Size',
             cls: 'banner-icon-size-label',
             attr: {
                 style: `
@@ -1709,6 +1729,146 @@ export class TargetPositionModal extends Modal {
             this.currentBannerIconSize = parseInt(bannerIconSizeSlider.value);
             bannerIconSizeValue.setText(`${this.currentBannerIconSize}`);
             this.updateBannerIconSize(this.currentBannerIconSize);
+        });
+
+        // Banner Icon Image Size Multiplier control container
+        const bannerIconImageSizeMultiplierContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-image-size-multiplier-container',
+            attr: {
+                style: `
+                    display: ${hasBannerIconImage ? 'flex' : 'none'};
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Image Size Multiplier label
+        const bannerIconImageSizeMultiplierLabel = bannerIconImageSizeMultiplierContainer.createEl('div', { 
+            text: 'Icon Image Size Multiplier',
+            cls: 'banner-icon-image-size-multiplier-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon image size multiplier
+        const iconImageSizeMultiplierField = Array.isArray(this.plugin.settings.customBannerIconImageSizeMultiplierField)
+            ? this.plugin.settings.customBannerIconImageSizeMultiplierField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconImageSizeMultiplierField;
+        this.currentBannerIconImageSizeMultiplier = frontmatter?.[iconImageSizeMultiplierField] || 1;
+
+        // Banner Icon Image Size Multiplier slider
+        const bannerIconImageSizeMultiplierSlider = bannerIconImageSizeMultiplierContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-image-size-multiplier-slider',
+            attr: {
+                min: '.2',
+                max: '3',
+                step: '0.1',
+                value: this.currentBannerIconImageSizeMultiplier,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
+            }
+        });
+
+        // Banner Icon Image Size Multiplier value display
+        const bannerIconImageSizeMultiplierValue = bannerIconImageSizeMultiplierContainer.createDiv({
+            cls: 'banner-icon-image-size-multiplier-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconImageSizeMultiplierValue.setText(`${this.currentBannerIconImageSizeMultiplier}`);
+
+        // Banner Icon Image Size Multiplier slider event listener
+        bannerIconImageSizeMultiplierSlider.addEventListener('input', () => {
+            this.currentBannerIconImageSizeMultiplier = parseFloat(bannerIconImageSizeMultiplierSlider.value);
+            bannerIconImageSizeMultiplierValue.setText(`${this.currentBannerIconImageSizeMultiplier}`);
+            this.updateBannerIconImageSizeMultiplier(this.currentBannerIconImageSizeMultiplier);
+        });
+
+        // Banner Icon Text Vertical Offset control container
+        const bannerIconTextVerticalOffsetContainer = bannerIconControlsContainer.createDiv({
+            cls: 'banner-icon-text-vertical-offset-container',
+            attr: {
+                style: `
+                    display: ${hasBannerIconText ? 'flex' : 'none'};
+                    flex-direction: row;
+                    gap: 10px;
+                    align-items: center;
+                    min-width: 60px;
+                    flex: 0 auto;
+                    margin-top: 10px;
+                `
+            }
+        });
+
+        // Banner Icon Text Vertical Offset label
+        const bannerIconTextVerticalOffsetLabel = bannerIconTextVerticalOffsetContainer.createEl('div', { 
+            text: 'Icon Text Vertical Offset',
+            cls: 'banner-icon-text-vertical-offset-label',
+            attr: {
+                style: `
+                    color: var(--text-muted); 
+                    font-size: 0.9em;
+                `
+            }
+        });
+
+        // Get current banner icon text vertical offset
+        const iconTextVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconTextVerticalOffsetField)
+            ? this.plugin.settings.customBannerIconTextVerticalOffsetField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconTextVerticalOffsetField;
+        this.currentBannerIconTextVerticalOffset = frontmatter?.[iconTextVerticalOffsetField] || this.plugin.settings.bannerIconTextVerticalOffset || 0;
+
+        // Banner Icon Text Vertical Offset slider
+        const bannerIconTextVerticalOffsetSlider = bannerIconTextVerticalOffsetContainer.createEl('input', {
+            type: 'range',
+            cls: 'banner-icon-text-vertical-offset-slider',
+            attr: {
+                min: '-50',
+                max: '50',
+                step: '1',
+                value: this.currentBannerIconTextVerticalOffset,
+                style: `
+                    flex: 1;
+                    writing-mode: horizontal-tb;
+                    direction: ltr;
+                `
+            }
+        });
+
+        // Banner Icon Text Vertical Offset value display
+        const bannerIconTextVerticalOffsetValue = bannerIconTextVerticalOffsetContainer.createDiv({
+            cls: 'banner-icon-text-vertical-offset-value',
+            attr: {
+                style: `
+                    font-family: var(--font-monospace);
+                    font-size: 0.9em;
+                `
+            }
+        });
+        bannerIconTextVerticalOffsetValue.setText(`${this.currentBannerIconTextVerticalOffset}`);
+
+        // Banner Icon Text Vertical Offset slider event listener
+        bannerIconTextVerticalOffsetSlider.addEventListener('input', () => {
+            this.currentBannerIconTextVerticalOffset = parseInt(bannerIconTextVerticalOffsetSlider.value);
+            bannerIconTextVerticalOffsetValue.setText(`${this.currentBannerIconTextVerticalOffset}`);
+            this.updateBannerIconTextVerticalOffset(this.currentBannerIconTextVerticalOffset);
         });
 
         // Banner Icon Rotate control container
@@ -1797,7 +1957,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Color label
         const bannerIconColorLabel = bannerIconColorContainer.createEl('div', { 
-            text: 'Color',
+            text: 'Icon Text Color',
             cls: 'banner-icon-color-label',
             attr: {
                 style: `
@@ -1906,7 +2066,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Font Weight label
         const bannerIconFontWeightLabel = bannerIconFontWeightContainer.createEl('div', { 
-            text: 'Font Weight',
+            text: 'Icon Text Font Weight',
             cls: 'banner-icon-font-weight-label',
             attr: {
                 style: `
@@ -1960,7 +2120,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Background Color label
         const bannerIconBgColorLabel = bannerIconBgColorContainer.createEl('div', { 
-            text: 'Background Color',
+            text: 'Icon Background Color',
             cls: 'banner-icon-bg-color-label',
             attr: {
                 style: `
@@ -2189,7 +2349,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Padding X label
         const bannerIconPaddingXLabel = bannerIconPaddingXContainer.createEl('div', { 
-            text: 'Padding X',
+            text: 'Icon Padding X',
             cls: 'banner-icon-padding-x-label',
             attr: {
                 style: `
@@ -2259,7 +2419,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Padding Y label
         const bannerIconPaddingYLabel = bannerIconPaddingYContainer.createEl('div', { 
-            text: 'Padding Y',
+            text: 'Icon Padding Y',
             cls: 'banner-icon-padding-y-label',
             attr: {
                 style: `
@@ -2329,7 +2489,7 @@ export class TargetPositionModal extends Modal {
 
         // Banner Icon Border Radius label
         const bannerIconBorderRadiusLabel = bannerIconBorderRadiusContainer.createEl('div', { 
-            text: 'Border Radius',
+            text: 'Icon Border Radius',
             cls: 'banner-icon-border-radius-label',
             attr: {
                 style: `
@@ -2688,6 +2848,9 @@ export class TargetPositionModal extends Modal {
 
             // Reset new banner icon controls
             if (bannerIconSizeSlider) bannerIconSizeSlider.value = this.plugin.settings.bannerIconSize;
+            if (bannerIconImageSizeMultiplierSlider) bannerIconImageSizeMultiplierSlider.value = this.plugin.settings.bannerIconImageSizeMultiplier;
+            if (bannerIconRotateSlider) bannerIconRotateSlider.value = 0;
+            if (bannerIconTextVerticalOffsetSlider) bannerIconTextVerticalOffsetSlider.value = this.plugin.settings.bannerIconTextVerticalOffset;
             
             // Reset Banner Icon Color
             if (bannerIconColorInput) {
@@ -2766,8 +2929,10 @@ export class TargetPositionModal extends Modal {
                 alignmentSelect.value = 'center';
             }
             
-            // Reset new banner icon value displays
+            // Reset banner icon value displays
             if (bannerIconSizeValue) bannerIconSizeValue.setText(`${this.plugin.settings.bannerIconSize}`);
+            if (bannerIconImageSizeMultiplierValue) bannerIconImageSizeMultiplierValue.setText(`${this.plugin.settings.bannerIconImageSizeMultiplier}`);
+            if (bannerIconTextVerticalOffsetValue) bannerIconTextVerticalOffsetValue.setText(`${this.plugin.settings.bannerIconTextVerticalOffset}`);
             if (bannerIconPaddingXValue) bannerIconPaddingXValue.setText(`${this.plugin.settings.bannerIconPaddingX}`);
             if (bannerIconPaddingYValue) bannerIconPaddingYValue.setText(`${this.plugin.settings.bannerIconPaddingY}`);
             if (bannerIconBorderRadiusValue) bannerIconBorderRadiusValue.setText(`${this.plugin.settings.bannerIconBorderRadius}`);
@@ -2863,6 +3028,14 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconSizeField;
 
+                const bannerIconTextVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconTextVerticalOffsetField)
+                    ? this.plugin.settings.customBannerIconTextVerticalOffsetField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconTextVerticalOffsetField;
+
+                const bannerIconImageSizeMultiplierField = Array.isArray(this.plugin.settings.customBannerIconImageSizeMultiplierField)
+                    ? this.plugin.settings.customBannerIconImageSizeMultiplierField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconImageSizeMultiplierField;
+
                 const bannerIconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField)
                     ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconRotateField;
@@ -2888,6 +3061,8 @@ export class TargetPositionModal extends Modal {
                 delete frontmatter[bannerIconBorderRadiusField];
                 delete frontmatter[bannerIconVerticalOffsetField];
                 delete frontmatter[bannerIconSizeField];
+                delete frontmatter[bannerIconTextVerticalOffsetField];
+                delete frontmatter[bannerIconImageSizeMultiplierField];
                 delete frontmatter[bannerIconRotateField];
                 
                 // Remove alignment field
@@ -3088,6 +3263,8 @@ export class TargetPositionModal extends Modal {
                 e.target === borderRadiusSlider ||
                 e.target === bannerIconXPositionSlider ||
                 e.target === bannerIconSizeSlider ||
+                e.target === bannerIconImageSizeMultiplierSlider ||
+                e.target === bannerIconTextVerticalOffsetSlider ||
                 e.target === bannerIconRotateSlider ||
                 e.target === bannerIconColorPicker ||
                 e.target === bannerIconColorInput ||

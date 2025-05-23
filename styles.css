@@ -651,7 +651,6 @@
     padding-right: var(--pixel-banner-icon-padding-x, 0) !important;
     padding-bottom: var(--pixel-banner-icon-padding-y, 0) !important;
     padding-left: var(--pixel-banner-icon-padding-x, 0) !important;
-    line-height: 1.38;
     opacity: var(--pixel-banner-icon-opacity, 100%);
     color: var(--pixel-banner-icon-color, var(--text-normal));
     font-size: var(--pixel-banner-icon-size, 70px);
@@ -672,7 +671,13 @@
 }
 /* banner icon image */
 .banner-icon-overlay > img {
-    height: 1em;
+    height: var(--pixel-banner-icon-image-size-multiplier, 1em);
+}
+/* banner icon text */
+.banner-icon-overlay > .banner-icon-text {
+    position: relative;
+    top: var(--pixel-banner-icon-text-vertical-offset, 0);
+    line-height: var(--pixel-banner-icon-size, 1);
 }
 
 

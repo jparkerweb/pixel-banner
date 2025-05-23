@@ -3,6 +3,16 @@
 </a>
 
 ## 🎉 What's New
+### v3.5.3 - 2025-05-23
+#### ✨ Added
+- New `Icon Image Size Multiplier` control:
+  allows for changing the icon image size relative to the Banner Icon elements size (perfect to when you want the image to be larger or smaller than any accompanying icon text)
+- New `Icon Text Vertical Offset` control:
+  allows for adjusting the vertical offset of the Icon Text relative to the Icon Image if set (perfect for fine-tuning center alignment of text)
+
+#### 📦 Updated
+- Updated some labels on the "Position, Size & Style" modal for clarity
+
 ### v3.5.2 - 2025-05-21
 #### 🐛 Fixed
 - Updated styles to remove overflow on images for mobile devices
