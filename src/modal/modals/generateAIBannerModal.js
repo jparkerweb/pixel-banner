@@ -1281,7 +1281,7 @@ export class GenerateAIBannerModal extends Modal {
         });
         // History Contianer Description
         const historyContainerDescription = contentEl.createEl('p', {
-            text: `Click an image to download and use as a banner. These downloads are always FREE as you have already paid to generate them.`,
+            text: `Click an image to download and use as a banner. These downloads are always FREE as you have already paid to generate them. Images older than one month are subject to deletion from our servers.`,
             cls: 'pixel-banner-history-description',
             attr: {
                 style: `
