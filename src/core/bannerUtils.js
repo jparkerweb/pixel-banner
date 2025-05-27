@@ -222,7 +222,12 @@ function getActiveApiProvider() {
 
 function hasBannerFrontmatter(file) {
     const metadata = this.app.metadataCache.getFileCache(file);
-    return metadata?.frontmatter?.banner !== undefined;
+    if (!metadata?.frontmatter) return false;
+    
+    // Check all possible banner field names from settings
+    return this.settings.customBannerField.some(fieldName => 
+        metadata.frontmatter[fieldName] !== undefined
+    );
 }
 
 

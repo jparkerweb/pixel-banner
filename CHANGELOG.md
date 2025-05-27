@@ -3,6 +3,10 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.5.4 - 2025-05-??
+#### 🐛 Fixed
+- Resolve issue with not evaluating all defined custom field names for "banner" frontmatter
+
 ### v3.5.3 - 2025-05-23
 #### ✨ Added
 - New `Icon Image Size Multiplier` control:
