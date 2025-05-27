@@ -3,9 +3,10 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
-### v3.5.4 - 2025-05-??
+### v3.5.4 - 2025-05-27
 #### 🐛 Fixed
 - Resolve issue with not evaluating all defined custom field names for "banner" frontmatter
+- Revert aggresive css change impacting the background color of some theme variations and plugins
 
 ### v3.5.3 - 2025-05-23
 #### ✨ Added
