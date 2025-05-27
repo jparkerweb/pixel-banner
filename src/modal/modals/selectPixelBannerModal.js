@@ -127,7 +127,10 @@ export class SelectPixelBannerModal extends Modal {
         const activeFile = this.app.workspace.getActiveFile();
         const hasBanner = activeFile ? (
             this.plugin.hasBannerFrontmatter(activeFile) || 
-            this.plugin.app.metadataCache.getFileCache(activeFile)?.frontmatter?.[this.plugin.settings.customBannerShuffleField[0]]
+            (this.plugin.app.metadataCache.getFileCache(activeFile)?.frontmatter && 
+             this.plugin.settings.customBannerShuffleField.some(field => 
+                this.plugin.app.metadataCache.getFileCache(activeFile)?.frontmatter?.[field]
+             ))
         ) : false;
 
         // Create main container
