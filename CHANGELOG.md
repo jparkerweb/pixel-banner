@@ -3,6 +3,11 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.5.5 - 2025-05-30
+#### ✨ Added
+- New AI Image Model, `FLUX Kontext (pro)`, allows for uploading images and editing them via text prompts
+  - example: type in a prompt "Make this a Studio Ghible cartoon", select the "FLUX Kontext" model, upload an image, then click Generate
+
 ### v3.5.4 - 2025-05-27
 #### 🐛 Fixed
 - Resolve issue with not evaluating all defined custom field names for "banner" frontmatter
