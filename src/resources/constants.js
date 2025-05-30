@@ -5,6 +5,7 @@ export const PIXEL_BANNER_PLUS = {
         PING: 'ping',
         VERIFY: 'verify',
         TEXT_TO_IMAGE_MODELS: 'text-to-image-models',
+        UPLOAD_TEMP_IMAGE: '/upload-temp-image',
         GENERATE: 'generatev2',
         GENERATE_BANNER_IDEA: 'generate-banner-idea',
         GENERATE_BANNER_IDEA_FROM_SEED: 'generate-banner-idea-from-seed',
