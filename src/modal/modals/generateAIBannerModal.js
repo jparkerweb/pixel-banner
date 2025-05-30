@@ -450,6 +450,77 @@ export class GenerateAIBannerModal extends Modal {
                     value: control.defaultValue
                 });
             }
+            else if (control.type === 'image_file') {
+                // Create file input container
+                const fileContainer = controlElement.createDiv({
+                    attr: { style: 'display: flex; flex-direction: column; gap: 10px;' }
+                });
+                
+                const fileInput = fileContainer.createEl('input', {
+                    type: 'file',
+                    attr: {
+                        id: `control-${this.selectedModelId}-${controlKey}`,
+                        accept: 'image/jpeg,image/jpg,image/png,image/webp,image/gif'
+                    }
+                });
+                
+                const previewImage = fileContainer.createEl('img', {
+                    attr: {
+                        id: `${fileInput.id}-preview`,
+                        style: 'max-width: 200px; max-height: 200px; display: none; border-radius: 4px; border: 1px solid var(--background-modifier-border);'
+                    }
+                });
+                
+                const fileInfo = fileContainer.createDiv({
+                    attr: {
+                        id: `${fileInput.id}-info`,
+                        style: 'font-size: 12px; color: var(--text-muted);'
+                    },
+                    text: 'No file selected (max 10MB)'
+                });
+                
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    
+                    if (file) {
+                        // Check file size upfront
+                        const maxFileSize = 10 * 1024 * 1024; // 10MB
+                        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                        
+                        if (file.size > maxFileSize) {
+                            fileInfo.innerHTML = `<span style="color: var(--text-error);">❌ File too large: ${fileSizeMB}MB (max 10MB)</span>`;
+                            previewImage.style.display = 'none';
+                            this.controlValues[controlKey] = null;
+                            controlValueDisplay.textContent = 'File too large';
+                            console.error(`File too large: ${fileSizeMB}MB`);
+                            return;
+                        }
+                        
+                        // Update file info with size info
+                        fileInfo.innerHTML = `📁 ${file.name} (${fileSizeMB}MB)`;
+                        
+                        // Show preview
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            previewImage.src = e.target.result;
+                            previewImage.style.display = 'block';
+                        };
+                        reader.onerror = (e) => {
+                            console.error('File reader error:', e);
+                        };
+                        reader.readAsDataURL(file);
+                        
+                        // Mark control as having a file selected
+                        this.controlValues[controlKey] = 'FILE_SELECTED';
+                        controlValueDisplay.textContent = 'File selected';
+                    } else {
+                        fileInfo.textContent = 'No file selected (max 10MB)';
+                        previewImage.style.display = 'none';
+                        this.controlValues[controlKey] = null;
+                        controlValueDisplay.textContent = 'No file';
+                    }
+                });
+            }
         });
         
         // Use a small delay to ensure the DOM is fully updated before setting values
@@ -469,6 +540,102 @@ export class GenerateAIBannerModal extends Modal {
                 }
             });
         }, 50); // 50ms delay should be enough for DOM updates
+    }
+
+    // Helper method to collect control values
+    async collectControlValues() {
+        console.log('collectControlValues called');
+        if (!this.selectedModelId || !this.availableModels[this.selectedModelId]) {
+            console.error('No selected model or model data not found');
+            return {};
+        }
+        
+        const controlValues = {};
+        const controls = this.availableModels[this.selectedModelId].controls;
+        
+        for (const controlKey in controls) {
+            const controlId = `control-${this.selectedModelId}-${controlKey}`;
+            const controlElement = this.contentEl.querySelector(`#${controlId}`);
+            
+            if (controlElement) {
+                if (controls[controlKey].type === 'slider') {
+                    controlValues[controlKey] = parseInt(controlElement.value, 10);
+                } else if (controls[controlKey].type === 'image_file') {
+                    const file = controlElement.files[0];
+                    controlValues[controlKey] = file ? 'FILE_SELECTED' : null;
+                } else {
+                    controlValues[controlKey] = controlElement.value;
+                }
+            } else {
+                console.warn(`Control element not found for ${controlKey} (ID: ${controlId})`);
+            }
+        }
+        
+        return controlValues;
+    }
+
+    // Helper method to upload image files
+    async uploadImageFiles(controlValues) {
+        const controls = this.availableModels[this.selectedModelId].controls;
+        const updatedControlValues = { ...controlValues };
+        
+        for (const controlKey in controlValues) {
+            if (controls[controlKey]?.type === 'image_file' && controlValues[controlKey] === 'FILE_SELECTED') {
+                const controlId = `control-${this.selectedModelId}-${controlKey}`;
+                const fileInput = this.contentEl.querySelector(`#${controlId}`);
+                const file = fileInput?.files[0];
+                
+                if (file) {
+                    try {
+                        // Check file size limit (10MB should be fine for direct upload)
+                        const maxFileSize = 10 * 1024 * 1024; // 10MB
+                        if (file.size > maxFileSize) {
+                            throw new Error(`Image file too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB, but file is ${(file.size / (1024 * 1024)).toFixed(1)}MB`);
+                        }
+                        
+                        // Create FormData for proper file upload
+                        const formData = new FormData();
+                        formData.append('image', file);
+                        
+                        const uploadUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.UPLOAD_TEMP_IMAGE, PIXEL_BANNER_PLUS.API_URL).toString();
+                        
+                        // Use fetch instead of requestUrl for FormData
+                        const response = await fetch(uploadUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                                'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                                'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
+                                // Don't set Content-Type - let browser set it with boundary for FormData
+                            },
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error(`Upload failed with status ${response.status}:`, errorText);
+                            throw new Error(`Failed to upload ${controlKey} image: HTTP ${response.status}`);
+                        }
+                        
+                        const responseData = await response.json();
+                        
+                        if (!responseData?.imageId) {
+                            console.error('Upload response missing imageId:', responseData);
+                            throw new Error(`Upload response missing imageId for ${controlKey}`);
+                        }
+                        
+                        updatedControlValues[controlKey] = responseData.imageId;
+                    } catch (error) {
+                        console.error(`Error uploading ${controlKey}:`, error);
+                        throw new Error(`Failed to upload ${controlKey}: ${error.message}`);
+                    }
+                } else {
+                    updatedControlValues[controlKey] = null;
+                }
+            }
+        }
+        
+        return updatedControlValues;
     }
 
     async generateImage() {
@@ -502,6 +669,29 @@ export class GenerateAIBannerModal extends Modal {
                 await this.refreshHistoryContainer();
             }
 
+            // Collect control values
+            let controlValues = await this.collectControlValues();
+            
+            // Check if any image files need to be uploaded first
+            const hasImageFiles = Object.values(controlValues).includes('FILE_SELECTED');
+            
+            if (hasImageFiles) {
+                // Update loading text for file uploads
+                loadingContainer.empty();
+                const uploadingDiv = loadingContainer.createDiv({ text: 'Uploading images...' });
+                
+                try {
+                    controlValues = await this.uploadImageFiles(controlValues);
+                } catch (uploadError) {
+                    console.error('Image upload failed:', uploadError);
+                    throw uploadError;
+                }
+                
+                // Update loading text back to generating
+                loadingContainer.empty();
+                loadingContainer.createDiv({ cls: 'dot-pulse' });
+            }
+
             // Use the new generatev2 endpoint
             const generateUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.GENERATE, PIXEL_BANNER_PLUS.API_URL).toString();
             
@@ -512,8 +702,8 @@ export class GenerateAIBannerModal extends Modal {
             const modelControlValues = {};
             if (modelData.controls) {
                 Object.keys(modelData.controls).forEach(controlKey => {
-                    if (this.controlValues[controlKey] !== undefined) {
-                        modelControlValues[controlKey] = this.controlValues[controlKey];
+                    if (controlValues[controlKey] !== undefined) {
+                        modelControlValues[controlKey] = controlValues[controlKey];
                     } else {
                         // Use default value if not set
                         modelControlValues[controlKey] = modelData.controls[controlKey].defaultValue;
@@ -1776,6 +1966,4 @@ export class GenerateAIBannerModal extends Modal {
             this.loadingOverlay.remove();
         }
     }
-    
-    // This method was removed as it's no longer needed with the dynamic model approach
 }
