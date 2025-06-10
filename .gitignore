@@ -9,4 +9,5 @@ node_modules
 
 .vscode
 .cursor/mcp.json
+.cursorignore
 .vault
