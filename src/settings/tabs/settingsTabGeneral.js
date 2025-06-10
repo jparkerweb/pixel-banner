@@ -1090,4 +1090,42 @@ export function createGeneralSettings(containerEl, plugin) {
                     toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
                 }
             }));
+
+    // Add promotional links at the bottom
+    const promotionalLinks = containerEl.createDiv({
+        cls: 'pixel-banner-promotional-links',
+        attr: {
+            style: `
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid var(--background-modifier-border);
+            `
+        }
+    });
+
+    const discordLink = promotionalLinks.createEl('a', {
+        href: 'https://discord.gg/sp8AQQhMJ7',
+        target: 'discord',
+    });
+    discordLink.createEl('img', {
+        attr: {
+            height: '36',
+            src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/discord.png?raw=true',
+            alt: 'Discord'
+        }
+    });
+    const kofiLink = promotionalLinks.createEl('a', {
+        href: 'https://ko-fi.com/Z8Z212UMBI',
+        target: 'kofi',
+    });
+    kofiLink.createEl('img', {
+        attr: {
+            height: '36',
+            src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png?raw=true',
+            alt: 'Buy Me a Coffee at ko-fi.com'
+        }
+    });
 } 
