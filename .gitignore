@@ -9,5 +9,7 @@ node_modules
 
 .vscode
 .cursor/mcp.json
+.windsurf
+.windsurfrules
 .cursorignore
 .vault
