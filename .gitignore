@@ -8,7 +8,7 @@ node_modules
 .aider*
 
 .vscode
-.cursor/mcp.json
+.cursor
 .windsurf
 .windsurfrules
 .cursorignore
