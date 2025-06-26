@@ -722,6 +722,28 @@ export function createGeneralSettings(containerEl, plugin) {
                 
                 plugin.updateAllBanners();
             }));
+
+    // Pinned Image Property Format
+    new Setting(containerEl)
+        .setName('Image Property Format')
+        .setDesc('Set the format for the banner property value.')
+        .addDropdown(dropdown => dropdown
+            .addOption('![[image]]', '![[image]]')
+            .addOption('[[image]]', '[[image]]')
+            .setValue(plugin.settings.imagePropertyFormat)
+            .onChange(async (value) => {
+                plugin.settings.imagePropertyFormat = value;
+                await plugin.saveSettings();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.imagePropertyFormat = DEFAULT_SETTINGS.imagePropertyFormat;
+                await plugin.saveSettings();
+                const dropdown = button.extraSettingsEl.parentElement.querySelector('select');
+                dropdown.value = DEFAULT_SETTINGS.imagePropertyFormat;
+            }));
     
     // Create a group for the hide settings
     const hideSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
@@ -1090,4 +1112,42 @@ export function createGeneralSettings(containerEl, plugin) {
                     toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
                 }
             }));
+
+    // Add promotional links at the bottom
+    const promotionalLinks = containerEl.createDiv({
+        cls: 'pixel-banner-promotional-links',
+        attr: {
+            style: `
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid var(--background-modifier-border);
+            `
+        }
+    });
+
+    const discordLink = promotionalLinks.createEl('a', {
+        href: 'https://discord.gg/sp8AQQhMJ7',
+        target: 'discord',
+    });
+    discordLink.createEl('img', {
+        attr: {
+            height: '36',
+            src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/discord.png?raw=true',
+            alt: 'Discord'
+        }
+    });
+    const kofiLink = promotionalLinks.createEl('a', {
+        href: 'https://ko-fi.com/Z8Z212UMBI',
+        target: 'kofi',
+    });
+    kofiLink.createEl('img', {
+        attr: {
+            height: '36',
+            src: 'https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/support.png?raw=true',
+            alt: 'Buy Me a Coffee at ko-fi.com'
+        }
+    });
 } 

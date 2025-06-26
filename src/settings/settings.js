@@ -60,6 +60,8 @@ const DEFAULT_SETTINGS = {
     borderRadius: 17,
     showPinIcon: false,
     pinnedImageFolder: 'pixel-banner-images',
+    pinnedImageFilename: 'pixel-banner-image',
+    imagePropertyFormat: '![[image]]',
     showReleaseNotes: true,
     lastVersion: null,
     showRefreshIcon: false,

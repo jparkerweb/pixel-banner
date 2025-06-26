@@ -176,7 +176,9 @@ export class SelectPixelBannerModal extends Modal {
                     if (activeFile) {
                         await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                             const bannerField = this.plugin.settings.customBannerField[0];
-                            frontmatter[bannerField] = `![[${file.path}]]`;
+                            const format = this.plugin.settings.imagePropertyFormat;
+                            const bannerValue = format === '[[image]]' ? `[[${file.path}]]` : `![[${file.path}]]`;
+                            frontmatter[bannerField] = bannerValue;
                         });
                         
                         // If not opening the banner icon modal, check if we should open the targeting modal

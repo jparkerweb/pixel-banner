@@ -1353,6 +1353,8 @@ export class IconImageSelectionModal extends Modal {
             // Get the icon details from the API
             const response = await fetch(url, {
                 headers: {
+                    'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
+                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
                     'Accept': 'application/json'
                 }
             });

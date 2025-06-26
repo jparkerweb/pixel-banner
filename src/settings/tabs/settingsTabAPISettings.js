@@ -344,6 +344,27 @@ export function createAPISettings(containerEl, plugin) {
             return text;
         });
 
+    // Pinned Image Filename
+    new Setting(containerEl)
+        .setName('Pinned Image Filename')
+        .setDesc('Set the default filename for pinned images.')
+        .addText(text => text
+            .setPlaceholder('pixel-banner-image')
+            .setValue(plugin.settings.pinnedImageFilename)
+            .onChange(async (value) => {
+                plugin.settings.pinnedImageFilename = value;
+                await plugin.saveSettings();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.pinnedImageFilename = DEFAULT_SETTINGS.pinnedImageFilename;
+                await plugin.saveSettings();
+                const textInput = button.extraSettingsEl.parentElement.querySelector('input');
+                textInput.value = DEFAULT_SETTINGS.pinnedImageFilename;
+            }));
+
     // Show Refresh Icon setting
     const refreshIconSetting = new Setting(containerEl)
         .setName('Show Refresh Icon')

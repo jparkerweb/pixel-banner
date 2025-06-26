@@ -63,7 +63,7 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
     }
 
     // Prompt for filename
-    const suggestedName = suggestedFilename?.toLowerCase() || 'pixel-banner-image';
+    const suggestedName = suggestedFilename?.toLowerCase() || plugin.settings.pinnedImageFilename;
     const userInput = await new Promise((resolve) => {
         const modal = new SaveImageModal(plugin.app, suggestedName, (name, useAsBanner) => {
             resolve({ name, useAsBanner });

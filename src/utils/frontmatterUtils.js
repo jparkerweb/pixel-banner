@@ -115,13 +115,16 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
                 cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
             });
 
-            cleanedFrontmatter = cleanedFrontmatter.trim();
-            const newFrontmatter = `${bannerField}: "![[${imageReference}]]"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+            const format = plugin.settings.imagePropertyFormat;
+            const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
+            const newFrontmatter = `${bannerField}: "${bannerValue}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
             return `---\n${newFrontmatter}\n---`;
         });
     } else {
         const cleanContent = fileContent.replace(/^\s+/, '');
-        updatedContent = `---\n${bannerField}: "![[${imageReference}]]"\n---\n\n${cleanContent}`;
+        const format = plugin.settings.imagePropertyFormat;
+        const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
+        updatedContent = `---\n${bannerField}: "${bannerValue}"\n---\n\n${cleanContent}`;
     }
 
     updatedContent = updatedContent.replace(/^\s+/, '');

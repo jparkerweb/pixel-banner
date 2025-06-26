@@ -7,5 +7,9 @@ node_modules
 .DS_Store
 .aider*
 
-.cursor/mcp.json
+.vscode
+.cursor
+.windsurf
+.windsurfrules
+.cursorignore
 .vault

@@ -3,6 +3,11 @@
 </a>
 
 ## 🎉 What's New
+### v3.5.6 - 2025-06-26
+#### ✨ Added
+- New `image property format` setting allows for specifying banner image format as `[[image]]` or `![[image]]`
+- Introduced `pinnedImageFilename` setting for default filename when pinning 3rd party API images
+
 ### v3.5.5 - 2025-05-30
 #### ✨ Added
 - New AI Image Model, `FLUX Kontext (pro)`, allows for uploading images and editing them via text prompts
