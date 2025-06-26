@@ -722,6 +722,28 @@ export function createGeneralSettings(containerEl, plugin) {
                 
                 plugin.updateAllBanners();
             }));
+
+    // Pinned Image Property Format
+    new Setting(containerEl)
+        .setName('Image Property Format')
+        .setDesc('Set the format for the banner property value.')
+        .addDropdown(dropdown => dropdown
+            .addOption('![[image]]', '![[image]]')
+            .addOption('[[image]]', '[[image]]')
+            .setValue(plugin.settings.imagePropertyFormat)
+            .onChange(async (value) => {
+                plugin.settings.imagePropertyFormat = value;
+                await plugin.saveSettings();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.imagePropertyFormat = DEFAULT_SETTINGS.imagePropertyFormat;
+                await plugin.saveSettings();
+                const dropdown = button.extraSettingsEl.parentElement.querySelector('select');
+                dropdown.value = DEFAULT_SETTINGS.imagePropertyFormat;
+            }));
     
     // Create a group for the hide settings
     const hideSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
