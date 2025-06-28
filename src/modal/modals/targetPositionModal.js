@@ -36,13 +36,19 @@ export class TargetPositionModal extends Modal {
         const xField = Array.isArray(this.plugin.settings.customXPositionField) 
             ? this.plugin.settings.customXPositionField[0].split(',')[0].trim()
             : this.plugin.settings.customXPositionField;
-        this.currentX = frontmatter?.[xField] || this.plugin.settings.xPosition;
+        this.currentX = getValueWithZeroCheck([
+            frontmatter?.[xField],
+            this.plugin.settings.xPosition
+        ]);
 
         // y position field
         const yField = Array.isArray(this.plugin.settings.customYPositionField) 
             ? this.plugin.settings.customYPositionField[0].split(',')[0].trim()
             : this.plugin.settings.customYPositionField;
-        this.currentY = frontmatter?.[yField] || this.plugin.settings.yPosition;
+        this.currentY = getValueWithZeroCheck([
+            frontmatter?.[yField],
+            this.plugin.settings.yPosition
+        ]);
 
         // height field
         const heightField = Array.isArray(this.plugin.settings.customBannerHeightField)
@@ -554,17 +560,42 @@ export class TargetPositionModal extends Modal {
                     display: flex;
                     flex-direction: row;
                     gap: 20px;
-                    alignt-items: stretch;
+                    align-items: stretch;
+                    justify-content: space-between;
                 `
             }
         });
 
-        // Create left panel for controls
+        // Check if current banner is a video file
+        let isVideoFile = false;
+        const bannerField = Array.isArray(this.plugin.settings.customBannerField)
+            ? this.plugin.settings.customBannerField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerField;
+        const bannerValue = frontmatter?.[bannerField];
+        
+        if (bannerValue) {
+            // Check if it's a direct path to mp4/mov file
+            if (typeof bannerValue === 'string') {
+                const lowerBanner = bannerValue.toLowerCase();
+                isVideoFile = lowerBanner.endsWith('.mp4') || lowerBanner.endsWith('.mov');
+            }
+            // If it's an obsidian link like ![[video.mp4]] or [[video.mov]]
+            if (!isVideoFile && (bannerValue.includes('[[') || bannerValue.includes('![[') )) {
+                const linkMatch = bannerValue.match(/\[\[(.*?)\]\]/) || bannerValue.match(/!\[\[(.*?)\]\]/);
+                if (linkMatch && linkMatch[1]) {
+                    const linkPath = linkMatch[1].toLowerCase();
+                    isVideoFile = linkPath.endsWith('.mp4') || linkPath.endsWith('.mov');
+                }
+            }
+        }
+        
+        // Create left panel for controls - hide for video files
         const controlPanel = mainContainer.createDiv({
             cls: 'control-panel',
+            id: 'display-mode-panel',
             attr: {
                 style: `
-                    display: flex;
+                    display: ${isVideoFile ? 'none' : 'flex'};
                     flex-direction: column;
                     gap: 10px;
                     flex: 0 auto;
@@ -848,7 +879,6 @@ export class TargetPositionModal extends Modal {
                     display: flex;
                     flex-direction: column;
                     gap: 10px;
-                    flex-grow: 1;
                 `
             }
         });
@@ -3122,6 +3152,7 @@ export class TargetPositionModal extends Modal {
                 // Convert default title color if it's a CSS variable
                 let defaultTitleColor = this.plugin.settings.titleColor;
                 if (defaultTitleColor.startsWith('var(--')) {
+                    console.log('defaultTitleColor', defaultTitleColor);
                     const tempEl = document.createElement('div');
                     tempEl.style.color = defaultTitleColor;
                     document.body.appendChild(tempEl);
@@ -3143,8 +3174,16 @@ export class TargetPositionModal extends Modal {
                     titleColorPicker.value = defaultTitleColor.startsWith('#') ? 
                         defaultTitleColor : (getCurrentTheme() === 'dark' ? '#ffffff' : '#000000');
                 }
-                // Update the frontmatter with the default color
-                this.updateTitleColor(defaultTitleColor);
+            }
+            const titleColorField = Array.isArray(this.plugin.settings.customTitleColorField)
+                ? this.plugin.settings.customTitleColorField[0].split(',')[0].trim()
+                : this.plugin.settings.customTitleColorField;
+            
+            // Properly remove the title color from the frontmatter
+            if (activeFile) {
+                this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                    delete fm[titleColorField];
+                });
             }
             
             // Reset the banner position
@@ -3347,7 +3386,6 @@ export class TargetPositionModal extends Modal {
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
-                flex-grow: 1;
                 min-width: 200px;
             }
 

@@ -3,7 +3,7 @@ import { ImageViewModal, TargetPositionModal } from '../modal/modals.js';
 import { getFrontmatterValue, getValueWithZeroCheck } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { flags } from '../resources/flags.js';
-import { debounceImmediate, debounceAndSwallow } from '../utils/debounce.js';
+import { debounceFunction, debounceImmediate, debounceAndSwallow } from '../utils/debounce.js';
 
 
 // ----------------------
@@ -398,6 +398,7 @@ async function addPixelBanner(plugin, el, ctx) {
         if (!imageUrl || isShuffled || (isContentChange && bannerImage !== lastInput)) {
             imageUrl = await plugin.getImageUrl(inputType, bannerImage);
             if (imageUrl) {
+                // Store the full object with metadata for videos
                 plugin.loadedImages.set(file.path, imageUrl);
                 plugin.lastKeywords.set(file.path, bannerImage);
             }
@@ -412,41 +413,104 @@ async function addPixelBanner(plugin, el, ctx) {
             const imageRepeat = getFrontmatterValue(frontmatter, plugin.settings.customImageRepeatField) ||
                 folderSpecific?.imageRepeat ||
                 plugin.settings.imageRepeat;
-            const isSvg = imageUrl.includes('image/svg+xml') ||
+            
+            let isVideoFile = false;
+            let fileUrl = '';
+            
+            // Check if the result is an object with the new format including video metadata
+            if (typeof imageUrl === 'object' && imageUrl !== null) {
+                isVideoFile = imageUrl.isVideo === true;
+                fileUrl = imageUrl.url;
+                // Note: We're now preserving the full object in the cache, so no need to update it here
+            } else {
+                // Legacy format - direct URL string or previously cached URL
+                fileUrl = imageUrl;
+                
+                // Check if it's a cached video path (resource URLs for videos contain '/media-attachment/')
+                if (typeof fileUrl === 'string' && 
+                    fileUrl.includes('/media-attachment/') && 
+                    (fileUrl.toLowerCase().endsWith('.mp4') || fileUrl.toLowerCase().endsWith('.mov'))) {
+                    isVideoFile = true;
+                }
+            }
+            
+            const isSvg = fileUrl.includes('image/svg+xml') ||
                 (file.path && file.path.toLowerCase().endsWith('.svg'));
 
             // Add blob URL validation
-            if (imageUrl.startsWith('blob:')) {
+            if (fileUrl.startsWith('blob:')) {
                 try {
                     // Attempt to fetch the blob URL to validate it
-                    const response = await fetch(imageUrl);
+                    const response = await fetch(fileUrl);
                     if (!response.ok) {
                         throw new Error('Blob URL validation failed');
                     }
                 } catch (error) {
-                    console.log('Blob URL invalid, refreshing image:', error);
+                    console.log('Blob URL invalid, refreshing file:', error);
                     // Clear the invalid blob URL from cache
                     plugin.loadedImages.delete(file.path);
-                    URL.revokeObjectURL(imageUrl);
+                    URL.revokeObjectURL(fileUrl);
                     
-                    // Get a fresh image URL
+                    // Get a fresh URL
                     const inputType = plugin.getInputType(bannerImage);
-                    const freshImageUrl = await plugin.getImageUrl(inputType, bannerImage);
-                    if (freshImageUrl) {
-                        imageUrl = freshImageUrl;
-                        plugin.loadedImages.set(file.path, freshImageUrl);
+                    const freshResult = await plugin.getImageUrl(inputType, bannerImage);
+                    if (freshResult) {
+                        if (typeof freshResult === 'object' && freshResult !== null) {
+                            isVideoFile = freshResult.isVideo === true;
+                            fileUrl = freshResult.url;
+                        } else {
+                            fileUrl = freshResult;
+                        }
+                        plugin.loadedImages.set(file.path, freshResult);
                     }
                 }
             }
-
-            bannerDiv.style.backgroundImage = `url('${imageUrl}')`;
-
-            if (isSvg) {
-                bannerDiv.style.backgroundSize = imageDisplay === 'contain' ? 'contain' : '100% 100%';
+            
+            // Handle video files (MP4)
+            if (isVideoFile) {
+                // Clear any background image
+                bannerDiv.style.backgroundImage = '';
+                
+                // Remove any existing video element
+                const existingVideo = bannerDiv.querySelector('video');
+                if (existingVideo) {
+                    existingVideo.remove();
+                }
+                
+                // Create video element
+                const videoEl = document.createElement('video');
+                videoEl.className = 'pixel-banner-video';
+                videoEl.src = fileUrl;
+                videoEl.autoplay = true;
+                videoEl.loop = true;
+                videoEl.muted = true;
+                videoEl.playsInline = true;
+                videoEl.style.width = '100%';
+                videoEl.style.height = '100%';
+                videoEl.style.objectFit = imageDisplay || 'cover';
+                videoEl.style.position = 'absolute';
+                videoEl.style.top = '0';
+                videoEl.style.left = '0';
+                bannerDiv.appendChild(videoEl);
             } else {
-                bannerDiv.style.backgroundSize = imageDisplay || 'cover';
+                // Handle as image
+                // Remove any existing video element
+                const existingVideo = bannerDiv.querySelector('video');
+                if (existingVideo) {
+                    existingVideo.remove();
+                }
+                
+                // Set the background image
+                bannerDiv.style.backgroundImage = `url('${fileUrl}')`;
+
+                if (isSvg) {
+                    bannerDiv.style.backgroundSize = imageDisplay === 'contain' ? 'contain' : '100% 100%';
+                } else {
+                    bannerDiv.style.backgroundSize = imageDisplay || 'cover';
+                }
+                bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
             }
-            bannerDiv.style.backgroundRepeat = imageRepeat ? 'repeat' : 'no-repeat';
+            
             bannerDiv.style.display = 'block';
             
             // For embedded notes, also set the background-image CSS variable on the pixel-banner-image element
@@ -540,40 +604,78 @@ async function addPixelBanner(plugin, el, ctx) {
                     });
                     refreshIcon.innerHTML = '🔄';
                     refreshIcon._isPersistentRefresh = true;
-
+                    
                     refreshIcon.onclick = async () => {
                         try {
                             plugin.loadedImages.delete(file.path);
                             plugin.lastKeywords.delete(file.path);
 
-                            const newImageUrl = await plugin.getImageUrl(inputType, bannerImage);
-                            if (newImageUrl) {
-                                plugin.loadedImages.set(file.path, newImageUrl);
+                            const result = await plugin.getImageUrl(inputType, bannerImage);
+                            if (result) {
+                                // Store the full result object including video metadata
+                                plugin.loadedImages.set(file.path, result);
                                 plugin.lastKeywords.set(file.path, bannerImage);
+                                
+                                // Check if it's a video or an image result
+                                let isVideoFile = false;
+                                let fileUrl = '';
+                                
+                                if (typeof result === 'object' && result !== null) {
+                                    isVideoFile = result.isVideo === true;
+                                    fileUrl = result.url;
+                                } else {
+                                    fileUrl = result;
+                                }
+                                
+                                // Update the banner display based on file type
+                                if (isVideoFile) {
+                                    // Clear background image
+                                    bannerDiv.style.backgroundImage = '';
+                                    
+                                    // Remove existing video
+                                    const existingVideo = bannerDiv.querySelector('video');
+                                    if (existingVideo) {
+                                        existingVideo.remove();
+                                    }
+                                    
+                                    // Create video element
+                                    const videoEl = document.createElement('video');
+                                    videoEl.className = 'pixel-banner-video';
+                                    videoEl.src = fileUrl;
+                                    videoEl.autoplay = true;
+                                    videoEl.loop = true;
+                                    videoEl.muted = true;
+                                    videoEl.playsInline = true;
+                                    videoEl.style.width = '100%';
+                                    videoEl.style.height = '100%';
+                                    videoEl.style.objectFit = 'cover';
+                                    videoEl.style.position = 'absolute';
+                                    videoEl.style.top = '0';
+                                    videoEl.style.left = '0';
+                                    bannerDiv.appendChild(videoEl);
+                                } else {
+                                    // It's an image, handle as before
+                                    bannerDiv.style.backgroundImage = `url('${fileUrl}')`;
+                                    
+                                    // Remove any existing videos
+                                    const existingVideo = bannerDiv.querySelector('video');
+                                    if (existingVideo) {
+                                        existingVideo.remove();
+                                    }
+                                }
 
-                                bannerDiv.style.backgroundImage = `url('${newImageUrl}')`;
-
+                                // Update view image icon if it exists
                                 const viewImageIcon = container.querySelector(':scope > .view-image-icon');
                                 if (viewImageIcon && viewImageIcon._updateVisibility) {
                                     const bannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
-                                    viewImageIcon._updateVisibility(newImageUrl, bannerValue || file.path);
+                                    viewImageIcon._updateVisibility(fileUrl, bannerValue || file.path);
                                 }
-
-                                // Update pin icon with new URL
-                                pinIcon.onclick = async () => {
-                                    try {
-                                        await handlePinIconClick(newImageUrl, plugin);
-                                    } catch (error) {
-                                        console.error('Error pinning image:', error);
-                                        new Notice('Failed to pin the image.');
-                                    }
-                                };
-
-                                new Notice('🔄 Refreshed banner image');
+                                
+                                new Notice('🔄 Refreshed banner');
                             }
                         } catch (error) {
-                            console.error('Error refreshing image:', error);
-                            new Notice('Failed to refresh image');
+                            console.error('Error refreshing banner:', error);
+                            new Notice('Failed to refresh the banner.');
                         }
                     };
 
@@ -597,14 +699,18 @@ async function addPixelBanner(plugin, el, ctx) {
 // ---------------------------
 // -- updateBanner function --
 // ---------------------------
-const debouncedUpdateBanner = debounceImmediate(updateBanner, 50);
+// Using standard debounce instead of debounceImmediate to prevent double execution
+const debouncedUpdateBanner = debounceFunction(updateBanner, 50);
 async function updateBanner(plugin, view, isContentChange, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
-    // console.log('🎯 updateBanner called:', {
-    //     file: view?.file?.path,
-    //     isContentChange,
-    //     updateMode,
-    //     caller: new Error().stack.split('\n')[2].trim()
-    // });
+    // Debug logging to trace what's calling updateBanner and how often
+    console.log('🎯 updateBanner called:', {
+        file: view?.file?.path,
+        isContentChange,
+        updateMode,
+        caller: new Error().stack.split('\n')[2].trim(),
+        time: Date.now(),
+        trigger: new Error().stack.split('\n').slice(2,4).join('\n')
+    });
 
     if (!view || !view.file) {
         // console.log('❌ updateBanner: Invalid view or file');

@@ -18,6 +18,7 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - **Banner Store**: Browse and use professional banner images from the integrated store, including free options.
 - **3rd Party APIs**: Connect to Pexels, Pixabay, Flickr, and Unsplash to automatically fetch banner images based on keywords.
 - **Local Image Support**: Use images from your vault as banners with advanced customization options.
+- **Video Banner Support**: Add dynamic MP4 videos from your vault as animated banners.
 - **Direct URL Banners**: Apply banners from any web URL for maximum flexibility.
 - **Note Properties Integration**: Control all banner aspects through Obsidian's `properties` feature.
 
