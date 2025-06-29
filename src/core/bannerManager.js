@@ -52,7 +52,7 @@ async function addPixelBanner(plugin, el, ctx) {
                 
                 const folderSpecific = plugin.getFolderSpecificImage(file.path);
                 const maxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
-                    folderSpecific?.bannerMaxWidth || 'unset';
+                    folderSpecific?.bannerMaxWidth || plugin.settings.bannerMaxWidth || 'unset';
                 const maxWidthValue = maxWidth === 'unset' ? 'unset' : `${maxWidth}px`;
 
                 const bannerYPosition = getValueWithZeroCheck([
@@ -1237,6 +1237,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     // Get pixel banner max width
     const pixelBannerMaxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
         folderSpecific?.bannerMaxWidth || 
+        plugin.settings.bannerMaxWidth || 
         'unset';
 
     // Get title color from frontmatter, folder settings, or default

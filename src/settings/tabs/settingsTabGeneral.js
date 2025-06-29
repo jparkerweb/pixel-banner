@@ -306,6 +306,32 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
+    // Banner Max Width
+    new Setting(containerEl)
+        .setName('Banner Max Width')
+        .setDesc('Set the maximum width for banner images (100-2560 pixels)')
+        .addSlider(slider => slider
+            .setLimits(100, 2560, 10)
+            .setValue(plugin.settings.bannerMaxWidth)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+                plugin.settings.bannerMaxWidth = value;
+                await plugin.saveSettings();
+                plugin.updateAllBanners();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.bannerMaxWidth = DEFAULT_SETTINGS.bannerMaxWidth;
+                await plugin.saveSettings();
+                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                sliderInput.value = DEFAULT_SETTINGS.bannerMaxWidth;
+                const event = new Event('input', { bubbles: true, cancelable: true });
+                sliderInput.dispatchEvent(event);
+                plugin.updateAllBanners();
+            }));
+
     // Image Horizontal Position setting
     new Setting(containerEl)
         .setName('Image Horizontal Position')
