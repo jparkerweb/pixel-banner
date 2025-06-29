@@ -25,7 +25,7 @@ export class PixelBannerStoreModal extends Modal {
         this.totalPages = 1;
         this.searchTerm = '';
         this.isSearchMode = false;
-        this.itemsPerPage = 9;
+        this.itemsPerPage = 18;
         this.voteStats = {}; // Store vote stats for each banner
         this.userVotes = {}; // Store user's votes for each banner
         this.storeVotingEnabled = this.plugin.settings.storeVotingEnabled !== false; // Default to true if not set
@@ -647,16 +647,18 @@ export class PixelBannerStoreModal extends Modal {
     // --------------------------
     // -- Load Category Images --
     // --------------------------
-    async loadCategoryImages() {
+    async loadCategoryImages(page = 1) {
         if (!this.selectedCategory) return;
         
-        // Reset search mode when loading by category
+        // Set category mode and current page
         this.isSearchMode = false;
-        this.currentPage = 1;
+        this.currentPage = page;
 
-        // Clear previous votes data when loading new category
-        this.userVotes = {};
-        this.voteStats = {};
+        // Clear previous votes data when loading new category (only on first page)
+        if (page === 1) {
+            this.userVotes = {};
+            this.voteStats = {};
+        }
 
         // Clear previous images
         this.imageContainer.empty();
@@ -674,7 +676,7 @@ export class PixelBannerStoreModal extends Modal {
 
         try {
             const response = await fetch(
-                `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_CATEGORY_IMAGES}?categoryId=${this.selectedCategory}`, 
+                `${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_CATEGORY_IMAGES}?categoryId=${this.selectedCategory}&page=${this.currentPage}&limit=${this.itemsPerPage}`, 
                 {
                     headers: {
                         'x-user-email': this.plugin.settings.pixelBannerPlusEmail,
@@ -687,8 +689,38 @@ export class PixelBannerStoreModal extends Modal {
 
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
-            const images = await response.json();
-            this.displayImages(images);
+            const data = await response.json();
+            
+            // Handle both array response (legacy) and object response (with pagination)
+            let images, totalPages = 1, totalItems = 0;
+            
+            if (Array.isArray(data)) {
+                // Legacy response format - all images in array
+                images = data;
+                totalPages = Math.ceil(images.length / this.itemsPerPage);
+                totalItems = images.length;
+                // Slice for client-side pagination if API doesn't support server-side paging yet
+                const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+                const endIndex = startIndex + this.itemsPerPage;
+                images = images.slice(startIndex, endIndex);
+            } else {
+                // New response format with pagination info
+                images = data.images || data.banners || [];
+                totalPages = data.totalPages || 1;
+                totalItems = data.totalItems || data.totalCount || images.length;
+            }
+            
+            this.totalPages = totalPages;
+            this.displayImages(images, false, totalItems);
+            
+            // Show pagination controls for category browsing
+            if (totalPages > 1) {
+                this.addPaginationControls();
+            } else {
+                // Hide pagination if only one page
+                this.paginationContainer.style.display = 'none';
+            }
+            
         } catch (error) {
             console.error('Failed to fetch images:', error);
             this.imageContainer.empty();
@@ -827,7 +859,7 @@ export class PixelBannerStoreModal extends Modal {
     // --------------------
     // -- Display Images --
     // --------------------
-    displayImages(images, isSearchResult = false) {
+    displayImages(images, isSearchResult = false, totalItems = 0) {
         // Remove loading spinner if it exists
         if (this.loadingEl) {
             this.loadingEl.remove();
@@ -1352,7 +1384,11 @@ export class PixelBannerStoreModal extends Modal {
         
         prevButton.addEventListener('click', () => {
             if (this.currentPage > 1) {
-                this.searchBanners(this.currentPage - 1);
+                if (this.isSearchMode) {
+                    this.searchBanners(this.currentPage - 1);
+                } else {
+                    this.loadCategoryImages(this.currentPage - 1);
+                }
             }
         });
         
@@ -1373,7 +1409,11 @@ export class PixelBannerStoreModal extends Modal {
         
         nextButton.addEventListener('click', () => {
             if (this.currentPage < this.totalPages) {
-                this.searchBanners(this.currentPage + 1);
+                if (this.isSearchMode) {
+                    this.searchBanners(this.currentPage + 1);
+                } else {
+                    this.loadCategoryImages(this.currentPage + 1);
+                }
             }
         });
     }
