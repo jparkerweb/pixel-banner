@@ -9,6 +9,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Upload and choose Video files as banners from your vault
   - Downloadable 🎬 Video Banners from the `Pixel Banner Plus Collection`
 - Added paging controls to the `Pixel Banner Plus Collection`
+- New global `Banner Max Width` setting to control the default max width for all banners
 
 #### 📦 Updated
 - Moved `Default Saved Banners Folder` setting to the `General` tab
