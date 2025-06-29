@@ -8,6 +8,7 @@
 - Support for 🎬 Video Banners!
   - Upload and choose Video files as banners from your vault
   - Downloadable 🎬 Video Banners from the `Pixel Banner Plus Collection`
+- Added paging controls to the `Pixel Banner Plus Collection`
 
 #### 📦 Updated
 - Moved `Default Saved Banners Folder` setting to the `General` tab
