@@ -328,7 +328,7 @@ Lists user's images from the vault to pick from, or to upload a new one.
 
 ## `/src/modal/modals/pixelBannerStoreModal.js`
 **Class**: `PixelBannerStoreModal` (extends `Modal`)  
-Provides interface to browse and select banners from the Pixel Banner Plus store.
+Provides interface to browse and select banners from the Pixel Banner Plus collection.
 
 **Key Methods**:
 1. **onOpen()**  

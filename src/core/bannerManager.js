@@ -702,16 +702,6 @@ async function addPixelBanner(plugin, el, ctx) {
 // Using standard debounce instead of debounceImmediate to prevent double execution
 const debouncedUpdateBanner = debounceFunction(updateBanner, 50);
 async function updateBanner(plugin, view, isContentChange, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
-    // Debug logging to trace what's calling updateBanner and how often
-    console.log('🎯 updateBanner called:', {
-        file: view?.file?.path,
-        isContentChange,
-        updateMode,
-        caller: new Error().stack.split('\n')[2].trim(),
-        time: Date.now(),
-        trigger: new Error().stack.split('\n').slice(2,4).join('\n')
-    });
-
     if (!view || !view.file) {
         // console.log('❌ updateBanner: Invalid view or file');
         return;

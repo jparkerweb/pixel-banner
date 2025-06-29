@@ -153,6 +153,58 @@ export function createGeneralSettings(containerEl, plugin) {
             plugin.updateAllBanners();
         }));
 
+    // Add the Default Saved Banners Folder setting
+    const defaultSavedBannersFolderSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Default Saved Banners Folder')
+        .setDesc('Default folder where Banners will be saved')
+        .addText(text => {
+            text.setPlaceholder('pixel-banner-images')
+                .setValue(plugin.settings.pinnedImageFolder)
+                .onChange(async (value) => {
+                    plugin.settings.pinnedImageFolder = value;
+                    await plugin.saveSettings();
+                });
+
+            // Add blur handler for validation
+            text.inputEl.addEventListener('blur', async (event) => {
+                let value = text.inputEl.value.trim();
+                
+                if (!value) {
+                    value = 'pixel-banner-images';
+                }
+
+                text.setValue(value);
+                plugin.settings.pinnedImageFolder = value;
+                await plugin.saveSettings();
+            });
+
+            return text;
+        })
+        .addButton(button => button
+            .setButtonText('Browse')
+            .onClick(() => {
+                new FolderSuggestModal(plugin.app, (chosenPath) => {
+                    plugin.settings.pinnedImageFolder = chosenPath;
+                    const textInput = defaultSavedBannersFolderSetting.components[0];
+                    if (textInput) {
+                        textInput.setValue(chosenPath);
+                    }
+                    plugin.saveSettings();
+                }).open();
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                plugin.settings.pinnedImageFolder = DEFAULT_SETTINGS.pinnedImageFolder;
+                await plugin.saveSettings();
+                
+                const textComponent = defaultSavedBannersFolderSetting.components[0];
+                if (textComponent) {
+                    textComponent.setValue(DEFAULT_SETTINGS.pinnedImageFolder);
+                }
+            }));
+
     // Add the defaultSelectImagePath setting
     const defaultSelectImagePathSetting = new Setting(SelectImageSettingsGroup)
         .setName('Default Select Image Path')

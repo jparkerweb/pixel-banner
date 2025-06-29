@@ -311,38 +311,9 @@ export function createAPISettings(containerEl, plugin) {
             .onChange(async (value) => {
                 plugin.settings.showPinIcon = value;
                 // Show/hide dependent settings based on the toggle
-                folderInputSetting.settingEl.style.display = value ? 'flex' : 'none';
                 refreshIconSetting.settingEl.style.display = value ? 'flex' : 'none';
                 await plugin.saveSettings();
             }));
-
-    // Folder input setting
-    const folderInputSetting = new Setting(containerEl)
-        .setName('Pinned Images Folder')
-        .setDesc('Default folder where pinned banner images will be saved')
-        .addText(text => {
-            text.setPlaceholder('pixel-banner-images')
-                .setValue(plugin.settings.pinnedImageFolder)
-                .onChange(async (value) => {
-                    plugin.settings.pinnedImageFolder = value;
-                    await plugin.saveSettings();
-                });
-
-            // Add blur handler for validation
-            text.inputEl.addEventListener('blur', async (event) => {
-                let value = text.inputEl.value.trim();
-                
-                if (!value) {
-                    value = 'pixel-banner-images';
-                }
-
-                text.setValue(value);
-                plugin.settings.pinnedImageFolder = value;
-                await plugin.saveSettings();
-            });
-
-            return text;
-        });
 
     // Pinned Image Filename
     new Setting(containerEl)
@@ -377,7 +348,6 @@ export function createAPISettings(containerEl, plugin) {
             }));
 
     // Set initial visibility of dependent settings
-    folderInputSetting.settingEl.style.display = plugin.settings.showPinIcon ? 'flex' : 'none';
     refreshIconSetting.settingEl.style.display = plugin.settings.showPinIcon ? 'flex' : 'none';
 
     // Size setting

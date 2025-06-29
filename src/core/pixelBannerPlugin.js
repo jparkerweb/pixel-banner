@@ -410,7 +410,7 @@ export class PixelBannerPlugin extends Plugin {
         // Add command for opening the banner store
         this.addCommand({
             id: 'open-banner-store',
-            name: '🏪 Open Pixel Banner Plus Store',
+            name: '🏪 Open Pixel Banner Plus Collection',
             callback: () => this.openBannerStore()
         });
 

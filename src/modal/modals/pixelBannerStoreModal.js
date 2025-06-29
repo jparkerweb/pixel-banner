@@ -97,14 +97,158 @@ export class PixelBannerStoreModal extends Modal {
         }
     }
     
+    // Download and save banner (handles both images and videos)
+    async downloadAndSaveBanner(data, filename) {
+        try {
+            if (data.fileType === 'video') {
+                // Handle video file with user folder/filename selection
+                await this.saveVideoFileWithPrompts(data.base64Image, filename);
+            } else {
+                // Handle image file (existing behavior)
+                await handlePinIconClick(data.base64Image, this.plugin, null, filename.replace(/\.[^/.]+$/, ''));
+            }
+        } catch (error) {
+            console.error('Error saving banner:', error);
+            new Notice('Failed to save banner. Please try again.');
+        }
+    }
+    
+    // Save video file with user prompts (similar to handlePinIconClick flow)
+    async saveVideoFileWithPrompts(base64Video, suggestedFilename) {
+        try {
+            // Convert base64 to ArrayBuffer
+            const base64Data = base64Video.split(',')[1]; // Remove data:video/mp4;base64, prefix
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            
+            const arrayBuffer = new Uint8Array(byteNumbers).buffer;
+            
+            // Use the same folder/filename selection flow as images
+            const { file, useAsBanner } = await this.saveVideoLocally(arrayBuffer, suggestedFilename);
+            const finalPath = await this.waitForFileRename(file);
+
+            if (!finalPath) {
+                console.error('❌ Failed to resolve valid file path');
+                new Notice('Failed to save video - file not found');
+                return null;
+            }
+            
+            if (useAsBanner) {
+                // Import updateNoteFrontmatter for video banners too
+                const { updateNoteFrontmatter } = await import('../../utils/frontmatterUtils');
+                await updateNoteFrontmatter(finalPath, this.plugin, null);
+            }
+
+            return finalPath;
+        } catch (error) {
+            console.error('Error saving video file:', error);
+            throw error;
+        }
+    }
+    
+    // Save video locally with folder/filename prompts (adapted from handlePinIconClick)
+    async saveVideoLocally(arrayBuffer, suggestedFilename) {
+        const { FolderSelectionModal } = await import('../modals/folderSelectionModal');
+        const { SaveImageModal } = await import('../modals/saveImageModal');
+        
+        const vault = this.plugin.app.vault;
+        const defaultFolderPath = this.plugin.settings.pinnedImageFolder;
+
+        // Prompt for folder selection
+        const folderPath = await new Promise((resolve) => {
+            const modal = new FolderSelectionModal(this.plugin.app, defaultFolderPath, (result) => {
+                resolve(result);
+            });
+            modal.open();
+        });
+
+        if (!folderPath) {
+            throw new Error('No folder selected');
+        }
+
+        if (!await vault.adapter.exists(folderPath)) {
+            await vault.createFolder(folderPath);
+        }
+
+        // Extract base filename and extension from suggested filename
+        const filenameParts = suggestedFilename.match(/^(.+)\.(\w+)$/);
+        const baseName = filenameParts ? filenameParts[1] : suggestedFilename;
+        const extension = filenameParts ? filenameParts[2] : 'mp4';
+
+        // Prompt for filename (suggest base name without extension)
+        const userInput = await new Promise((resolve) => {
+            const modal = new SaveImageModal(this.plugin.app, baseName, (name, useAsBanner) => {
+                resolve({ name, useAsBanner });
+            });
+            modal.open();
+        });
+
+        if (!userInput) {
+            throw new Error('No filename provided');
+        }
+
+        let finalBaseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
+        if (!finalBaseName) finalBaseName = 'banner';
+        
+        // Ensure proper extension
+        if (!finalBaseName.toLowerCase().endsWith(`.${extension}`)) {
+            finalBaseName += `.${extension}`;
+        }
+
+        let fileName = finalBaseName;
+        let counter = 1;
+        while (await vault.adapter.exists(`${folderPath}/${fileName}`)) {
+            const nameWithoutExt = finalBaseName.slice(0, -(extension.length + 1));
+            fileName = `${nameWithoutExt}-${counter}.${extension}`;
+            counter++;
+        }
+
+        const filePath = `${folderPath}/${fileName}`;
+        const savedFile = await vault.createBinary(filePath, arrayBuffer);
+
+        return {
+            initialPath: filePath,
+            file: savedFile,
+            useAsBanner: userInput.useAsBanner
+        };
+    }
+    
+    // Wait for potential file rename (adapted from handlePinIconClick)
+    async waitForFileRename(file) {
+        const maxWaitTime = 5000;
+        const checkInterval = 100;
+        let elapsedTime = 0;
+        
+        while (elapsedTime < maxWaitTime) {
+            try {
+                const currentFile = this.plugin.app.vault.getAbstractFileByPath(file.path);
+                if (currentFile) {
+                    return currentFile.path;
+                }
+            } catch (error) {
+                // File might be in process of being renamed, continue waiting
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, checkInterval));
+            elapsedTime += checkInterval;
+        }
+        
+        // If we get here, return the original path
+        return file.path;
+    }
+    
     // Initialize modal content
     async initializeModal() {
         await this.plugin.verifyPixelBannerPlusCredentials();
         const { contentEl } = this;
         
-        contentEl.createEl('h3', { text: '🏪 Pixel Banner Plus Store', cls: 'margin-top-0' });
+        contentEl.createEl('h3', { text: '🏪 Pixel Banner Plus Collection', cls: 'margin-top-0' });
         contentEl.createEl('p', {
-            text: `Browse the Pixel Banner Plus Store to find the perfect banner for your needs. Banner Token prices are displayed on each card below (FREE or 1 Banner Token). Previous purchases will be listed as FREE.`,
+            text: `Browse the Pixel Banner Plus Collection to find the perfect banner for your needs. Banner Token prices are displayed on each card below (FREE or 1 Banner Token). Previous purchases will be listed as FREE.`,
             attr: {
                 'style': 'font-size: 12px; color: var(--text-muted);'
             }
@@ -760,19 +904,55 @@ export class PixelBannerStoreModal extends Modal {
                         'data-image-id': imageId,
                         'data-image-cost': imageCost,
                         'data-image-new': true,
-                        'data-image-hot': image.hot ? 'true' : 'false'
+                        'data-image-hot': image.hot ? 'true' : 'false',
+                        'style': 'position: relative;' // Ensure proper positioning for absolute children
                     }
                 });
 
                 // Get image source with fallbacks
                 const imageSource = image.base64Image || image.base64 || image.url || image.src || '';
                 
-                const imgEl = card.createEl('img', {
-                    attr: {
-                        src: imageSource,
-                        alt: image.prompt || image.description || 'Banner image'
-                    }
-                });
+                // Check if this is a video banner
+                const isVideo = image.fileType === 'video';
+                
+                if (isVideo) {
+                    // For video banners, base64Image is a JPG thumbnail with play icon
+                    const imgEl = card.createEl('img', {
+                        attr: {
+                            src: imageSource,
+                            alt: image.prompt || image.description || 'Banner video thumbnail'
+                        }
+                    });
+                    
+                    // Add video badge
+                    const videoBadge = card.createEl('div', {
+                        text: 'VIDEO',
+                        cls: 'pixel-banner-store-video-badge',
+                        attr: {
+                            style: `
+                                position: absolute;
+                                top: 8px;
+                                right: 8px;
+                                background: rgba(255, 255, 255, 0.9);
+                                color: #333;
+                                padding: 2px 6px;
+                                border-radius: 3px;
+                                font-size: 10px;
+                                font-weight: bold;
+                                z-index: 2;
+                                pointer-events: none;
+                            `
+                        }
+                    });
+                } else {
+                    // For image banners, display normally
+                    const imgEl = card.createEl('img', {
+                        attr: {
+                            src: imageSource,
+                            alt: image.prompt || image.description || 'Banner image'
+                        }
+                    });
+                }
 
                 const details = card.createDiv({ cls: 'pixel-banner-store-image-details' });
                 
@@ -902,7 +1082,7 @@ export class PixelBannerStoreModal extends Modal {
                                 });
 
                                 if (!response.ok) {
-                                    throw new Error('Failed to fetch image');
+                                    throw new Error('Failed to fetch banner');
                                 }
 
                                 // verify account
@@ -916,7 +1096,15 @@ export class PixelBannerStoreModal extends Modal {
                                 const data = await response.json();
                                 let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                                 filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                                await handlePinIconClick(data.base64Image, this.plugin, null, filename);
+                                
+                                // Add file extension based on banner type
+                                if (data.fileType === 'video') {
+                                    filename += `.${data.fileExtension || 'mp4'}`;
+                                } else {
+                                    filename += `.${data.fileExtension || 'jpg'}`;
+                                }
+                                
+                                await this.downloadAndSaveBanner(data, filename);
                                 this.close();
                                 
                                 // Check if we should open the targeting modal
@@ -924,10 +1112,10 @@ export class PixelBannerStoreModal extends Modal {
                                     new TargetPositionModal(this.app, this.plugin).open();
                                 }
                             } catch (error) {
-                                console.error('Error purchasing image:', error);
-                                new Notice('Failed to purchase image. Please try again.');
+                                console.error('Error purchasing banner:', error);
+                                new Notice('Failed to purchase banner. Please try again.');
                             }
-                        }, this.plugin).open();
+                        }, this.plugin, isVideo, image.fileType, image.file_extension).open();
                     } else {
                         try {
                             const response = await fetch(`${PIXEL_BANNER_PLUS.API_URL}${PIXEL_BANNER_PLUS.ENDPOINTS.STORE_IMAGE_BY_ID}?bannerId=${image.id}`, {
@@ -940,13 +1128,21 @@ export class PixelBannerStoreModal extends Modal {
                             });
 
                             if (!response.ok) {
-                                throw new Error('Failed to fetch image');
+                                throw new Error('Failed to fetch banner');
                             }
 
                             const data = await response.json();
                             let filename = image.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                             filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                            await handlePinIconClick(data.base64Image, this.plugin, null, filename);
+                            
+                            // Add file extension based on banner type
+                            if (data.fileType === 'video') {
+                                filename += `.${data.fileExtension || 'mp4'}`;
+                            } else {
+                                filename += `.${data.fileExtension || 'jpg'}`;
+                            }
+                            
+                            await this.downloadAndSaveBanner(data, filename);
                             this.close();
                             
                             // Check if we should open the targeting modal
@@ -955,7 +1151,7 @@ export class PixelBannerStoreModal extends Modal {
                             }
                             
                         } catch (error) {
-                            console.error('Error fetching store image:', error);
+                            console.error('Error fetching store banner:', error);
                         }
                     }
                 });
@@ -1590,13 +1786,16 @@ export class PixelBannerStoreModal extends Modal {
 
 // Add this class inside the file but outside the PixelBannerStoreModal class
 class ConfirmPurchaseModal extends Modal {
-    constructor(app, cost, prompt, previewImage, onConfirm, plugin) {
+    constructor(app, cost, prompt, previewImage, onConfirm, plugin, isVideo = false, fileType = 'image', fileExtension = 'jpg') {
         super(app);
         this.cost = cost;
         this.prompt = prompt;
         this.previewImage = previewImage;
         this.onConfirm = onConfirm;
         this.plugin = plugin;
+        this.isVideo = isVideo;
+        this.fileType = fileType;
+        this.fileExtension = fileExtension;
     }
 
     onOpen() {
@@ -1628,14 +1827,67 @@ class ConfirmPurchaseModal extends Modal {
         // Add the text
         titleContainer.appendChild(document.createTextNode('Confirm Pixel Banner Purchase'));
         
-        // Add preview image
-        const imageContainer = contentEl.createDiv({ cls: 'pixel-banner-store-confirm-image' });
-        imageContainer.createEl('img', {
-            attr: {
-                src: this.previewImage,
-                alt: 'Banner Preview'
-            }
-        });
+        // Add preview media (image or video)
+        const mediaContainer = contentEl.createDiv({ cls: 'pixel-banner-store-confirm-media' });
+        
+        if (this.isVideo) {
+            // For video banners, the previewImage is actually a thumbnail
+            // Show the thumbnail with a video indicator
+            const videoPreview = mediaContainer.createDiv({ cls: 'pixel-banner-store-video-preview' });
+            videoPreview.createEl('img', {
+                attr: {
+                    src: this.previewImage,
+                    alt: 'Video Banner Thumbnail'
+                }
+            });
+            
+            // Add video play indicator overlay
+            const playOverlay = videoPreview.createDiv({
+                cls: 'pixel-banner-store-play-overlay',
+                attr: {
+                    style: `
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0, 0, 0, 0.7);
+                        border-radius: 50%;
+                        width: 60px;
+                        height: 60px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 24px;
+                        pointer-events: none;
+                    `
+                }
+            });
+            playOverlay.innerHTML = '▶';
+            
+            // Add video type indicator
+            const typeIndicator = mediaContainer.createDiv({
+                text: `VIDEO (${this.fileExtension.toUpperCase()})`,
+                cls: 'pixel-banner-store-type-indicator',
+                attr: {
+                    style: `
+                        text-align: center;
+                        margin-top: 8px;
+                        font-size: 0.8em;
+                        color: var(--text-muted);
+                        font-weight: bold;
+                    `
+                }
+            });
+        } else {
+            // For image banners, display normally
+            mediaContainer.createEl('img', {
+                attr: {
+                    src: this.previewImage,
+                    alt: 'Banner Preview'
+                }
+            });
+        }
 
         contentEl.createEl('p', {
             text: `"${this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim()}"`,
@@ -1700,20 +1952,34 @@ class ConfirmPurchaseModal extends Modal {
     }
         
 
-    // Add styles for the preview image
+    // Add styles for the preview media
     addStyle() {
         const style = document.createElement('style');
         style.textContent = `
-            .pixel-banner-store-confirm-image {
+            .pixel-banner-store-confirm-media {
                 display: flex;
-                justify-content: center;
+                flex-direction: column;
+                align-items: center;
                 margin: 40px 10px;
             }
             
-            .pixel-banner-store-confirm-image img {
+            .pixel-banner-store-confirm-media img {
                 max-width: 100%;
                 height: auto;
                 border-radius: 4px;
+            }
+            
+            .pixel-banner-store-video-preview {
+                position: relative;
+                display: inline-block;
+            }
+            
+            .pixel-banner-store-video-preview img {
+                display: block;
+            }
+            
+            .pixel-banner-store-image-card {
+                position: relative;
             }
         `;
         document.head.appendChild(style);
