@@ -1,6 +1,6 @@
 # Inventory of Pixel Banner Plugin
 
-**Last Updated:** May 23, 2025
+**Last Updated:** June 29, 2025
 
 Below is a concise overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key points in the codebase.
 
@@ -328,21 +328,33 @@ Lists user's images from the vault to pick from, or to upload a new one.
 
 ## `/src/modal/modals/pixelBannerStoreModal.js`
 **Class**: `PixelBannerStoreModal` (extends `Modal`)  
-Provides interface to browse and select banners from the Pixel Banner Plus collection.
+Provides interface to browse and select banners from the Pixel Banner Plus collection, with full support for both image and video banners.
 
 **Key Methods**:
 1. **onOpen()**  
-   Renders the store interface with a category dropdown selector and prepares the image grid container.
-2. **loadCategoryImages()**  
-   Fetches images for the selected category from the API, showing a loading spinner during the request.
-3. **displayImages(images)**  
-   Renders the returned images in a responsive grid, showing prompts and token costs for each image.
-4. **addStyle()**  
-   Injects custom styling for the store modal layout and animations.
-5. **onClose()**  
-   Cleans up the modal content and styles.
+   Renders the store interface with category dropdown, search functionality, and pagination.
+2. **loadCategoryImages(categoryId, page)**  
+   Fetches images/videos for the selected category with pagination support.
+3. **displayImages(items)**  
+   Renders items in a responsive grid with video badges, thumbnails, and voting UI.
+4. **createImageCard(item)**  
+   Creates individual cards for images/videos with play overlays for videos.
+5. **showPreview(item)**  
+   Opens purchase confirmation modal with image/video preview capabilities.
+6. **downloadAndSaveBanner(item)**  
+   Handles downloading and saving both images and videos with proper file extensions.
+7. **saveVideoFileWithPrompts(videoData, filename)**  
+   Manages video file saving workflow with folder and filename prompts.
+8. **saveVideoLocally(videoData, folderPath, filename)**  
+   Performs actual video file saving from base64 data.
+9. **searchImages(query, page)**  
+   Implements search functionality across all banner types.
+10. **loadVoteStats(items)**  
+    Loads voting statistics for banners when voting is enabled.
+11. **addStyle()**  
+    Injects comprehensive styling including video badges and modal layouts.
 
-The modal uses the Pixel Banner Plus API endpoints to fetch categories and their associated images, displaying them in a responsive grid layout with cost information and truncated prompts.
+The modal now supports video banners with thumbnails, play icons, proper file extension handling, and maintains the same user experience for both images and videos. Video files are saved with correct extensions (.mp4/.mov) and users can select save locations.
 
 ---
 
