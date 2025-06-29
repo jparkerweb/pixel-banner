@@ -1,7 +1,7 @@
 import { Plugin, MarkdownView, Notice } from 'obsidian';
 import { releaseNotes } from 'virtual:release-notes';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/settings.js';
-import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, SelectPixelBannerModal, DailyGameModal } from '../modal/modals.js';
+import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, PixelBannerStoreModal, DailyGameModal } from '../modal/modals.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
 import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, handleSetBannerIconImage, cleanupIconOverlay } from './bannerIconHelpers.js'; 
@@ -883,6 +883,6 @@ export class PixelBannerPlugin extends Plugin {
     // -- open the banner store --
     // --------------------------
     openBannerStore() {
-        new SelectPixelBannerModal(this.app, this).open();
+        new PixelBannerStoreModal(this.app, this).open();
     }
 }

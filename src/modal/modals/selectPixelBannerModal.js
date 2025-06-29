@@ -284,6 +284,12 @@ export class SelectPixelBannerModal extends Modal {
                 }
             });
             storeLoadingOverlay.appendChild(this.createLoadingSpinner());
+            
+            // Add click handler for Store button
+            storeButton.addEventListener('click', () => {
+                this.close();
+                new PixelBannerStoreModal(this.app, this.plugin).open();
+            });
         }
 
         // Customization section
