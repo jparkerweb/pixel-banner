@@ -3,6 +3,16 @@
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ## 🎉 What's New
+### v3.6.0 - 2025-06-29
+#### ✨ Added
+- Support for 🎬 Video Banners!
+  - Upload and choose Video files as banners from your vault
+  - Downloadable 🎬 Video Banners from the `Pixel Banner Plus Collection`
+
+#### 📦 Updated
+- Moved `Default Saved Banners Folder` setting to the `General` tab
+- Renamed `Pixel Banner Plus Store` to `Pixel Banner Plus Collection` as many items are free
+
 ### v3.5.6 - 2025-06-26
 #### ✨ Added
 - New `image property format` setting allows for specifying banner image format as `[[image]]` or `![[image]]`
