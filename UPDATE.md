@@ -19,6 +19,10 @@
 #### 🐛 Fixed
 - Icon Image selection modal now properly handles file objects and strings
 
+### v3.6.2 - 2025-06-30
+#### 📦 Updated
+- Improved debounce logic to prevent multiple banner reloads when opening a note
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
