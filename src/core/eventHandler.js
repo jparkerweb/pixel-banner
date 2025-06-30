@@ -4,7 +4,7 @@ import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 
 // Global debouncing map to prevent multiple rapid banner updates for the same file
 const bannerUpdateDebounceMap = new Map();
-const BANNER_UPDATE_DEBOUNCE_DELAY = 200; // 200ms debounce window
+const BANNER_UPDATE_DEBOUNCE_DELAY = 300; // 300ms debounce window
 
 async function handleActiveLeafChange(leaf) {
     // 'this' will be the plugin instance
