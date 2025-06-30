@@ -461,7 +461,7 @@ async function addPixelBanner(plugin, el, ctx) {
                         } else {
                             fileUrl = freshResult;
                         }
-                        plugin.loadedImages.set(file.path, freshResult);
+                        plugin.loadedImages.set(file.path, fileUrl);
                     }
                 }
             }
@@ -612,10 +612,6 @@ async function addPixelBanner(plugin, el, ctx) {
 
                             const result = await plugin.getImageUrl(inputType, bannerImage);
                             if (result) {
-                                // Store the full result object including video metadata
-                                plugin.loadedImages.set(file.path, result);
-                                plugin.lastKeywords.set(file.path, bannerImage);
-                                
                                 // Check if it's a video or an image result
                                 let isVideoFile = false;
                                 let fileUrl = '';
@@ -626,6 +622,10 @@ async function addPixelBanner(plugin, el, ctx) {
                                 } else {
                                     fileUrl = result;
                                 }
+                                
+                                // Store the URL string in cache, not the full object
+                                plugin.loadedImages.set(file.path, fileUrl);
+                                plugin.lastKeywords.set(file.path, bannerImage);
                                 
                                 // Update the banner display based on file type
                                 if (isVideoFile) {
@@ -1111,43 +1111,49 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 const inputType = plugin.getInputType(bannerIconImage);
                 let imagePath = null;
                 
-                // Use the same resolution logic as for banner images
-                switch (inputType) {
-                    case 'obsidianLink':
-                        const file = plugin.getPathFromObsidianLink(bannerIconImage);
-                        if (file) {
+                // Skip processing if the input is invalid (e.g., corrupted object values)
+                if (inputType === 'invalid') {
+                    console.warn('Invalid banner icon image value detected:', bannerIconImage);
+                    // Skip image creation but continue with the rest of the function
+                } else {
+                    // Use the same resolution logic as for banner images
+                    switch (inputType) {
+                        case 'obsidianLink':
+                            const file = plugin.getPathFromObsidianLink(bannerIconImage);
+                            if (file) {
+                                imagePath = plugin.loadedImages.get(file.path);
+                                if (!imagePath) {
+                                    plugin.getVaultImageUrl(file.path).then(url => {
+                                        if (url) plugin.loadedImages.set(file.path, url);
+                                    });
+                                }
+                            }
+                            break;
+                        case 'vaultPath':
                             // Get the image synchronously from the cached URLs if possible
-                            imagePath = plugin.loadedImages.get(file.path);
+                            imagePath = plugin.loadedImages.get(bannerIconImage);
                             if (!imagePath) {
-                                // If not in cache, we'll need to skip for now 
-                                // (it will be shown on the next render after cache is populated)
-                                plugin.getVaultImageUrl(file.path).then(url => {
-                                    if (url) plugin.loadedImages.set(file.path, url);
+                                // If not in cache, we'll need to skip for now
+                                plugin.getVaultImageUrl(bannerIconImage).then(url => {
+                                    if (url) plugin.loadedImages.set(bannerIconImage, url);
                                 });
                             }
-                        }
-                        break;
-                    case 'vaultPath':
-                        // Get the image synchronously from the cached URLs if possible
-                        imagePath = plugin.loadedImages.get(bannerIconImage);
-                        if (!imagePath) {
-                            // If not in cache, we'll need to skip for now
-                            plugin.getVaultImageUrl(bannerIconImage).then(url => {
-                                if (url) plugin.loadedImages.set(bannerIconImage, url);
-                            });
-                        }
-                        break;
-                    case 'url':
-                        imagePath = bannerIconImage;
-                        break;
-                }
-                
-                // If we successfully resolved an image path, create the image element
-                if (imagePath) {
-                    imgElement = document.createElement('img');
-                    imgElement.src = imagePath;
-                    imgElement.className = 'banner-icon-image';
-                }
+                            break;
+                        case 'url':
+                            imagePath = bannerIconImage;
+                            break;
+                    }
+                    
+                    // If we successfully resolved an image path, create the image element
+                    if (imagePath) {
+                        imgElement = document.createElement('img');
+                        // Extract URL from object if needed, otherwise use string directly
+                        const imageUrl = typeof imagePath === 'object' && imagePath.url ? imagePath.url : imagePath;
+                        
+                        imgElement.src = imageUrl;
+                        imgElement.className = 'banner-icon-image';
+                    }
+                } // End of else block for valid inputType
             }
             
             // Create text element if we have icon text

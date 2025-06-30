@@ -13,13 +13,13 @@ export class IconImageSelectionModal extends Modal {
         super(app);
         this.plugin = plugin;
         this.onChoose = onChoose;
-        this.defaultPath = defaultPath;
-        this.searchQuery = defaultPath.toLowerCase();
+        this.defaultPath = defaultPath || '';
+        this.searchQuery = (defaultPath && typeof defaultPath === 'string') ? defaultPath.toLowerCase() : '';
         this.currentPage = 1;
         this.imagesPerPage = 20;
         this.sortOrder = 'name-asc';
         this.imageFiles = this.app.vault.getFiles()
-            .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/));
+            .filter(file => file && file.extension && file.extension.toLowerCase && file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/));
         
         // Collections tab properties
         this.iconCategories = [];
@@ -815,7 +815,7 @@ export class IconImageSelectionModal extends Modal {
         });
 
         searchInput.addEventListener('input', this.debounce(() => {
-            this.searchQuery = searchInput.value.toLowerCase();
+            this.searchQuery = (searchInput && searchInput.value && typeof searchInput.value === 'string') ? searchInput.value.toLowerCase() : '';
             this.updateImageGrid();
         }, 500)); // 500ms debounce
 
@@ -880,7 +880,7 @@ export class IconImageSelectionModal extends Modal {
                 new URL(url);
                 // Basic check for image file extension
                 const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'avif', 'bmp'];
-                const extension = url.split('.').pop().toLowerCase();
+                const extension = (url && url.split && url.split('.').pop()) ? url.split('.').pop().toLowerCase() : '';
                 return imageExtensions.includes(extension);
             } catch (e) {
                 return false;
@@ -1391,7 +1391,7 @@ export class IconImageSelectionModal extends Modal {
             else if (iconData.file_name) {
                 const parts = iconData.file_name.split('.');
                 if (parts.length > 1) {
-                    extension = parts[parts.length - 1].toLowerCase();
+                    extension = (parts && parts.length > 0 && parts[parts.length - 1]) ? parts[parts.length - 1].toLowerCase() : '';
                 }
             }
             
@@ -1813,8 +1813,8 @@ export class IconImageSelectionModal extends Modal {
         this.paginationContainer.empty();
 
         let filteredFiles = this.imageFiles.filter(file => {
-            const filePath = file.path.toLowerCase();
-            const fileName = file.name.toLowerCase();
+            const filePath = (file && file.path) ? file.path.toLowerCase() : '';
+            const fileName = (file && file.name) ? file.name.toLowerCase() : '';
             return filePath.includes(this.searchQuery) || fileName.includes(this.searchQuery);
         });
 
@@ -1874,7 +1874,7 @@ export class IconImageSelectionModal extends Modal {
             });
             
             // Try to create thumbnail
-            if (file.extension.toLowerCase() === 'svg') {
+            if (file && file.extension && file.extension.toLowerCase() === 'svg') {
                 // For SVG files, use img tag with source
                 this.app.vault.readBinary(file).then(arrayBuffer => {
                     const blob = new Blob([arrayBuffer], { type: 'image/svg+xml' });
@@ -1933,7 +1933,13 @@ export class IconImageSelectionModal extends Modal {
             
             // Add click handler to select the image
             imageContainer.addEventListener('click', () => {
-                this.onChoose(file);
+                // Add defensive check for file.path
+                if (!file || !file.path) {
+                    console.error('🔧 ERROR: file or file.path is undefined during selection');
+                    return;
+                }
+                
+                this.onChoose(file.path);
                 this.close();
             });
         });

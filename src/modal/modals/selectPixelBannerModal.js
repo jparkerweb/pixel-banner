@@ -330,15 +330,27 @@ export class SelectPixelBannerModal extends Modal {
             this.close();
             
             // Function to handle image selection
-            const onChooseBannerIconImage = async (file) => {
-                if (!file) return;
+            const onChooseBannerIconImage = async (filePath) => {
+                if (!filePath) {
+                    return;
+                }
                 
-                // Get active file
+                // Handle case where filePath might be a file object instead of string
+                let pathString = filePath;
+                if (typeof filePath === 'object' && filePath.path) {
+                    pathString = filePath.path;
+                } else if (typeof filePath !== 'string') {
+                    return;
+                }
+                
                 const activeFile = this.app.workspace.getActiveFile();
                 if (!activeFile) return;
                 
+                // Get the file object from the vault using the path
+                const file = this.app.vault.getAbstractFileByPath(pathString);
+                
                 // Check if this is a web URL or local file
-                if (file.isWebUrl) {
+                if (typeof pathString === 'string' && (pathString.startsWith('http://') || pathString.startsWith('https://'))) {
                     // For web URLs, use the URL directly
                     this.app.fileManager.processFrontMatter(activeFile, (fm) => {
                         // Get the correct field name
@@ -347,7 +359,7 @@ export class SelectPixelBannerModal extends Modal {
                             : this.plugin.settings.customBannerIconImageField;
                         
                         // Set the frontmatter value as direct URL
-                        fm[iconImageField] = file.path;
+                        fm[iconImageField] = pathString;
                     });
                     
                     // Open the targeting modal after selecting an icon image
@@ -356,12 +368,14 @@ export class SelectPixelBannerModal extends Modal {
                 }
                 
                 // For local files, preload the image into the cache
-                if (file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/)) {
+                const extensionPart = pathString.split('.').pop();
+                const fileExtension = extensionPart ? extensionPart.toLowerCase() : '';
+                if (fileExtension && fileExtension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/)) {
                     try {
                         // Get the vault URL for the image and load it into the cache
-                        const imageUrl = await this.plugin.getVaultImageUrl(file.path);
+                        const imageUrl = await this.plugin.getVaultImageUrl(pathString);
                         if (imageUrl) {
-                            this.plugin.loadedImages.set(file.path, imageUrl);
+                            this.plugin.loadedImages.set(pathString, imageUrl);
                             
                             // Force a preload of the image to ensure it's in browser cache
                             const preloadImg = new Image();
@@ -380,7 +394,7 @@ export class SelectPixelBannerModal extends Modal {
                         : this.plugin.settings.customBannerIconImageField;
                     
                     // Set the frontmatter value
-                    fm[iconImageField] = `![[${file.path}]]`;
+                    fm[iconImageField] = `![[${pathString}]]`;
                 });
                 
                 // Open the targeting modal after selecting an icon image
