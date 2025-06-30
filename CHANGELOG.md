@@ -2,7 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-## 🎉 What's New
+### v3.6.2 - 2025-06-30
+#### 📦 Updated
+- Improved debounce logic to prevent multiple banner reloads when opening a note
+
 ### v3.6.1 - 2025-06-30
 #### 🐛 Fixed
 - Icon Image selection modal now properly handles file objects and strings

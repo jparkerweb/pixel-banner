@@ -2,8 +2,30 @@ import { MarkdownView, Notice } from 'obsidian';
 import { ImageSelectionModal, SelectPixelBannerModal, PixelBannerStoreModal } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 
+// Global debouncing map to prevent multiple rapid banner updates for the same file
+const bannerUpdateDebounceMap = new Map();
+const BANNER_UPDATE_DEBOUNCE_DELAY = 200; // 200ms debounce window
+
 async function handleActiveLeafChange(leaf) {
     // 'this' will be the plugin instance
+    
+    // If no leaf or not a markdown view, just return
+    if (!leaf || !(leaf.view instanceof MarkdownView) || !leaf.view.file) {
+        return;
+    }
+    
+    const filePath = leaf.view.file.path;
+    const debounceCheckTime = Date.now();
+    
+    // Check if we recently updated this file's banner
+    const lastUpdateTime = bannerUpdateDebounceMap.get(filePath);
+    if (lastUpdateTime && (debounceCheckTime - lastUpdateTime) < BANNER_UPDATE_DEBOUNCE_DELAY) {
+        return;
+    }
+    
+    // Update the debounce timestamp
+    bannerUpdateDebounceMap.set(filePath, debounceCheckTime);
+    
     this.cleanupCache();
 
     // Clean up previous leaf and its icon overlay
@@ -12,11 +34,6 @@ async function handleActiveLeafChange(leaf) {
         this.cleanupPreviousLeaf(previousLeaf);
         // Use the plugin's bound method
         this.cleanupIconOverlay(previousLeaf.view);
-    }
-
-    // If no leaf or not a markdown view, just return
-    if (!leaf || !(leaf.view instanceof MarkdownView) || !leaf.view.file) {
-        return;
     }
 
     const currentPath = leaf.view.file.path;
