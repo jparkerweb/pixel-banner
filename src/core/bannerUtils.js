@@ -84,22 +84,43 @@ async function getVaultImageUrl(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
     if (file && 'extension' in file) {
         try {
+            const fileExt = file.extension.toLowerCase();
+            
+            // Handle video files differently - use direct resource URL instead of blob
+            const videoExtensions = ['mp4', 'mov'];
+            if (videoExtensions.includes(fileExt)) {
+                // Use direct resource URL for better persistence
+                const resourcePath = this.app.vault.getResourcePath(file);
+                return {
+                    url: resourcePath,
+                    isVideo: true,
+                    fileType: fileExt,
+                    // Store original path to help with caching
+                    originalPath: path
+                };
+            }
+            
+            // Handle images as before with blob URLs
             const arrayBuffer = await this.app.vault.readBinary(file);
+            
             // Add special handling for SVG files
-            const mimeType = file.extension.toLowerCase() === 'svg' ? 
+            const mimeType = fileExt === 'svg' ? 
                 'image/svg+xml' : 
-                `image/${file.extension}`;
+                `image/${fileExt}`;
             const blob = new Blob([arrayBuffer], { type: mimeType });
             const url = URL.createObjectURL(blob);
-            return url;
+            return {
+                url: url,
+                isVideo: false,
+                fileType: fileExt
+            };
         } catch (error) {
-            console.error('Error reading vault image:', error);
+            console.error('Error reading vault file:', error);
             return null;
         }
     }
     return null;
 }
-
 
 function preloadImage(url) {
     return new Promise((resolve, reject) => {

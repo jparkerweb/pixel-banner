@@ -19,7 +19,7 @@ export class ImageSelectionModal extends Modal {
         this.imagesPerPage = 20;
         this.sortOrder = 'name-asc';
         this.imageFiles = this.app.vault.getFiles()
-            .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/));
+            .filter(file => file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif|mp4|mov)$/));
     }
 
     debounce(func, wait) {
@@ -422,7 +422,7 @@ export class ImageSelectionModal extends Modal {
         const fileInput = searchContainer.createEl('input', {
             type: 'file',
             attr: {
-                accept: 'image/*',
+                accept: 'image/*,video/mp4,video/quicktime',
                 style: 'display: none;'
             }
         });
@@ -562,7 +562,9 @@ export class ImageSelectionModal extends Modal {
             const thumbnailContainer = imageContainer.createDiv();
             
             // Try to create thumbnail
-            if (file.extension.toLowerCase() === 'svg') {
+            const fileExt = file.extension.toLowerCase();
+        
+            if (fileExt === 'svg') {
                 // For SVG files, read as text and create inline SVG
                 this.app.vault.read(file).then(content => {
                     const parser = new DOMParser();
@@ -583,8 +585,45 @@ export class ImageSelectionModal extends Modal {
                         text: 'Error loading SVG'
                     });
                 });
+            } else if (fileExt === 'mp4' || fileExt === 'mov') {
+                // For video files, create a video element for thumbnail
+                const resourcePath = this.app.vault.getResourcePath(file);
+                const video = thumbnailContainer.createEl('video', {
+                    cls: 'pixel-banner-video-thumbnail',
+                    attr: {
+                        src: resourcePath,
+                        preload: 'metadata',
+                        muted: true
+                    }
+                });
+                
+                // Style the video thumbnail
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                
+                // Seek to a frame to show as thumbnail (1 second in)
+                video.addEventListener('loadedmetadata', () => {
+                    video.currentTime = Math.min(1, video.duration / 4);
+                });
+                
+                // Add video icon overlay
+                const videoOverlay = thumbnailContainer.createDiv({ cls: 'pixel-banner-video-overlay' });
+                videoOverlay.innerHTML = '▶️';
+                videoOverlay.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 24px;
+                    background: rgba(0, 0, 0, 0.7);
+                    border-radius: 50%;
+                    padding: 8px;
+                    pointer-events: none;
+                `;
+                
             } else {
-                // For non-SVG files, use the existing binary approach
+                // For image files, use the existing binary approach
                 this.app.vault.readBinary(file).then(arrayBuffer => {
                     const blob = new Blob([arrayBuffer]);
                     const url = URL.createObjectURL(blob);

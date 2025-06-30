@@ -66,6 +66,11 @@
     transition: background-position 0.5s ease;
 }
 
+.pixel-banner-video {
+    object-fit: cover;
+    object-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%) !important;
+}
+
 .markdown-embed-content .markdown-preview-view {
     min-height: var(--pixel-banner-embed-min-height, unset) !important;
 }

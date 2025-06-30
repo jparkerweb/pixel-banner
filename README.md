@@ -15,9 +15,10 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 
 ### ✨ Smart Banner Creation
 - **AI-Generated Banners**: Create stunning, custom banners using AI generation without design skills.
-- **Banner Store**: Browse and use professional banner images from the integrated store, including free options.
+- **Banner Collection**: Browse and use professional banner images and videos from the integrated Pixel Banner Plus Collection, including many free options.
 - **3rd Party APIs**: Connect to Pexels, Pixabay, Flickr, and Unsplash to automatically fetch banner images based on keywords.
 - **Local Image Support**: Use images from your vault as banners with advanced customization options.
+- **Video Banner Support**: Add dynamic MP4 and MOV videos from your vault as animated banners, with full download support from the Pixel Banner Plus Collection.
 - **Direct URL Banners**: Apply banners from any web URL for maximum flexibility.
 - **Note Properties Integration**: Control all banner aspects through Obsidian's `properties` feature.
 
@@ -43,6 +44,15 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - **Folder-Specific Settings**: Configure default banner behavior per folder.
 - **Image Shuffling**: Automatically rotate through images in specified folders.
 - **Direct Children Option**: Apply settings only to immediate folder contents.
+- **Default Saved Banners Folder**: Configurable default location for saving downloaded banners from the collection or pinned from APIs.
+- **File Extension Preservation**: Automatically saves banners with correct file extensions (.jpg, .png, .gif, .svg, .mp4, .mov).
+
+### 🎬 Video Banner Features
+- **Video File Support**: Full support for MP4 and MOV video files as animated banners.
+- **Video Collection**: Download and use professional video banners from the Pixel Banner Plus Collection.
+- **Smart UI Elements**: Video banners display with distinct badges and play icons for easy identification.
+- **Flexible Saving**: Choose custom save locations and filenames when downloading video banners.
+- **Seamless Integration**: Videos work with all existing banner features (positioning, sizing, icons, etc.).
 
 ### 💎 Premium Features (Pixel Banner Plus)
 - **Token-Based System**: Generate AI banners with a flexible pay-as-you-go model.
@@ -66,21 +76,37 @@ Enhance your Obsidian experience with beautiful, intelligent banners that make y
 
     ![1](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/1.jpg)
 
-2. Select a `Source` for your Banner (the AI and Store options require you to first create a FREE Pixel Banner Plus account at: https://pixel-banner.online)  
+2. Select a `Source` for your Banner (the AI and Collection options require you to first create a FREE Pixel Banner Plus account at: https://pixel-banner.online)  
 
     ![2](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/2.jpg)
 
-3. _Optionally_ select `Banner Icon` text (this can be any text, but it is advised to use an Emoji 🤣)
+3. _Optionally_ Add an `Icon Image` (choose from your vault, the web, or our online free collection)
 
     ![3](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/3.jpg)
 
-4. _Optionally_ change the `position`, `size`, `color`, and other `properites` for both the `Banner Image` and `Banner Icon` of the note (by default they will inherit the General settings in Pixel Banner's main setting page, but are customizable per note)
+4. _Optionally_ Add `Icon Emoji & Text` (this can be any text, but it is advised to use an Emoji 🤣)
 
     ![4](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/4.jpg)
 
-5. Click the `Banner Flag` icon anytime to adjust any of these settings (`Banner Image`, `Banner icon`, `Display Properties`)
+5. _Optionally_ adjust the `position`, `size`, `color`, and other `properties` for the `Banner Image` and `Banner Icon` of the note (by default they will inherit the General settings in Pixel Banner's main setting page, but are customizable per note)
 
     ![5](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/5.jpg)
+
+6. Click the `Banner Flag` icon anytime to adjust any of these settings (the GUI is the most user-friendly way to adjust a note's pixel banner settings though you can also access and modify them through the `properties` of the note)
+
+    ![6](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/6.jpg)
+
+## 🎬 Working with Video Banners
+
+### Adding Video Banners
+1. **From Your Vault**: Select video files (.mp4, .mov) from your vault just like images
+2. **From Collection**: Browse video banners in the Pixel Banner Plus Collection (marked with video badges)
+3. **Download & Save**: Videos are automatically saved with correct file extensions and you can choose the save location
+
+### Video Banner Features
+- **Smart Badges**: Video banners display with "VIDEO" badges for easy identification
+- **Seamless Experience**: All existing banner features work with videos (icons, positioning, etc.)
+- **Flexible Saving**: Choose where to save downloaded videos and customize filenames
 
 ### 🎉 Happy Pixel Bannering 🤣
 

@@ -260,7 +260,7 @@ export class SelectPixelBannerModal extends Modal {
             const storeButtonContent = storeButton.createDiv({ cls: 'pixel-banner-button-content' });
             storeButtonContent.createEl('span', { text: '🏪', cls: 'pixel-banner-button-icon' });
             storeButtonContent.createEl('div', { cls: 'pixel-banner-button-text-container' }).createEl('span', { 
-                text: 'Store', 
+                text: 'Plus Collection', 
                 cls: 'pixel-banner-button-text' 
             });
             
@@ -284,6 +284,12 @@ export class SelectPixelBannerModal extends Modal {
                 }
             });
             storeLoadingOverlay.appendChild(this.createLoadingSpinner());
+            
+            // Add click handler for Store button
+            storeButton.addEventListener('click', () => {
+                this.close();
+                new PixelBannerStoreModal(this.app, this.plugin).open();
+            });
         }
 
         // Customization section
