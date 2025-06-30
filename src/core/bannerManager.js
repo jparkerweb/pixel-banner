@@ -5,6 +5,14 @@ import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { flags } from '../resources/flags.js';
 import { debounceFunction, debounceImmediate, debounceAndSwallow } from '../utils/debounce.js';
 
+// Global debouncing map for markdown post processor
+const markdownPostProcessorDebounceMap = new Map();
+const MARKDOWN_PROCESSOR_DEBOUNCE_DELAY = 100; // 100ms debounce window
+
+// Global debouncing map for updateBanner to prevent concurrent updates
+const updateBannerDebounceMap = new Map();
+const UPDATE_BANNER_DEBOUNCE_DELAY = 150; // 150ms debounce window
+
 
 // ----------------------
 // -- add pixel banner --
@@ -703,9 +711,20 @@ async function addPixelBanner(plugin, el, ctx) {
 const debouncedUpdateBanner = debounceFunction(updateBanner, 50);
 async function updateBanner(plugin, view, isContentChange, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
     if (!view || !view.file) {
-        // console.log('❌ updateBanner: Invalid view or file');
         return;
     }
+    
+    const filePath = view.file.path;
+    const currentTime = Date.now();
+    
+    // Check if we recently updated this file's banner
+    const lastUpdateTime = updateBannerDebounceMap.get(filePath);
+    if (lastUpdateTime && (currentTime - lastUpdateTime) < UPDATE_BANNER_DEBOUNCE_DELAY) {
+        return;
+    }
+    
+    // Update the debounce timestamp
+    updateBannerDebounceMap.set(filePath, currentTime);
 
     // Add a small delay if this is a frontmatter change
     if (!isContentChange) {
@@ -1508,6 +1527,23 @@ function registerMarkdownPostProcessor(plugin) {
     // Check if in preview view or hover preview
     const isPreview = ctx.containerEl.classList.contains('markdown-preview-view');
     const isHoverPopover = ctx.containerEl.closest('.hover-popover');
+    
+
+    
+    // Get file path for debouncing
+    const debounceFile = ctx.sourcePath ? plugin.app.vault.getAbstractFileByPath(ctx.sourcePath) : null;
+    if (debounceFile) {
+        const currentTime = Date.now();
+        const lastProcessTime = markdownPostProcessorDebounceMap.get(debounceFile.path);
+        
+        // Skip if we recently processed this file
+        if (lastProcessTime && (currentTime - lastProcessTime) < MARKDOWN_PROCESSOR_DEBOUNCE_DELAY) {
+            return;
+        }
+        
+        // Update the debounce timestamp
+        markdownPostProcessorDebounceMap.set(debounceFile.path, currentTime);
+    }
 
     // console.log('🔎 isPreview:', isPreview);
     // console.log('🔎 isHoverPopover:', isHoverPopover);
