@@ -7,11 +7,11 @@ import { debounceFunction, debounceImmediate, debounceAndSwallow } from '../util
 
 // Global debouncing map for markdown post processor
 const markdownPostProcessorDebounceMap = new Map();
-const MARKDOWN_PROCESSOR_DEBOUNCE_DELAY = 100; // 100ms debounce window
+const MARKDOWN_PROCESSOR_DEBOUNCE_DELAY = 200; // 200ms debounce window
 
 // Global debouncing map for updateBanner to prevent concurrent updates
 const updateBannerDebounceMap = new Map();
-const UPDATE_BANNER_DEBOUNCE_DELAY = 150; // 150ms debounce window
+const UPDATE_BANNER_DEBOUNCE_DELAY = 250; // 250ms debounce window
 
 
 // ----------------------
