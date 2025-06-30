@@ -102,7 +102,6 @@ export class TargetPositionModal extends Modal {
             0
         ]);
         
-        // Add more detailed debug info
         const frontmatterValue = frontmatter?.[bannerIconImageAlignmentField];
         const defaultValue = this.plugin.settings.bannerIconImageAlignment;
         
@@ -1266,12 +1265,27 @@ export class TargetPositionModal extends Modal {
                     }
                     
                     // For local files, preload the image into the cache
-                    if (file.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/)) {
+                    // Handle both file objects and string paths
+                    let fileExtension = '';
+                    let filePath = '';
+                    
+                    if (typeof file === 'string') {
+                        // If file is a string path, extract extension manually
+                        filePath = file;
+                        const extensionPart = file.split('.').pop();
+                        fileExtension = extensionPart ? extensionPart.toLowerCase() : '';
+                    } else if (file && file.extension) {
+                        // If file is an object with extension property
+                        filePath = file.path;
+                        fileExtension = file.extension.toLowerCase();
+                    }
+                    
+                    if (fileExtension && fileExtension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/)) {
                         try {
                             // Get the vault URL for the image and load it into the cache
-                            const imageUrl = await this.plugin.getVaultImageUrl(file.path);
+                            const imageUrl = await this.plugin.getVaultImageUrl(filePath);
                             if (imageUrl) {
-                                this.plugin.loadedImages.set(file.path, imageUrl);
+                                this.plugin.loadedImages.set(filePath, imageUrl);
                                 
                                 // Force a preload of the image to ensure it's in browser cache
                                 const preloadImg = new Image();
@@ -1290,7 +1304,7 @@ export class TargetPositionModal extends Modal {
                             : this.plugin.settings.customBannerIconImageField;
                         
                         // Set the frontmatter value with proper Obsidian image link syntax
-                        fm[iconImageField] = `![[${file.path}]]`;
+                        fm[iconImageField] = `![[${filePath}]]`;
                     });
                     
                     // Reopen this modal

@@ -786,9 +786,6 @@ export class PixelBannerStoreModal extends Modal {
             
             const data = await response.json();
             
-            // Debug: log the actual response structure
-            // console.log('Search API response:', data);
-            
             // Update pagination info
             this.totalPages = data.totalPages || data.total_pages || 1;
             

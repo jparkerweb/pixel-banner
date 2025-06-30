@@ -15,6 +15,10 @@
 - Moved `Default Saved Banners Folder` setting to the `General` tab
 - Renamed `Pixel Banner Plus Store` to `Pixel Banner Plus Collection` as many items are free
 
+### v3.6.1 - 2025-06-30
+#### 🐛 Fixed
+- Icon Image selection modal now properly handles file objects and strings
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
