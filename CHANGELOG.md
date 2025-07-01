@@ -4,7 +4,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 ### v3.6.3 - 2025-06-30
 #### ✨ Added
-- Added filesize display to the store modal
+- Added `filesize` display to the store modal
 
 ### v3.6.2 - 2025-06-30
 #### 📦 Updated
