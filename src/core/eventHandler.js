@@ -188,7 +188,7 @@ function handleLayoutChange() {
     for (const [key, entry] of this.bannerStateCache) {
         if (entry.leafId && !currentLeafIds.has(entry.leafId)) {
             // This leaf no longer exists, clean up its cache
-            if (entry.state?.imageUrl?.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);
