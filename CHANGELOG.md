@@ -2,13 +2,17 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.3 - 2025-06-30
+#### ✨ Added
+- Added `filesize` display to the store modal
+
 ### v3.6.2 - 2025-06-30
 #### 📦 Updated
 - Improved debounce logic to prevent multiple banner reloads when opening a note
 
 ### v3.6.1 - 2025-06-30
 #### 🐛 Fixed
-- Icon Image selection modal now properly handles file objects and strings
+- Resolved issue with Icon Image selection modal not setting the selected icon image
 
 ### v3.6.0 - 2025-06-29
 #### ✨ Added

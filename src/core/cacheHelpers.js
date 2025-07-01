@@ -40,7 +40,7 @@ export function cleanupCache(force = false) {
             }
 
             // Clean up blob URLs
-            if (entry.state?.imageUrl?.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);
@@ -72,7 +72,7 @@ export function cleanupCache(force = false) {
             }
 
             // Clean up blob URLs
-            if (entry.state?.imageUrl?.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);
@@ -83,7 +83,7 @@ export function cleanupCache(force = false) {
 // Helper to invalidate cache for a specific leaf
 export function invalidateLeafCache(leafId) {
     for (const [key, entry] of this.bannerStateCache) {
-        if (key.includes(`-${leafId}`)) {
+        if (key && typeof key === 'string' && key.includes(`-${leafId}`)) {
             // Clean up any persistent icon overlays
             const leaf = this.app.workspace.getLeafById(leafId);
             if (leaf?.view instanceof MarkdownView) {
@@ -98,7 +98,7 @@ export function invalidateLeafCache(leafId) {
             }
 
             // Clean up blob URLs
-            if (entry.state?.imageUrl?.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);

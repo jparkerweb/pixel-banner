@@ -198,7 +198,7 @@ function cleanupPreviousLeaf(previousLeaf) {
                 // Clean up any existing blob URLs
                 if (previousLeaf.view.file) {
                     const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
-                    if (existingUrl?.startsWith('blob:')) {
+                    if (existingUrl && typeof existingUrl === 'string' && existingUrl.startsWith('blob:')) {
                         URL.revokeObjectURL(existingUrl);
                     }
                     this.loadedImages.delete(previousLeaf.view.file.path);

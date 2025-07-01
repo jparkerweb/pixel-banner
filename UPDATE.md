@@ -17,11 +17,15 @@
 
 ### v3.6.1 - 2025-06-30
 #### 🐛 Fixed
-- Icon Image selection modal now properly handles file objects and strings
+- Resolved issue with Icon Image selection modal not setting the selected icon image
 
 ### v3.6.2 - 2025-06-30
 #### 📦 Updated
 - Improved debounce logic to prevent multiple banner reloads when opening a note
+
+### v3.6.3 - 2025-06-30
+#### ✨ Added
+- Added `filesize` display to the store modal
 
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">

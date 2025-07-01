@@ -985,11 +985,30 @@ export class PixelBannerStoreModal extends Modal {
 
                 const details = card.createDiv({ cls: 'pixel-banner-store-image-details' });
                 
+                // Create wrapper for prompt and filesize (left side)
+                const promptWrapper = details.createDiv({ cls: 'pixel-banner-store-prompt-wrapper' });
+                
                 // Get prompt with fallbacks
                 const promptText = image.prompt || image.description || image.title || 'No description';
                 const truncatedPrompt = promptText.length > 85 ? promptText.slice(0, 85) + '...' : promptText;
                 
-                details.createEl('p', { text: truncatedPrompt, cls: 'pixel-banner-store-prompt' });
+                promptWrapper.createEl('p', { text: truncatedPrompt, cls: 'pixel-banner-store-prompt' });
+                
+                // Display filesize if available (under prompt)
+                if (image.filesize) {
+                    promptWrapper.createEl('div', {
+                        text: image.filesize,
+                        cls: 'pixel-banner-store-filesize',
+                        attr: {
+                            style: `
+                                color: var(--text-muted);
+                                font-size: 10px;
+                                margin: 2px 0 0 0;
+                                text-align: left;
+                            `
+                        }
+                    });
+                }
                 
                 const metaDetails = details.createEl('div', { cls: 'pixel-banner-store-meta-details' });
                 
