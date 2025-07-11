@@ -586,7 +586,13 @@ async function addPixelBanner(plugin, el, ctx) {
 
                 pinIcon.onclick = async () => {
                     try {
-                        await handlePinIconClick(imageUrl, plugin);
+                        const currentImageUrl = plugin.loadedImages.get(file.path);
+                        if (!currentImageUrl) {
+                            new Notice('Could not find the current image URL to pin.');
+                            console.error('Error pinning image: currentImageUrl is null or undefined for file.path:', file.path);
+                            return;
+                        }
+                        await handlePinIconClick(currentImageUrl, plugin);
                     } catch (error) {
                         console.error('Error pinning image:', error);
                         new Notice('Failed to pin the image.');
