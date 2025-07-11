@@ -554,7 +554,7 @@ export class PixelBannerPlugin extends Plugin {
     // -- get image url --
     // -------------------
     async getImageUrl(type, input) {
-        if (type === 'url' || type === 'path') {
+        if (type === 'url' || type === 'path' || type === 'fileUrl') {
             return input;
         }
 
