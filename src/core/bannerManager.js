@@ -1180,12 +1180,12 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 
                 if (previewContainer) {
                     const previewBanner = previewContainer.querySelector(':scope > .pixel-banner-image');
-                    if (previewBanner) await createOrUpdateIconOverlay(previewBanner, 'preview');
+                    await createOrUpdateIconOverlay(previewBanner, 'preview');
                 }
 
                 if (sourceContainer) {
                     const sourceBanner = sourceContainer.querySelector(':scope > .pixel-banner-image');
-                    if (sourceBanner) await createOrUpdateIconOverlay(sourceBanner, 'source');
+                    await createOrUpdateIconOverlay(sourceBanner, 'source');
                 }
             }
         }
