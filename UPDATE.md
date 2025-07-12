@@ -31,6 +31,8 @@
 #### 🐛 Fixed
 - Ensure pinned banner is the currently displayed image when saving API banners
 - Allow commas in banner filenames
+- Ensure banner icons are only rendered when a main banner image is present
+- Banner Icon Image not always rendered until the note was clicked/focused
 
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
