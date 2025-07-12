@@ -641,29 +641,21 @@ export class PixelBannerPlugin extends Plugin {
             }
         }
 
-        // If no banner image is found in frontmatter, try folder-specific (though postProcessor context might not be ideal for this)
-        // For now, we primarily focus on frontmatter defined banners as per the original structure of this function.
-        // A more comprehensive check similar to registerMarkdownPostProcessor would involve file path access for folderSpecific.
-
         if (bannerImageValue) {
-            // Proceed only if a banner image is found
             await this.addPixelBanner(el, {
                 frontmatter,
                 file: ctx.sourcePath,
                 isContentChange: false,
-                // Ensure other properties are also conditionally accessed or defaulted if bannerImageValue is the sole condition
                 yPosition: bannerImageValue ? (getFrontmatterValue(frontmatter, this.settings.customYPositionField) || this.settings.yPosition) : this.settings.yPosition,
                 contentStartPosition: bannerImageValue ? (getFrontmatterValue(frontmatter, this.settings.customContentStartField) || this.settings.contentStartPosition) : this.settings.contentStartPosition,
-                // Pass along all custom field names for addPixelBanner to use internally
                 customBannerField: this.settings.customBannerField,
                 customYPositionField: this.settings.customYPositionField,
-                customXPositionField: this.settings.customXPositionField, // Added for completeness
+                customXPositionField: this.settings.customXPositionField,
                 customContentStartField: this.settings.customContentStartField,
                 customImageDisplayField: this.settings.customImageDisplayField,
                 customImageRepeatField: this.settings.customImageRepeatField,
                 customBannerMaxWidthField: this.settings.customBannerMaxWidthField,
-                // ... include all other relevant custom fields passed to addPixelBanner
-                bannerImage: bannerImageValue // Use the resolved banner image value
+                bannerImage: bannerImageValue
             });
 
             if (this.settings.hidePixelBannerFields) {

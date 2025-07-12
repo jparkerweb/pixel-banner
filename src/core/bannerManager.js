@@ -370,7 +370,7 @@ async function addPixelBanner(plugin, el, ctx) {
             if (bannerElement?._isPersistentBanner) {
                 children.unshift(bannerElement);
             }
-            if (bannerIconOverlay) {
+            if (bannerIconOverlay?._isPersistentBannerIcon) {
                 children.push(bannerIconOverlay);
             }
             if (selectImageElement?._isPersistentSelectImage) {
@@ -1014,7 +1014,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             const cachedIconState = cachedState?.state?.iconState;
 
             // Function to create or update icon overlay
-            const createOrUpdateIconOverlay = (banner, viewType) => {
+            const createOrUpdateIconOverlay = async (banner, viewType) => {
                 if (!banner) {
                     return;
                 }
@@ -1100,9 +1100,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                                 if (file) {
                                     imagePath = plugin.loadedImages.get(file.path);
                                     if (!imagePath) {
-                                        plugin.getVaultImageUrl(file.path).then(url => {
-                                            if (url) plugin.loadedImages.set(file.path, url);
-                                        });
+                                        imagePath = await plugin.getVaultImageUrl(file.path);
+                                        if (imagePath) plugin.loadedImages.set(file.path, imagePath);
                                     }
                                 }
                                 break;
@@ -1110,10 +1109,9 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                                 // Get the image synchronously from the cached URLs if possible
                                 imagePath = plugin.loadedImages.get(bannerIconImage);
                                 if (!imagePath) {
-                                    // If not in cache, we'll need to skip for now
-                                    plugin.getVaultImageUrl(bannerIconImage).then(url => {
-                                        if (url) plugin.loadedImages.set(bannerIconImage, url);
-                                    });
+                                    // Await the image loading instead of skipping
+                                    imagePath = await plugin.getVaultImageUrl(bannerIconImage);
+                                    if (imagePath) plugin.loadedImages.set(bannerIconImage, imagePath);
                                 }
                                 break;
                             case 'url':
@@ -1174,7 +1172,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                                         contentEl.querySelector('.markdown-embed-content') ||
                                         contentEl;
                 const previewBanner = embedContainer.querySelector(':scope > .pixel-banner-image');
-                createOrUpdateIconOverlay(previewBanner, 'preview');
+                await createOrUpdateIconOverlay(previewBanner, 'preview');
             } else {
                 // For main notes, apply to both views
                 const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
@@ -1182,12 +1180,12 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 
                 if (previewContainer) {
                     const previewBanner = previewContainer.querySelector(':scope > .pixel-banner-image');
-                    if (previewBanner) createOrUpdateIconOverlay(previewBanner, 'preview');
+                    if (previewBanner) await createOrUpdateIconOverlay(previewBanner, 'preview');
                 }
 
                 if (sourceContainer) {
                     const sourceBanner = sourceContainer.querySelector(':scope > .pixel-banner-image');
-                    if (sourceBanner) createOrUpdateIconOverlay(sourceBanner, 'source');
+                    if (sourceBanner) await createOrUpdateIconOverlay(sourceBanner, 'source');
                 }
             }
         }
