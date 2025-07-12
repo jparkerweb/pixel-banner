@@ -7,9 +7,14 @@ node_modules
 .DS_Store
 .aider*
 
-.vscode
+# AI
 .cursor
+.cursorrules
+.cursorignore
+.gemini
 .windsurf
 .windsurfrules
-.cursorignore
+
+# Misc
+.vscode
 .vault
