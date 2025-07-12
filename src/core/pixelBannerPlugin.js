@@ -630,20 +630,32 @@ export class PixelBannerPlugin extends Plugin {
     // --------------------
     async postProcessor(el, ctx) {
         const frontmatter = ctx.frontmatter;
-        if (frontmatter && frontmatter[this.settings.customBannerField]) {
+        let bannerImageValue = null;
+
+        if (frontmatter) {
+            for (const field of this.settings.customBannerField) {
+                if (frontmatter[field]) {
+                    bannerImageValue = frontmatter[field];
+                    break;
+                }
+            }
+        }
+
+        if (bannerImageValue) {
             await this.addPixelBanner(el, {
                 frontmatter,
                 file: ctx.sourcePath,
                 isContentChange: false,
-                yPosition: frontmatter[this.settings.customYPositionField] || this.settings.yPosition,
-                contentStartPosition: frontmatter[this.settings.customContentStartField] || this.settings.contentStartPosition,
+                yPosition: getFrontmatterValue(frontmatter, this.settings.customYPositionField) || this.settings.yPosition,
+                contentStartPosition: getFrontmatterValue(frontmatter, this.settings.customContentStartField) || this.settings.contentStartPosition,
                 customBannerField: this.settings.customBannerField,
                 customYPositionField: this.settings.customYPositionField,
+                customXPositionField: this.settings.customXPositionField,
                 customContentStartField: this.settings.customContentStartField,
                 customImageDisplayField: this.settings.customImageDisplayField,
                 customImageRepeatField: this.settings.customImageRepeatField,
                 customBannerMaxWidthField: this.settings.customBannerMaxWidthField,
-                bannerImage: frontmatter[this.settings.customBannerField]
+                bannerImage: bannerImageValue
             });
 
             if (this.settings.hidePixelBannerFields) {

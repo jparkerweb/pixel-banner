@@ -370,7 +370,7 @@ async function addPixelBanner(plugin, el, ctx) {
             if (bannerElement?._isPersistentBanner) {
                 children.unshift(bannerElement);
             }
-            if (bannerIconOverlay) {
+            if (bannerIconOverlay?._isPersistentBannerIcon) {
                 children.push(bannerIconOverlay);
             }
             if (selectImageElement?._isPersistentSelectImage) {
@@ -922,29 +922,278 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         });
 
         plugin.lastYPositions.set(view.file.path, yPosition);
-    } else if (existingBanner) {
-        existingBanner.style.display = 'none';
-    }
 
-    // Process embedded notes if this is not an embedded note itself
-    if (!isEmbedded) {
-        const embeddedNotes = contentEl.querySelectorAll('.internal-embed.markdown-embed');
+        // Process embedded notes if this is not an embedded note itself
+        if (!isEmbedded) {
+            const embeddedNotes = contentEl.querySelectorAll('.internal-embed.markdown-embed');
 
-        for (const embed of embeddedNotes) {
-            const embedFile = plugin.app.metadataCache.getFirstLinkpathDest(embed.getAttribute('src'), '');
+            for (const embed of embeddedNotes) {
+                const embedFile = plugin.app.metadataCache.getFirstLinkpathDest(embed.getAttribute('src'), '');
 
-            if (embedFile) {
-                const embedView = {
-                    file: embedFile,
-                    contentEl: embed,
-                    getMode: () => 'preview'
-                };
-                await updateBanner(plugin, embedView, false);
+                if (embedFile) {
+                    const embedView = {
+                        file: embedFile,
+                        contentEl: embed,
+                        getMode: () => 'preview'
+                    };
+                    await updateBanner(plugin, embedView, false);
+                }
             }
         }
-    }
 
-    if (!bannerImage) {
+        if (plugin.settings.hidePixelBannerFields && view.getMode() === 'preview') {
+            plugin.updateFieldVisibility(view);
+        }
+
+        const bannerIcon = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconField);
+        const bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
+
+        // Only clean up overlays that belong to the current container context
+        if (isEmbedded) {
+            // For embedded notes, only clean up overlays within this specific embed
+            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') ||
+                                    contentEl.querySelector('.markdown-embed-content') ||
+                                    contentEl;
+            const thisEmbedOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
+            thisEmbedOverlays.forEach(overlay => overlay.remove());
+        } else {
+            // For main notes, clean up overlays in both source and preview views
+            ['markdown-preview-view', 'markdown-source-view'].forEach(viewType => {
+                const viewContainer = contentEl.querySelector(`.${viewType}`);
+                if (viewContainer) {
+                    const mainOverlays = viewContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
+                    mainOverlays.forEach(overlay => overlay.remove());
+                }
+            });
+        }
+
+        // Clean up existing persistent banner icon overlays if both icon and icon-image fields are removed or empty
+        if ((!bannerIcon || (typeof bannerIcon === 'string' && !bannerIcon.trim())) &&
+            (!bannerIconImage || (typeof bannerIconImage === 'string' && !bannerIconImage.trim()))) {
+            // For embedded notes
+            if (isEmbedded) {
+                const embedContainer = contentEl.querySelector('.markdown-preview-sizer') ||
+                                        contentEl.querySelector('.markdown-embed-content') ||
+                                        contentEl;
+                const persistentOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+                persistentOverlays.forEach(overlay => {
+                    plugin.returnIconOverlay(overlay);
+                    overlay.remove();
+                });
+            } else {
+                // For main notes, clean up in both views
+                const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
+                const sourceContainer = contentEl.querySelector('div.cm-sizer');
+
+                if (previewContainer) {
+                    const previewOverlays = previewContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+                    previewOverlays.forEach(overlay => {
+                        plugin.returnIconOverlay(overlay);
+                        overlay.remove();
+                    });
+                }
+
+                if (sourceContainer) {
+                    const sourceOverlays = sourceContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+                    sourceOverlays.forEach(overlay => {
+                        plugin.returnIconOverlay(overlay);
+                        overlay.remove();
+                    });
+                }
+            }
+        }
+
+        // Proceed if we have a valid banner icon or banner icon image
+        if ((bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) ||
+            (bannerIconImage && typeof bannerIconImage === 'string' && bannerIconImage.trim())) {
+            const cleanIcon = bannerIcon ? bannerIcon.trim() : '';
+
+            // Check cache first
+            const cacheKey = plugin.generateCacheKey(view.file.path, plugin.app.workspace.activeLeaf.id);
+            const cachedState = plugin.bannerStateCache.get(cacheKey);
+            const cachedIconState = cachedState?.state?.iconState;
+
+            // Function to create or update icon overlay
+            const createOrUpdateIconOverlay = async (banner, viewType) => {
+                if (!banner) {
+                    return;
+                }
+
+                // Get current icon state
+                const currentIconState = {
+                    icon: cleanIcon,
+                    size: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || plugin.settings.bannerIconSize,
+                    xPosition: getValueWithZeroCheck([
+                        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
+                        plugin.settings.bannerIconXPosition,
+                    ]),
+                    opacity: getValueWithZeroCheck([
+                        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
+                        plugin.settings.bannerIconOpacity,
+                    ]),
+                    color: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || plugin.settings.bannerIconColor,
+                    fontWeight: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || plugin.settings.bannerIconFontWeight,
+                    backgroundColor: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || plugin.settings.bannerIconBackgroundColor,
+                    paddingX: getValueWithZeroCheck([
+                        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
+                        plugin.settings.bannerIconPaddingX,
+                    ]),
+                    paddingY: getValueWithZeroCheck([
+                        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
+                        plugin.settings.bannerIconPaddingY,
+                    ]),
+                    borderRadius: getValueWithZeroCheck([
+                        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
+                        plugin.settings.bannerIconBorderRadius,
+                    ]),
+                    verticalOffset: getValueWithZeroCheck([
+                        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
+                        plugin.settings.bannerIconVeritalOffset,
+                    ]),
+                    imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
+                    viewType
+                };
+
+                // Check if we already have a persistent icon overlay
+                const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ?
+                    banner.nextElementSibling : null;
+
+                if (existingOverlay) {
+                    // Only update if necessary
+                    if (!plugin.shouldUpdateIconOverlay(existingOverlay, currentIconState, viewType)) {
+                        return existingOverlay;
+                    }
+                    // Return the old overlay to the pool if we're going to update
+                    plugin.returnIconOverlay(existingOverlay);
+                }
+
+                // Get a new or pooled overlay
+                const bannerIconOverlay = plugin.getIconOverlay();
+
+                bannerIconOverlay.dataset.viewType = viewType;
+                bannerIconOverlay.dataset.persistent = 'true';
+                bannerIconOverlay.textContent = '';
+                bannerIconOverlay._isPersistentBannerIcon = true;
+
+                // Clear any existing content
+                bannerIconOverlay.innerHTML = '';
+
+                // Get the image alignment setting
+                const imageAlignment = currentIconState.imageAlignment === 'right' ? 'right' : 'left';
+
+                // Create image element if we have a banner icon image
+                let imgElement = null;
+                if (bannerIconImage) {
+                    // Resolve the image path using existing utility functions
+                    const inputType = plugin.getInputType(bannerIconImage);
+                    let imagePath = null;
+
+                    // Skip processing if the input is invalid (e.g., corrupted object values)
+                    if (inputType === 'invalid') {
+                        console.warn('Invalid banner icon image value detected:', bannerIconImage);
+                        // Skip image creation but continue with the rest of the function
+                    } else {
+                        // Use the same resolution logic as for banner images
+                        switch (inputType) {
+                            case 'obsidianLink':
+                                const file = plugin.getPathFromObsidianLink(bannerIconImage);
+                                if (file) {
+                                    imagePath = plugin.loadedImages.get(file.path);
+                                    if (!imagePath) {
+                                        imagePath = await plugin.getVaultImageUrl(file.path);
+                                        if (imagePath) plugin.loadedImages.set(file.path, imagePath);
+                                    }
+                                }
+                                break;
+                            case 'vaultPath':
+                                // Get the image synchronously from the cached URLs if possible
+                                imagePath = plugin.loadedImages.get(bannerIconImage);
+                                if (!imagePath) {
+                                    // Await the image loading instead of skipping
+                                    imagePath = await plugin.getVaultImageUrl(bannerIconImage);
+                                    if (imagePath) plugin.loadedImages.set(bannerIconImage, imagePath);
+                                }
+                                break;
+                            case 'url':
+                                imagePath = bannerIconImage;
+                                break;
+                        }
+
+                        // If we successfully resolved an image path, create the image element
+                        if (imagePath) {
+                            imgElement = document.createElement('img');
+                            // Extract URL from object if needed, otherwise use string directly
+                            const imageUrl = typeof imagePath === 'object' && imagePath.url ? imagePath.url : imagePath;
+
+                            imgElement.src = imageUrl;
+                            imgElement.className = 'banner-icon-image';
+                        }
+                    } // End of else block for valid inputType
+                }
+
+                // Create text element if we have icon text
+                let textElement = null;
+                if (cleanIcon) {
+                    textElement = document.createElement('div');
+                    textElement.className = 'banner-icon-text';
+                    textElement.textContent = cleanIcon;
+                }
+
+                // Add elements to overlay based on alignment setting
+                if (imageAlignment === 'right') {
+                    // Add text first, then image
+                    if (textElement) bannerIconOverlay.appendChild(textElement);
+                    if (imgElement) bannerIconOverlay.appendChild(imgElement);
+                } else {
+                    // Default alignment: image first, then text
+                    if (imgElement) bannerIconOverlay.appendChild(imgElement);
+                    if (textElement) bannerIconOverlay.appendChild(textElement);
+                }
+
+                // Apply styles
+                bannerIconOverlay.style.display = 'block'; // Ensure visibility
+                bannerIconOverlay.style.fontSize = `${currentIconState.size}px`;
+                bannerIconOverlay.style.left = `${currentIconState.xPosition}%`;
+                bannerIconOverlay.style.opacity = `${currentIconState.opacity}%`;
+                bannerIconOverlay.style.color = currentIconState.color;
+                bannerIconOverlay.style.fontWeight = currentIconState.fontWeight;
+                bannerIconOverlay.style.backgroundColor = currentIconState.backgroundColor;
+                bannerIconOverlay.style.padding = `${currentIconState.paddingY}px ${currentIconState.paddingX}px`;
+                bannerIconOverlay.style.borderRadius = `${currentIconState.borderRadius}px`;
+                bannerIconOverlay.style.marginTop = `${currentIconState.verticalOffset}px`;
+
+                banner.insertAdjacentElement('afterend', bannerIconOverlay);
+                return bannerIconOverlay;
+            };
+
+            // For embedded notes, only apply to preview view
+            if (isEmbedded) {
+                const embedContainer = contentEl.querySelector('.markdown-preview-sizer') ||
+                                        contentEl.querySelector('.markdown-embed-content') ||
+                                        contentEl;
+                const previewBanner = embedContainer.querySelector(':scope > .pixel-banner-image');
+                await createOrUpdateIconOverlay(previewBanner, 'preview');
+            } else {
+                // For main notes, apply to both views
+                const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
+                const sourceContainer = contentEl.querySelector('div.cm-sizer');
+
+                if (previewContainer) {
+                    const previewBanner = previewContainer.querySelector(':scope > .pixel-banner-image');
+                    await createOrUpdateIconOverlay(previewBanner, 'preview');
+                }
+
+                if (sourceContainer) {
+                    const sourceBanner = sourceContainer.querySelector(':scope > .pixel-banner-image');
+                    await createOrUpdateIconOverlay(sourceBanner, 'source');
+                }
+            }
+        }
+    } else {
+        if (existingBanner) {
+            existingBanner.style.display = 'none';
+        }
+
         const viewContent = view.contentEl;
         const isReadingView = view.getMode && view.getMode() === 'preview';
         let container = isReadingView 
@@ -994,257 +1243,6 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             const existingViewImageIcon = container.querySelector('.view-image-icon');
             if (existingViewImageIcon) {
                 existingViewImageIcon.remove();
-            }
-        }
-    }
-
-    if (plugin.settings.hidePixelBannerFields && view.getMode() === 'preview') {
-        plugin.updateFieldVisibility(view);
-    }
-
-    const bannerIcon = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconField);
-    const bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
-
-    // Only clean up overlays that belong to the current container context
-    if (isEmbedded) {
-        // For embedded notes, only clean up overlays within this specific embed
-        const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
-                                contentEl.querySelector('.markdown-embed-content') || 
-                                contentEl;
-        const thisEmbedOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
-        thisEmbedOverlays.forEach(overlay => overlay.remove());
-    } else {
-        // For main notes, clean up overlays in both source and preview views
-        ['markdown-preview-view', 'markdown-source-view'].forEach(viewType => {
-            const viewContainer = contentEl.querySelector(`.${viewType}`);
-            if (viewContainer) {
-                const mainOverlays = viewContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
-                mainOverlays.forEach(overlay => overlay.remove());
-            }
-        });
-    }
-
-    // Clean up existing persistent banner icon overlays if both icon and icon-image fields are removed or empty
-    if ((!bannerIcon || (typeof bannerIcon === 'string' && !bannerIcon.trim())) && 
-        (!bannerIconImage || (typeof bannerIconImage === 'string' && !bannerIconImage.trim()))) {
-        // For embedded notes
-        if (isEmbedded) {
-            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
-                                    contentEl.querySelector('.markdown-embed-content') || 
-                                    contentEl;
-            const persistentOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
-            persistentOverlays.forEach(overlay => {
-                plugin.returnIconOverlay(overlay);
-                overlay.remove();
-            });
-        } else {
-            // For main notes, clean up in both views
-            const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
-            const sourceContainer = contentEl.querySelector('div.cm-sizer');
-            
-            if (previewContainer) {
-                const previewOverlays = previewContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
-                previewOverlays.forEach(overlay => {
-                    plugin.returnIconOverlay(overlay);
-                    overlay.remove();
-                });
-            }
-            
-            if (sourceContainer) {
-                const sourceOverlays = sourceContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
-                sourceOverlays.forEach(overlay => {
-                    plugin.returnIconOverlay(overlay);
-                    overlay.remove();
-                });
-            }
-        }
-    }
-
-    // Proceed if we have a valid banner icon or banner icon image
-    if ((bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) || 
-        (bannerIconImage && typeof bannerIconImage === 'string' && bannerIconImage.trim())) {
-        const cleanIcon = bannerIcon ? bannerIcon.trim() : '';
-        
-        // Check cache first
-        const cacheKey = plugin.generateCacheKey(view.file.path, plugin.app.workspace.activeLeaf.id);
-        const cachedState = plugin.bannerStateCache.get(cacheKey);
-        const cachedIconState = cachedState?.state?.iconState;
-
-        // Function to create or update icon overlay
-        const createOrUpdateIconOverlay = (banner, viewType) => {
-            if (!banner) {
-                return;
-            }
-            
-            // Get current icon state
-            const currentIconState = {
-                icon: cleanIcon,
-                size: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || plugin.settings.bannerIconSize,
-                xPosition: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
-                    plugin.settings.bannerIconXPosition,
-                ]),
-                opacity: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
-                    plugin.settings.bannerIconOpacity,
-                ]),
-                color: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || plugin.settings.bannerIconColor,
-                fontWeight: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || plugin.settings.bannerIconFontWeight,
-                backgroundColor: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || plugin.settings.bannerIconBackgroundColor,
-                paddingX: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
-                    plugin.settings.bannerIconPaddingX,
-                ]),
-                paddingY: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
-                    plugin.settings.bannerIconPaddingY,
-                ]),
-                borderRadius: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
-                    plugin.settings.bannerIconBorderRadius,
-                ]),
-                verticalOffset: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
-                    plugin.settings.bannerIconVeritalOffset,
-                ]),
-                imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
-                viewType
-            };
-            
-            // Check if we already have a persistent icon overlay
-            const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ? 
-                banner.nextElementSibling : null;
-            
-            if (existingOverlay) {
-                // Only update if necessary
-                if (!plugin.shouldUpdateIconOverlay(existingOverlay, currentIconState, viewType)) {
-                    return existingOverlay;
-                }
-                // Return the old overlay to the pool if we're going to update
-                plugin.returnIconOverlay(existingOverlay);
-            }
-            
-            // Get a new or pooled overlay
-            const bannerIconOverlay = plugin.getIconOverlay();
-            
-            bannerIconOverlay.dataset.viewType = viewType;
-            bannerIconOverlay.dataset.persistent = 'true';
-            bannerIconOverlay.textContent = '';
-            bannerIconOverlay._isPersistentBannerIcon = true;
-            
-            // Clear any existing content
-            bannerIconOverlay.innerHTML = '';
-            
-            // Get the image alignment setting
-            const imageAlignment = currentIconState.imageAlignment === 'right' ? 'right' : 'left';
-            
-            // Create image element if we have a banner icon image
-            let imgElement = null;
-            if (bannerIconImage) {
-                // Resolve the image path using existing utility functions
-                const inputType = plugin.getInputType(bannerIconImage);
-                let imagePath = null;
-                
-                // Skip processing if the input is invalid (e.g., corrupted object values)
-                if (inputType === 'invalid') {
-                    console.warn('Invalid banner icon image value detected:', bannerIconImage);
-                    // Skip image creation but continue with the rest of the function
-                } else {
-                    // Use the same resolution logic as for banner images
-                    switch (inputType) {
-                        case 'obsidianLink':
-                            const file = plugin.getPathFromObsidianLink(bannerIconImage);
-                            if (file) {
-                                imagePath = plugin.loadedImages.get(file.path);
-                                if (!imagePath) {
-                                    plugin.getVaultImageUrl(file.path).then(url => {
-                                        if (url) plugin.loadedImages.set(file.path, url);
-                                    });
-                                }
-                            }
-                            break;
-                        case 'vaultPath':
-                            // Get the image synchronously from the cached URLs if possible
-                            imagePath = plugin.loadedImages.get(bannerIconImage);
-                            if (!imagePath) {
-                                // If not in cache, we'll need to skip for now
-                                plugin.getVaultImageUrl(bannerIconImage).then(url => {
-                                    if (url) plugin.loadedImages.set(bannerIconImage, url);
-                                });
-                            }
-                            break;
-                        case 'url':
-                            imagePath = bannerIconImage;
-                            break;
-                    }
-                    
-                    // If we successfully resolved an image path, create the image element
-                    if (imagePath) {
-                        imgElement = document.createElement('img');
-                        // Extract URL from object if needed, otherwise use string directly
-                        const imageUrl = typeof imagePath === 'object' && imagePath.url ? imagePath.url : imagePath;
-                        
-                        imgElement.src = imageUrl;
-                        imgElement.className = 'banner-icon-image';
-                    }
-                } // End of else block for valid inputType
-            }
-            
-            // Create text element if we have icon text
-            let textElement = null;
-            if (cleanIcon) {
-                textElement = document.createElement('div');
-                textElement.className = 'banner-icon-text';
-                textElement.textContent = cleanIcon;
-            }
-            
-            // Add elements to overlay based on alignment setting
-            if (imageAlignment === 'right') {
-                // Add text first, then image
-                if (textElement) bannerIconOverlay.appendChild(textElement);
-                if (imgElement) bannerIconOverlay.appendChild(imgElement);
-            } else {
-                // Default alignment: image first, then text
-                if (imgElement) bannerIconOverlay.appendChild(imgElement);
-                if (textElement) bannerIconOverlay.appendChild(textElement);
-            }
-            
-            // Apply styles
-            bannerIconOverlay.style.display = 'block'; // Ensure visibility
-            bannerIconOverlay.style.fontSize = `${currentIconState.size}px`;
-            bannerIconOverlay.style.left = `${currentIconState.xPosition}%`;
-            bannerIconOverlay.style.opacity = `${currentIconState.opacity}%`;
-            bannerIconOverlay.style.color = currentIconState.color;
-            bannerIconOverlay.style.fontWeight = currentIconState.fontWeight;
-            bannerIconOverlay.style.backgroundColor = currentIconState.backgroundColor;
-            bannerIconOverlay.style.padding = `${currentIconState.paddingY}px ${currentIconState.paddingX}px`;
-            bannerIconOverlay.style.borderRadius = `${currentIconState.borderRadius}px`;
-            bannerIconOverlay.style.marginTop = `${currentIconState.verticalOffset}px`;
-
-            banner.insertAdjacentElement('afterend', bannerIconOverlay);
-            return bannerIconOverlay;
-        };
-
-        // For embedded notes, only apply to preview view
-        if (isEmbedded) {
-            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
-                                    contentEl.querySelector('.markdown-embed-content') || 
-                                    contentEl;
-            const previewBanner = embedContainer.querySelector(':scope > .pixel-banner-image');
-            createOrUpdateIconOverlay(previewBanner, 'preview');
-        } else {
-            // For main notes, apply to both views
-            const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
-            const sourceContainer = contentEl.querySelector('div.cm-sizer');
-            
-            if (previewContainer) {
-                const previewBanner = previewContainer.querySelector(':scope > .pixel-banner-image');
-                if (previewBanner) createOrUpdateIconOverlay(previewBanner, 'preview');
-            }
-            
-            if (sourceContainer) {
-                const sourceBanner = sourceContainer.querySelector(':scope > .pixel-banner-image');
-                if (sourceBanner) createOrUpdateIconOverlay(sourceBanner, 'source');
             }
         }
     }
