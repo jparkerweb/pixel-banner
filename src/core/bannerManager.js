@@ -858,7 +858,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             
             // Only split if a comma is followed by a space, indicating a user-formatted list.
             if (bannerImage.includes(', ')) {
-                const bannerValues = bannerImage.split(',').map(v => v.trim()).filter(v => v.length > 0);
+                const bannerValues = bannerImage.split(', ').map(v => v.trim()).filter(v => v.length > 0);
                 if (bannerValues.length > 0) {
                     bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
                 } else {
