@@ -851,17 +851,25 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Handle comma-delimited banner values in frontmatter
-        if (typeof bannerImage === 'string' && (!bannerImage.startsWith('[[') || !bannerImage.startsWith('![['))) {
-            const bannerValues = bannerImage.includes(',') 
-                ? bannerImage.split(',').map(v => v.trim()).filter(v => v.length > 0).filter(Boolean)
-                : [bannerImage];
+        if (typeof bannerImage === 'string' &&
+            !bannerImage.startsWith('[[') &&
+            !bannerImage.startsWith('![[') &&
+            !bannerImage.startsWith('http')) {
             
-            // Only select random if we have valid values
-            if (bannerValues.length > 0) {
-                bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-            } else {
-                bannerImage = null;
+            // Only split if a comma is followed by a space, indicating a user-formatted list.
+            if (bannerImage.includes(', ')) {
+                const bannerValues = bannerImage.split(', ').map(v => v.trim()).filter(v => v.length > 0);
+                if (bannerValues.length > 0) {
+                    bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+                } else {
+                    // This case should ideally not be reached if .includes(', ') is true and split creates items
+                    bannerImage = null;
+                }
             }
+            // If no ", " is found, bannerImage remains the original string.
+            // This means "file,with,comma.png" is treated as one filename.
+            // And "file1.png,file2.png" (no space) is also treated as one filename.
+            // Users wanting a list must use "file1.png, file2.png".
         }
 
         // Format internal links
