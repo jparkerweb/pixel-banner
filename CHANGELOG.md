@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.4 - 2025-07-12
+#### 🐛 Fixed
+- Ensure pinned banner is the currently displayed image when saving API banners
+
 ### v3.6.3 - 2025-06-30
 #### ✨ Added
 - Added `filesize` display to the store modal
