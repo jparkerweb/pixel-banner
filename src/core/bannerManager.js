@@ -26,7 +26,7 @@ async function addPixelBanner(plugin, el, ctx) {
     const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 
         plugin.getFolderSpecificImage(file.path)?.hideEmbeddedNoteBanners || 
         plugin.settings.hideEmbeddedNoteBanners || false;
-    
+
     // Add pixel-banner class to the appropriate container
     if (!isEmbedded && !isHoverPopover && viewContent.classList.contains('view-content')) {
         // set padding-top for source & preview elements as inline style for FAST rendering!
@@ -370,7 +370,7 @@ async function addPixelBanner(plugin, el, ctx) {
             if (bannerElement?._isPersistentBanner) {
                 children.unshift(bannerElement);
             }
-            if (bannerIconOverlay) {
+            if (bannerIconOverlay?._isPersistentBannerIcon) {
                 children.push(bannerIconOverlay);
             }
             if (selectImageElement?._isPersistentSelectImage) {
@@ -586,7 +586,14 @@ async function addPixelBanner(plugin, el, ctx) {
 
                 pinIcon.onclick = async () => {
                     try {
-                        await handlePinIconClick(imageUrl, plugin);
+                        const currentImage = plugin.loadedImages.get(file.path);
+                        if (!currentImage) {
+                            new Notice('Could not find the current image URL to pin.');
+                            console.error('Error pinning image: currentImage is null or undefined for file.path:', file.path);
+                            return;
+                        }
+                        const imageUrlToPin = typeof currentImage === 'object' && currentImage.url ? currentImage.url : currentImage;
+                        await handlePinIconClick(imageUrlToPin, plugin);
                     } catch (error) {
                         console.error('Error pinning image:', error);
                         new Notice('Failed to pin the image.');
@@ -844,17 +851,25 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Handle comma-delimited banner values in frontmatter
-        if (typeof bannerImage === 'string' && (!bannerImage.startsWith('[[') || !bannerImage.startsWith('![['))) {
-            const bannerValues = bannerImage.includes(',') 
-                ? bannerImage.split(',').map(v => v.trim()).filter(v => v.length > 0).filter(Boolean)
-                : [bannerImage];
+        if (typeof bannerImage === 'string' &&
+            !bannerImage.startsWith('[[') &&
+            !bannerImage.startsWith('![[') &&
+            !bannerImage.startsWith('http')) {
             
-            // Only select random if we have valid values
-            if (bannerValues.length > 0) {
-                bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-            } else {
-                bannerImage = null;
+            // Only split if a comma is followed by a space, indicating a user-formatted list.
+            if (bannerImage.includes(', ')) {
+                const bannerValues = bannerImage.split(', ').map(v => v.trim()).filter(v => v.length > 0);
+                if (bannerValues.length > 0) {
+                    bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+                } else {
+                    // This case should ideally not be reached if .includes(', ') is true and split creates items
+                    bannerImage = null;
+                }
             }
+            // If no ", " is found, bannerImage remains the original string.
+            // This means "file,with,comma.png" is treated as one filename.
+            // And "file1.png,file2.png" (no space) is also treated as one filename.
+            // Users wanting a list must use "file1.png, file2.png".
         }
 
         // Format internal links
@@ -905,7 +920,6 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             maxWidth,
             isReadingView: view.getMode && view.getMode() === 'preview'
         });
-
         plugin.lastYPositions.set(view.file.path, yPosition);
     } else if (existingBanner) {
         existingBanner.style.display = 'none';
@@ -914,10 +928,10 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     // Process embedded notes if this is not an embedded note itself
     if (!isEmbedded) {
         const embeddedNotes = contentEl.querySelectorAll('.internal-embed.markdown-embed');
-
         for (const embed of embeddedNotes) {
-            const embedFile = plugin.app.metadataCache.getFirstLinkpathDest(embed.getAttribute('src'), '');
-
+            const embedSrc = embed.getAttribute('src');
+            if (!embedSrc) continue;
+            const embedFile = plugin.app.metadataCache.getFirstLinkpathDest(embedSrc, view.file.path);
             if (embedFile) {
                 const embedView = {
                     file: embedFile,
@@ -993,8 +1007,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     // Only clean up overlays that belong to the current container context
     if (isEmbedded) {
         // For embedded notes, only clean up overlays within this specific embed
-        const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
-                                contentEl.querySelector('.markdown-embed-content') || 
+        const embedContainer = contentEl.querySelector('.markdown-preview-sizer') ||
+                                contentEl.querySelector('.markdown-embed-content') ||
                                 contentEl;
         const thisEmbedOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay:not([data-persistent="true"])');
         thisEmbedOverlays.forEach(overlay => overlay.remove());
@@ -1010,12 +1024,12 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     }
 
     // Clean up existing persistent banner icon overlays if both icon and icon-image fields are removed or empty
-    if ((!bannerIcon || (typeof bannerIcon === 'string' && !bannerIcon.trim())) && 
+    if ((!bannerIcon || (typeof bannerIcon === 'string' && !bannerIcon.trim())) &&
         (!bannerIconImage || (typeof bannerIconImage === 'string' && !bannerIconImage.trim()))) {
         // For embedded notes
         if (isEmbedded) {
-            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
-                                    contentEl.querySelector('.markdown-embed-content') || 
+            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') ||
+                                    contentEl.querySelector('.markdown-embed-content') ||
                                     contentEl;
             const persistentOverlays = embedContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
             persistentOverlays.forEach(overlay => {
@@ -1026,7 +1040,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             // For main notes, clean up in both views
             const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
             const sourceContainer = contentEl.querySelector('div.cm-sizer');
-            
+
             if (previewContainer) {
                 const previewOverlays = previewContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
                 previewOverlays.forEach(overlay => {
@@ -1034,7 +1048,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                     overlay.remove();
                 });
             }
-            
+
             if (sourceContainer) {
                 const sourceOverlays = sourceContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
                 sourceOverlays.forEach(overlay => {
@@ -1046,21 +1060,21 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     }
 
     // Proceed if we have a valid banner icon or banner icon image
-    if ((bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) || 
+    if ((bannerIcon && typeof bannerIcon === 'string' && bannerIcon.trim()) ||
         (bannerIconImage && typeof bannerIconImage === 'string' && bannerIconImage.trim())) {
         const cleanIcon = bannerIcon ? bannerIcon.trim() : '';
-        
+
         // Check cache first
         const cacheKey = plugin.generateCacheKey(view.file.path, plugin.app.workspace.activeLeaf.id);
         const cachedState = plugin.bannerStateCache.get(cacheKey);
         const cachedIconState = cachedState?.state?.iconState;
 
         // Function to create or update icon overlay
-        const createOrUpdateIconOverlay = (banner, viewType) => {
+        const createOrUpdateIconOverlay = async (banner, viewType) => {
             if (!banner) {
                 return;
             }
-            
+
             // Get current icon state
             const currentIconState = {
                 icon: cleanIcon,
@@ -1095,11 +1109,11 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
                 viewType
             };
-            
+
             // Check if we already have a persistent icon overlay
-            const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ? 
+            const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ?
                 banner.nextElementSibling : null;
-            
+
             if (existingOverlay) {
                 // Only update if necessary
                 if (!plugin.shouldUpdateIconOverlay(existingOverlay, currentIconState, viewType)) {
@@ -1108,28 +1122,28 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 // Return the old overlay to the pool if we're going to update
                 plugin.returnIconOverlay(existingOverlay);
             }
-            
+
             // Get a new or pooled overlay
             const bannerIconOverlay = plugin.getIconOverlay();
-            
+
             bannerIconOverlay.dataset.viewType = viewType;
             bannerIconOverlay.dataset.persistent = 'true';
             bannerIconOverlay.textContent = '';
             bannerIconOverlay._isPersistentBannerIcon = true;
-            
+
             // Clear any existing content
             bannerIconOverlay.innerHTML = '';
-            
+
             // Get the image alignment setting
             const imageAlignment = currentIconState.imageAlignment === 'right' ? 'right' : 'left';
-            
+
             // Create image element if we have a banner icon image
             let imgElement = null;
             if (bannerIconImage) {
                 // Resolve the image path using existing utility functions
                 const inputType = plugin.getInputType(bannerIconImage);
                 let imagePath = null;
-                
+
                 // Skip processing if the input is invalid (e.g., corrupted object values)
                 if (inputType === 'invalid') {
                     console.warn('Invalid banner icon image value detected:', bannerIconImage);
@@ -1142,9 +1156,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                             if (file) {
                                 imagePath = plugin.loadedImages.get(file.path);
                                 if (!imagePath) {
-                                    plugin.getVaultImageUrl(file.path).then(url => {
-                                        if (url) plugin.loadedImages.set(file.path, url);
-                                    });
+                                    imagePath = await plugin.getVaultImageUrl(file.path);
+                                    if (imagePath) plugin.loadedImages.set(file.path, imagePath);
                                 }
                             }
                             break;
@@ -1152,29 +1165,28 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                             // Get the image synchronously from the cached URLs if possible
                             imagePath = plugin.loadedImages.get(bannerIconImage);
                             if (!imagePath) {
-                                // If not in cache, we'll need to skip for now
-                                plugin.getVaultImageUrl(bannerIconImage).then(url => {
-                                    if (url) plugin.loadedImages.set(bannerIconImage, url);
-                                });
+                                // Await the image loading instead of skipping
+                                imagePath = await plugin.getVaultImageUrl(bannerIconImage);
+                                if (imagePath) plugin.loadedImages.set(bannerIconImage, imagePath);
                             }
                             break;
                         case 'url':
                             imagePath = bannerIconImage;
                             break;
                     }
-                    
+
                     // If we successfully resolved an image path, create the image element
                     if (imagePath) {
                         imgElement = document.createElement('img');
                         // Extract URL from object if needed, otherwise use string directly
                         const imageUrl = typeof imagePath === 'object' && imagePath.url ? imagePath.url : imagePath;
-                        
+
                         imgElement.src = imageUrl;
                         imgElement.className = 'banner-icon-image';
                     }
                 } // End of else block for valid inputType
             }
-            
+
             // Create text element if we have icon text
             let textElement = null;
             if (cleanIcon) {
@@ -1182,7 +1194,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 textElement.className = 'banner-icon-text';
                 textElement.textContent = cleanIcon;
             }
-            
+
             // Add elements to overlay based on alignment setting
             if (imageAlignment === 'right') {
                 // Add text first, then image
@@ -1193,7 +1205,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 if (imgElement) bannerIconOverlay.appendChild(imgElement);
                 if (textElement) bannerIconOverlay.appendChild(textElement);
             }
-            
+
             // Apply styles
             bannerIconOverlay.style.display = 'block'; // Ensure visibility
             bannerIconOverlay.style.fontSize = `${currentIconState.size}px`;
@@ -1212,24 +1224,24 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 
         // For embedded notes, only apply to preview view
         if (isEmbedded) {
-            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') || 
-                                    contentEl.querySelector('.markdown-embed-content') || 
+            const embedContainer = contentEl.querySelector('.markdown-preview-sizer') ||
+                                    contentEl.querySelector('.markdown-embed-content') ||
                                     contentEl;
             const previewBanner = embedContainer.querySelector(':scope > .pixel-banner-image');
-            createOrUpdateIconOverlay(previewBanner, 'preview');
+            await createOrUpdateIconOverlay(previewBanner, 'preview');
         } else {
             // For main notes, apply to both views
             const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
             const sourceContainer = contentEl.querySelector('div.cm-sizer');
-            
+
             if (previewContainer) {
                 const previewBanner = previewContainer.querySelector(':scope > .pixel-banner-image');
-                if (previewBanner) createOrUpdateIconOverlay(previewBanner, 'preview');
+                await createOrUpdateIconOverlay(previewBanner, 'preview');
             }
-            
+
             if (sourceContainer) {
                 const sourceBanner = sourceContainer.querySelector(':scope > .pixel-banner-image');
-                if (sourceBanner) createOrUpdateIconOverlay(sourceBanner, 'source');
+                await createOrUpdateIconOverlay(sourceBanner, 'source');
             }
         }
     }

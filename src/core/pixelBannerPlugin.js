@@ -558,6 +558,37 @@ export class PixelBannerPlugin extends Plugin {
             return input;
         }
 
+        if (type === 'fileUrl') {
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                // Decode URI component and remove the leading slash on Windows
+                let filePath = decodeURIComponent(input.substring(process.platform === 'win32' ? 8 : 7));
+                filePath = filePath.replace('"', '').replace('![[', '').replace('[[', '').replace(']]', '').replace('//', '');
+
+                if (process.platform === 'win32' && /^[a-zA-Z]:/.test(filePath)) {
+                    // It's a windows path, do nothing
+                } else if (process.platform === 'win32' && filePath.startsWith('/')) {
+                    filePath = filePath.substring(1);
+                }
+
+                if (!fs.existsSync(filePath)) {
+                    console.error(`Pixel Banner: File not found at path: ${filePath}`);
+                    new Notice(`Pixel Banner: File not found at path: ${filePath}`);
+                    return null;
+                }
+
+                const data = fs.readFileSync(filePath);
+                const base64 = Buffer.from(data).toString('base64');
+                const mimeType = 'image/' + path.extname(filePath).substring(1);
+                return `data:${mimeType};base64,${base64}`;
+            } catch (err) {
+                console.error('Pixel Banner: Error reading local file:', err);
+                new Notice('Pixel Banner: Error reading local file. Check console for details.');
+                return null;
+            }
+        }
+
         if (type === 'obsidianLink') {
             const file = this.getPathFromObsidianLink(input);
             if (file) {
@@ -630,20 +661,32 @@ export class PixelBannerPlugin extends Plugin {
     // --------------------
     async postProcessor(el, ctx) {
         const frontmatter = ctx.frontmatter;
-        if (frontmatter && frontmatter[this.settings.customBannerField]) {
+        let bannerImageValue = null;
+
+        if (frontmatter) {
+            for (const field of this.settings.customBannerField) {
+                if (frontmatter[field]) {
+                    bannerImageValue = frontmatter[field];
+                    break;
+                }
+            }
+        }
+
+        if (bannerImageValue) {
             await this.addPixelBanner(el, {
                 frontmatter,
                 file: ctx.sourcePath,
                 isContentChange: false,
-                yPosition: frontmatter[this.settings.customYPositionField] || this.settings.yPosition,
-                contentStartPosition: frontmatter[this.settings.customContentStartField] || this.settings.contentStartPosition,
+                yPosition: getFrontmatterValue(frontmatter, this.settings.customYPositionField) || this.settings.yPosition,
+                contentStartPosition: getFrontmatterValue(frontmatter, this.settings.customContentStartField) || this.settings.contentStartPosition,
                 customBannerField: this.settings.customBannerField,
                 customYPositionField: this.settings.customYPositionField,
+                customXPositionField: this.settings.customXPositionField,
                 customContentStartField: this.settings.customContentStartField,
                 customImageDisplayField: this.settings.customImageDisplayField,
                 customImageRepeatField: this.settings.customImageRepeatField,
                 customBannerMaxWidthField: this.settings.customBannerMaxWidthField,
-                bannerImage: frontmatter[this.settings.customBannerField]
+                bannerImage: bannerImageValue
             });
 
             if (this.settings.hidePixelBannerFields) {

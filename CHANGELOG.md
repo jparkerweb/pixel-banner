@@ -2,6 +2,18 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.4 - 2025-07-13
+#### ✨ Added
+- Banner images now support local `file` protocol for images outside of your vault (e.g. `file:///C:\path\banner.jpg`)
+
+#### 📦 Updated
+- Allow commas in banner filenames
+
+#### 🐛 Fixed
+- When pinning an 3rd party API banner, use the current displayed image when saving
+- Ensure banner icons are only rendered when a main banner image is present
+- Banner Icon Image not always rendered until the note was clicked/focused
+
 ### v3.6.3 - 2025-06-30
 #### ✨ Added
 - Added `filesize` display to the store modal

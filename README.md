@@ -18,6 +18,7 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - **Banner Collection**: Browse and use professional banner images and videos from the integrated Pixel Banner Plus Collection, including many free options.
 - **3rd Party APIs**: Connect to Pexels, Pixabay, Flickr, and Unsplash to automatically fetch banner images based on keywords.
 - **Local Image Support**: Use images from your vault as banners with advanced customization options.
+- **External File Support**: Reference images outside your vault using the `file:///` protocol (e.g., `file:///C:\Images\banner.jpg` on Windows or `file:///Users/username/Images/banner.jpg` on macOS/Linux).
 - **Video Banner Support**: Add dynamic MP4 and MOV videos from your vault as animated banners, with full download support from the Pixel Banner Plus Collection.
 - **Direct URL Banners**: Apply banners from any web URL for maximum flexibility.
 - **Note Properties Integration**: Control all banner aspects through Obsidian's `properties` feature.
@@ -96,6 +97,20 @@ Enhance your Obsidian experience with beautiful, intelligent banners that make y
 
     ![6](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/6.jpg)
 
+## 🗂️ Using External Images (file:// Protocol)
+
+You can now reference images stored outside your vault using the `file:///` protocol. This is useful for:
+- Sharing banner images across multiple vaults
+- Using images from a central image library
+- Referencing system-wide image collections
+
+### Usage Examples (frontmatter):
+- **Windows**: `banner: file:///C:\Images\banner.jpg` or `banner: file:///C:\Users\username\Pictures\banner.png`
+- **macOS**: `banner: file:///Users/username/Pictures/banner.jpg` or `banner: file:///Applications/MyApp/images/banner.png`
+- **Linux**: `banner: file:///home/username/Pictures/banner.jpg` or `banner: file:///opt/images/banner.png`
+
+**Note**: The image file must exist at the specified path and be accessible to Obsidian.
+
 ## 🎬 Working with Video Banners
 
 ### Adding Video Banners
@@ -110,8 +125,15 @@ Enhance your Obsidian experience with beautiful, intelligent banners that make y
 
 ### 🎉 Happy Pixel Bannering 🤣
 
+__click a version below to view its features via a YouTube video 📺__
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-logo-v3-trimmed.jpg" alt="Pixel Banner" style="max-width: 400px;">
+</a>
+<a href="https://www.youtube.com/watch?v=fwvVX7to7-4">
+  <img src="https://pixel-banner.online/img/pixel-banner-v3.5.jpg" alt="Pixel Banner" style="max-width: 400px;">
+</a>
+<a href="https://www.youtube.com/watch?v=tfNqEAQuhXs">
+  <img src="https://pixel-banner.online/img/pixel-banner-v3.6.jpg" alt="Pixel Banner" style="max-width: 400px;">
 </a>
 
 ---

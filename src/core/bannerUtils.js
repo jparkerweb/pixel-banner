@@ -10,7 +10,14 @@ function getInputType(input) {
     }
 
     // Trim the input and remove surrounding quotes if present
-    input = input.trim().replace(/^["'](.*)["']$/, '$1');
+    let cleanedInput = input.trim().replace(/^["'](.*)["']$/, '$1');
+    // remove markdown image and link syntax
+    cleanedInput = cleanedInput.replace(/^!\[\[(.*)\]\]$/, '$1').replace(/^\[\[(.*)\]\]$/, '$1');
+
+    // Check for file:/// protocol
+    if (cleanedInput.includes('file:///')) {
+        return 'fileUrl';
+    }
 
     // Check if it's an Obsidian internal link
     if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
