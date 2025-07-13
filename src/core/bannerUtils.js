@@ -10,10 +10,12 @@ function getInputType(input) {
     }
 
     // Trim the input and remove surrounding quotes if present
-    input = input.trim().replace(/^["'](.*)["']$/, '$1');
+    let cleanedInput = input.trim().replace(/^["'](.*)["']$/, '$1');
+    // remove markdown image and link syntax
+    cleanedInput = cleanedInput.replace(/^!\[\[(.*)\]\]$/, '$1').replace(/^\[\[(.*)\]\]$/, '$1');
 
     // Check for file:/// protocol
-    if (input.startsWith('file:///')) {
+    if (cleanedInput.includes('file:///')) {
         return 'fileUrl';
     }
 

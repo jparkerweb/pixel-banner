@@ -564,6 +564,8 @@ export class PixelBannerPlugin extends Plugin {
                 const path = require('path');
                 // Decode URI component and remove the leading slash on Windows
                 let filePath = decodeURIComponent(input.substring(process.platform === 'win32' ? 8 : 7));
+                filePath = filePath.replace('"', '').replace('![[', '').replace('[[', '').replace(']]', '').replace('//', '');
+
                 if (process.platform === 'win32' && /^[a-zA-Z]:/.test(filePath)) {
                     // It's a windows path, do nothing
                 } else if (process.platform === 'win32' && filePath.startsWith('/')) {
