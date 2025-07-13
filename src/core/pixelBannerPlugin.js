@@ -558,6 +558,35 @@ export class PixelBannerPlugin extends Plugin {
             return input;
         }
 
+        if (type === 'fileUrl') {
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                // Decode URI component and remove the leading slash on Windows
+                let filePath = decodeURIComponent(input.substring(process.platform === 'win32' ? 8 : 7));
+                if (process.platform === 'win32' && /^[a-zA-Z]:/.test(filePath)) {
+                    // It's a windows path, do nothing
+                } else if (process.platform === 'win32' && filePath.startsWith('/')) {
+                    filePath = filePath.substring(1);
+                }
+
+                if (!fs.existsSync(filePath)) {
+                    console.error(`Pixel Banner: File not found at path: ${filePath}`);
+                    new Notice(`Pixel Banner: File not found at path: ${filePath}`);
+                    return null;
+                }
+
+                const data = fs.readFileSync(filePath);
+                const base64 = Buffer.from(data).toString('base64');
+                const mimeType = 'image/' + path.extname(filePath).substring(1);
+                return `data:${mimeType};base64,${base64}`;
+            } catch (err) {
+                console.error('Pixel Banner: Error reading local file:', err);
+                new Notice('Pixel Banner: Error reading local file. Check console for details.');
+                return null;
+            }
+        }
+
         if (type === 'obsidianLink') {
             const file = this.getPathFromObsidianLink(input);
             if (file) {

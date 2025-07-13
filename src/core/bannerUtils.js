@@ -12,6 +12,11 @@ function getInputType(input) {
     // Trim the input and remove surrounding quotes if present
     input = input.trim().replace(/^["'](.*)["']$/, '$1');
 
+    // Check for file:/// protocol
+    if (input.startsWith('file:///')) {
+        return 'fileUrl';
+    }
+
     // Check if it's an Obsidian internal link
     if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
         return 'obsidianLink';

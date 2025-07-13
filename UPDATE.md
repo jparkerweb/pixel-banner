@@ -28,9 +28,14 @@
 - Added `filesize` display to the store modal
 
 ### v3.6.4 - 2025-07-12
+#### ✨ Added
+- Banner images now support local file protocol for images outside of your vault (e.g. file:///C:\path\banner.jpg)
+
+#### 📦 Updated
+- Allow commas in banner filenames
+
 #### 🐛 Fixed
 - Ensure pinned banner is the currently displayed image when saving API banners
-- Allow commas in banner filenames
 - Ensure banner icons are only rendered when a main banner image is present
 - Banner Icon Image not always rendered until the note was clicked/focused
 
