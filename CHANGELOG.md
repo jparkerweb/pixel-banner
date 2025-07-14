@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.5
+#### 🐛 Fixed
+- Fix refresh button to use original comma-separated keywords from frontmatter instead of the cached single keyword
+
 ### v3.6.4 - 2025-07-13
 #### ✨ Added
 - Banner images now support local `file` protocol for images outside of your vault (e.g. `file:///C:\path\banner.jpg`)

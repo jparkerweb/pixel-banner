@@ -39,6 +39,10 @@
 - Ensure banner icons are only rendered when a main banner image is present
 - Banner Icon Image not always rendered until the note was clicked/focused
 
+### v3.6.5
+#### 🐛 Fixed
+- Fix refresh button to use original comma-separated keywords from frontmatter instead of the cached single keyword
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
