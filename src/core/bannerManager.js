@@ -625,7 +625,10 @@ async function addPixelBanner(plugin, el, ctx) {
                             plugin.loadedImages.delete(file.path);
                             plugin.lastKeywords.delete(file.path);
 
-                            const result = await plugin.getImageUrl(inputType, bannerImage);
+                            // Get the original frontmatter value instead of the resolved bannerImage
+                            // This ensures we always get the full comma-separated keywords for random selection
+                            const originalBannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
+                            const result = await plugin.getImageUrl(inputType, originalBannerValue || bannerImage);
                             if (result) {
                                 // Check if it's a video or an image result
                                 let isVideoFile = false;
