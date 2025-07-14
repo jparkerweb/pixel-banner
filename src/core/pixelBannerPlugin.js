@@ -1,10 +1,10 @@
-import { Plugin, MarkdownView, Notice } from 'obsidian';
+import { Plugin, MarkdownView, Notice, Platform } from 'obsidian';
 import { releaseNotes } from 'virtual:release-notes';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/settings.js';
 import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, PixelBannerStoreModal, DailyGameModal } from '../modal/modals.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { loadSettings, saveSettings } from './settings.js';
-import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, handleSetBannerIconImage, cleanupIconOverlay } from './bannerIconHelpers.js'; 
+import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, handleSetBannerIconImage, cleanupIconOverlay } from './bannerIconHelpers.js';
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
@@ -36,7 +36,7 @@ export class PixelBannerPlugin extends Plugin {
     };
     lastYPositions = new Map();
     lastFrontmatter = new Map();
-    
+
     // Enhanced cache management properties
     bannerStateCache = new Map();
     MAX_CACHE_AGE = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -111,20 +111,20 @@ export class PixelBannerPlugin extends Plugin {
     // --------------------------------------
     async onload() {
         await this.loadSettings();
-        
+
         // Initialize Pixel Banner Plus state
         this.pixelBannerPlusEnabled = false;
         this.pixelBannerPlusBannerTokens = 0;
         this.verifyPixelBannerPlusCredentials();
-        
+
         // hide embedded note titles
         this.updateEmbeddedTitlesVisibility();
-        
+
         // Check version and show release notes if needed
         await this.checkVersion();
-        
+
         this.addSettingTab(new PixelBannerSettingTab(this.app, this));
-        
+
         // Add commands
         this.addCommand({
             id: 'generate-banner-with-ai',
@@ -161,7 +161,7 @@ export class PixelBannerPlugin extends Plugin {
         this.registerEvent(
             this.app.metadataCache.on('changed', async (file) => {
                 // console.log('🔍 Metadata changed detected for file:', file.path);
-                
+
                 // Get the frontmatter
                 const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                 if (!frontmatter) {
@@ -214,7 +214,7 @@ export class PixelBannerPlugin extends Plugin {
                 ];
 
                 // console.log('🔎 Checking relevant fields:', relevantFields);
-                const changedFields = relevantFields.filter(field => 
+                const changedFields = relevantFields.filter(field =>
                     frontmatter[field] !== previousFrontmatter?.[field]
                 );
 
@@ -249,21 +249,21 @@ export class PixelBannerPlugin extends Plugin {
             // Check if in preview view or hover preview
             const isPreview = ctx.containerEl.classList.contains('markdown-preview-view');
             const isHoverPopover = ctx.containerEl.closest('.hover-popover') !== null;
-            
+
             // console.log('🔎 isPreview:', isPreview);
             // console.log('🔎 isHoverPopover:', isHoverPopover);
-            
+
             if (!isPreview && !isHoverPopover) return;
-            
+
             const file = ctx.sourcePath ? this.app.vault.getAbstractFileByPath(ctx.sourcePath) : null;
             if (!file) return;
-            
+
             // Skip hover popovers if the setting is disabled
             if (isHoverPopover && !this.settings.showBannerInPopoverPreviews) return;
-            
+
             // Get banner data from frontmatter
             const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-            
+
             // Check all custom banner fields
             let bannerImage = null;
             for (const field of this.settings.customBannerField) {
@@ -272,7 +272,7 @@ export class PixelBannerPlugin extends Plugin {
                     break;
                 }
             }
-            
+
             // Try folder-specific image if no frontmatter banner
             if (!bannerImage) {
                 const folderSpecific = this.getFolderSpecificImage(file.path);
@@ -280,21 +280,21 @@ export class PixelBannerPlugin extends Plugin {
                     bannerImage = folderSpecific.image;
                 }
             }
-            
+
             if (!bannerImage) return;
-            
+
             // Get proper banner settings
             const folderSpecific = this.getFolderSpecificImage(file.path);
-            const yPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField) || 
-                             folderSpecific?.yPosition || 
+            const yPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField) ||
+                             folderSpecific?.yPosition ||
                              this.settings.yPosition;
-            const xPosition = getFrontmatterValue(frontmatter, this.settings.customXPositionField) || 
-                             folderSpecific?.xPosition || 
+            const xPosition = getFrontmatterValue(frontmatter, this.settings.customXPositionField) ||
+                             folderSpecific?.xPosition ||
                              this.settings.xPosition;
-            const contentStartPosition = getFrontmatterValue(frontmatter, this.settings.customContentStartField) || 
-                                        folderSpecific?.contentStartPosition || 
+            const contentStartPosition = getFrontmatterValue(frontmatter, this.settings.customContentStartField) ||
+                                        folderSpecific?.contentStartPosition ||
                                         this.settings.contentStartPosition;
-            
+
             // For hover popovers, directly add the banner
             if (isHoverPopover) {
                 this.addPixelBanner(ctx.containerEl, {
@@ -343,7 +343,7 @@ export class PixelBannerPlugin extends Plugin {
 
                 const inputType = this.getInputType(bannerImage);
                 const canPin = imageUrl && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon;
-                
+
                 if (checking) return canPin;
 
                 if (canPin) {
@@ -375,7 +375,7 @@ export class PixelBannerPlugin extends Plugin {
 
                 const inputType = this.getInputType(bannerImage);
                 const canRefresh = inputType === 'keyword' && this.settings.showPinIcon && this.settings.showRefreshIcon;
-                
+
                 if (checking) return canRefresh;
 
                 if (canRefresh) {
@@ -433,7 +433,7 @@ export class PixelBannerPlugin extends Plugin {
                         break;
                     }
                 }
-                
+
                 if (checking) return hasBanner;
 
                 if (hasBanner) {
@@ -463,7 +463,7 @@ export class PixelBannerPlugin extends Plugin {
                         break;
                     }
                 }
-                
+
                 if (checking) return hasBanner;
 
                 if (hasBanner) {
@@ -481,7 +481,7 @@ export class PixelBannerPlugin extends Plugin {
             checkCallback: (checking) => {
                 const activeFile = this.app.workspace.getActiveFile();
                 const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
-                
+
                 if (checking) {
                     return hasBanner;
                 }
@@ -516,7 +516,7 @@ export class PixelBannerPlugin extends Plugin {
                         const file = leaf.view.file;
                         const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                         const previousFrontmatter = this.lastFrontmatter.get(file.path);
-                        
+
                         // Only update if frontmatter changed
                         if (JSON.stringify(frontmatter) !== JSON.stringify(previousFrontmatter)) {
                             this.updateBanner(leaf.view, false);
@@ -559,6 +559,10 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'fileUrl') {
+            if (Platform.isMobile) {
+                new Notice('Local file paths are only supported on desktop.');
+                return null;
+            }
             try {
                 const fs = require('fs');
                 const path = require('path');
@@ -609,7 +613,7 @@ export class PixelBannerPlugin extends Plugin {
                     return this.getVaultImageUrl(path);
                 }
             }
-            
+
             if (path) {
                 return this.getVaultImageUrl(path.path);
             }
@@ -621,28 +625,28 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'keyword') {
-            const keywords = input.includes(',') 
+            const keywords = input.includes(',')
                 ? input.split(',')
                     .map(k => k.trim())
                     .filter(k => k.length > 0)
                     .filter(Boolean)
                 : [input];
-            
+
             if (keywords.length > 0) {
                 const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
                 const provider = this.getActiveApiProvider();
-                
+
                 // Check if the selected provider has an API key before attempting to fetch
                 const apiKey = provider === 'pexels' ? this.settings.pexelsApiKey :
                              provider === 'pixabay' ? this.settings.pixabayApiKey :
                              provider === 'flickr' ? this.settings.flickrApiKey :
                              provider === 'unsplash' ? this.settings.unsplashApiKey : null;
-                
+
                 if (!apiKey) {
                     // Just save the keyword without showing a warning
                     return null;
                 }
-                
+
                 switch (provider) {
                     case 'pexels': return fetchPexelsImage(this, selectedKeyword);
                     case 'pixabay': return fetchPixabayImage(this, selectedKeyword);
@@ -745,7 +749,7 @@ export class PixelBannerPlugin extends Plugin {
         if (this.observer) {
             this.observer.disconnect();
         }
-        
+
         // Clean up resize observers
         this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view instanceof MarkdownView) {
@@ -756,10 +760,10 @@ export class PixelBannerPlugin extends Plugin {
                 }
             }
         });
-        
+
         // Clear the icon overlay pool
         this.iconOverlayPool = [];
-        
+
         const styleElTitle = document.getElementById('pixel-banner-embedded-titles');
         if (styleElTitle) styleElTitle.remove();
         const styleElBanner = document.getElementById('pixel-banner-embedded-banners');
@@ -789,7 +793,7 @@ export class PixelBannerPlugin extends Plugin {
 
             // Define common image extensions
             const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg', 'avif'];
-            
+
             const pinnedImages = pinnedFolder.children
                 .filter(file => imageExtensions.includes(file.extension.toLowerCase()))
                 .map(file => file.path);
@@ -800,13 +804,13 @@ export class PixelBannerPlugin extends Plugin {
 
             // Get all markdown files
             const markdownFiles = this.app.vault.getMarkdownFiles();
-            
+
             // Get all banner field names to check
             const bannerFields = this.settings.customBannerField;
 
             // Create a Set of all images referenced in frontmatter
             const referencedImages = new Set();
-            
+
             for (const file of markdownFiles) {
                 const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                 if (frontmatter) {
@@ -822,7 +826,7 @@ export class PixelBannerPlugin extends Plugin {
                                 // Just remove any quotes
                                 cleanPath = bannerValue.replace(/["']/g, '');
                             }
-                            
+
                             // If the path doesn't start with the folder path, try to resolve it
                             if (!cleanPath.startsWith(folderPath)) {
                                 const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanPath, file.path);
@@ -830,7 +834,7 @@ export class PixelBannerPlugin extends Plugin {
                                     cleanPath = resolvedFile.path;
                                 }
                             }
-                            
+
                             referencedImages.add(cleanPath);
                         }
                     }
@@ -860,15 +864,15 @@ export class PixelBannerPlugin extends Plugin {
         const currentVersion = this.manifest.version;
         const lastVersion = this.settings.lastVersion;
 
-        if (this.settings.showReleaseNotes && 
+        if (this.settings.showReleaseNotes &&
             (!lastVersion || lastVersion !== currentVersion)) {
-            
+
             // Get release notes for current version
             const releaseNotes = await this.getReleaseNotes(currentVersion);
-            
+
             // Show the modal
             new ReleaseNotesModal(this.app, currentVersion, releaseNotes).open();
-            
+
             // Update the last shown version
             this.settings.lastVersion = currentVersion;
             await this.saveSettings();
