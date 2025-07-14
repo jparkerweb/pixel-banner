@@ -863,15 +863,21 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             const supportedMovieExtensions = ['mp4', 'mov'];
             const supportedExtensions = [...supportedImageExtensions, ...supportedMovieExtensions];
 
-            const hasSupportedExtension = supportedExtensions.some(ext => bannerImage.toLowerCase().includes(`.${ext}`));
+            if (bannerImage.includes(',')) {
+                const parts = bannerImage.split(',').map(p => p.trim());
+                const isFile = (str) => supportedExtensions.some(ext => str.toLowerCase().endsWith(`.${ext}`));
+                const isKeyword = (str) => !str.includes('.');
 
-            if (!hasSupportedExtension && bannerImage.includes(',')) {
-                const bannerValues = bannerImage.split(',').map(v => v.trim()).filter(v => v.length > 0);
-                if (bannerValues.length > 0) {
-                    bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-                } else {
-                    bannerImage = null;
+                // Treat as a list if all parts are files, or all parts are keywords.
+                if (parts.length > 1 && (parts.every(isFile) || parts.every(isKeyword))) {
+                    const bannerValues = parts.filter(v => v.length > 0);
+                    if (bannerValues.length > 0) {
+                        bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+                    } else {
+                        bannerImage = null;
+                    }
                 }
+                // Otherwise, assume it's a single filename with commas and leave it as is.
             }
         }
 
