@@ -625,7 +625,10 @@ async function addPixelBanner(plugin, el, ctx) {
                             plugin.loadedImages.delete(file.path);
                             plugin.lastKeywords.delete(file.path);
 
-                            const result = await plugin.getImageUrl(inputType, bannerImage);
+                            // Get the original frontmatter value instead of the resolved bannerImage
+                            // This ensures we always get the full comma-separated keywords for random selection
+                            const originalBannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
+                            const result = await plugin.getImageUrl(inputType, originalBannerValue || bannerImage);
                             if (result) {
                                 // Check if it's a video or an image result
                                 let isVideoFile = false;
@@ -855,21 +858,27 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             !bannerImage.startsWith('[[') &&
             !bannerImage.startsWith('![[') &&
             !bannerImage.startsWith('http')) {
-            
-            // Only split if a comma is followed by a space, indicating a user-formatted list.
-            if (bannerImage.includes(', ')) {
-                const bannerValues = bannerImage.split(', ').map(v => v.trim()).filter(v => v.length > 0);
-                if (bannerValues.length > 0) {
-                    bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
-                } else {
-                    // This case should ideally not be reached if .includes(', ') is true and split creates items
-                    bannerImage = null;
+
+            const supportedImageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg', 'avif'];
+            const supportedMovieExtensions = ['mp4', 'mov'];
+            const supportedExtensions = [...supportedImageExtensions, ...supportedMovieExtensions];
+
+            if (bannerImage.includes(',')) {
+                const parts = bannerImage.split(',').map(p => p.trim());
+                const isFile = (str) => supportedExtensions.some(ext => str.toLowerCase().endsWith(`.${ext}`));
+                const isKeyword = (str) => !str.includes('.');
+
+                // Treat as a list if all parts are files, or all parts are keywords.
+                if (parts.length > 1 && (parts.every(isFile) || parts.every(isKeyword))) {
+                    const bannerValues = parts.filter(v => v.length > 0);
+                    if (bannerValues.length > 0) {
+                        bannerImage = bannerValues[Math.floor(Math.random() * bannerValues.length)];
+                    } else {
+                        bannerImage = null;
+                    }
                 }
+                // Otherwise, assume it's a single filename with commas and leave it as is.
             }
-            // If no ", " is found, bannerImage remains the original string.
-            // This means "file,with,comma.png" is treated as one filename.
-            // And "file1.png,file2.png" (no space) is also treated as one filename.
-            // Users wanting a list must use "file1.png, file2.png".
         }
 
         // Format internal links
