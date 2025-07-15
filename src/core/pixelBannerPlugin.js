@@ -1,4 +1,4 @@
-import { Plugin, MarkdownView, Notice } from 'obsidian';
+import { Plugin, MarkdownView, Notice, Platform } from 'obsidian';
 import { releaseNotes } from 'virtual:release-notes';
 import { DEFAULT_SETTINGS, PixelBannerSettingTab, debounce } from '../settings/settings.js';
 import { ReleaseNotesModal, TargetPositionModal, GenerateAIBannerModal, PixelBannerStoreModal, DailyGameModal } from '../modal/modals.js';
@@ -559,6 +559,10 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'fileUrl') {
+            if (Platform.isMobile) {
+                new Notice('Local file paths are only supported on desktop.');
+                return null;
+            }
             try {
                 const fs = require('fs');
                 const path = require('path');
