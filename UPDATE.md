@@ -42,6 +42,7 @@
 ### v3.6.5
 #### 🐛 Fixed
 - Fix refresh button to use original comma-separated keywords from frontmatter instead of the cached single keyword
+- Resolved issue with the default x/y frontmatter fields not being hidden when the "Hide Pixel Banner Fields" option is enabled
 
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
