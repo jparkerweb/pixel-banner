@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.6 - 2025-07-17
+#### 🐛 Fixed
+- New folder group entries now inherit the user's default Content Start Position setting instead of being hardcoded to 150px
+
 ### v3.6.5 - 2025-07-17
 #### 🐛 Fixed
 - Fix refresh button to use original comma-separated keywords from frontmatter instead of the cached single keyword

@@ -37,13 +37,13 @@ async function addPixelBanner(plugin, el, ctx) {
         // set padding-top for source & preview elements as inline style for FAST rendering!
         const sourceEl = viewContent.querySelector(':scope > .markdown-source-view .cm-sizer');
         if (sourceEl) {
-            sourceEl.style.paddingTop = 'var(--pixel-banner-content-start, 150px)';
+            sourceEl.style.paddingTop = 'var(--pixel-banner-content-start, 355px)';
             sourceEl.style.paddingBottom = '0px !important';
         }
         
         const previewEl = viewContent.querySelector(':scope > .markdown-reading-view .markdown-preview-sizer');
         if (previewEl) {
-            previewEl.style.paddingTop = 'var(--pixel-banner-content-start, 150px)';
+            previewEl.style.paddingTop = 'var(--pixel-banner-content-start, 355px)';
             previewEl.style.paddingBottom = '0px !important';
         }
         
@@ -401,10 +401,10 @@ async function addPixelBanner(plugin, el, ctx) {
         let imageUrl = plugin.loadedImages.get(file.path);
         const lastInput = plugin.lastKeywords.get(file.path);
         const inputType = plugin.getInputType(bannerImage);
+        const folderSpecific = plugin.getFolderSpecificImage(file.path);
 
         // Check if this is a shuffled banner
         const hasShufflePath = getFrontmatterValue(frontmatter, plugin.settings.customBannerShuffleField);
-        const folderSpecific = plugin.getFolderSpecificImage(file.path);
         const isShuffled = hasShufflePath || folderSpecific?.enableImageShuffle;
 
         // Force URL refresh for shuffled banners or normal cache miss conditions
@@ -419,7 +419,6 @@ async function addPixelBanner(plugin, el, ctx) {
 
         if (imageUrl) {
             // Display banner
-            const folderSpecific = plugin.getFolderSpecificImage(file.path);
             const imageDisplay = getFrontmatterValue(frontmatter, plugin.settings.customImageDisplayField) ||
                 folderSpecific?.imageDisplay ||
                 plugin.settings.imageDisplay;

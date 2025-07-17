@@ -45,6 +45,10 @@
 - Resolved issue with the default x/y frontmatter fields not being hidden when the "Hide Pixel Banner Fields" option is enabled
 - Updated API call for `Pexels` to conform to spec changes on their side
 
+### v3.6.6
+#### 🐛 Fixed
+- New folder group entries now inherit the user's default Content Start Position setting instead of being hardcoded to 150px
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>

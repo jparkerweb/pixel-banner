@@ -29,14 +29,14 @@ export function createFolderSettings(containerEl, plugin) {
                 const newFolderImage = {
                     folder: '',
                     image: '',
-                    imageDisplay: 'cover',
-                    imageRepeat: false,
-                    yPosition: 50,
-                    xPosition: 50,
-                    contentStartPosition: 150,
-                    bannerHeight: 350,
-                    fade: -75,
-                    borderRadius: 17,
+                    imageDisplay: plugin.settings.imageDisplay,
+                    imageRepeat: plugin.settings.imageRepeat,
+                    yPosition: plugin.settings.yPosition,
+                    xPosition: plugin.settings.xPosition,
+                    contentStartPosition: plugin.settings.contentStartPosition,
+                    bannerHeight: plugin.settings.bannerHeight,
+                    fade: plugin.settings.fade,
+                    borderRadius: plugin.settings.borderRadius,
                     titleColor: 'var(--inline-title-color)',
                     directChildrenOnly: false,
                     enableImageShuffle: false,
@@ -494,7 +494,7 @@ class FolderImageSetting extends Setting {
         });
         contentStartInput.style.width = '50px';
         contentStartInput.style.marginLeft = '10px';
-        contentStartInput.value = this.folderImage.contentStartPosition || "150";
+        contentStartInput.value = this.folderImage.contentStartPosition || "355";
         contentStartInput.addEventListener('change', async () => {
             this.folderImage.contentStartPosition = parseInt(contentStartInput.value);
             await this.plugin.saveSettings();
