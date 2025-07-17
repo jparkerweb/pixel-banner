@@ -6,7 +6,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 #### 🐛 Fixed
 - Fix refresh button to use original comma-separated keywords from frontmatter instead of the cached single keyword
 - Resolved issue with the default x/y frontmatter fields not being hidden when the "Hide Pixel Banner Fields" option is enabled
-- Upated API call for `Pexels` to conform to spec changes on their side
+- Updated API call for `Pexels` to conform to spec changes on their side
 
 ### v3.6.4 - 2025-07-13
 #### ✨ Added
