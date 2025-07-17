@@ -13,6 +13,11 @@ const MARKDOWN_PROCESSOR_DEBOUNCE_DELAY = 200; // 200ms debounce window
 const updateBannerDebounceMap = new Map();
 const UPDATE_BANNER_DEBOUNCE_DELAY = 250; // 250ms debounce window
 
+// Supported file extensions constants
+const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg', 'avif'];
+const SUPPORTED_MOVIE_EXTENSIONS = ['mp4', 'mov'];
+const SUPPORTED_EXTENSIONS = [...SUPPORTED_IMAGE_EXTENSIONS, ...SUPPORTED_MOVIE_EXTENSIONS];
+
 
 // ----------------------
 // -- add pixel banner --
@@ -859,13 +864,9 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             !bannerImage.startsWith('![[') &&
             !bannerImage.startsWith('http')) {
 
-            const supportedImageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg', 'avif'];
-            const supportedMovieExtensions = ['mp4', 'mov'];
-            const supportedExtensions = [...supportedImageExtensions, ...supportedMovieExtensions];
-
             if (bannerImage.includes(',')) {
                 const parts = bannerImage.split(',').map(p => p.trim());
-                const isFile = (str) => supportedExtensions.some(ext => str.toLowerCase().endsWith(`.${ext}`));
+                const isFile = (str) => SUPPORTED_EXTENSIONS.some(ext => str.toLowerCase().endsWith(`.${ext}`));
                 const isKeyword = (str) => !str.includes('.');
 
                 // Treat as a list if all parts are files, or all parts are keywords.
