@@ -40,9 +40,11 @@ async function fetchPexelsImage(plugin, keyword) {
     for (const currentKeyword of keywords) {
         try {
             const response = await makeRequest(
-                `https://api.pexels.com/v1/search?query=${encodeURIComponent(currentKeyword)}&per_page=${plugin.settings.numberOfImages}&size=${plugin.settings.imageSize}&orientation=${plugin.settings.imageOrientation}`,
+                `https://api.pexels.com/v1/search?query=${encodeURIComponent(currentKeyword)}&per_page=${plugin.settings.numberOfImages}`,
                 {
-                    headers: { 'Authorization': apiKey }
+                    headers: {
+                        'Authorization': apiKey
+                    }
                 }
             );
 
