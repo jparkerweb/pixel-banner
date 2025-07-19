@@ -14,6 +14,7 @@ node_modules
 .gemini
 .windsurf
 .windsurfrules
+.claude
 
 # Misc
 .vscode
