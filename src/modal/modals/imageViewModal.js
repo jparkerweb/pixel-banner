@@ -211,9 +211,9 @@ export class ImageViewModal extends Modal {
         if (!url) return false;
         
         const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg'];
-        const lowerUrl = url.toLowerCase();
+        const pathWithoutQuery = url.split('?')[0].toLowerCase();
         
-        return videoExtensions.some(ext => lowerUrl.includes(ext));
+        return videoExtensions.some(ext => pathWithoutQuery.endsWith(ext));
     }
 
     getActualUrl(imageUrl) {
