@@ -15,6 +15,7 @@ node_modules
 .windsurf
 .windsurfrules
 .claude
+CLAUDE.md
 
 # Misc
 .vscode
