@@ -542,7 +542,18 @@ async function addPixelBanner(plugin, el, ctx) {
             const viewImageIcon = container.querySelector(':scope > .view-image-icon');
             if (viewImageIcon && viewImageIcon._updateVisibility) {
                 const bannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
-                viewImageIcon._updateVisibility(imageUrl, bannerValue || file.path);
+                let displayUrl = bannerValue || file.path;
+                
+                // For 3rd party APIs (keyword-based), use actual URL instead of keyword
+                if (inputType === 'keyword') {
+                    if (imageUrl && typeof imageUrl === 'object' && imageUrl.url) {
+                        displayUrl = imageUrl.url;
+                    } else if (imageUrl && typeof imageUrl === 'string') {
+                        displayUrl = imageUrl;
+                    }
+                }
+                
+                viewImageIcon._updateVisibility(imageUrl, displayUrl);
             }
 
             // Apply other styling (fade, borderRadius, etc.)
@@ -690,7 +701,18 @@ async function addPixelBanner(plugin, el, ctx) {
                                 const viewImageIcon = container.querySelector(':scope > .view-image-icon');
                                 if (viewImageIcon && viewImageIcon._updateVisibility) {
                                     const bannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
-                                    viewImageIcon._updateVisibility(fileUrl, bannerValue || file.path);
+                                    let displayUrl = bannerValue || file.path;
+                                    
+                            // For 3rd party APIs (keyword-based), use actual URL instead of keyword
+                            const refreshInputType = plugin.getInputType(bannerValue);
+                            if (refreshInputType === 'keyword') {
+                                if (fileUrl && typeof fileUrl === 'object' && fileUrl.url) {
+                                    displayUrl = fileUrl.url;
+                                } else if (fileUrl && typeof fileUrl === 'string') {
+                                    displayUrl = fileUrl;
+                                }
+                            }
+                                    viewImageIcon._updateVisibility(fileUrl, displayUrl);
                                 }
                                 
                                 new Notice('🔄 Refreshed banner');

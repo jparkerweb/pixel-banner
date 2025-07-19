@@ -494,7 +494,7 @@ class FolderImageSetting extends Setting {
         });
         contentStartInput.style.width = '50px';
         contentStartInput.style.marginLeft = '10px';
-        contentStartInput.value = this.folderImage.contentStartPosition || "355";
+        contentStartInput.value = this.folderImage.contentStartPosition ?? "355";
         contentStartInput.addEventListener('change', async () => {
             this.folderImage.contentStartPosition = parseInt(contentStartInput.value);
             await this.plugin.saveSettings();

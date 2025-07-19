@@ -1,6 +1,6 @@
 # Inventory of Pixel Banner Plugin
 
-**Last Updated:** July 13, 2025
+**Last Updated:** July 19, 2025
 
 Below is a concise overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key points in the codebase.
 
@@ -11,7 +11,7 @@ Below is a concise overview of all files and their primary functions or methods.
 ### `manifest.json`
 **Description**:  
 - Plugin manifest containing metadata like ID, name, version, minimum app version, description, author info, and funding URL.
-- Current Version: 3.5.3
+- Current Version: 3.6.7
 
 ### `package.json`
 **Description**:  
@@ -400,10 +400,12 @@ The modal handles validation of image URLs, provides user feedback for errors, a
 
 ## `/src/modal/modals/imageViewModal.js`
 **Class**: `ImageViewModal`  
-Shows a single image at larger size in a centered modal.
+Shows banners at larger size in a centered modal, now supporting both images and videos.
 
 **Key Methods**:
-- **onOpen()**: Embeds the image in the modal, plus a close button.
+- **onOpen()**: Embeds images or videos in the modal with appropriate controls. Automatically detects video files (MP4, MOV) and displays with video player controls.
+- **isVideoUrl(url)**: Detects video file types for proper rendering.
+- **getActualUrl(imageUrl)**: Handles both string and object format URLs (for API responses).
 - **onClose()**: Cleans up.
 
 ---

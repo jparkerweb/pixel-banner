@@ -22,13 +22,33 @@ export class ImageViewModal extends Modal {
         contentEl.empty();
         contentEl.addClass('pixel-banner-image-view-modal');
 
-        // Create image container
+        // Handle both string and object types for imageUrl
+        const actualUrl = this.getActualUrl(this.imageUrl);
+        
+        // Create media container
         const imageContainer = contentEl.createDiv('image-container');
-        const img = imageContainer.createEl('img', {
-            attr: {
-                src: this.imageUrl
-            }
-        });
+        
+        // Check if this is a video or image
+        const isVideo = this.isVideoUrl(actualUrl);
+        let mediaElement;
+        
+        if (isVideo) {
+            mediaElement = imageContainer.createEl('video', {
+                attr: {
+                    src: actualUrl,
+                    controls: true,
+                    autoplay: false,
+                    preload: 'metadata'
+                }
+            });
+        } else {
+            mediaElement = imageContainer.createEl('img', {
+                attr: {
+                    src: actualUrl,
+                    alt: 'Banner Image'
+                }
+            });
+        }
 
         // Add path display and copy button if bannerPath exists
         if (this.bannerPath) {
@@ -125,7 +145,8 @@ export class ImageViewModal extends Modal {
                 margin-bottom: 10px;
             }
 
-            .pixel-banner-image-view-modal .image-container img {
+            .pixel-banner-image-view-modal .image-container img,
+            .pixel-banner-image-view-modal .image-container video {
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -174,5 +195,22 @@ export class ImageViewModal extends Modal {
         if (styleEl) {
             styleEl.remove();
         }
+    }
+
+    isVideoUrl(url) {
+        if (!url) return false;
+        
+        const videoExtensions = ['.mp4', '.mov', '.webm', '.ogg'];
+        const pathWithoutQuery = url.split('?')[0].toLowerCase();
+        
+        return videoExtensions.some(ext => pathWithoutQuery.endsWith(ext));
+    }
+
+    getActualUrl(imageUrl) {
+        // Handle both string and object formats
+        if (typeof imageUrl === 'object' && imageUrl !== null) {
+            return imageUrl.url || imageUrl.src || '';
+        }
+        return imageUrl;
     }
 }

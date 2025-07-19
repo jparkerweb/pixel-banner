@@ -2,6 +2,13 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.7 - 2025-07-19
+#### 🐛 Fixed
+- Fixed ImageViewModal to properly display banner images and videos when clicking the "Show View Image Icon"
+  - Added support for MP4 and MOV video files in the ImageViewModal with proper video player controls
+  - Correctly display actual image URLs instead of keywords for 3rd party API banners in the ImageViewModal
+  - Local images, videos, and file:/// paths maintain original display behavior
+
 ### v3.6.6 - 2025-07-17
 #### 🐛 Fixed
 - New folder group entries now inherit the user's default Content Start Position setting instead of being hardcoded to 150px
