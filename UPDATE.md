@@ -3,7 +3,7 @@
 </a>
 
 ## 🎉 What's New
-### v3.6.0 - 2025-06-29
+### v3.6.0
 #### ✨ Added
 - Support for 🎬 Video Banners!
   - Upload and choose Video files as banners from your vault
@@ -15,19 +15,19 @@
 - Moved `Default Saved Banners Folder` setting to the `General` tab
 - Renamed `Pixel Banner Plus Store` to `Pixel Banner Plus Collection` as many items are free
 
-### v3.6.1 - 2025-06-30
+### v3.6.1
 #### 🐛 Fixed
 - Resolved issue with Icon Image selection modal not setting the selected icon image
 
-### v3.6.2 - 2025-06-30
+### v3.6.2
 #### 📦 Updated
 - Improved debounce logic to prevent multiple banner reloads when opening a note
 
-### v3.6.3 - 2025-06-30
+### v3.6.3
 #### ✨ Added
 - Added `filesize` display to the store modal
 
-### v3.6.4 - 2025-07-13
+### v3.6.4
 #### ✨ Added
 - Banner images now support local `file` protocol for images outside of your vault (e.g. `file:///C:\path\banner.jpg`)
 
@@ -48,6 +48,13 @@
 ### v3.6.6
 #### 🐛 Fixed
 - New folder group entries now inherit the user's default Content Start Position setting instead of being hardcoded to 150px
+
+### v3.6.7
+#### 🐛 Fixed
+- Fixed ImageViewModal to properly display banner images and videos when clicking the "Show View Image Icon"
+  - Added support for MP4 and MOV video files in the ImageViewModal with proper video player controls
+  - Correctly display actual image URLs instead of keywords for 3rd party API banners in the ImageViewModal
+  - Local images, videos, and file:/// paths maintain original display behavior
 
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
