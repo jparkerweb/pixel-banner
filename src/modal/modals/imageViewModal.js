@@ -145,17 +145,7 @@ export class ImageViewModal extends Modal {
                 margin-bottom: 10px;
             }
 
-            .pixel-banner-image-view-modal .image-container img {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-                height: 100%;
-                max-width: 100%;
-                max-height: 90vh;
-                object-fit: contain;
-            }
-            
+            .pixel-banner-image-view-modal .image-container img,
             .pixel-banner-image-view-modal .image-container video {
                 display: flex;
                 justify-content: center;
