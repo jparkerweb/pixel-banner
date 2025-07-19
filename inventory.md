@@ -11,7 +11,7 @@ Below is a concise overview of all files and their primary functions or methods.
 ### `manifest.json`
 **Description**:  
 - Plugin manifest containing metadata like ID, name, version, minimum app version, description, author info, and funding URL.
-- Current Version: 3.6.6
+- Current Version: 3.6.7
 
 ### `package.json`
 **Description**:  
