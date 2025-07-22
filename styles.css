@@ -145,6 +145,28 @@
     z-index: 1;
 }
 
+/* Fix cursor visibility in code blocks when banner is present */
+.view-content.pixel-banner .cm-line,
+.view-content.pixel-banner .cm-cursor,
+.view-content.pixel-banner .cm-cursor-primary,
+.view-content.pixel-banner .cm-cursor-secondary {
+    z-index: 10 !important;
+    position: relative;
+}
+
+/* Ensure code blocks have proper stacking context */
+.view-content.pixel-banner .HyperMD-codeblock,
+.view-content.pixel-banner .cm-line.HyperMD-codeblock {
+    position: relative;
+    z-index: 5;
+}
+
+/* Fix for iOS/iPadOS cursor rendering issues */
+.view-content.pixel-banner .cm-editor {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
 /* fix overflow issue with embedded notes */
 .internal-embed:not(.image-embed),
 .internal-embed:not(.image-embed) > .markdown-embed-content > .markdown-preview-view {
@@ -741,3 +763,24 @@
 .width-100 { width: 100% !important; }
 
 .cursor-pointer { cursor: pointer !important; }
+
+/* iOS/iPadOS specific fixes for cursor visibility */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific styles */
+    .view-content.pixel-banner {
+        /* Remove isolation on iOS to prevent cursor rendering issues */
+        isolation: auto !important;
+    }
+    
+    /* Force proper rendering of cursor in code blocks */
+    .view-content.pixel-banner .cm-content {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
+    
+    /* Ensure cursor layer is above banner */
+    .view-content.pixel-banner .cm-cursorLayer {
+        z-index: 100 !important;
+        position: relative !important;
+    }
+}
