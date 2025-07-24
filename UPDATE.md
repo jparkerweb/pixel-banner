@@ -49,6 +49,16 @@
 #### 🐛 Fixed
 - New folder group entries now inherit the user's default Content Start Position setting instead of being hardcoded to 150px
 
+### v3.6.8
+#### ✨ Added
+- **Pin Choice Modal**: When pinning API images, users can now choose between saving locally or pinning the URL directly to frontmatter
+  - New choice modal presents "Save Image Locally" vs "Pin Image URL" options
+  - URL pinning saves no storage space in vault but requires internet connection
+  - Local saving remains available for offline access and permanence
+  - Choice only appears for user-initiated pin actions (pin icon, command palette)
+  - AI generation and Pixel Banner Plus continue to save locally automatically
+- **Auto-Focus Enhancement**: Folder selection modal now automatically focuses and selects the text input for improved workflow
+
 ### v3.6.7
 #### 🐛 Fixed
 - Fixed ImageViewModal to properly display banner images and videos when clicking the "Show View Image Icon"

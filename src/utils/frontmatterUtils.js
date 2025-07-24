@@ -138,3 +138,43 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
         }
     }
 }
+
+export async function updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField = null) {
+    const activeFile = plugin.app.workspace.getActiveFile();
+    if (!activeFile) return;
+
+    let fileContent = await plugin.app.vault.read(activeFile);
+    const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+    const hasFrontmatter = frontmatterRegex.test(fileContent);
+    
+    const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
+        plugin.settings.customBannerField.length > 0 ? 
+        plugin.settings.customBannerField[0] : 'banner');
+
+    fileContent = fileContent.replace(/^\s+/, '');
+
+    let updatedContent;
+    if (hasFrontmatter) {
+        updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
+            let cleanedFrontmatter = frontmatter.trim();
+            
+            plugin.settings.customBannerField.forEach(field => {
+                const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
+                cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
+            });
+
+            const newFrontmatter = `${bannerField}: "${imageUrl}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
+            return `---\n${newFrontmatter}\n---`;
+        });
+    } else {
+        const cleanContent = fileContent.replace(/^\s+/, '');
+        updatedContent = `---\n${bannerField}: "${imageUrl}"\n---\n\n${cleanContent}`;
+    }
+
+    updatedContent = updatedContent.replace(/^\s+/, '');
+    
+    if (updatedContent !== fileContent) {
+        await plugin.app.vault.modify(activeFile, updatedContent);
+        new Notice('Banner image URL pinned');
+    }
+}

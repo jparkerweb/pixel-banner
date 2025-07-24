@@ -424,6 +424,10 @@ Displays release notes (when the plugin updates).
 **Class**: `SaveImageModal`  
 Lets the user specify a file name for a new image being saved to the vault.
 
+## `/src/modal/modals/pinChoiceModal.js`
+**Class**: `PinChoiceModal`  
+Presents user with choice to either save API image locally or pin the URL directly to frontmatter.
+
 **Key Methods**:
 - **onOpen()**: Shows a text field for the file name and a toggle for "use as banner."  
 - **onClose()**: Empties out the modal.
@@ -616,7 +620,7 @@ Various helper scripts:
 Handles the process of "pinning" a banner image by downloading and saving it to the vault.
 
 **Methods**:
-1. **handlePinIconClick(imageUrl, plugin, usedField, suggestedFilename)**  
+1. **handlePinIconClick(imageUrl, plugin, usedField, suggestedFilename, showChoiceModal)**  
    Main function that downloads an image, prompts for save location and filename, and optionally sets it as banner.
 2. **fetchImage(url)**  
    Downloads an image from a URL and returns the array buffer.
@@ -653,6 +657,8 @@ Utilities for working with note frontmatter in Obsidian.
    Gets the first valid value from an array of values, properly handling zero values that shouldn't be treated as falsy.
 3. **updateNoteFrontmatter(imagePath, plugin, usedField)**  
    Updates the active note's frontmatter with a banner image reference, handling existing frontmatter and custom field names.
+4. **updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField)**  
+   Updates the active note's frontmatter with a direct image URL reference, used when pinning API images without saving locally.
 
 ## `/src/utils/debounce.js`
 Provides utility functions for debouncing function calls.
