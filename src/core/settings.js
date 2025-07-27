@@ -10,6 +10,21 @@ export async function loadSettings(plugin) {
         plugin.settings.folderImages = [];
     }
 
+    // Ensure customBannerField is always an array
+    if (!Array.isArray(plugin.settings.customBannerField)) {
+        plugin.settings.customBannerField = DEFAULT_SETTINGS.customBannerField;
+    }
+
+    // Ensure xPosition is a number
+    if (typeof plugin.settings.xPosition !== 'number') {
+        plugin.settings.xPosition = parseInt(plugin.settings.xPosition) || DEFAULT_SETTINGS.xPosition;
+    }
+
+    // Ensure yPosition is a number
+    if (typeof plugin.settings.yPosition !== 'number') {
+        plugin.settings.yPosition = parseInt(plugin.settings.yPosition) || DEFAULT_SETTINGS.yPosition;
+    }
+
     if (plugin.settings.folderImages) {
         plugin.settings.folderImages.forEach(folderImage => {
             folderImage.imageDisplay = folderImage.imageDisplay || 'cover';
