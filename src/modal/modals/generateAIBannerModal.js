@@ -544,7 +544,7 @@ export class GenerateAIBannerModal extends Modal {
 
     // Helper method to collect control values
     async collectControlValues() {
-        console.log('collectControlValues called');
+        // console.log('collectControlValues called');
         if (!this.selectedModelId || !this.availableModels[this.selectedModelId]) {
             console.error('No selected model or model data not found');
             return {};

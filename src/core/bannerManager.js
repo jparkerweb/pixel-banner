@@ -24,7 +24,7 @@ const SUPPORTED_EXTENSIONS = [...SUPPORTED_IMAGE_EXTENSIONS, ...SUPPORTED_MOVIE_
 // ----------------------
 const debouncedAddPixelBanner = debounceAndSwallow(addPixelBanner, 350);
 async function addPixelBanner(plugin, el, ctx) {
-    const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
+    const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView, updateMode } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
     const isHoverPopover = viewContent.closest('.hover-popover') !== null;
@@ -407,8 +407,26 @@ async function addPixelBanner(plugin, el, ctx) {
         const hasShufflePath = getFrontmatterValue(frontmatter, plugin.settings.customBannerShuffleField);
         const isShuffled = hasShufflePath || folderSpecific?.enableImageShuffle;
 
-        // Force URL refresh for shuffled banners or normal cache miss conditions
-        if (!imageUrl || isShuffled || (isContentChange && bannerImage !== lastInput)) {
+        // Default to FULL_UPDATE if updateMode is not provided
+        const effectiveUpdateMode = updateMode || plugin.UPDATE_MODE.FULL_UPDATE;
+        
+        // Determine if we should fetch a new image
+        let shouldFetchNewImage = false;
+        
+        if (effectiveUpdateMode === plugin.UPDATE_MODE.ENSURE_VISIBILITY) {
+            // For ENSURE_VISIBILITY mode, only fetch if we don't have a cached image
+            shouldFetchNewImage = !imageUrl;
+        } else {
+            // For other modes (FULL_UPDATE, SHUFFLE_UPDATE, etc.), apply normal conditions
+            shouldFetchNewImage = (
+                effectiveUpdateMode === plugin.UPDATE_MODE.FULL_UPDATE || 
+                !imageUrl || 
+                isShuffled || 
+                (isContentChange && bannerImage !== lastInput)
+            );
+        }
+        
+        if (shouldFetchNewImage) {
             imageUrl = await plugin.getImageUrl(inputType, bannerImage);
             if (imageUrl) {
                 // Store the full object with metadata for videos
@@ -949,7 +967,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             fade,
             borderRadius,
             maxWidth,
-            isReadingView: view.getMode && view.getMode() === 'preview'
+            isReadingView: view.getMode && view.getMode() === 'preview',
+            updateMode: updateMode
         });
         plugin.lastYPositions.set(view.file.path, yPosition);
     } else if (existingBanner) {
@@ -986,12 +1005,14 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Clean up any existing icons first
-        const oldViewIcons = container.querySelectorAll('.view-image-icon');
-        const oldPinIcons = container.querySelectorAll('.pin-icon');
-        const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
-        const oldSelectIcons = container.querySelectorAll('.select-image-icon');
+        if (container) {
+            const oldViewIcons = container.querySelectorAll('.view-image-icon');
+            const oldPinIcons = container.querySelectorAll('.pin-icon');
+            const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
+            const oldSelectIcons = container.querySelectorAll('.select-image-icon');
 
-        [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach(el => el.remove());
+            [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach(el => el.remove());
+        }
 
         // Only add select image icon if not embedded
         if (!isEmbedded && container && plugin.settings.showSelectImageIcon) {
@@ -1639,7 +1660,8 @@ function registerMarkdownPostProcessor(plugin) {
       xPosition,
       contentStartPosition,
       bannerImage,
-      isReadingView: true
+      isReadingView: true,
+      updateMode: plugin.UPDATE_MODE.FULL_UPDATE
     });
   });
 }

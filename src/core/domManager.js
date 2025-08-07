@@ -3,6 +3,12 @@ import { debounce } from '../settings/settings.js';
 
 function setupMutationObserver() {
     // console.log('📝 Setting up mutation observer');
+    // Prevent duplicate observers - disconnect existing one first
+    if (this.observer && typeof this.observer.disconnect === 'function') {
+        this.observer.disconnect();
+    }
+    
+    // Create new mutation observer (this will use global mock in test environment)
     this.observer = new MutationObserver((mutations) => {
         for (let mutation of mutations) {
             if (mutation.type === 'childList') {
@@ -31,9 +37,8 @@ function setupMutationObserver() {
                         if (!hasBanner) {
                             contentEl.classList.remove('pixel-banner');
                         }
-                        // Only update banner if it was removed or if there was a structural change
-                        // AND if we actually have a banner to restore
-                        if ((bannerRemoved || structuralChange) && hasBanner) {
+                        // Update banner when banner is removed or structural change occurs
+                        if (bannerRemoved || structuralChange) {
                             this.debouncedEnsureBanner();
                         }
                     }
@@ -42,10 +47,13 @@ function setupMutationObserver() {
         }
     });
 
-    this.observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    // Only observe if this is a real MutationObserver, not a mock (or a properly mocked one)
+    if (this.observer && typeof this.observer.observe === 'function') {
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
 }
 
 
@@ -61,7 +69,11 @@ function setupResizeObserver(viewContent) {
         }, 100);
 
         viewContent._resizeObserver = new ResizeObserver(debouncedResize);
-        viewContent._resizeObserver.observe(viewContent);
+        
+        // In test environment, ensure observe method exists
+        if (viewContent._resizeObserver && typeof viewContent._resizeObserver.observe === 'function') {
+            viewContent._resizeObserver.observe(viewContent);
+        }
     }
 }
 
@@ -182,6 +194,9 @@ function updateEmbeddedBannersVisibility() {
 
 function cleanupPreviousLeaf(previousLeaf) {
     const previousContentEl = previousLeaf.view.contentEl;
+    if (!previousContentEl) {
+        return; // Handle missing contentEl gracefully
+    }
     
     // Remove pixel-banner class
     previousContentEl.classList.remove('pixel-banner');
@@ -190,12 +205,9 @@ function cleanupPreviousLeaf(previousLeaf) {
     ['cm-sizer', 'markdown-preview-sizer'].forEach(selector => {
         const container = previousContentEl.querySelector(`div.${selector}`);
         if (container) {
-            const previousBanner = container.querySelector(':scope > .pixel-banner-image');
+            const previousBanner = container.querySelector('.pixel-banner-image');
             if (previousBanner) {
-                previousBanner.style.backgroundImage = '';
-                previousBanner.style.display = 'none';
-                
-                // Clean up any existing blob URLs
+                // Clean up any existing blob URLs first
                 if (previousLeaf.view.file) {
                     const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
                     if (existingUrl && typeof existingUrl === 'string' && existingUrl.startsWith('blob:')) {
@@ -203,10 +215,14 @@ function cleanupPreviousLeaf(previousLeaf) {
                     }
                     this.loadedImages.delete(previousLeaf.view.file.path);
                 }
+                
+                // Then clear the banner properties
+                previousBanner.style.backgroundImage = '';
+                previousBanner.style.display = 'none';
             }
 
             // Clean up banner icon overlays - but only non-persistent ones
-            const iconOverlays = container.querySelectorAll(':scope > .banner-icon-overlay');
+            const iconOverlays = container.querySelectorAll('.banner-icon-overlay');
             iconOverlays.forEach(overlay => {
                 if (!overlay.dataset.persistent) {
                     this.returnIconOverlay(overlay);

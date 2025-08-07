@@ -234,6 +234,23 @@ function getActiveApiProvider() {
         return this.settings.apiProvider;
     }
 
+    // Check if apiProviders array is configured and use its order
+    if (this.settings.apiProviders && Array.isArray(this.settings.apiProviders)) {
+        for (const provider of this.settings.apiProviders) {
+            // Check if this provider has an API key configured
+            const hasKey = (
+                (provider === 'pexels' && this.settings.pexelsApiKey) ||
+                (provider === 'pixabay' && this.settings.pixabayApiKey) ||
+                (provider === 'flickr' && this.settings.flickrApiKey) ||
+                (provider === 'unsplash' && this.settings.unsplashApiKey)
+            );
+            if (hasKey) {
+                return provider;
+            }
+        }
+    }
+
+    // Fallback to the original random selection logic if no apiProviders configured
     const availableProviders = [];
     if (this.settings.pexelsApiKey) availableProviders.push('pexels');
     if (this.settings.pixabayApiKey) availableProviders.push('pixabay');
@@ -241,7 +258,7 @@ function getActiveApiProvider() {
     if (this.settings.unsplashApiKey) availableProviders.push('unsplash');
 
     if (availableProviders.length === 0) {
-        return 'pexels'; // Default fallback if no API keys are configured
+        return null; // Return null if no API keys are configured
     }
 
     return availableProviders[Math.floor(Math.random() * availableProviders.length)];
