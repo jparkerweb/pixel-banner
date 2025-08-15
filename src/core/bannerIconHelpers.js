@@ -111,39 +111,22 @@ export async function handleSetBannerIcon(plugin) {
                 return;
             }
             
-            let fileContent = await plugin.app.vault.read(activeFile);
-            const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-            const hasFrontmatter = frontmatterRegex.test(fileContent);
-            
             const bannerIconField = Array.isArray(plugin.settings.customBannerIconField) && 
                 plugin.settings.customBannerIconField.length > 0 ? 
                 plugin.settings.customBannerIconField[0] : 'banner-icon';
 
-            fileContent = fileContent.replace(/^\s+/, '');
-
-            let updatedContent;
-            if (hasFrontmatter) {
-                updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-                    let cleanedFrontmatter = frontmatter.trim();
-                    
-                    plugin.settings.customBannerIconField.forEach(field => {
-                        const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
-                        cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
-                    });
-
-                    cleanedFrontmatter = cleanedFrontmatter.trim();
-                    const newFrontmatter = `${bannerIconField}: "${selectedEmoji}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
-                    return `---\n${newFrontmatter}\n---`;
+            // Use Obsidian's processFrontMatter API to properly update frontmatter
+            await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                // Remove old banner icon fields if they exist
+                plugin.settings.customBannerIconField.forEach(field => {
+                    if (field in frontmatter) {
+                        delete frontmatter[field];
+                    }
                 });
-            } else {
-                const cleanContent = fileContent.replace(/^\s+/, '');
-                updatedContent = `---\n${bannerIconField}: "${selectedEmoji}"\n---\n\n${cleanContent}`;
-            }
-
-            updatedContent = updatedContent.replace(/^\s+/, '');
-            
-            if (updatedContent !== fileContent) {
-                await plugin.app.vault.modify(activeFile, updatedContent);
+                
+                // Set the new banner icon field
+                frontmatter[bannerIconField] = selectedEmoji;
+            });
 
                 // Wait for metadata update
                 const metadataUpdated = new Promise(resolve => {
@@ -211,7 +194,6 @@ export async function handleSetBannerIcon(plugin) {
                 }
 
                 new Notice('Banner icon updated');
-            }
 
             // After setting the emoji, check if we should open the targeting modal
             if (plugin.settings.openTargetingModalAfterSelectingBannerOrIcon) {
@@ -262,47 +244,29 @@ export async function handleSetBannerIconImage(plugin) {
             // IconImageSelectionModal passes a full file object, not just a path string
             const imagePath = selectedImage.path ? selectedImage.path : selectedImage;
             
-            let fileContent = await plugin.app.vault.read(activeFile);
-            const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-            const hasFrontmatter = frontmatterRegex.test(fileContent);
-            
             // Get the correct field name from settings
             const bannerIconImageField = Array.isArray(plugin.settings.customBannerIconImageField) && 
                 plugin.settings.customBannerIconImageField.length > 0 ? 
                 plugin.settings.customBannerIconImageField[0].split(',')[0].trim() : 'icon-image';
 
-            fileContent = fileContent.replace(/^\s+/, '');
-
-            let updatedContent;
-            if (hasFrontmatter) {
-                updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-                    let cleanedFrontmatter = frontmatter.trim();
-                    
-                    // Make sure the field exists in settings before trying to iterate
-                    if (Array.isArray(plugin.settings.customBannerIconImageField)) {
-                        plugin.settings.customBannerIconImageField.forEach(field => {
-                            // Handle comma-separated field names
-                            const fieldNames = field.split(',').map(f => f.trim());
-                            fieldNames.forEach(fieldName => {
-                                const fieldRegex = new RegExp(`${fieldName}:\\s*.+\\n?`, 'g');
-                                cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
-                            });
+            // Use Obsidian's processFrontMatter API to properly update frontmatter
+            await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+                // Remove old banner icon image fields if they exist
+                if (Array.isArray(plugin.settings.customBannerIconImageField)) {
+                    plugin.settings.customBannerIconImageField.forEach(field => {
+                        // Handle comma-separated field names
+                        const fieldNames = field.split(',').map(f => f.trim());
+                        fieldNames.forEach(fieldName => {
+                            if (fieldName in frontmatter) {
+                                delete frontmatter[fieldName];
+                            }
                         });
-                    }
-
-                    cleanedFrontmatter = cleanedFrontmatter.trim();
-                    const newFrontmatter = `${bannerIconImageField}: "${imagePath}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
-                    return `---\n${newFrontmatter}\n---`;
-                });
-            } else {
-                const cleanContent = fileContent.replace(/^\s+/, '');
-                updatedContent = `---\n${bannerIconImageField}: "${imagePath}"\n---\n\n${cleanContent}`;
-            }
-
-            updatedContent = updatedContent.replace(/^\s+/, '');
-            
-            if (updatedContent !== fileContent) {
-                await plugin.app.vault.modify(activeFile, updatedContent);
+                    });
+                }
+                
+                // Set the new banner icon image field
+                frontmatter[bannerIconImageField] = imagePath;
+            });
 
                 // Wait for metadata update
                 const metadataUpdated = new Promise(resolve => {
@@ -365,7 +329,6 @@ export async function handleSetBannerIconImage(plugin) {
                 if (!success) {
                     new Notice('Banner icon image set, but banner update failed. Try reopening the note.');
                 }
-            }
         }
     ).open();
 }

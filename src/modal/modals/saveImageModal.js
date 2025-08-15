@@ -16,16 +16,23 @@ export class SaveImageModal extends Modal {
         contentEl.empty();
 
         contentEl.createEl('h2', { text: 'Save Image', cls: 'margin-top-0' });
-        contentEl.createEl('p', { text: 'Enter a name for the image file.' });
+        contentEl.createEl('p', { text: 'Enter a name for the media file.' });
 
         const fileNameSetting = new Setting(contentEl)
             .setName('File name')
             .addText(text => {
+                this.textInput = text;
                 text.setValue(this.suggestedName)
                     .onChange(value => {
                         this.suggestedName = value;
                     })
                     .inputEl.style.width = '100%';
+                text.inputEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && this.suggestedName) {
+                        this.onSubmit(this.suggestedName, this.useAsBanner);
+                        this.close();
+                    }
+                });
             });
 
         new Setting(contentEl)

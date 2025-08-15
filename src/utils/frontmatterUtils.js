@@ -95,47 +95,30 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
         }
     }
 
-    let fileContent = await plugin.app.vault.read(activeFile);
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-    const hasFrontmatter = frontmatterRegex.test(fileContent);
-    
     const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
         plugin.settings.customBannerField.length > 0 ? 
         plugin.settings.customBannerField[0] : 'banner');
 
-    fileContent = fileContent.replace(/^\s+/, '');
+    const format = plugin.settings.imagePropertyFormat;
+    const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
 
-    let updatedContent;
-    if (hasFrontmatter) {
-        updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-            let cleanedFrontmatter = frontmatter.trim();
-            
-            plugin.settings.customBannerField.forEach(field => {
-                const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
-                cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
-            });
-
-            const format = plugin.settings.imagePropertyFormat;
-            const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
-            const newFrontmatter = `${bannerField}: "${bannerValue}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
-            return `---\n${newFrontmatter}\n---`;
+    // Use Obsidian's processFrontMatter API to properly update frontmatter
+    await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        // Remove old banner fields if they exist
+        plugin.settings.customBannerField.forEach(field => {
+            if (field in frontmatter) {
+                delete frontmatter[field];
+            }
         });
-    } else {
-        const cleanContent = fileContent.replace(/^\s+/, '');
-        const format = plugin.settings.imagePropertyFormat;
-        const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
-        updatedContent = `---\n${bannerField}: "${bannerValue}"\n---\n\n${cleanContent}`;
-    }
+        
+        // Set the new banner field
+        frontmatter[bannerField] = bannerValue;
+    });
 
-    updatedContent = updatedContent.replace(/^\s+/, '');
-    
-    if (updatedContent !== fileContent) {
-        await plugin.app.vault.modify(activeFile, updatedContent);
-        if (plugin.settings.useShortPath && imageReference === imagePath) {
-            new Notice('Banner image pinned (full path used due to duplicate filenames)');
-        } else {
-            new Notice('Banner image pinned');
-        }
+    if (plugin.settings.useShortPath && imageReference === imagePath) {
+        new Notice('Banner image pinned (full path used due to duplicate filenames)');
+    } else {
+        new Notice('Banner image pinned');
     }
 }
 
@@ -143,38 +126,22 @@ export async function updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField =
     const activeFile = plugin.app.workspace.getActiveFile();
     if (!activeFile) return;
 
-    let fileContent = await plugin.app.vault.read(activeFile);
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-    const hasFrontmatter = frontmatterRegex.test(fileContent);
-    
     const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
         plugin.settings.customBannerField.length > 0 ? 
         plugin.settings.customBannerField[0] : 'banner');
 
-    fileContent = fileContent.replace(/^\s+/, '');
-
-    let updatedContent;
-    if (hasFrontmatter) {
-        updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-            let cleanedFrontmatter = frontmatter.trim();
-            
-            plugin.settings.customBannerField.forEach(field => {
-                const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
-                cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
-            });
-
-            const newFrontmatter = `${bannerField}: "${imageUrl}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
-            return `---\n${newFrontmatter}\n---`;
+    // Use Obsidian's processFrontMatter API to properly update frontmatter
+    await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        // Remove old banner fields if they exist
+        plugin.settings.customBannerField.forEach(field => {
+            if (field in frontmatter) {
+                delete frontmatter[field];
+            }
         });
-    } else {
-        const cleanContent = fileContent.replace(/^\s+/, '');
-        updatedContent = `---\n${bannerField}: "${imageUrl}"\n---\n\n${cleanContent}`;
-    }
+        
+        // Set the new banner field with the URL
+        frontmatter[bannerField] = imageUrl;
+    });
 
-    updatedContent = updatedContent.replace(/^\s+/, '');
-    
-    if (updatedContent !== fileContent) {
-        await plugin.app.vault.modify(activeFile, updatedContent);
-        new Notice('Banner image URL pinned');
-    }
+    new Notice('Banner image URL pinned');
 }

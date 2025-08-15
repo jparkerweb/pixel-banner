@@ -40,6 +40,15 @@ describe('frontmatterUtils', () => {
         mockApp.vault.modify = vi.fn();
         mockApp.vault.getAbstractFileByPath = vi.fn();
         mockApp.vault.getFiles = vi.fn();
+        
+        // Mock fileManager.processFrontMatter
+        mockApp.fileManager = {
+            processFrontMatter: vi.fn((file, callback) => {
+                const frontmatter = {};
+                callback(frontmatter);
+                return Promise.resolve();
+            })
+        };
 
         vi.clearAllMocks();
     });
@@ -186,34 +195,46 @@ describe('frontmatterUtils', () => {
         });
 
         it('should add frontmatter to file without existing frontmatter', async () => {
-            const fileContent = 'This is the note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('images/banner.jpg', mockPlugin);
             
-            const expectedContent = '---\nbanner: "![[images/banner.jpg]]"\n---\n\nThis is the note content.';
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expectedContent
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(
+                activeFile,
+                expect.any(Function)
             );
+            
+            // Verify the callback sets the correct frontmatter
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('![[images/banner.jpg]]');
         });
 
         it('should update existing frontmatter', async () => {
-            const fileContent = '---\ntitle: Test Note\nbanner: old-image.jpg\n---\n\nNote content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('images/new-banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expect.stringContaining('banner: "![[images/new-banner.jpg]]"')
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(
+                activeFile,
+                expect.any(Function)
             );
+            
+            // Verify the callback updates frontmatter correctly
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = { title: 'Test Note', banner: 'old-image.jpg' };
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('![[images/new-banner.jpg]]');
+            expect(frontmatter.title).toBe('Test Note'); // Other fields preserved
         });
 
         it('should use short path when enabled and file is unique', async () => {
             mockPlugin.settings.useShortPath = true;
-            const fileContent = 'Note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             const imageFile = new TFile('images/banner.jpg');
             imageFile.name = 'banner.jpg';
@@ -222,16 +243,19 @@ describe('frontmatterUtils', () => {
             
             await updateNoteFrontmatter('images/banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expect.stringContaining('banner: "![[banner.jpg]]"')
-            );
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify short path is used
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('![[banner.jpg]]');
         });
 
         it('should use full path when duplicate filenames exist', async () => {
             mockPlugin.settings.useShortPath = true;
-            const fileContent = 'Note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             const imageFile = new TFile('images/banner.jpg');
             imageFile.name = 'banner.jpg';
@@ -243,79 +267,97 @@ describe('frontmatterUtils', () => {
             
             await updateNoteFrontmatter('images/banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expect.stringContaining('banner: "![[images/banner.jpg]]"')
-            );
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify full path is used due to duplicates
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('![[images/banner.jpg]]');
         });
 
         it('should use different image format when configured', async () => {
             mockPlugin.settings.imagePropertyFormat = '[[image]]';
-            const fileContent = 'Note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('images/banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expect.stringContaining('banner: "[[images/banner.jpg]]"')
-            );
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify format is [[image]] instead of ![[image]]
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('[[images/banner.jpg]]');
         });
 
         it('should use custom field name when provided', async () => {
-            const fileContent = 'Note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('images/banner.jpg', mockPlugin, 'cover');
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expect.stringContaining('cover: "![[images/banner.jpg]]"')
-            );
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify custom field name is used
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.cover).toBe('![[images/banner.jpg]]');
         });
 
         it('should clean existing banner fields before adding new one', async () => {
-            const fileContent = '---\ntitle: Test\nbanner: old.jpg\nimage: another.jpg\n---\n\nContent.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('new.jpg', mockPlugin);
             
-            const call = mockApp.vault.modify.mock.calls[0][1];
-            expect(call).not.toContain('old.jpg');
-            expect(call).not.toContain('another.jpg');
-            expect(call).toContain('banner: "![[new.jpg]]"');
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify old banner fields are cleaned
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = { title: 'Test', banner: 'old.jpg', image: 'another.jpg' };
+            callback(frontmatter);
+            
+            expect(frontmatter.banner).toBe('![[new.jpg]]');
+            expect(frontmatter.image).toBeUndefined(); // 'image' field removed as it's in customBannerField
+            expect(frontmatter.title).toBe('Test'); // Other fields preserved
         });
 
         it('should handle empty file content', async () => {
-            mockApp.vault.read.mockResolvedValue('');
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                '---\nbanner: "![[banner.jpg]]"\n---\n\n'
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(
+                activeFile,
+                expect.any(Function)
             );
         });
 
         it('should trim leading whitespace from content', async () => {
-            const fileContent = '   \n  \nNote content with leading whitespace.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                '---\nbanner: "![[banner.jpg]]"\n---\n\nNote content with leading whitespace.'
+            // Just verify processFrontMatter was called - whitespace handling is now done by Obsidian
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(
+                activeFile,
+                expect.any(Function)
             );
         });
 
         it('should not modify file if content is unchanged', async () => {
-            const fileContent = '---\nbanner: "![[banner.jpg]]"\n---\n\nContent.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
+            // processFrontMatter will still be called, but Obsidian handles whether to actually modify
             await updateNoteFrontmatter('banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).not.toHaveBeenCalled();
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
         });
 
         it('should return early if no active file', async () => {
@@ -323,14 +365,13 @@ describe('frontmatterUtils', () => {
             
             await updateNoteFrontmatter('banner.jpg', mockPlugin);
             
-            expect(mockApp.vault.read).not.toHaveBeenCalled();
-            expect(mockApp.vault.modify).not.toHaveBeenCalled();
+            expect(mockApp.fileManager.processFrontMatter).not.toHaveBeenCalled();
         });
 
         it('should show notice for duplicate filename scenario', async () => {
             mockPlugin.settings.useShortPath = true;
-            const fileContent = 'Note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             const imageFile = new TFile('images/banner.jpg');
             imageFile.name = 'banner.jpg';
@@ -346,8 +387,8 @@ describe('frontmatterUtils', () => {
         });
 
         it('should show normal notice for successful pin', async () => {
-            const fileContent = 'Note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatter('banner.jpg', mockPlugin);
             
@@ -362,63 +403,85 @@ describe('frontmatterUtils', () => {
         });
 
         it('should add URL to frontmatter in file without existing frontmatter', async () => {
-            const fileContent = 'This is the note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatterWithUrl('https://example.com/image.jpg', mockPlugin);
             
-            const expectedContent = '---\nbanner: "https://example.com/image.jpg"\n---\n\nThis is the note content.';
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expectedContent
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(
+                activeFile,
+                expect.any(Function)
             );
+            
+            // Verify the callback sets the correct URL
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('https://example.com/image.jpg');
         });
 
         it('should update existing frontmatter with URL', async () => {
-            const fileContent = '---\ntitle: Test Note\nbanner: old-image.jpg\n---\n\nNote content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatterWithUrl('https://example.com/new-image.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expect.stringContaining('banner: "https://example.com/new-image.jpg"')
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(
+                activeFile,
+                expect.any(Function)
             );
+            
+            // Verify the callback updates frontmatter correctly
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = { title: 'Test Note', banner: 'old-image.jpg' };
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('https://example.com/new-image.jpg');
+            expect(frontmatter.title).toBe('Test Note'); // Other fields preserved
         });
 
         it('should use custom field name when provided', async () => {
-            const fileContent = 'Note content.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatterWithUrl('https://example.com/image.jpg', mockPlugin, 'cover');
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                expect.stringContaining('cover: "https://example.com/image.jpg"')
-            );
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify custom field name is used
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.cover).toBe('https://example.com/image.jpg');
         });
 
         it('should clean existing banner fields before adding URL', async () => {
-            const fileContent = '---\ntitle: Test\nbanner: old.jpg\nimage: another.jpg\n---\n\nContent.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatterWithUrl('https://example.com/new.jpg', mockPlugin);
             
-            const call = mockApp.vault.modify.mock.calls[0][1];
-            expect(call).not.toContain('old.jpg');
-            expect(call).not.toContain('another.jpg');
-            expect(call).toContain('banner: "https://example.com/new.jpg"');
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify old banner fields are cleaned
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = { title: 'Test', banner: 'old.jpg', image: 'another.jpg' };
+            callback(frontmatter);
+            
+            expect(frontmatter.banner).toBe('https://example.com/new.jpg');
+            expect(frontmatter.image).toBeUndefined(); // 'image' field removed as it's in customBannerField
+            expect(frontmatter.title).toBe('Test'); // Other fields preserved
         });
 
         it('should trim leading whitespace from content', async () => {
-            const fileContent = '   \n  \nNote content with leading whitespace.';
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatterWithUrl('https://example.com/image.jpg', mockPlugin);
             
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                expect.any(TFile),
-                '---\nbanner: "https://example.com/image.jpg"\n---\n\nNote content with leading whitespace.'
+            // Just verify processFrontMatter was called - whitespace handling is now done by Obsidian
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(
+                activeFile,
+                expect.any(Function)
             );
         });
 
@@ -450,28 +513,35 @@ describe('frontmatterUtils', () => {
         });
 
         it('should handle complex frontmatter structure', async () => {
-            const fileContent = `---
-title: "Complex Note"
-tags: [test, note]
-banner: old-banner.jpg
-metadata:
-  created: 2023-01-01
-  updated: 2023-01-02
-image: another-image.jpg
----
-
-Note content here.`;
-            
-            mockApp.vault.read.mockResolvedValue(fileContent);
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
             
             await updateNoteFrontmatterWithUrl('https://example.com/new-banner.jpg', mockPlugin);
             
-            const modifiedContent = mockApp.vault.modify.mock.calls[0][1];
-            expect(modifiedContent).toContain('banner: "https://example.com/new-banner.jpg"');
-            expect(modifiedContent).toContain('title: "Complex Note"');
-            expect(modifiedContent).toContain('tags: [test, note]');
-            expect(modifiedContent).not.toContain('old-banner.jpg');
-            expect(modifiedContent).not.toContain('another-image.jpg');
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+            
+            // Verify complex frontmatter is preserved correctly
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {
+                title: 'Complex Note',
+                tags: ['test', 'note'],
+                banner: 'old-banner.jpg',
+                metadata: {
+                    created: '2023-01-01',
+                    updated: '2023-01-02'
+                },
+                image: 'another-image.jpg'
+            };
+            callback(frontmatter);
+            
+            expect(frontmatter.banner).toBe('https://example.com/new-banner.jpg');
+            expect(frontmatter.image).toBeUndefined(); // Cleaned as it's in customBannerField
+            expect(frontmatter.title).toBe('Complex Note');
+            expect(frontmatter.tags).toEqual(['test', 'note']);
+            expect(frontmatter.metadata).toEqual({
+                created: '2023-01-01',
+                updated: '2023-01-02'
+            });
         });
     });
 });

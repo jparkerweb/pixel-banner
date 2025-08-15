@@ -2,7 +2,7 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-### v3.6.8 - 2025-07-24
+### v3.6.8 - 2025-08-14
 #### ✨ Added
 - **Pin Choice Modal**: When pinning API images, users can now choose between saving locally or pinning the URL directly to frontmatter
   - New choice modal presents "Save Image Locally" vs "Pin Image URL" options
@@ -11,6 +11,11 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Choice only appears for user-initiated pin actions (pin icon, command palette)
   - AI generation and Pixel Banner Plus continue to save locally automatically
 - **Auto-Focus Enhancement**: Folder selection modal now automatically focuses and selects the text input for improved workflow
+- `Enter` button support for submitting the save image form in the `Save Image Modal`
+- New `Pin Image URL` option to save API images directly as URL references in frontmatter without downloading to vault
+
+#### 📦 Updated
+- Replaced manual frontmatter string manipulation with Obsidian's native processFrontMatter API for more reliable metadata updates
 
 ### v3.6.7 - 2025-07-19
 #### 🐛 Fixed
