@@ -66,6 +66,21 @@
   - Correctly display actual image URLs instead of keywords for 3rd party API banners in the ImageViewModal
   - Local images, videos, and file:/// paths maintain original display behavior
 
+### v3.6.8
+#### ✨ Added
+- **Pin Choice Modal**: When pinning API images, users can now choose between saving locally or pinning the URL directly to frontmatter
+  - New choice modal presents "Save Image Locally" vs "Pin Image URL" options
+  - URL pinning saves no storage space in vault but requires internet connection
+  - Local saving remains available for offline access and permanence
+  - Choice only appears for user-initiated pin actions (pin icon, command palette)
+  - AI generation and Pixel Banner Plus continue to save locally automatically
+- **Auto-Focus Enhancement**: Folder selection modal now automatically focuses and selects the text input for improved workflow
+- `Enter` button support for submitting the save image form in the `Save Image Modal`
+- New `Pin Image URL` option to save API images directly as URL references in frontmatter without downloading to vault
+
+#### 📦 Updated
+- Replaced manual frontmatter string manipulation with Obsidian's native processFrontMatter API for more reliable metadata updates
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
