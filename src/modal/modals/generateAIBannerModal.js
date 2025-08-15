@@ -544,7 +544,7 @@ export class GenerateAIBannerModal extends Modal {
 
     // Helper method to collect control values
     async collectControlValues() {
-        console.log('collectControlValues called');
+        // console.log('collectControlValues called');
         if (!this.selectedModelId || !this.availableModels[this.selectedModelId]) {
             console.error('No selected model or model data not found');
             return {};
@@ -774,7 +774,7 @@ export class GenerateAIBannerModal extends Modal {
                     const imageUrl = `data:image/jpeg;base64,${response.json.image}`;
                     let filename = this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                     filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                    const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename);
+                    const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename, false);
                     this.downloadHistory.addImage(response.json.imageId);
                     this.close();
                     
@@ -1793,7 +1793,7 @@ export class GenerateAIBannerModal extends Modal {
             if (!shouldDownload) return;
             
             const filename = img.getAttribute('filename');
-            const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+            const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename, false);
             this.downloadHistory.addImage(img.getAttribute('imageid'));
             this.close();
             

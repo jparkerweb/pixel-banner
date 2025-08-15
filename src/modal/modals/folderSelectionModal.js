@@ -86,9 +86,10 @@ export class FolderSelectionModal extends FuzzySuggestModal {
         super.onOpen();
         // Pre-populate the search with the default folder
         const inputEl = this.inputEl;
+        inputEl.addClass('prompt-input');
         inputEl.value = this.defaultFolder;
         inputEl.focus();
-        // inputEl.select();
+        inputEl.select();
         // Trigger the search to show matching results
         this.updateSuggestions();
     }

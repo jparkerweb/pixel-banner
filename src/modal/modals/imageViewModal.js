@@ -174,6 +174,7 @@ export class ImageViewModal extends Modal {
                 padding: 4px;
                 background-color: var(--background-secondary);
                 border-radius: 4px;
+                word-break: break-word;
             }
 
             .pixel-banner-image-view-modal .close-button {

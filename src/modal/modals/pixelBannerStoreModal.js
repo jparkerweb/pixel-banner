@@ -105,7 +105,7 @@ export class PixelBannerStoreModal extends Modal {
                 await this.saveVideoFileWithPrompts(data.base64Image, filename);
             } else {
                 // Handle image file (existing behavior)
-                await handlePinIconClick(data.base64Image, this.plugin, null, filename.replace(/\.[^/.]+$/, ''));
+                await handlePinIconClick(data.base64Image, this.plugin, null, filename.replace(/\.[^/.]+$/, ''), false);
             }
         } catch (error) {
             console.error('Error saving banner:', error);
