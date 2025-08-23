@@ -56,7 +56,7 @@ const DEFAULT_SETTINGS = {
     imageRepeat: false,
     bannerHeight: 350,
     bannerMaxWidth: 2560,
-    fade: -70,
+    fade: -40,
     bannerFadeInAnimationDuration: 300,
     borderRadius: 17,
     showPinIcon: false,

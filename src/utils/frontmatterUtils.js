@@ -104,12 +104,16 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
 
     // Use Obsidian's processFrontMatter API to properly update frontmatter
     await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-        // Remove old banner fields if they exist
-        plugin.settings.customBannerField.forEach(field => {
-            if (field in frontmatter) {
-                delete frontmatter[field];
+        // Only remove old banner fields that are different from the one being set
+        // This prevents unintended property modifications on mobile devices
+        if (Array.isArray(plugin.settings.customBannerField)) {
+            for (const field of plugin.settings.customBannerField) {
+                // Only delete if it's a different field than the one we're setting
+                if (field !== bannerField && field in frontmatter) {
+                    delete frontmatter[field];
+                }
             }
-        });
+        }
         
         // Set the new banner field
         frontmatter[bannerField] = bannerValue;
@@ -132,12 +136,16 @@ export async function updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField =
 
     // Use Obsidian's processFrontMatter API to properly update frontmatter
     await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-        // Remove old banner fields if they exist
-        plugin.settings.customBannerField.forEach(field => {
-            if (field in frontmatter) {
-                delete frontmatter[field];
+        // Only remove old banner fields that are different from the one being set
+        // This prevents unintended property modifications on mobile devices
+        if (Array.isArray(plugin.settings.customBannerField)) {
+            for (const field of plugin.settings.customBannerField) {
+                // Only delete if it's a different field than the one we're setting
+                if (field !== bannerField && field in frontmatter) {
+                    delete frontmatter[field];
+                }
             }
-        });
+        }
         
         // Set the new banner field with the URL
         frontmatter[bannerField] = imageUrl;

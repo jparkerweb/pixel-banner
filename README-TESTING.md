@@ -276,23 +276,6 @@ Coverage reports are generated in the `coverage/` directory:
 - `coverage/lcov.info` - LCOV format for CI tools
 - `coverage/coverage-summary.json` - Summary statistics
 
-## 🚀 Continuous Integration
-
-Tests run automatically on:
-- Push to `main` and `develop` branches
-- Pull requests to `main` and `develop`
-- Multiple Node.js versions (18.x, 20.x)
-- Multiple operating systems (Ubuntu, Windows, macOS)
-
-### CI Configuration
-The `.github/workflows/test.yml` file configures:
-- Dependency installation
-- Linting (if available)
-- Test execution
-- Coverage reporting
-- Build verification
-- Artifact upload
-
 ## 📚 Additional Resources
 
 - [Vitest Documentation](https://vitest.dev/)

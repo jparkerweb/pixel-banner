@@ -1,6 +1,6 @@
 import { MarkdownView } from 'obsidian';
 
-function getInputType(input) {
+function getInputType(input, sourcePath = '') {
     if (Array.isArray(input)) {
         input = input.flat()[0];
     }
@@ -19,8 +19,8 @@ function getInputType(input) {
         return 'fileUrl';
     }
 
-    // Check if it's an Obsidian internal link
-    if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
+    // Check if it's an Obsidian internal link (both quoted and unquoted)
+    if (input.match(/^!?\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
         return 'obsidianLink';
     }
 
@@ -30,16 +30,25 @@ function getInputType(input) {
     }
 
     try {
-        new URL(input);
+        new URL(cleanedInput);
         return 'url';
     } catch (_) {
-        // Check if the input is a valid file path within the vault
-        const file = this.app.vault.getAbstractFileByPath(input);
+        // First try exact path match
+        const file = this.app.vault.getAbstractFileByPath(cleanedInput);
         if (file && 'extension' in file) {
             if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
                 return 'vaultPath';
             }
         }
+        
+        // If exact path doesn't work, try resolving as a partial path using getFirstLinkpathDest
+        const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanedInput, sourcePath);
+        if (resolvedFile && 'extension' in resolvedFile) {
+            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
+                return 'vaultPath';
+            }
+        }
+        
         // If the file doesn't exist in the vault or isn't an image, treat it as a keyword
         return 'keyword';
     }

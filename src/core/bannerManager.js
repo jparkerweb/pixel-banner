@@ -400,7 +400,7 @@ async function addPixelBanner(plugin, el, ctx) {
     if (bannerImage) {
         let imageUrl = plugin.loadedImages.get(file.path);
         const lastInput = plugin.lastKeywords.get(file.path);
-        const inputType = plugin.getInputType(bannerImage);
+        const inputType = plugin.getInputType(bannerImage, file.path);
         const folderSpecific = plugin.getFolderSpecificImage(file.path);
 
         // Check if this is a shuffled banner
@@ -427,7 +427,7 @@ async function addPixelBanner(plugin, el, ctx) {
         }
         
         if (shouldFetchNewImage) {
-            imageUrl = await plugin.getImageUrl(inputType, bannerImage);
+            imageUrl = await plugin.getImageUrl(inputType, bannerImage, file.path);
             if (imageUrl) {
                 // Store the full object with metadata for videos
                 plugin.loadedImages.set(file.path, imageUrl);
@@ -482,8 +482,8 @@ async function addPixelBanner(plugin, el, ctx) {
                     URL.revokeObjectURL(fileUrl);
                     
                     // Get a fresh URL
-                    const inputType = plugin.getInputType(bannerImage);
-                    const freshResult = await plugin.getImageUrl(inputType, bannerImage);
+                    const inputType = plugin.getInputType(bannerImage, file.path);
+                    const freshResult = await plugin.getImageUrl(inputType, bannerImage, file.path);
                     if (freshResult) {
                         if (typeof freshResult === 'object' && freshResult !== null) {
                             isVideoFile = freshResult.isVideo === true;
@@ -661,7 +661,7 @@ async function addPixelBanner(plugin, el, ctx) {
                             // Get the original frontmatter value instead of the resolved bannerImage
                             // This ensures we always get the full comma-separated keywords for random selection
                             const originalBannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
-                            const result = await plugin.getImageUrl(inputType, originalBannerValue || bannerImage);
+                            const result = await plugin.getImageUrl(inputType, originalBannerValue || bannerImage, file.path);
                             if (result) {
                                 // Check if it's a video or an image result
                                 let isVideoFile = false;
@@ -722,7 +722,7 @@ async function addPixelBanner(plugin, el, ctx) {
                                     let displayUrl = bannerValue || file.path;
                                     
                             // For 3rd party APIs (keyword-based), use actual URL instead of keyword
-                            const refreshInputType = plugin.getInputType(bannerValue);
+                            const refreshInputType = plugin.getInputType(bannerValue, file.path);
                             if (refreshInputType === 'keyword') {
                                 if (fileUrl && typeof fileUrl === 'object' && fileUrl.url) {
                                     displayUrl = fileUrl.url;
@@ -1193,7 +1193,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             let imgElement = null;
             if (bannerIconImage) {
                 // Resolve the image path using existing utility functions
-                const inputType = plugin.getInputType(bannerIconImage);
+                const inputType = plugin.getInputType(bannerIconImage, file.path);
                 let imagePath = null;
 
                 // Skip processing if the input is invalid (e.g., corrupted object values)

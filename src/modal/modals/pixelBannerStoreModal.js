@@ -527,7 +527,7 @@ export class PixelBannerStoreModal extends Modal {
         storeVotingToggle.checked = this.storeVotingEnabled === true;
 
         storeVotingContainer.createEl('label', {
-            text: 'Store Voting',
+            text: 'Collection Voting',
             cls: 'pixel-banner-store-voting-label',
             attr: {
                 for: 'store-voting-toggle',

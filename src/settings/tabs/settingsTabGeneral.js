@@ -1,11 +1,104 @@
 import { Setting, MarkdownView } from 'obsidian';
 import { DEFAULT_SETTINGS, FolderSuggestModal } from '../settings';
 import { flags } from '../../resources/flags.js';
+import { semver } from '../../utils/semver.js';
+
+// Helper function to add the update button
+function addUpdateButtonIfNeeded(containerEl, plugin, insertAfterCallout = false) {
+    if (!plugin.pixelBannerVersion) {
+        console.log('[Pixel Banner] No cloud version available, skipping update button');
+        return;
+    }
+    
+    const cloudVersion = plugin.pixelBannerVersion;
+    const currentVersion = plugin.settings.lastVersion;
+    
+    // Check if cloudVersion is greater than currentVersion
+    const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
+    
+    if (isCloudVersionGreater) {
+        // Check if button already exists to avoid duplicates
+        if (containerEl.querySelector('.pixel-banner-update-button')) {
+            return;
+        }
+        
+        // Create the update container
+        const updateContainer = document.createElement('div');
+        updateContainer.style.cssText = `
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        `;
+        
+        const updateButton = document.createElement('button');
+        updateButton.textContent = '🔄 Update Available!';
+        updateButton.className = 'pixel-banner-scale-up-down-animation pixel-banner-update-button';
+        updateButton.style.cssText = `
+            padding: 6px 12px;
+            background-color: var(--interactive-accent);
+            color: var(--text-on-accent);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        `;
+        
+        updateContainer.appendChild(updateButton);
+        
+        // Find the callout element and insert the update button right after it
+        const calloutEl = containerEl.querySelector('.tab-callout');
+        if (calloutEl && calloutEl.nextSibling) {
+            calloutEl.parentNode.insertBefore(updateContainer, calloutEl.nextSibling);
+        } else {
+            containerEl.appendChild(updateContainer);
+        }
+        
+        updateButton.addEventListener('click', async () => {
+            await plugin.app.setting.open();
+            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+            
+            // Find and click the Community Plugins item in the settings sidebar
+            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+            for (const tab of settingsTabs) {
+                if (tab.textContent.includes('Community plugins')) {
+                    tab.click();
+                    break;
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
+            
+            // Find the "Check for updates" button
+            const allTheButtons = document.querySelectorAll('button.mod-cta');
+            for (const button of allTheButtons) {
+                if (button.textContent.includes('Check for updates')) {
+                    button.click();
+                    break;
+                }
+            }
+        });
+    }
+}
 
 export function createGeneralSettings(containerEl, plugin) {
     // section callout
     const calloutEl = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
-    calloutEl.createEl('div', { text: 'Configure default settings for all notes.' });
+    calloutEl.createEl('div', { text: `v${plugin.settings.lastVersion} ⋅ Configure default settings for all notes.` });
+
+    // Try to fetch version info if not already available and show update button when ready
+    if (!plugin.pixelBannerVersion) {
+        plugin.getPixelBannerInfo().then(() => {
+            // After fetching, check if update is available and add the button
+            addUpdateButtonIfNeeded(containerEl, plugin);
+        }).catch(error => {
+            console.log('[Pixel Banner] Failed to fetch version info:', error.message);
+        });
+    } else if (!plugin.pixelBannerVersion) {
+        console.log('[Pixel Banner] Version not available, skipping version check');
+    } else {
+        // If version info is already available, check immediately
+        addUpdateButtonIfNeeded(containerEl, plugin);
+    }
 
     // Create a group for the select image icon settings
     const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
@@ -1170,6 +1263,40 @@ export function createGeneralSettings(containerEl, plugin) {
                     sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
                     const event = new Event('input', { bubbles: true, cancelable: true });
                     sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
+    // Banner Icon Image Size Multiplier
+    new Setting(containerEl)
+        .setName('Default Banner Icon Image Size Multiplier')
+        .setDesc('Set the default size multiplier for banner icon images (0.1-5)')
+        .addSlider(slider => slider
+            .setLimits(0.1, 5.0, 0.1)
+            .setValue(plugin.settings.bannerIconImageSizeMultiplier)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.bannerIconImageSizeMultiplier = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.bannerIconImageSizeMultiplier = DEFAULT_SETTINGS.bannerIconImageSizeMultiplier;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconImageSizeMultiplier;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                    plugin.updateAllBanners();
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
