@@ -36,7 +36,7 @@ function getInputType(input, sourcePath = '') {
         // First try exact path match
         const file = this.app.vault.getAbstractFileByPath(cleanedInput);
         if (file && 'extension' in file) {
-            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
+            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
                 return 'vaultPath';
             }
         }
@@ -44,7 +44,7 @@ function getInputType(input, sourcePath = '') {
         // If exact path doesn't work, try resolving as a partial path using getFirstLinkpathDest
         const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanedInput, sourcePath);
         if (resolvedFile && 'extension' in resolvedFile) {
-            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
+            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
                 return 'vaultPath';
             }
         }
