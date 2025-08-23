@@ -171,7 +171,8 @@ describe('settingsTabGeneral', () => {
             saveSettings: vi.fn(() => Promise.resolve()),
             updateAllBanners: vi.fn(),
             updateEmbeddedTitlesVisibility: vi.fn(),
-            updateEmbeddedBannersVisibility: vi.fn()
+            updateEmbeddedBannersVisibility: vi.fn(),
+            getPixelBannerInfo: vi.fn(() => Promise.resolve())
         };
 
         // Mock getComputedStyle for color handling
@@ -679,7 +680,8 @@ describe('settingsTabGeneral', () => {
             const incompletePlugin = {
                 settings: {},
                 saveSettings: vi.fn(),
-                updateAllBanners: vi.fn()
+                updateAllBanners: vi.fn(),
+                getPixelBannerInfo: vi.fn(() => Promise.resolve())
             };
             
             expect(() => {

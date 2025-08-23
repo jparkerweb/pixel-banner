@@ -2,6 +2,15 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.9 - 2025-08-22
+#### ✨ Added
+- New `Icon Image Size Multiplier` setting to the `General` settings tab to control the global size of banner icon images
+- Check for version updates when opening `General` settings and show update button if available
+
+#### 📦 Updated
+- Moved `AI Model` selection from radio buttons to a dropdown for better organization
+- Changed default banner fade value from `-70` to `-40`
+
 ### v3.6.8 - 2025-08-14
 #### ✨ Added
 - **Pin Choice Modal**: When pinning API images, users can now choose between saving locally or pinning the URL directly to frontmatter

@@ -73,7 +73,7 @@ export class PixelBannerPlugin extends Plugin {
     // --------------------------------------------
     // -- add bindings for the utility functions --
     // --------------------------------------------
-    getInputType(input) { return getInputType.call(this, input); }
+    getInputType(input, sourcePath = '') { return getInputType.call(this, input, sourcePath); }
     getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
     getPathFromMarkdownImage(link) { return getPathFromMarkdownImage.call(this, link); }
     getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
@@ -553,7 +553,7 @@ export class PixelBannerPlugin extends Plugin {
     // -------------------
     // -- get image url --
     // -------------------
-    async getImageUrl(type, input) {
+    async getImageUrl(type, input, sourcePath = '') {
         if (type === 'url' || type === 'path') {
             return input;
         }
@@ -621,7 +621,19 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'vaultPath') {
-            return this.getVaultImageUrl(input);
+            // First try exact path
+            let file = this.app.vault.getAbstractFileByPath(input);
+            if (file && 'extension' in file) {
+                return this.getVaultImageUrl(input);
+            }
+            
+            // If exact path doesn't work, try resolving as a partial path
+            const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(input, sourcePath);
+            if (resolvedFile && 'extension' in resolvedFile) {
+                return this.getVaultImageUrl(resolvedFile.path);
+            }
+            
+            return null;
         }
 
         if (type === 'keyword') {
@@ -948,6 +960,12 @@ export class PixelBannerPlugin extends Plugin {
             // Update the last shown version
             this.settings.lastVersion = currentVersion;
             await this.saveSettings();
+        }
+        
+        // If the plugin version has changed, invalidate cached cloud version
+        if (lastVersion && lastVersion !== currentVersion) {
+            console.log('[Pixel Banner] Plugin updated from', lastVersion, 'to', currentVersion, '- invalidating cached cloud version');
+            this.pixelBannerVersion = undefined;
         }
     }
 

@@ -81,6 +81,15 @@
 #### 📦 Updated
 - Replaced manual frontmatter string manipulation with Obsidian's native processFrontMatter API for more reliable metadata updates
 
+### v3.6.9
+#### ✨ Added
+- New `Icon Image Size Multiplier` setting to the `General` settings tab to control the global size of banner icon images
+- Check for version updates when opening `General` settings and show update button if available
+
+#### 📦 Updated
+- Moved `AI Model` selection from radio buttons to a dropdown for better organization
+- Changed default banner fade value from `-70` to `-40`
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>

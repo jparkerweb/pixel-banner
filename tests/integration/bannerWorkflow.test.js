@@ -201,7 +201,7 @@ describe('Banner Workflow Integration Tests', () => {
             await vi.advanceTimersByTimeAsync(300);
             await updatePromise;
             
-            expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg');
+            expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg', expect.stringContaining('.md'));
             expect(plugin.loadedImages.get(testFile.path)).toBe('https://example.com/banner.jpg');
         });
 
@@ -226,7 +226,7 @@ describe('Banner Workflow Integration Tests', () => {
             await vi.advanceTimersByTimeAsync(300);
             await updatePromise;
             
-            expect(getImageUrlSpy).toHaveBeenCalledWith('obsidianLink', '[[images/banner.jpg]]');
+            expect(getImageUrlSpy).toHaveBeenCalledWith('obsidianLink', '[[images/banner.jpg]]', expect.stringContaining('.md'));
             expect(plugin.loadedImages.get(testFile.path)).toBe('app://vault/images/banner.jpg');
         });
 
@@ -250,7 +250,7 @@ describe('Banner Workflow Integration Tests', () => {
             await vi.advanceTimersByTimeAsync(300);
             await updatePromise;
             
-            expect(getImageUrlSpy).toHaveBeenCalledWith('markdownImage', '![](images/banner.jpg)');
+            expect(getImageUrlSpy).toHaveBeenCalledWith('markdownImage', '![](images/banner.jpg)', expect.stringContaining('.md'));
         });
     });
 
@@ -283,7 +283,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise;
             
             // Keywords are split and one is randomly selected, so we should expect just one keyword
-            expect(getImageUrlSpy).toHaveBeenCalledWith('keyword', expect.stringMatching(/^(nature|landscape)$/));
+            expect(getImageUrlSpy).toHaveBeenCalledWith('keyword', expect.stringMatching(/^(nature|landscape)$/), expect.stringContaining('.md'));
             expect(plugin.loadedImages.get(testFile.path)).toBe('https://example.com/api-image.jpg');
         });
 
@@ -398,7 +398,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise;
             
             expect(getFolderSpecificImageSpy).toHaveBeenCalledWith('test-folder/test.md');
-            expect(getImageUrlSpy).toHaveBeenCalledWith(expect.any(String), 'folder-banner.jpg');
+            expect(getImageUrlSpy).toHaveBeenCalledWith(expect.any(String), 'folder-banner.jpg', expect.stringContaining('.md'));
         });
 
         it('should prioritize frontmatter banner over folder-specific image', async () => {
@@ -684,7 +684,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise;
             
             // Verify that the banner was created and icon overlay functionality was attempted
-            expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg');
+            expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg', expect.stringContaining('.md'));
             // Icon overlay is only created in specific conditions - verify the setup worked
             const container = testView.contentEl;
             const hasBanner = container.querySelector('.pixel-banner-image') !== null;
@@ -745,7 +745,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise2;
             
             // Verify that banners were created in both updates
-            expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg');
+            expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg', expect.stringContaining('.md'));
             expect(getImageUrlSpy).toHaveBeenCalledTimes(2);
             
             // Verify the banner exists

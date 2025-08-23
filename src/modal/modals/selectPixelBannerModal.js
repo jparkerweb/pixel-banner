@@ -83,6 +83,19 @@ export class SelectPixelBannerModal extends Modal {
         
         // Add the text
         titleContainer.appendChild(document.createTextNode('Pixel Banner'));
+        
+        // Add version text
+        const versionText = titleContainer.createEl('span', {
+            text: `v${this.plugin.settings.lastVersion}`,
+            attr: {
+                style: `
+                    font-size: 12px;
+                    opacity: 0.7;
+                    margin-left: 10px;
+                    font-weight: normal;
+                `
+            }
+        });
 
         // Add settings button to the title container
         const settingsButton = titleContainer.createEl('button', {

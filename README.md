@@ -111,6 +111,61 @@ You can now reference images stored outside your vault using the `file:///` prot
 
 **Note**: The image file must exist at the specified path and be accessible to Obsidian.
 
+## 📝 Manual Banner Configuration (Frontmatter)
+
+You can manually configure banners by editing the frontmatter (properties) of your notes. Pixel Banner supports multiple formats for maximum flexibility:
+
+### Supported Banner Formats
+
+#### Wiki Link Formats
+```yaml
+banner: [[folder/subfolder/image.jpg]]
+banner: [[subfolder/image.jpg]]
+banner: [[image.jpg]]
+banner: "[[folder/subfolder/image.jpg]]"
+banner: "[[subfolder/image.jpg]]"
+banner: "[[image.jpg]]"
+banner: "![[folder/subfolder/image.jpg]]"
+banner: "![[subfolder/image.jpg]]"
+banner: "![[image.jpg]]"
+```
+
+#### Markdown Image Formats
+```yaml
+banner: "![](folder/subfolder/image.jpg)"
+banner: "![](subfolder/image.jpg)"
+banner: "![](image.jpg)"
+```
+
+#### Plain Path Formats
+```yaml
+banner: folder/subfolder/image.jpg
+banner: subfolder/image.jpg
+banner: image.jpg
+banner: "folder/subfolder/image.jpg"
+banner: "subfolder/image.jpg"
+banner: "image.jpg"
+```
+
+#### URL Formats
+```yaml
+banner: https://example.com/image.jpg
+banner: "https://example.com/image.jpg"
+```
+
+#### Keyword Formats (API Search)
+```yaml
+banner: sunset beach
+banner: "sunset beach"
+banner: nature, landscape, mountains
+```
+
+### Important Notes
+
+- **Partial Path Resolution**: Paths like `image.jpg` or `subfolder/image.jpg` are resolved relative to your note's location
+- **YAML Limitation**: Unquoted values starting with `!` (like `banner: ![[image.jpg]]`) don't work due to YAML parsing rules. Always quote them: `banner: "![[image.jpg]]"`
+- **Video Support**: All formats work with video files (.mp4, .mov) as well as images
+
 ## 🎬 Working with Video Banners
 
 ### Adding Video Banners

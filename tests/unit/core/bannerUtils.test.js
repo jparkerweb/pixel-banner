@@ -134,6 +134,12 @@ describe('bannerUtils', () => {
             expect(getInputType.call(testContext, '"[[test-image.jpg]]"')).toBe('obsidianLink');
         });
 
+        it('should detect unquoted wiki image formats', () => {
+            expect(getInputType.call(testContext, '![[folder/subfolder/image.jpg]]')).toBe('obsidianLink');
+            expect(getInputType.call(testContext, '![[subfolder/image.jpg]]')).toBe('obsidianLink');
+            expect(getInputType.call(testContext, '![[image.jpg]]')).toBe('obsidianLink');
+        });
+
         it('should detect markdown image input type', () => {
             expect(getInputType.call(testContext, '![](image.jpg)')).toBe('markdownImage');
             expect(getInputType.call(testContext, '"![](image.jpg)"')).toBe('markdownImage');
@@ -156,6 +162,29 @@ describe('bannerUtils', () => {
             
             const result = getInputType.call(testContext, 'test-image.jpg');
             expect(result).toBe('vaultPath');
+        });
+
+        it('should detect unquoted path formats', () => {
+            // Set up mock files for different path formats
+            const files = [
+                'folder/subfolder/image.jpg',
+                'subfolder/image.jpg', 
+                'image.jpg'
+            ];
+            
+            files.forEach(path => {
+                const imageFile = new TFile(path);
+                imageFile.extension = 'jpg';
+                testContext.app.vault.files.set(path, imageFile);
+            });
+            
+            testContext.app.vault.getAbstractFileByPath = vi.fn((path) => {
+                return testContext.app.vault.files.get(path) || null;
+            });
+            
+            expect(getInputType.call(testContext, 'folder/subfolder/image.jpg')).toBe('vaultPath');
+            expect(getInputType.call(testContext, 'subfolder/image.jpg')).toBe('vaultPath');
+            expect(getInputType.call(testContext, 'image.jpg')).toBe('vaultPath');
         });
 
         it('should detect keyword input type for non-existing files', () => {

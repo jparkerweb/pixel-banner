@@ -1807,7 +1807,7 @@ export class TargetPositionModal extends Modal {
         const iconImageSizeMultiplierField = Array.isArray(this.plugin.settings.customBannerIconImageSizeMultiplierField)
             ? this.plugin.settings.customBannerIconImageSizeMultiplierField[0].split(',')[0].trim()
             : this.plugin.settings.customBannerIconImageSizeMultiplierField;
-        this.currentBannerIconImageSizeMultiplier = frontmatter?.[iconImageSizeMultiplierField] || 1;
+        this.currentBannerIconImageSizeMultiplier = frontmatter?.[iconImageSizeMultiplierField] || this.plugin.settings.bannerIconImageSizeMultiplier;
 
         // Banner Icon Image Size Multiplier slider
         const bannerIconImageSizeMultiplierSlider = bannerIconImageSizeMultiplierContainer.createEl('input', {
