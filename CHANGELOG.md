@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.10 - 2025-08-25
+#### 🐛 Fixed
+- Icon images and emojis not being displayed properly
+
 ### v3.6.9 - 2025-08-22
 #### ✨ Added
 - New `Icon Image Size Multiplier` setting to the `General` settings tab to control the global size of banner icon images

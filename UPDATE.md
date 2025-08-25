@@ -90,6 +90,10 @@
 - Moved `AI Model` selection from radio buttons to a dropdown for better organization
 - Changed default banner fade value from `-70` to `-40`
 
+### v3.6.10
+#### 🐛 Fixed
+- Icon images and emojis not being displayed properly
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>

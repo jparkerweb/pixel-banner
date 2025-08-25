@@ -1193,7 +1193,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             let imgElement = null;
             if (bannerIconImage) {
                 // Resolve the image path using existing utility functions
-                const inputType = plugin.getInputType(bannerIconImage, file.path);
+                const inputType = plugin.getInputType(bannerIconImage, view.file.path);
                 let imagePath = null;
 
                 // Skip processing if the input is invalid (e.g., corrupted object values)
@@ -1213,6 +1213,29 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                                 }
                             }
                             break;
+                        case 'markdownImage':
+                            const mdPath = plugin.getPathFromMarkdownImage(bannerIconImage);
+                            if (typeof mdPath === 'string') {
+                                // If path is a URL, use it directly
+                                try {
+                                    new URL(mdPath);
+                                    imagePath = mdPath;
+                                } catch (_) {
+                                    // Not a URL, treat as a vault path
+                                    imagePath = plugin.loadedImages.get(mdPath);
+                                    if (!imagePath) {
+                                        imagePath = await plugin.getVaultImageUrl(mdPath);
+                                        if (imagePath) plugin.loadedImages.set(mdPath, imagePath);
+                                    }
+                                }
+                            } else if (mdPath) {
+                                imagePath = plugin.loadedImages.get(mdPath.path);
+                                if (!imagePath) {
+                                    imagePath = await plugin.getVaultImageUrl(mdPath.path);
+                                    if (imagePath) plugin.loadedImages.set(mdPath.path, imagePath);
+                                }
+                            }
+                            break;
                         case 'vaultPath':
                             // Get the image synchronously from the cached URLs if possible
                             imagePath = plugin.loadedImages.get(bannerIconImage);
@@ -1224,6 +1247,15 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                             break;
                         case 'url':
                             imagePath = bannerIconImage;
+                            break;
+                        case 'fileUrl':
+                            // For file:/// URLs, we should not handle them for icon images as they may be a security risk
+                            // and are only supported for main banners on desktop
+                            console.warn('file:/// URLs are not supported for banner icon images');
+                            break;
+                        case 'keyword':
+                            // Keywords are not supported for banner icon images - they're only for main banners
+                            console.warn('Keywords are not supported for banner icon images');
                             break;
                     }
 
