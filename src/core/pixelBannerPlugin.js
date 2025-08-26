@@ -210,7 +210,7 @@ export class PixelBannerPlugin extends Plugin {
                     ...this.settings.customBannerIconPaddingXField,
                     ...this.settings.customBannerIconPaddingYField,
                     ...this.settings.customBannerIconBorderRadiusField,
-                    ...this.settings.customBannerIconVeritalOffsetField
+                    ...this.settings.customBannerIconVerticalOffsetField
                 ];
 
                 // console.log('🔎 Checking relevant fields:', relevantFields);
@@ -809,7 +809,7 @@ export class PixelBannerPlugin extends Plugin {
                         ...this.settings.customBannerIconPaddingXField,
                         ...this.settings.customBannerIconPaddingYField,
                         ...this.settings.customBannerIconBorderRadiusField,
-                        ...this.settings.customBannerIconVeritalOffsetField
+                        ...this.settings.customBannerIconVerticalOffsetField
                     ];
 
                     // Add hide class to matching fields

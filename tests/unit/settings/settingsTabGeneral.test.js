@@ -53,7 +53,7 @@ const DEFAULT_SETTINGS = {
     bannerIconPaddingX: 0,
     bannerIconPaddingY: 0,
     bannerIconBorderRadius: 0,
-    bannerIconVeritalOffset: 0,
+    bannerIconVerticalOffset: 0,
     showReleaseNotes: true
 };
 
@@ -95,7 +95,7 @@ vi.mock('../../../src/settings/settings.js', () => ({
         bannerIconPaddingX: 0,
         bannerIconPaddingY: 0,
         bannerIconBorderRadius: 0,
-        bannerIconVeritalOffset: 0,
+        bannerIconVerticalOffset: 0,
         showReleaseNotes: true
     },
     FolderSuggestModal: vi.fn().mockImplementation((app, callback) => ({

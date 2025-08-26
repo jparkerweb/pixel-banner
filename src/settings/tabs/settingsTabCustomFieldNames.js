@@ -241,7 +241,7 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             placeholder: 'banner-icon-border-radius, icon-border-radius'
         },
         {
-            setting: 'customBannerIconVeritalOffsetField',
+            setting: 'customBannerIconVerticalOffsetField',
             name: 'Banner Icon Vertical Offset Field Names',
             desc: 'Set custom field names for the banner icon vertical offset in frontmatter',
             values: '-50, 0, 50',

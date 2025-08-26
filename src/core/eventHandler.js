@@ -99,7 +99,7 @@ async function handleActiveLeafChange(leaf) {
                     ...this.settings.customBannerIconPaddingXField,
                     ...this.settings.customBannerIconPaddingYField,
                     ...this.settings.customBannerIconBorderRadiusField,
-                    ...this.settings.customBannerIconVeritalOffsetField
+                    ...this.settings.customBannerIconVerticalOffsetField
                 ];
 
                 const hasRelevantChanges = relevantFields.some(field => 
@@ -139,7 +139,7 @@ async function handleActiveLeafChange(leaf) {
                 paddingX: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || this.settings.bannerIconPaddingX,
                 paddingY: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || this.settings.bannerIconPaddingY,
                 borderRadius: getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || this.settings.bannerIconBorderRadius,
-                verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || this.settings.bannerIconVeritalOffset
+                verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVerticalOffsetField) || this.settings.bannerIconVerticalOffset
             } : null;
 
             // Cache the new state

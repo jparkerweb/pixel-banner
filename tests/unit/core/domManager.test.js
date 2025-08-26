@@ -85,7 +85,7 @@ describe('domManager', () => {
                 customBannerIconPaddingXField: ['icon-padding-x'],
                 customBannerIconPaddingYField: ['icon-padding-y'],
                 customBannerIconBorderRadiusField: ['icon-border-radius'],
-                customBannerIconVeritalOffsetField: ['icon-vertical-offset'],
+                customBannerIconVerticalOffsetField: ['icon-vertical-offset'],
                 customFlagColorField: ['flag-color'],
                 hidePixelBannerFields: true,
                 hidePropertiesSectionIfOnlyBanner: false,

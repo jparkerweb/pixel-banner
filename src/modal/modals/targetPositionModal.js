@@ -341,9 +341,9 @@ export class TargetPositionModal extends Modal {
     }
 
     updateBannerIconVerticalOffset(verticalOffset) {
-        const bannerIconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField)
-            ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
-            : this.plugin.settings.customBannerIconVeritalOffsetField;
+        const bannerIconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVerticalOffsetField)
+            ? this.plugin.settings.customBannerIconVerticalOffsetField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconVerticalOffsetField;
 
         this.app.fileManager.processFrontMatter(this.app.workspace.getActiveFile(), (frontmatter) => {
             frontmatter[bannerIconVerticalOffsetField] = verticalOffset;
@@ -1664,10 +1664,10 @@ export class TargetPositionModal extends Modal {
         });
 
         // Get current banner icon vertical offset
-        const iconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField)
-            ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
-            : this.plugin.settings.customBannerIconVeritalOffsetField;
-        this.currentBannerIconVerticalOffset = frontmatter?.[iconVerticalOffsetField] || this.plugin.settings.bannerIconVeritalOffset;
+        const iconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVerticalOffsetField)
+            ? this.plugin.settings.customBannerIconVerticalOffsetField[0].split(',')[0].trim()
+            : this.plugin.settings.customBannerIconVerticalOffsetField;
+        this.currentBannerIconVerticalOffset = frontmatter?.[iconVerticalOffsetField] || this.plugin.settings.bannerIconVerticalOffset;
 
         // Banner Icon Vertical Offset slider
         const bannerIconVerticalOffsetSlider = bannerIconVerticalOffsetContainer.createEl('input', {
@@ -2951,7 +2951,7 @@ export class TargetPositionModal extends Modal {
             if (bannerIconPaddingXSlider) bannerIconPaddingXSlider.value = this.plugin.settings.bannerIconPaddingX;
             if (bannerIconPaddingYSlider) bannerIconPaddingYSlider.value = this.plugin.settings.bannerIconPaddingY;
             if (bannerIconBorderRadiusSlider) bannerIconBorderRadiusSlider.value = this.plugin.settings.bannerIconBorderRadius;
-            if (bannerIconVerticalOffsetSlider) bannerIconVerticalOffsetSlider.value = this.plugin.settings.bannerIconVeritalOffset;
+            if (bannerIconVerticalOffsetSlider) bannerIconVerticalOffsetSlider.value = this.plugin.settings.bannerIconVerticalOffset;
             if (bannerIconSizeSlider) bannerIconSizeSlider.value = this.plugin.settings.bannerIconSize;
             if (bannerIconRotateSlider) bannerIconRotateSlider.value = 0;
             
@@ -2980,7 +2980,7 @@ export class TargetPositionModal extends Modal {
             if (bannerIconPaddingXValue) bannerIconPaddingXValue.setText(`${this.plugin.settings.bannerIconPaddingX}`);
             if (bannerIconPaddingYValue) bannerIconPaddingYValue.setText(`${this.plugin.settings.bannerIconPaddingY}`);
             if (bannerIconBorderRadiusValue) bannerIconBorderRadiusValue.setText(`${this.plugin.settings.bannerIconBorderRadius}`);
-            if (bannerIconVerticalOffsetValue) bannerIconVerticalOffsetValue.setText(`${this.plugin.settings.bannerIconVeritalOffset}`);
+            if (bannerIconVerticalOffsetValue) bannerIconVerticalOffsetValue.setText(`${this.plugin.settings.bannerIconVerticalOffset}`);
             if (bannerIconRotateValue) bannerIconRotateValue.setText(`${this.plugin.settings.bannerIconRotate}`);
             
             toggleInput.checked = false;
@@ -3064,9 +3064,9 @@ export class TargetPositionModal extends Modal {
                     ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
                     : this.plugin.settings.customBannerIconBorderRadiusField;
                     
-                const bannerIconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField)
-                    ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
-                    : this.plugin.settings.customBannerIconVeritalOffsetField;
+                const bannerIconVerticalOffsetField = Array.isArray(this.plugin.settings.customBannerIconVerticalOffsetField)
+                    ? this.plugin.settings.customBannerIconVerticalOffsetField[0].split(',')[0].trim()
+                    : this.plugin.settings.customBannerIconVerticalOffsetField;
 
                 const bannerIconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField)
                     ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()

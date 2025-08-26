@@ -126,12 +126,6 @@ async function addPixelBanner(plugin, el, ctx) {
                     plugin.settings.bannerIconBorderRadius,
                     17
                 ]);
-                const bannerIconVerticalOffset = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
-                    folderSpecific?.bannerIconVeritalOffset,
-                    plugin.settings.bannerIconVeritalOffset,
-                    0
-                ]);
                 const bannerIconRotate = getValueWithZeroCheck([
                     getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField),
                     0
@@ -200,15 +194,15 @@ async function addPixelBanner(plugin, el, ctx) {
                 previewViewEl.style.setProperty('--pixel-banner-icon-start', `${(bannerHeight - (bannerIconSize / 2))}px`);
 
                 // Get banner-icon vertical offset
-                let bannerIconVeritalOffset = Number(getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
-                    folderSpecific?.bannerIconVeritalOffset,
-                    plugin.settings.bannerIconVeritalOffset,
+                let bannerIconVerticalOffset = Number(getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
+                    folderSpecific?.bannerIconVerticalOffset,
+                    plugin.settings.bannerIconVerticalOffset,
                     0
                 ]));
                 // calculate content start
                 const contentStart = !hideEmbeddedNoteBanners ? 
-                    `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
+                    `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVerticalOffset) + parseInt(bannerIconPaddingY))}px` : 
                     '0px';
                 previewViewEl.style.setProperty('--pixel-banner-content-start', contentStart);
             }
@@ -893,8 +887,10 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         // Flatten the bannerImage if it's an array within an array
         if (Array.isArray(bannerImage)) {
             bannerImage = bannerImage.flat()[0];
-            // Format as internal link
-            bannerImage = `[[${bannerImage}]]`;
+            // Only format as internal link if it's not already formatted
+            if (bannerImage && !bannerImage.startsWith('[[') && !bannerImage.startsWith('![[')) {
+                bannerImage = `[[${bannerImage}]]`;
+            }
         }
 
         // Handle comma-delimited banner values in frontmatter
@@ -922,7 +918,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Format internal links
-        if (bannerImage && (!bannerImage.startsWith('[[') || !bannerImage.startsWith('![[')) && !bannerImage.startsWith('http')) {
+        if (bannerImage && !bannerImage.startsWith('[[') && !bannerImage.startsWith('![[') && !bannerImage.startsWith('http')) {
             const file = plugin.app.vault.getAbstractFileByPath(bannerImage);
             if (file && 'extension' in file) {
                 if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
@@ -1054,7 +1050,16 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     }
 
     const bannerIcon = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconField);
-    const bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
+    let bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
+    
+    // Handle array flattening for icon-image (same issue as main banner with unquoted wiki links)
+    if (Array.isArray(bannerIconImage)) {
+        bannerIconImage = bannerIconImage.flat()[0];
+        // Only format as internal link if it's not already formatted
+        if (bannerIconImage && !bannerIconImage.startsWith('[[') && !bannerIconImage.startsWith('![[')) {
+            bannerIconImage = `[[${bannerIconImage}]]`;
+        }
+    }
 
     // Only clean up overlays that belong to the current container context
     if (isEmbedded) {
@@ -1155,8 +1160,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                     plugin.settings.bannerIconBorderRadius,
                 ]),
                 verticalOffset: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
-                    plugin.settings.bannerIconVeritalOffset,
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
+                    plugin.settings.bannerIconVerticalOffset,
                 ]),
                 imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
                 viewType
@@ -1429,10 +1434,10 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     ]);
 
     // Get banner-icon vertical offset
-    const bannerIconVeritalOffset = getValueWithZeroCheck([
-        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)),
-        folderSpecific?.bannerIconVeritalOffset,
-        plugin.settings.bannerIconVeritalOffset,
+    const bannerIconVerticalOffset = getValueWithZeroCheck([
+        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField)),
+        folderSpecific?.bannerIconVerticalOffset,
+        plugin.settings.bannerIconVerticalOffset,
         0
     ]);
 
@@ -1492,12 +1497,12 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         '--pixel-banner-icon-padding-x': `${bannerIconPaddingX}px`,
         '--pixel-banner-icon-padding-y': `${bannerIconPaddingY}px`,
         '--pixel-banner-icon-border-radius': `${bannerIconBorderRadius}px`,
-        '--pixel-banner-icon-vertical-offset': `${bannerIconVeritalOffset}px`,
+        '--pixel-banner-icon-vertical-offset': `${bannerIconVerticalOffset}px`,
         '--pixel-banner-icon-rotate': `${bannerIconRotate}deg`,
         '--pixel-banner-icon-image-size-multiplier': `${bannerIconImageSizeMultiplier}em`,
         '--pixel-banner-icon-text-vertical-offset': `${bannerIconTextVerticalOffset}px`,
         '--pixel-banner-embed-min-height': !hideEmbeddedNoteBanners ? 
-            `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
+            `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVerticalOffset) + parseInt(bannerIconPaddingY))}px` : 
             '0px',
         '--pixel-banner-alignment': alignmentValue
     };

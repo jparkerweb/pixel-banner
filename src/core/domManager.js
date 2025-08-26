@@ -110,7 +110,7 @@ function updateFieldVisibility(view) {
         ...this.settings.customBannerIconPaddingXField,
         ...this.settings.customBannerIconPaddingYField,
         ...this.settings.customBannerIconBorderRadiusField,
-        ...this.settings.customBannerIconVeritalOffsetField,
+        ...this.settings.customBannerIconVerticalOffsetField,
         ...this.settings.customFlagColorField
     ];
 
