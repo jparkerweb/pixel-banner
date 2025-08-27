@@ -734,7 +734,17 @@ export class GenerateAIBannerModal extends Modal {
                     // Open the target position modal after setting the banner
                     await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                         const bannerField = this.plugin.settings.customBannerField[0];
-                        frontmatter[bannerField] = `![[${savedPath}]]`;
+                        const format = this.plugin.settings.imagePropertyFormat;
+                        // Apply the format based on the user's setting
+                        let bannerValue;
+                        if (format === 'image') {
+                            bannerValue = savedPath;  // Plain path
+                        } else if (format === '[[image]]') {
+                            bannerValue = `[[${savedPath}]]`;  // Wiki link
+                        } else {  // format === '![[image]]'
+                            bannerValue = `![[${savedPath}]]`;  // Embedded image
+                        }
+                        frontmatter[bannerField] = bannerValue;
                     });
 
                     // Check if we should open the targeting modal
@@ -1737,7 +1747,17 @@ export class GenerateAIBannerModal extends Modal {
             // Open the target position modal after setting the banner
             await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                 const bannerField = this.plugin.settings.customBannerField[0];
-                frontmatter[bannerField] = `![[${savedPath}]]`;
+                const format = this.plugin.settings.imagePropertyFormat;
+                // Apply the format based on the user's setting
+                let bannerValue;
+                if (format === 'image') {
+                    bannerValue = savedPath;  // Plain path
+                } else if (format === '[[image]]') {
+                    bannerValue = `[[${savedPath}]]`;  // Wiki link
+                } else {  // format === '![[image]]'
+                    bannerValue = `![[${savedPath}]]`;  // Embedded image
+                }
+                frontmatter[bannerField] = bannerValue;
             });
 
             // Check if we should open the targeting modal

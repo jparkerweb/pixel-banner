@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { 
     getInputType, 
+    getIconImageInputType,
     getPathFromObsidianLink, 
     getPathFromMarkdownImage, 
     getVaultImageUrl, 
@@ -218,6 +219,61 @@ describe('bannerUtils', () => {
             // Test quoted input - for this test we'll check that it gets to the URL check
             // Since it's not a valid URL and file doesn't exist, it should be 'keyword'
             expect(getInputType.call(testContext, '  "some-keyword"  ')).toBe('keyword');
+        });
+    });
+
+    describe('getIconImageInputType', () => {
+        beforeEach(() => {
+            // Add a test image file with space in name for testing partial resolution
+            const carLoanImage = new TFile('assets/car loan.png');
+            carLoanImage.extension = 'png';
+            testContext.app.vault.files.set('assets/car loan.png', carLoanImage);
+            
+            // Mock getFirstLinkpathDest to find files by partial path/filename
+            testContext.app.metadataCache.getFirstLinkpathDest = vi.fn((path) => {
+                // If exact path exists, return it
+                const exactFile = testContext.app.vault.files.get(path);
+                if (exactFile) return exactFile;
+                
+                // Otherwise, try to find by filename
+                for (const [fullPath, file] of testContext.app.vault.files) {
+                    const fileName = fullPath.split('/').pop();
+                    if (fileName === path) {
+                        return file;
+                    }
+                }
+                return null;
+            });
+        });
+
+        it('should detect vault path for bare filename that exists in vault', () => {
+            const result = getIconImageInputType.call(testContext, 'car loan.png');
+            expect(result).toBe('vaultPath');
+        });
+
+        it('should detect vault path for quoted filename that exists in vault', () => {
+            const result = getIconImageInputType.call(testContext, '"car loan.png"');
+            expect(result).toBe('vaultPath');
+        });
+
+        it('should detect vault path for partial path that exists in vault', () => {
+            const result = getIconImageInputType.call(testContext, 'assets/car loan.png');
+            expect(result).toBe('vaultPath');
+        });
+
+        it('should still detect URLs correctly', () => {
+            const result = getIconImageInputType.call(testContext, 'https://example.com/icon.jpg');
+            expect(result).toBe('url');
+        });
+
+        it('should still detect wiki links correctly', () => {
+            const result = getIconImageInputType.call(testContext, '[[car loan.png]]');
+            expect(result).toBe('obsidianLink');
+        });
+
+        it('should return keyword for non-existent files', () => {
+            const result = getIconImageInputType.call(testContext, 'nonexistent-file.png');
+            expect(result).toBe('keyword');
         });
     });
 

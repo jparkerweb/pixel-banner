@@ -62,7 +62,7 @@ const DEFAULT_SETTINGS = {
     showPinIcon: false,
     pinnedImageFolder: 'pixel-banner-images',
     pinnedImageFilename: 'pixel-banner-image',
-    imagePropertyFormat: '[[image]]',
+    imagePropertyFormat: 'image',
     showReleaseNotes: true,
     lastVersion: null,
     showRefreshIcon: false,

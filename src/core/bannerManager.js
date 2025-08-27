@@ -126,6 +126,12 @@ async function addPixelBanner(plugin, el, ctx) {
                     plugin.settings.bannerIconBorderRadius,
                     17
                 ]);
+                const bannerIconVerticalOffset = getValueWithZeroCheck([
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
+                    folderSpecific?.bannerIconVerticalOffset,
+                    plugin.settings.bannerIconVerticalOffset,
+                    0
+                ]);
                 const bannerIconRotate = getValueWithZeroCheck([
                     getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField),
                     0
@@ -193,13 +199,6 @@ async function addPixelBanner(plugin, el, ctx) {
                 // Set banner icon start
                 previewViewEl.style.setProperty('--pixel-banner-icon-start', `${(bannerHeight - (bannerIconSize / 2))}px`);
 
-                // Get banner-icon vertical offset
-                let bannerIconVerticalOffset = Number(getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
-                    folderSpecific?.bannerIconVerticalOffset,
-                    plugin.settings.bannerIconVerticalOffset,
-                    0
-                ]));
                 // calculate content start
                 const contentStart = !hideEmbeddedNoteBanners ? 
                     `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVerticalOffset) + parseInt(bannerIconPaddingY))}px` : 
@@ -1197,9 +1196,11 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             // Create image element if we have a banner icon image
             let imgElement = null;
             if (bannerIconImage) {
-                // Resolve the image path using existing utility functions
-                const inputType = plugin.getInputType(bannerIconImage, view.file.path);
+                // Resolve the image path using icon-specific utility functions for better partial path resolution
+                const inputType = plugin.getIconImageInputType(bannerIconImage, view.file.path);
+                
                 let imagePath = null;
+                let resolvedVaultPath = null;
 
                 // Skip processing if the input is invalid (e.g., corrupted object values)
                 if (inputType === 'invalid') {
@@ -1242,12 +1243,28 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                             }
                             break;
                         case 'vaultPath':
-                            // Get the image synchronously from the cached URLs if possible
-                            imagePath = plugin.loadedImages.get(bannerIconImage);
-                            if (!imagePath) {
-                                // Await the image loading instead of skipping
-                                imagePath = await plugin.getVaultImageUrl(bannerIconImage);
-                                if (imagePath) plugin.loadedImages.set(bannerIconImage, imagePath);
+                            // IMPORTANT: We need to resolve the partial path to a full path first!
+                            // Clean the input and try to resolve it
+                            const cleanedInput = bannerIconImage.trim().replace(/^["'](.*)["']$/, '$1');
+                            
+                            // Try exact match first
+                            let resolvedFile = plugin.app.vault.getAbstractFileByPath(cleanedInput);
+                            if (!resolvedFile) {
+                                // Try partial path resolution
+                                resolvedFile = plugin.app.metadataCache.getFirstLinkpathDest(cleanedInput, view.file.path);
+                            }
+                            
+                            if (resolvedFile && 'path' in resolvedFile) {
+                                resolvedVaultPath = resolvedFile.path;
+                                
+                                // Now get the image URL using the resolved path
+                                imagePath = plugin.loadedImages.get(resolvedVaultPath);
+                                if (!imagePath) {
+                                    imagePath = await plugin.getVaultImageUrl(resolvedVaultPath);
+                                    if (imagePath) plugin.loadedImages.set(resolvedVaultPath, imagePath);
+                                }
+                            } else {
+                                console.warn('[Icon Image] Could not resolve vault path:', cleanedInput);
                             }
                             break;
                         case 'url':

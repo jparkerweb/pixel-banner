@@ -1,4 +1,4 @@
-import { Modal, MarkdownView } from 'obsidian';
+import { Modal, MarkdownView, Setting } from 'obsidian';
 import {
     ImageSelectionModal, GenerateAIBannerModal, PixelBannerStoreModal,
     EmojiSelectionModal, TargetPositionModal, WebAddressModal, DailyGameModal,
@@ -48,6 +48,15 @@ export class SelectPixelBannerModal extends Modal {
             "></div>
         `;
         return spinner;
+    }
+    
+    // Refresh the modal when Pixel Banner Plus enabled state changes
+    async refreshModal() {
+        // Clear the content
+        this.contentEl.empty();
+        
+        // Re-initialize the modal
+        await this.onOpen();
     }
     
     // Initialize the basic UI (non-API dependent)
@@ -190,7 +199,15 @@ export class SelectPixelBannerModal extends Modal {
                         await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                             const bannerField = this.plugin.settings.customBannerField[0];
                             const format = this.plugin.settings.imagePropertyFormat;
-                            const bannerValue = format === '[[image]]' ? `[[${file.path}]]` : `![[${file.path}]]`;
+                            // Apply the format based on the user's setting
+                            let bannerValue;
+                            if (format === 'image') {
+                                bannerValue = file.path;  // Plain path
+                            } else if (format === '[[image]]') {
+                                bannerValue = `[[${file.path}]]`;  // Wiki link
+                            } else {  // format === '![[image]]'
+                                bannerValue = `![[${file.path}]]`;  // Embedded image
+                            }
                             frontmatter[bannerField] = bannerValue;
                         });
                         
@@ -406,8 +423,19 @@ export class SelectPixelBannerModal extends Modal {
                         ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
                         : this.plugin.settings.customBannerIconImageField;
                     
+                    // Apply the format based on the user's setting
+                    const format = this.plugin.settings.imagePropertyFormat;
+                    let iconValue;
+                    if (format === 'image') {
+                        iconValue = pathString;  // Plain path
+                    } else if (format === '[[image]]') {
+                        iconValue = `[[${pathString}]]`;  // Wiki link
+                    } else {  // format === '![[image]]'
+                        iconValue = `![[${pathString}]]`;  // Embedded image
+                    }
+                    
                     // Set the frontmatter value
-                    fm[iconImageField] = `![[${pathString}]]`;
+                    fm[iconImageField] = iconValue;
                 });
                 
                 // Open the targeting modal after selecting an icon image
@@ -504,30 +532,103 @@ export class SelectPixelBannerModal extends Modal {
             });
         }
 
+        // Pixel Banner Plus Account section (always shown for toggle)
+        const accountSection = mainContainer.createDiv({
+            cls: 'pixel-banner-section pixel-banner-api-dependent',
+            attr: {
+                style: `
+                    gap: 5px;
+                    position: relative;
+                    min-height: ${this.plugin.settings.pixelBannerPlusEnabled ? '97px' : '60px'};
+                `
+            }
+        });
+        
+        // Create a container for the title and toggle
+        const accountTitleContainer = accountSection.createDiv({
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: ${this.plugin.settings.pixelBannerPlusEnabled ? '10px' : '0'};
+                `
+            }
+        });
+        
+        const accountTitle = accountTitleContainer.createEl('h3', {
+            text: 'Pixel Banner Plus',
+            cls: 'pixel-banner-section-title',
+            attr: {
+                style: `
+                    margin: 0;
+                    cursor: help;
+                    width: max-content;
+                `
+            }
+        });
+        
+        // Add toggle control for Pixel Banner Plus enabled using Obsidian's Setting class
+        const toggleContainer = accountTitleContainer.createDiv({
+            cls: 'pixel-banner-plus-toggle-container',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                `
+            }
+        });
+        
+        // Add label text
+        toggleContainer.createEl('span', { 
+            text: 'Enabled',
+            attr: {
+                style: `
+                    font-size: 12px;
+                    opacity: 0.8;
+                    font-weight: normal;
+                `
+            }
+        });
+        
+        
+        // Create a mini settings container for the toggle
+        const toggleSettingContainer = toggleContainer.createDiv({
+            attr: {
+                style: `
+                    display: inline-flex;
+                    align-items: center;
+                `
+            }
+        });
+        
+        // Use Obsidian's native Setting toggle
+        new Setting(toggleSettingContainer)
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.pixelBannerPlusEnabled)
+                .onChange(async (value) => {
+                    // Update settings
+                    this.plugin.pixelBannerPlusEnabled = value;
+                    this.plugin.settings.pixelBannerPlusEnabled = value;
+                    await this.plugin.saveSettings();
+                    
+                    // Refresh the modal
+                    this.refreshModal();
+                })
+            )
+            .then(setting => {
+                // Hide the setting name and description to only show the toggle
+                if (setting.nameEl) setting.nameEl.style.display = 'none';
+                if (setting.descEl) setting.descEl.style.display = 'none';
+                if (setting.settingEl) {
+                    setting.settingEl.style.border = 'none';
+                    setting.settingEl.style.padding = '0';
+                    setting.settingEl.style.margin = '0';
+                }
+            });
+
         if (this.plugin.settings.pixelBannerPlusEnabled) {
-            // Pixel Banner Plus Account section (with loading state initially)
-            const accountSection = mainContainer.createDiv({
-                cls: 'pixel-banner-section pixel-banner-api-dependent',
-                attr: {
-                    style: `
-                        gap: 5px;
-                        position: relative;
-                        min-height: 97px;
-                    `
-                }
-            });
-            const accountTitle = accountSection.createEl('h3', {
-                text: 'Pixel Banner Plus Account',
-                cls: 'pixel-banner-section-title',
-                attr: {
-                    style: `
-                        margin: 0;
-                        cursor: help;
-                        width: max-content;
-                    `
-                }
-            });
-            
             // Account info container (initially hidden)
             const accountInfo = accountSection.createDiv({ 
                 cls: 'pixel-banner-account-info',
@@ -683,13 +784,17 @@ export class SelectPixelBannerModal extends Modal {
                         const aiButton = document.getElementById('pixel-banner-plus-ai-button');
                         const storeButton = document.getElementById('pixel-banner-plus-store-button');
 
-                        aiButton.disabled = true;
-                        aiButton.classList.add('pixel-banner-button-disabled');
-                        aiButton.title = "You need an authorize Pixel Banner Plus account to use this feature";
+                        if (aiButton) {
+                            aiButton.disabled = true;
+                            aiButton.classList.add('pixel-banner-button-disabled');
+                            aiButton.title = "You need an authorize Pixel Banner Plus account to use this feature";
+                        }
                         
-                        storeButton.disabled = true;
-                        storeButton.classList.add('pixel-banner-button-disabled');
-                        storeButton.title = "You need an authorize Pixel Banner Plus account to use this feature";
+                        if (storeButton) {
+                            storeButton.disabled = true;
+                            storeButton.classList.add('pixel-banner-button-disabled');
+                            storeButton.title = "You need an authorize Pixel Banner Plus account to use this feature";
+                        }
                     }
                     
                     // Always show server offline message if isOnline is false or server is actually offline
@@ -1081,7 +1186,7 @@ export class SelectPixelBannerModal extends Modal {
                 background: var(--background-primary);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                flex: 1;
+                flex: auto;
                 min-width: 80px;
                 height: 100%;
                 box-sizing: border-box;
@@ -1149,7 +1254,7 @@ export class SelectPixelBannerModal extends Modal {
                 background: var(--background-primary);
                 cursor: pointer;
                 transition: all 0.2s ease;
-                flex: 1;
+                flex: auto;
                 min-width: 80px;
                 height: 100%;
                 box-sizing: border-box;

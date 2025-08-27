@@ -147,6 +147,61 @@ function preloadImage(url) {
     });
 }
 
+function getIconImageInputType(input, sourcePath = '') {
+    if (Array.isArray(input)) {
+        input = input.flat()[0];
+    }
+
+    if (typeof input !== 'string') {
+        return 'invalid';
+    }
+
+    // Trim the input and remove surrounding quotes if present
+    let cleanedInput = input.trim().replace(/^["'](.*)["']$/, '$1');
+    // remove markdown image and link syntax
+    cleanedInput = cleanedInput.replace(/^!\[\[(.*)\]\]$/, '$1').replace(/^\[\[(.*)\]\]$/, '$1');
+
+    // Check for file:/// protocol
+    if (cleanedInput.includes('file:///')) {
+        return 'fileUrl';
+    }
+
+    // Check if it's an Obsidian internal link (both quoted and unquoted)
+    if (input.match(/^!?\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
+        return 'obsidianLink';
+    }
+
+    // Check if it's a Markdown image syntax (![](path.jpg) format)
+    if (input.match(/^!\[\]\(.*\)$/) || input.match(/^"?!\[\]\(.*\)"?$/)) {
+        return 'markdownImage';
+    }
+
+    try {
+        new URL(cleanedInput);
+        return 'url';
+    } catch (_) {
+        // First try exact path match
+        const file = this.app.vault.getAbstractFileByPath(cleanedInput);
+        if (file && 'extension' in file) {
+            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
+                return 'vaultPath';
+            }
+        }
+        
+        // For icon images, be more aggressive about trying partial path resolution
+        // Try resolving as a partial path using getFirstLinkpathDest
+        const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanedInput, sourcePath);
+        if (resolvedFile && 'extension' in resolvedFile) {
+            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
+                return 'vaultPath';
+            }
+        }
+        
+        // If no file found, treat as keyword (which will be ignored for icon images)
+        return 'keyword';
+    }
+}
+
 
 function getFolderPath(filePath) {
     if (!filePath) return '/';
@@ -303,6 +358,7 @@ function createFolderImageSettings(folderImage) {
 
 export {
     getInputType, 
+    getIconImageInputType,
     getPathFromObsidianLink, 
     getPathFromMarkdownImage, 
     getVaultImageUrl, 

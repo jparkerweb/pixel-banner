@@ -1091,8 +1091,9 @@ export function createGeneralSettings(containerEl, plugin) {
         .setName('Image Property Format')
         .setDesc('Set the format for the banner property value.')
         .addDropdown(dropdown => dropdown
-            .addOption('![[image]]', '![[image]]')
+            .addOption('image', 'image')
             .addOption('[[image]]', '[[image]]')
+            .addOption('![[image]]', '![[image]]')
             .setValue(plugin.settings.imagePropertyFormat)
             .onChange(async (value) => {
                 try {

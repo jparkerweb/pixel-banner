@@ -100,7 +100,15 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
         plugin.settings.customBannerField[0] : 'banner');
 
     const format = plugin.settings.imagePropertyFormat;
-    const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
+    // Apply the format based on the user's setting
+    let bannerValue;
+    if (format === 'image') {
+        bannerValue = imageReference;  // Plain path
+    } else if (format === '[[image]]') {
+        bannerValue = `[[${imageReference}]]`;  // Wiki link
+    } else {  // format === '![[image]]'
+        bannerValue = `![[${imageReference}]]`;  // Embedded image
+    }
 
     // Use Obsidian's processFrontMatter API to properly update frontmatter
     await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
