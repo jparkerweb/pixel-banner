@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.12 - 2025-08-27
+#### 🐛 Fixed
+- Resolved inccorect `Pixel Banner Plus Server` URL
+
 ### v3.6.11 - 2025-08-27
 #### ✨ Added
 - New toggle to turn on/off `Pixel Banner Plus` in the main Pixel Banner select modal

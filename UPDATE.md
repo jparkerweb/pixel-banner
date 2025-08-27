@@ -100,6 +100,11 @@
 
 #### 📦 Updated
 - Added unquoted wiki-link support for Image Icons paths (e.g. `[[path/icon.png]]`)
+- Misc code cleanup
+
+### v3.6.12
+#### 🐛 Fixed
+- Resolved inccorect `Pixel Banner Plus Server` URL
 
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
