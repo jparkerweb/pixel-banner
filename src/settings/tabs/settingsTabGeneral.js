@@ -1091,8 +1091,9 @@ export function createGeneralSettings(containerEl, plugin) {
         .setName('Image Property Format')
         .setDesc('Set the format for the banner property value.')
         .addDropdown(dropdown => dropdown
-            .addOption('![[image]]', '![[image]]')
+            .addOption('image', 'image')
             .addOption('[[image]]', '[[image]]')
+            .addOption('![[image]]', '![[image]]')
             .setValue(plugin.settings.imagePropertyFormat)
             .onChange(async (value) => {
                 try {
@@ -1565,11 +1566,11 @@ export function createGeneralSettings(containerEl, plugin) {
         .setDesc('Set the default vertical offset for the banner icon')
         .addSlider(slider => slider
             .setLimits(-100, 100, 1)
-            .setValue(plugin.settings.bannerIconVeritalOffset)
+            .setValue(plugin.settings.bannerIconVerticalOffset)
             .setDynamicTooltip()
             .onChange(async (value) => {
                 try {
-                    plugin.settings.bannerIconVeritalOffset = value;
+                    plugin.settings.bannerIconVerticalOffset = value;
                     await plugin.saveSettings();
                 } catch (error) {
                     console.error('Failed to save settings:', error);
@@ -1580,10 +1581,10 @@ export function createGeneralSettings(containerEl, plugin) {
             .setTooltip('Reset to default')
             .onClick(async () => {
                 try {
-                    plugin.settings.bannerIconVeritalOffset = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+                    plugin.settings.bannerIconVerticalOffset = DEFAULT_SETTINGS.bannerIconVerticalOffset;
                     await plugin.saveSettings();
                     const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconVeritalOffset;
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconVerticalOffset;
                     const event = new Event('input', { bubbles: true, cancelable: true });
                     sliderInput.dispatchEvent(event);
                 } catch (error) {

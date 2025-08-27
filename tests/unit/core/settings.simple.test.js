@@ -32,7 +32,7 @@ vi.mock('@/settings/settings.js', () => ({
         bannerIconPaddingX: 0,
         bannerIconPaddingY: 0,
         bannerIconBorderRadius: 0,
-        bannerIconVeritalOffset: 0,
+        bannerIconVerticalOffset: 0,
         showReleaseNotes: true,
         folderImages: [],
         customBannerField: ['banner'],
@@ -63,7 +63,7 @@ vi.mock('@/settings/settings.js', () => ({
         customBannerIconPaddingXField: ['icon-padding-x'],
         customBannerIconPaddingYField: ['icon-padding-y'],
         customBannerIconBorderRadiusField: ['icon-border-radius'],
-        customBannerIconVeritalOffsetField: ['icon-vertical-offset'],
+        customBannerIconVerticalOffsetField: ['icon-vertical-offset'],
         customFlagColorField: ['flag-color']
     }
 }));
@@ -100,7 +100,7 @@ const DEFAULT_SETTINGS = {
     bannerIconPaddingX: 0,
     bannerIconPaddingY: 0,
     bannerIconBorderRadius: 0,
-    bannerIconVeritalOffset: 0,
+    bannerIconVerticalOffset: 0,
     showReleaseNotes: true,
     folderImages: [],
     customBannerField: ['banner'],
@@ -131,7 +131,7 @@ const DEFAULT_SETTINGS = {
     customBannerIconPaddingXField: ['icon-padding-x'],
     customBannerIconPaddingYField: ['icon-padding-y'],
     customBannerIconBorderRadiusField: ['icon-border-radius'],
-    customBannerIconVeritalOffsetField: ['icon-vertical-offset'],
+    customBannerIconVerticalOffsetField: ['icon-vertical-offset'],
     customFlagColorField: ['flag-color']
 };
 

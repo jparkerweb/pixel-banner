@@ -666,10 +666,10 @@ class FolderImageSetting extends Setting {
             .setName("Icon Vertical Offset")
             .addSlider(slider => slider
                 .setLimits(-100, 100, 1)
-                .setValue(this.folderImage.bannerIconVeritalOffset || this.plugin.settings.bannerIconVeritalOffset)
+                .setValue(this.folderImage.bannerIconVerticalOffset || this.plugin.settings.bannerIconVerticalOffset)
                 .setDynamicTooltip()
                 .onChange(async (value) => {
-                    this.folderImage.bannerIconVeritalOffset = value;
+                    this.folderImage.bannerIconVerticalOffset = value;
                     await this.plugin.saveSettings();
                 }));
     }

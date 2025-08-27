@@ -2,6 +2,13 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.11 - 2025-08-27
+#### ✨ Added
+- New toggle to turn on/off `Pixel Banner Plus` in the main Pixel Banner select modal
+
+#### 📦 Updated
+- Added unquoted wiki-link support for Image Icons paths (e.g. `[[path/icon.png]]`)
+
 ### v3.6.10 - 2025-08-25
 #### 🐛 Fixed
 - Icon images and emojis not being displayed properly

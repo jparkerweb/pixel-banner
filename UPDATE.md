@@ -94,6 +94,13 @@
 #### 🐛 Fixed
 - Icon images and emojis not being displayed properly
 
+### v3.6.11
+#### ✨ Added
+- New toggle to turn on/off `Pixel Banner Plus` in the main Pixel Banner select modal
+
+#### 📦 Updated
+- Added unquoted wiki-link support for Image Icons paths (e.g. `[[path/icon.png]]`)
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>

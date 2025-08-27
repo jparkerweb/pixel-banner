@@ -53,7 +53,7 @@ const DEFAULT_SETTINGS = {
     bannerIconPaddingX: 0,
     bannerIconPaddingY: 0,
     bannerIconBorderRadius: 0,
-    bannerIconVeritalOffset: 0,
+    bannerIconVerticalOffset: 0,
     showReleaseNotes: true
 };
 
@@ -95,7 +95,7 @@ vi.mock('../../../src/settings/settings.js', () => ({
         bannerIconPaddingX: 0,
         bannerIconPaddingY: 0,
         bannerIconBorderRadius: 0,
-        bannerIconVeritalOffset: 0,
+        bannerIconVerticalOffset: 0,
         showReleaseNotes: true
     },
     FolderSuggestModal: vi.fn().mockImplementation((app, callback) => ({
@@ -509,9 +509,17 @@ describe('settingsTabGeneral', () => {
             createGeneralSettings(containerEl, mockPlugin);
             
             const toggles = containerEl.querySelectorAll('input[type="checkbox"]');
-            const hideFieldsToggle = Array.from(toggles).find(toggle => 
-                toggle.parentElement.parentElement.textContent.includes('Hide Pixel Banner Fields')
-            );
+            const hideFieldsToggle = Array.from(toggles).find(toggle => {
+                // Walk up the DOM tree to find the setting element containing the text
+                let element = toggle.parentElement;
+                while (element && element !== containerEl) {
+                    if (element.textContent.includes('Hide Pixel Banner Fields')) {
+                        return true;
+                    }
+                    element = element.parentElement;
+                }
+                return false;
+            });
             
             expect(hideFieldsToggle).toBeTruthy();
         });
@@ -538,9 +546,17 @@ describe('settingsTabGeneral', () => {
             createGeneralSettings(containerEl, mockPlugin);
             
             const toggles = containerEl.querySelectorAll('input[type="checkbox"]');
-            const hideFieldsToggle = Array.from(toggles).find(toggle => 
-                toggle.parentElement.parentElement.textContent.includes('Hide Pixel Banner Fields')
-            );
+            const hideFieldsToggle = Array.from(toggles).find(toggle => {
+                // Walk up the DOM tree to find the setting element containing the text
+                let element = toggle.parentElement;
+                while (element && element !== containerEl) {
+                    if (element.textContent.includes('Hide Pixel Banner Fields')) {
+                        return true;
+                    }
+                    element = element.parentElement;
+                }
+                return false;
+            });
             
             const dependentSetting = containerEl.querySelector('.setting-dependent');
             expect(dependentSetting.classList.contains('is-disabled')).toBe(true);

@@ -9,7 +9,7 @@ import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafC
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
-import { getInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
+import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
@@ -74,6 +74,7 @@ export class PixelBannerPlugin extends Plugin {
     // -- add bindings for the utility functions --
     // --------------------------------------------
     getInputType(input, sourcePath = '') { return getInputType.call(this, input, sourcePath); }
+    getIconImageInputType(input, sourcePath = '') { return getIconImageInputType.call(this, input, sourcePath); }
     getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
     getPathFromMarkdownImage(link) { return getPathFromMarkdownImage.call(this, link); }
     getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
@@ -210,7 +211,7 @@ export class PixelBannerPlugin extends Plugin {
                     ...this.settings.customBannerIconPaddingXField,
                     ...this.settings.customBannerIconPaddingYField,
                     ...this.settings.customBannerIconBorderRadiusField,
-                    ...this.settings.customBannerIconVeritalOffsetField
+                    ...this.settings.customBannerIconVerticalOffsetField
                 ];
 
                 // console.log('🔎 Checking relevant fields:', relevantFields);
@@ -809,7 +810,7 @@ export class PixelBannerPlugin extends Plugin {
                         ...this.settings.customBannerIconPaddingXField,
                         ...this.settings.customBannerIconPaddingYField,
                         ...this.settings.customBannerIconBorderRadiusField,
-                        ...this.settings.customBannerIconVeritalOffsetField
+                        ...this.settings.customBannerIconVerticalOffsetField
                     ];
 
                     // Add hide class to matching fields

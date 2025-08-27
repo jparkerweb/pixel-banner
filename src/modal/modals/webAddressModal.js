@@ -209,6 +209,8 @@ export class WebAddressModal extends Modal {
                 // Update frontmatter with URL
                 await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                     const bannerField = this.plugin.settings.customBannerField[0];
+                    // Web URLs should not be formatted with wiki links, just use the raw URL
+                    // The imagePropertyFormat setting only applies to vault images
                     frontmatter[bannerField] = url;
                 });
                 

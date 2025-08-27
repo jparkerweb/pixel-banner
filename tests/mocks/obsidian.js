@@ -466,18 +466,41 @@ class TextAreaComponent {
 
 class ToggleComponent {
   constructor(containerEl) {
+    // Create a wrapper container that matches Obsidian's structure
+    this.container = document.createElement('div');
+    this.container.className = 'checkbox-container';
+    
+    // Create the actual toggle input
     this.toggleEl = document.createElement('input');
     this.toggleEl.type = 'checkbox';
-    containerEl.appendChild(this.toggleEl);
+    this.container.appendChild(this.toggleEl);
+    
+    // Append container to parent
+    containerEl.appendChild(this.container);
   }
 
   setValue(value) {
     this.toggleEl.checked = value;
+    // Update the container class based on checked state
+    if (value) {
+      this.container.classList.add('is-enabled');
+    } else {
+      this.container.classList.remove('is-enabled');
+    }
     return this;
   }
 
   onChange(callback) {
-    this.toggleEl.addEventListener('change', (e) => callback(e.target.checked));
+    this.toggleEl.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      // Update the container class when toggled
+      if (checked) {
+        this.container.classList.add('is-enabled');
+      } else {
+        this.container.classList.remove('is-enabled');
+      }
+      callback(checked);
+    });
     return this;
   }
 

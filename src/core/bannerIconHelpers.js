@@ -264,8 +264,17 @@ export async function handleSetBannerIconImage(plugin) {
                     });
                 }
                 
-                // Set the new banner icon image field
-                frontmatter[bannerIconImageField] = imagePath;
+                // Set the new banner icon image field with proper format
+                const format = plugin.settings.imagePropertyFormat;
+                let iconValue;
+                if (format === 'image') {
+                    iconValue = imagePath;  // Plain path
+                } else if (format === '[[image]]') {
+                    iconValue = `[[${imagePath}]]`;  // Wiki link
+                } else {  // format === '![[image]]'
+                    iconValue = `![[${imagePath}]]`;  // Embedded image
+                }
+                frontmatter[bannerIconImageField] = iconValue;
             });
 
                 // Wait for metadata update
