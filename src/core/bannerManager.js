@@ -35,15 +35,17 @@ async function addPixelBanner(plugin, el, ctx) {
     // Add pixel-banner class to the appropriate container
     if (!isEmbedded && !isHoverPopover && viewContent.classList.contains('view-content')) {
         // set padding-top for source & preview elements as inline style for FAST rendering!
+        // Use the actual contentStartPosition value directly
+        const initialContentStart = contentStartPosition || plugin.settings.contentStartPosition || 355;
         const sourceEl = viewContent.querySelector(':scope > .markdown-source-view .cm-sizer');
         if (sourceEl) {
-            sourceEl.style.paddingTop = 'var(--pixel-banner-content-start, 355px)';
+            sourceEl.style.paddingTop = `${initialContentStart}px`;
             sourceEl.style.paddingBottom = '0px !important';
         }
         
         const previewEl = viewContent.querySelector(':scope > .markdown-reading-view .markdown-preview-sizer');
         if (previewEl) {
-            previewEl.style.paddingTop = 'var(--pixel-banner-content-start, 355px)';
+            previewEl.style.paddingTop = `${initialContentStart}px`;
             previewEl.style.paddingBottom = '0px !important';
         }
         
@@ -1581,6 +1583,18 @@ function applyContentStartPosition(plugin, el, contentStartPosition) {
         return;
     }
     el.style.setProperty('--pixel-banner-content-start', `${contentStartPosition}px`);
+    
+    // Update the inline padding-top styles that reference this variable
+    // This ensures the content start position updates immediately
+    const sourceEl = el.querySelector(':scope > .markdown-source-view .cm-sizer');
+    if (sourceEl) {
+        sourceEl.style.paddingTop = `${contentStartPosition}px`;
+    }
+    
+    const previewEl = el.querySelector(':scope > .markdown-reading-view .markdown-preview-sizer');
+    if (previewEl) {
+        previewEl.style.paddingTop = `${contentStartPosition}px`;
+    }
 }
 
 
