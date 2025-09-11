@@ -553,7 +553,7 @@ export class GenerateAIBannerModal extends Modal {
                             removeButton.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                this.selectedFiles[controlKey].splice(index, 1);
+                                this.selectedFiles[controlKey] = this.selectedFiles[controlKey].filter((_, i) => i !== index);
                                 updatePreviewDisplay();
                             });
                         });
