@@ -2,6 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.13 - 2025-09-11
+#### ✨ Added
+- Support for Multiple Image Reference for new AI Image Generation models
+  - `Nano Banana`
+  - `Seedream 4`
+
 ### v3.6.12 - 2025-08-27
 #### 🐛 Fixed
 - Resolved incorrect `Pixel Banner Plus Server` URL

@@ -106,6 +106,12 @@
 #### 🐛 Fixed
 - Resolved incorrect `Pixel Banner Plus Server` URL
 
+### v3.6.13
+#### ✨ Added
+- Support for Multiple Image Reference for new AI Image Generation models
+  - `Nano Banana`
+  - `Seedream 4`
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
