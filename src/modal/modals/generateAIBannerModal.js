@@ -612,8 +612,6 @@ export class GenerateAIBannerModal extends Modal {
                         } else {
                             updatePreviewDisplay();
                         }
-                        
-                        updatePreviewDisplay();
                     }
                     
                     // Clear the file input so same files can be selected again if needed
