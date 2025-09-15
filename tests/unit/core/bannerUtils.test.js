@@ -160,8 +160,51 @@ describe('bannerUtils', () => {
                 if (path === 'test-image.jpg') return imageFile;
                 return null;
             });
-            
+
             const result = getInputType.call(testContext, 'test-image.jpg');
+            expect(result).toBe('vaultPath');
+        });
+
+        it('should detect WebP files as vaultPath', () => {
+            // Test WebP file extension support
+            const webpFile = new TFile('test-image.webp');
+            webpFile.extension = 'webp';
+            testContext.app.vault.files.set('test-image.webp', webpFile);
+            testContext.app.vault.getAbstractFileByPath = vi.fn((path) => {
+                if (path === 'test-image.webp') return webpFile;
+                return null;
+            });
+
+            const result = getInputType.call(testContext, 'test-image.webp');
+            expect(result).toBe('vaultPath');
+        });
+
+        it('should detect quoted WebP files as vaultPath', () => {
+            // Test quoted WebP file paths
+            const webpFile = new TFile('folder/image.webp');
+            webpFile.extension = 'webp';
+            testContext.app.vault.files.set('folder/image.webp', webpFile);
+            testContext.app.vault.getAbstractFileByPath = vi.fn((path) => {
+                if (path === 'folder/image.webp') return webpFile;
+                return null;
+            });
+
+            expect(getInputType.call(testContext, '"folder/image.webp"')).toBe('vaultPath');
+            expect(getInputType.call(testContext, "'folder/image.webp'")).toBe('vaultPath');
+        });
+
+        it('should detect WebP files via getFirstLinkpathDest', () => {
+            // Test partial path resolution for WebP files
+            const webpFile = new TFile('images/banners/sunset.webp');
+            webpFile.extension = 'webp';
+
+            testContext.app.vault.getAbstractFileByPath = vi.fn(() => null); // Exact path fails
+            testContext.app.metadataCache.getFirstLinkpathDest = vi.fn((path) => {
+                if (path === 'sunset.webp') return webpFile;
+                return null;
+            });
+
+            const result = getInputType.call(testContext, 'sunset.webp');
             expect(result).toBe('vaultPath');
         });
 
@@ -274,6 +317,20 @@ describe('bannerUtils', () => {
         it('should return keyword for non-existent files', () => {
             const result = getIconImageInputType.call(testContext, 'nonexistent-file.png');
             expect(result).toBe('keyword');
+        });
+
+        it('should detect WebP files as vaultPath', () => {
+            // Test WebP file extension support in icon image input type
+            const webpIcon = new TFile('icons/icon.webp');
+            webpIcon.extension = 'webp';
+            testContext.app.vault.files.set('icons/icon.webp', webpIcon);
+            testContext.app.vault.getAbstractFileByPath = vi.fn((path) => {
+                if (path === 'icons/icon.webp') return webpIcon;
+                return testContext.app.vault.files.get(path) || null;
+            });
+
+            const result = getIconImageInputType.call(testContext, 'icons/icon.webp');
+            expect(result).toBe('vaultPath');
         });
     });
 

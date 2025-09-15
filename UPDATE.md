@@ -112,6 +112,10 @@
   - `Nano Banana`
   - `Seedream 4`
 
+### v3.6.14
+#### 🐛 Fixed
+- Resolved issue with `.webp` images not being displayed
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>

@@ -36,19 +36,19 @@ function getInputType(input, sourcePath = '') {
         // First try exact path match
         const file = this.app.vault.getAbstractFileByPath(cleanedInput);
         if (file && 'extension' in file) {
-            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
+            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/i)) {
                 return 'vaultPath';
             }
         }
-        
+
         // If exact path doesn't work, try resolving as a partial path using getFirstLinkpathDest
         const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanedInput, sourcePath);
         if (resolvedFile && 'extension' in resolvedFile) {
-            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
+            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/i)) {
                 return 'vaultPath';
             }
         }
-        
+
         // If the file doesn't exist in the vault or isn't an image, treat it as a keyword
         return 'keyword';
     }
@@ -183,20 +183,20 @@ function getIconImageInputType(input, sourcePath = '') {
         // First try exact path match
         const file = this.app.vault.getAbstractFileByPath(cleanedInput);
         if (file && 'extension' in file) {
-            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
+            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/i)) {
                 return 'vaultPath';
             }
         }
-        
+
         // For icon images, be more aggressive about trying partial path resolution
         // Try resolving as a partial path using getFirstLinkpathDest
         const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanedInput, sourcePath);
         if (resolvedFile && 'extension' in resolvedFile) {
-            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|avif)$/i)) {
+            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif)$/i)) {
                 return 'vaultPath';
             }
         }
-        
+
         // If no file found, treat as keyword (which will be ignored for icon images)
         return 'keyword';
     }

@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.14 - 2025-09-15
+#### 🐛 Fixed
+- Resolved issue with `.webp` images not being displayed
+
 ### v3.6.13 - 2025-09-11
 #### ✨ Added
 - Support for Multiple Image Reference for new AI Image Generation models
