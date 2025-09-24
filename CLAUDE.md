@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is the Pixel Banner plugin for Obsidian - a feature-rich plugin that adds customizable banner images to notes. The plugin supports AI-generated banners via Pixel Banner Plus, local images/videos, and integrations with multiple image APIs (Pexels, Pixabay, Flickr, Unsplash).
+Pixel Banner is an Obsidian plugin that adds customizable banner images to notes. It supports AI-generated banners via Pixel Banner Plus, local images/videos, and integrations with multiple image APIs (Pexels, Pixabay, Flickr, Unsplash).
+
+**Target Obsidian Version**: 1.6.0+
+**Language**: JavaScript (no TypeScript)
 
 ## Essential Commands
 
@@ -13,7 +16,7 @@ This is the Pixel Banner plugin for Obsidian - a feature-rich plugin that adds c
 # Install dependencies
 npm install
 
-# Build and copy to test vault (primary development command)
+# Build and copy to test vault (PRIMARY DEVELOPMENT COMMAND)
 npm run test-build
 
 # Full build (includes creating example-vault.zip)
@@ -25,7 +28,7 @@ npm run clean
 
 ### Testing
 ```bash
-# Run all tests
+# Run all tests (671+ tests)
 npm test
 
 # Run tests with UI
@@ -37,20 +40,28 @@ npm test:coverage
 # Run a single test file
 npx vitest tests/unit/core/bannerUtils.test.js
 
+# Run tests matching a pattern
+npx vitest -t "getInputType"
+
 # Run tests in watch mode
 npx vitest --watch
+
+# Debug a specific test
+npx vitest tests/unit/core/bannerUtils.test.js --reporter=verbose
 ```
 
-- Uses Vitest test framework with happy-dom for DOM testing
-- Test files located in `tests/` directory
-- Development testing also done via the `.vault` directory which contains a test Obsidian vault
-- Built files are automatically copied to `.vault/pixel-banner-example/.obsidian/plugins/pexels-banner/`
+**Test Environment**:
+- Framework: Vitest with happy-dom for DOM testing
+- Test location: `tests/` directory (unit and integration)
+- Test vault: `.vault/pixel-banner-example/` for manual testing
+- Built files auto-copied to: `.vault/pixel-banner-example/.obsidian/plugins/pexels-banner/`
 
 ### Build System
-- Uses **esbuild** for bundling (configured in `scripts/esbuild.config.mjs`)
-- Targets ES2018
-- Automatically processes `UPDATE.md` into release notes during build
-- No TypeScript, linting, or formatting tools configured
+- **Bundler**: esbuild (configured in `scripts/esbuild.config.mjs`)
+- **Target**: ES2018
+- **No linting/formatting tools** - maintain consistent style manually
+- Processes `UPDATE.md` into release notes during build
+- Uses `scripts/copy-build.mjs` to copy built files to test vault
 
 ## Architecture
 
@@ -68,14 +79,23 @@ npx vitest --watch
 7. **Caching**: `cacheHelpers.js` manages image caching for performance
 
 ### Frontmatter Processing
-The plugin supports multiple frontmatter formats for custom banners:
-- **Wiki links**: `[[image.jpg]]`, `![[image.jpg]]` (quoted or unquoted)
-- **Markdown images**: `![](image.jpg)` (quoted or unquoted)  
-- **Plain paths**: `folder/image.jpg`, `image.jpg` (quoted or unquoted)
+
+**Supported Input Formats** (plugin can READ all):
+- **Plain paths**: `image.jpg`, `folder/image.jpg` (Make.md compatible)
+- **Wiki links**: `[[image.jpg]]`, `![[image.jpg]]`
+- **Markdown images**: `![](image.jpg)`
 - **URLs**: `https://example.com/image.jpg`
+- **file:// protocol**: `file:///C:/path/image.jpg`
 - **Keywords**: `sunset beach` (triggers API search)
 
-Path resolution logic in `bannerUtils.js:getInputType()`:
+**Image Property Format Setting** (how plugin SAVES):
+- `image` - Plain format without brackets (Make.md compatible)
+- `[[image]]` - Wiki link format
+- `![[image]]` - Embedded wiki link format
+- Configured in Settings → General → Image Property Format
+- Default: `image` (plain format)
+
+**Path Resolution Logic** (`bannerUtils.js:getInputType()`):
 1. Check for wiki/markdown syntax first (before cleaning)
 2. Clean quotes and syntax
 3. Check for file:/// protocol
@@ -118,10 +138,12 @@ Key modals:
 - **No linting/formatting tools** - maintain consistent style manually
 
 ### Important Practices
-1. Update `inventory.md` when modifying files (developer documentation)
-2. Update `UPDATE.md` for user-facing changes (shown in plugin)
-3. Test changes in the `.vault` test environment before committing
-4. Ensure compatibility with both desktop and mobile Obsidian
+1. **Always update `inventory.md`** when modifying files (required by .cursor/rules)
+2. Update `UPDATE.md` for user-facing changes (shown in plugin UI)
+3. Update `CHANGELOG.md` with technical changes
+4. Test changes in the `.vault` test environment before committing
+5. Ensure compatibility with both desktop and mobile Obsidian
+6. Follow camelCase for variables/functions, PascalCase for components
 
 ### API Keys and Services
 - Plugin uses multiple image APIs requiring API keys
@@ -137,22 +159,13 @@ Key modals:
 - Mocks in `tests/mocks/obsidian.js` simulate Obsidian API
 
 ### Key Test Files
-- `bannerUtils.test.js` - Tests input type detection and path resolution
-- `frontmatterUtils.test.js` - Tests frontmatter parsing and updates
-- `bannerWorkflow.test.js` - Tests complete banner display workflows
-- `modalWorkflows.test.js` - Tests modal interactions
-
-### Running Specific Tests
-```bash
-# Run tests for a specific component
-npx vitest tests/unit/core/bannerUtils.test.js
-
-# Run tests matching a pattern
-npx vitest -t "getInputType"
-
-# Debug a specific test
-npx vitest tests/unit/core/bannerUtils.test.js --reporter=verbose
-```
+- `bannerUtils.test.js` - Input type detection and path resolution
+- `frontmatterUtils.test.js` - Frontmatter parsing and updates (includes Image Property Format tests)
+- `imagePropertyFormat.test.js` - Make.md compatibility tests
+- `bannerWorkflow.test.js` - Complete banner display workflows
+- `modalWorkflows.test.js` - Modal interactions
+- `apiService.test.js` - External API integrations
+- `cacheHelpers.test.js` - Image caching functionality
 
 ## Common Development Tasks
 
@@ -173,7 +186,16 @@ npx vitest tests/unit/core/bannerUtils.test.js --reporter=verbose
 1. Parsing logic in `src/utils/frontmatterUtils.js`
 2. Input type detection in `src/core/bannerUtils.js:getInputType()`
 3. Path resolution in `getPathFromObsidianLink()` and `getPathFromMarkdownImage()`
-4. Test frontmatter handling in `tests/unit/utils/frontmatterUtils.test.js`
+4. Image Property Format setting controls save format (`imagePropertyFormat`)
+5. Test frontmatter handling in `tests/unit/utils/frontmatterUtils.test.js`
+6. Test Make.md compatibility in `tests/unit/utils/imagePropertyFormat.test.js`
+
+### Adding Image Property Format Support
+When adding new formats, update:
+1. `src/settings/tabs/settingsTabGeneral.js` - Add dropdown option
+2. `src/utils/frontmatterUtils.js` - Handle format in `updateNoteFrontmatter()`
+3. `src/core/settings.js` - Add to DEFAULT_SETTINGS if needed
+4. Add tests in `tests/unit/utils/frontmatterUtils.test.js`
 
 ### Debugging Tips
 - Use Obsidian's Developer Tools (Ctrl+Shift+I)
@@ -184,7 +206,24 @@ npx vitest tests/unit/core/bannerUtils.test.js --reporter=verbose
 
 ## Release Process
 1. Update version in `manifest.json` and `package.json`
-2. Update `CHANGELOG.md` with release notes
-3. Update `UPDATE.md` for user-facing changes (shown in plugin)
-4. Run `npm run build` to create release bundle
-5. Test in `.vault` environment before releasing
+2. Update `CHANGELOG.md` with technical release notes
+3. Update `UPDATE.md` for user-facing changes (shown in plugin UI)
+4. Update `inventory.md` if files were added/removed/modified
+5. Run `npm run build` to create release bundle and example-vault.zip
+6. Test thoroughly in `.vault` environment before releasing
+
+## Plugin Architecture Notes
+
+### File Structure
+- `src/core/` - Main plugin logic, banner management, event handling
+- `src/modal/` - UI modals for banner selection, AI generation, settings
+- `src/services/` - API integrations (Pexels, Pixabay, Flickr, Unsplash, AI)
+- `src/settings/` - Plugin settings and configuration UI
+- `src/utils/` - Utility functions (frontmatter, caching, constants)
+- `styles.css` - Plugin CSS (banner styling, modal UI)
+
+### Critical Dependencies
+- **Obsidian API**: Plugin extends `Plugin` class, uses `Modal`, `Setting`, workspace events
+- **Image APIs**: Requires API keys stored in settings (never in code)
+- **File System**: Heavy use of Obsidian's vault API for local image handling
+- **DOM Manipulation**: Direct DOM updates for banner insertion/removal
