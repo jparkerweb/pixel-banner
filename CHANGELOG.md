@@ -19,6 +19,7 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 ### v3.6.11 - 2025-08-27
 #### ✨ Added
 - New toggle to turn on/off `Pixel Banner Plus` in the main Pixel Banner select modal
+- **Plain image format support**: Added `image` option to Image Property Format setting (without brackets), improving compatibility with Make.md and other plugins
 
 #### 📦 Updated
 - Added unquoted wiki-link support for Image Icons paths (e.g. `[[path/icon.png]]`)

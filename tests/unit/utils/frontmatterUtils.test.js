@@ -292,6 +292,51 @@ describe('frontmatterUtils', () => {
             expect(frontmatter.banner).toBe('[[images/banner.jpg]]');
         });
 
+        it('should support plain image format (without brackets)', async () => {
+            mockPlugin.settings.imagePropertyFormat = 'image';
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
+
+            await updateNoteFrontmatter('images/banner.jpg', mockPlugin);
+
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalled();
+
+            // Verify format is plain path without brackets
+            const callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            const frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('images/banner.jpg');
+        });
+
+        it('should support all three image property formats', async () => {
+            const activeFile = new TFile('test.md');
+            mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
+
+            // Test plain format
+            mockPlugin.settings.imagePropertyFormat = 'image';
+            await updateNoteFrontmatter('test-plain.jpg', mockPlugin);
+            let callback = mockApp.fileManager.processFrontMatter.mock.calls[0][1];
+            let frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('test-plain.jpg');
+
+            // Test wiki link format
+            mockPlugin.settings.imagePropertyFormat = '[[image]]';
+            await updateNoteFrontmatter('test-wiki.jpg', mockPlugin);
+            callback = mockApp.fileManager.processFrontMatter.mock.calls[1][1];
+            frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('[[test-wiki.jpg]]');
+
+            // Test embedded wiki link format
+            mockPlugin.settings.imagePropertyFormat = '![[image]]';
+            await updateNoteFrontmatter('test-embedded.jpg', mockPlugin);
+            callback = mockApp.fileManager.processFrontMatter.mock.calls[2][1];
+            frontmatter = {};
+            callback(frontmatter);
+            expect(frontmatter.banner).toBe('![[test-embedded.jpg]]');
+        });
+
         it('should use custom field name when provided', async () => {
             const activeFile = new TFile('test.md');
             mockApp.workspace.getActiveFile.mockReturnValue(activeFile);
