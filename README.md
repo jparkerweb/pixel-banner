@@ -166,6 +166,20 @@ banner: nature, landscape, mountains
 - **YAML Limitation**: Unquoted values starting with `!` (like `banner: ![[image.jpg]]`) don't work due to YAML parsing rules. Always quote them: `banner: "![[image.jpg]]"`
 - **Video Support**: All formats work with video files (.mp4, .mov) as well as images
 
+### 🎯 Image Property Format Setting
+
+Pixel Banner allows you to choose how banner image paths are saved in your frontmatter when using the GUI. This setting is especially useful for compatibility with other plugins like Make.md (or any other plugin that prefers the plain path format).
+
+To configure this:
+1. Go to **Settings → Pixel Banner → General** tab
+2. Find the **Image Property Format** dropdown
+3. Choose your preferred format:
+   - `image` - Plain path format (e.g., `banner: image.jpg`) - **Compatible with Make.md and other plugins that prefer the plain path format**
+   - `[[image]]` - Wiki link format (e.g., `banner: [[image.jpg]]`)
+   - `![[image]]` - Embedded wiki link format (e.g., `banner: ![[image.jpg]]`)
+
+**Note**: The plugin can **read** all three formats regardless of this setting. This setting only affects how new banner paths are **saved** to frontmatter when inserted through the GUI.
+
 ## 🎬 Working with Video Banners
 
 ### Adding Video Banners

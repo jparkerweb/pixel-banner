@@ -3,6 +3,7 @@
 </a>
 
 ## 🎉 What's New
+
 ### v3.6.0
 #### ✨ Added
 - Support for 🎬 Video Banners!
@@ -97,6 +98,7 @@
 ### v3.6.11
 #### ✨ Added
 - New toggle to turn on/off `Pixel Banner Plus` in the main Pixel Banner select modal
+- **Plain image format support**: Added `image` option to Image Property Format setting (without brackets), improving compatibility with Make.md and other plugins
 
 #### 📦 Updated
 - Added unquoted wiki-link support for Image Icons paths (e.g. `[[path/icon.png]]`)
