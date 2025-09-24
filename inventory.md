@@ -1,8 +1,16 @@
-# Inventory of Pixel Banner Plugin
+# Pixel Banner Plugin Inventory
 
-**Last Updated:** July 19, 2025
+**Last Updated:** January 21, 2025
 
-Below is a concise overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key points in the codebase.
+Below is a comprehensive overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key components in the codebase.
+
+## Overview
+
+Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner images to notes. It supports AI-generated banners via Pixel Banner Plus, local images/videos, and integrations with multiple image APIs (Pexels, Pixabay, Flickr, Unsplash).
+
+**Target Obsidian Version:** 1.6.0+
+**Language:** JavaScript (no TypeScript)
+**Total Source Files:** ~45 JavaScript files
 
 ---
 
