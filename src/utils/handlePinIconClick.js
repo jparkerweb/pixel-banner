@@ -10,9 +10,9 @@ import { updateNoteFrontmatter, updateNoteFrontmatterWithUrl } from './frontmatt
 // ----------------------------------------------------------------------------
 // -- helper for pinning an image once chosen from UI or loaded from keyword --
 // ----------------------------------------------------------------------------
-export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null, showChoiceModal = true) {
+export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null, showChoiceModal = true, noteFile = null) {
     let choice = 'local'; // Default to local save behavior
-    
+
     // Only show choice modal if explicitly requested (e.g., from pin icon or command palette)
     if (showChoiceModal) {
         choice = await new Promise((resolve) => {
@@ -35,7 +35,20 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
     } else {
         // Original behavior: save locally
         const imageBlob = await fetchImage(imageUrl);
-        const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
+
+        // Determine suggested filename based on settings and note context
+        let finalSuggestedFilename = suggestedFilename;
+        // When useNoteFilenameForBanner is enabled, it overrides any suggested filename
+        if (plugin.settings.useNoteFilenameForBanner && noteFile) {
+            // Get the note's basename without extension
+            const noteBasename = noteFile.basename;
+            // Check if filename starts with "Untitled" - if so, fall back to suggestedFilename or default
+            if (!noteBasename.startsWith('Untitled')) {
+                finalSuggestedFilename = noteBasename;
+            }
+        }
+
+        const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, finalSuggestedFilename);
         const finalPath = await waitForFileRename(file, plugin);
 
         if (!finalPath) {

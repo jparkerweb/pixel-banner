@@ -2,6 +2,15 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.7.0 - 2025-11-16
+#### ✨ Added
+- **Use Note Filename for Banner Images**: New setting that automatically uses the current note's filename as the default filename when saving banner images
+  - When enabled, saved banners will be named after the note they belong to (e.g., `My Project Note.jpg` instead of `pixel-banner-image.jpg`)
+  - Works with all save methods: pin icon, AI generation, and Plus Collection downloads
+  - Automatically falls back to default filename if the note is named "Untitled" or has no name
+  - Pre-fills the filename (still editable in the save dialog)
+  - Located in Settings → General tab
+
 ### v3.6.16 - 2025-11-15
 #### 🐛 Fixed
 - Fixed an occasional error that could prevent banners from displaying correctly

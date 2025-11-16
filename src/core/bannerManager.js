@@ -619,7 +619,7 @@ async function addPixelBanner(plugin, el, ctx) {
                             return;
                         }
                         const imageUrlToPin = typeof currentImage === 'object' && currentImage.url ? currentImage.url : currentImage;
-                        await handlePinIconClick(imageUrlToPin, plugin);
+                        await handlePinIconClick(imageUrlToPin, plugin, null, null, true, file);
                     } catch (error) {
                         console.error('Error pinning image:', error);
                         new Notice('Failed to pin the image.');

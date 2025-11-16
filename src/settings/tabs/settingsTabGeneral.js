@@ -334,6 +334,37 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
+    // Add the useNoteFilenameForBanner setting
+    const useNoteFilenameForBannerSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Use Note Filename for Banner Images')
+        .setDesc('When saving banner images, automatically use the note\'s filename as the default image filename')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.useNoteFilenameForBanner)
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.useNoteFilenameForBanner = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.useNoteFilenameForBanner = DEFAULT_SETTINGS.useNoteFilenameForBanner;
+                    await plugin.saveSettings();
+
+                    const toggleComponent = useNoteFilenameForBannerSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.useNoteFilenameForBanner);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
     // Add the defaultSelectImagePath setting
     const defaultSelectImagePathSetting = new Setting(SelectImageSettingsGroup)
         .setName('Default Select Image Path')

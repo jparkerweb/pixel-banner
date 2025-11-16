@@ -344,11 +344,11 @@ export class PixelBannerPlugin extends Plugin {
 
                 const inputType = this.getInputType(bannerImage);
                 const canPin = imageUrl && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon;
-                
+
                 if (checking) return canPin;
 
                 if (canPin) {
-                    setTimeout(() => handlePinIconClick(imageUrl, this, usedField), 0);
+                    setTimeout(() => handlePinIconClick(imageUrl, this, usedField, null, true, activeView.file), 0);
                 }
                 return true;
             }

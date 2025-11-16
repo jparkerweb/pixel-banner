@@ -100,12 +100,14 @@ export class PixelBannerStoreModal extends Modal {
     // Download and save banner (handles both images and videos)
     async downloadAndSaveBanner(data, filename) {
         try {
+            // Get the active file for note context
+            const activeFile = this.plugin.app.workspace.getActiveFile();
             if (data.fileType === 'video') {
                 // Handle video file with user folder/filename selection
                 await this.saveVideoFileWithPrompts(data.base64Image, filename);
             } else {
                 // Handle image file (existing behavior)
-                await handlePinIconClick(data.base64Image, this.plugin, null, filename.replace(/\.[^/.]+$/, ''), false);
+                await handlePinIconClick(data.base64Image, this.plugin, null, filename.replace(/\.[^/.]+$/, ''), false, activeFile);
             }
         } catch (error) {
             console.error('Error saving banner:', error);

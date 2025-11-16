@@ -46,6 +46,7 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - **Image Shuffling**: Automatically rotate through images in specified folders.
 - **Direct Children Option**: Apply settings only to immediate folder contents.
 - **Default Saved Banners Folder**: Configurable default location for saving downloaded banners from the collection or pinned from APIs.
+- **Use Note Filename for Banner Images**: Automatically name saved banner images after the note they belong to for better organization.
 - **File Extension Preservation**: Automatically saves banners with correct file extensions (.jpg, .png, .gif, .svg, .mp4, .mov).
 
 ### 🎬 Video Banner Features
