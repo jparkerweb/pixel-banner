@@ -253,6 +253,13 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             desc: 'Set custom field names for the banner icon image alignment in frontmatter',
             values: 'left, right',
             placeholder: 'banner-icon-image-alignment, icon-image-alignment'
+        },
+        {
+            setting: 'customBannerConfettiField',
+            name: 'Banner Confetti Field Names',
+            desc: 'Set custom field names for the banner confetti effect in frontmatter',
+            values: 'type:snow, type:leaves, type:fireworks',
+            placeholder: 'banner-confetti, confetti, banner-effect'
         }
     ];
 

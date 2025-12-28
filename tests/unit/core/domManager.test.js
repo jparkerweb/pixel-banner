@@ -87,6 +87,7 @@ describe('domManager', () => {
                 customBannerIconBorderRadiusField: ['icon-border-radius'],
                 customBannerIconVerticalOffsetField: ['icon-vertical-offset'],
                 customFlagColorField: ['flag-color'],
+                customBannerConfettiField: ['banner-confetti'],
                 hidePixelBannerFields: true,
                 hidePropertiesSectionIfOnlyBanner: false,
                 hideEmbeddedNoteTitles: false,

@@ -712,6 +712,182 @@
 }
 
 
+/* ========================== */
+/* == Confetti Modal Styles == */
+/* ========================== */
+.confetti-modal {
+    max-width: 600px;
+    padding: 16px;
+}
+
+.confetti-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 10px;
+}
+
+.confetti-modal-title {
+    margin: 0;
+}
+
+.confetti-modal .modified-indicator {
+    color: var(--text-warning);
+    font-size: 0.9em;
+}
+
+.confetti-modal .section-header {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: var(--text-muted);
+}
+
+.confetti-modal .confetti-section {
+    margin-bottom: 15px;
+}
+
+.confetti-modal .color-swatches {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.confetti-modal .color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid var(--background-modifier-border);
+    position: relative;
+    transition: transform 0.1s ease;
+}
+
+.confetti-modal .color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.confetti-modal .color-swatch:hover .remove-color {
+    display: flex;
+}
+
+.confetti-modal .color-input-hidden {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.confetti-modal .remove-color {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 18px;
+    height: 18px;
+    background-color: var(--text-error);
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.confetti-modal .add-color {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px dashed var(--background-modifier-border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+}
+
+.confetti-modal .add-color:hover {
+    border-color: var(--interactive-accent);
+    color: var(--interactive-accent);
+    transform: scale(1.1);
+}
+
+.confetti-modal .confetti-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.confetti-modal .confetti-reset-button {
+    background-color: var(--background-modifier-border);
+    color: var(--text-normal);
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    margin-right: auto;
+}
+
+.confetti-modal .confetti-reset-button:hover {
+    background-color: var(--background-modifier-border-hover);
+}
+
+.confetti-modal .confetti-cancel-button {
+    background-color: var(--background-modifier-border);
+    color: var(--text-normal);
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.confetti-modal .confetti-cancel-button:hover {
+    background-color: var(--background-modifier-border-hover);
+}
+
+.confetti-modal .confetti-apply-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.confetti-modal .confetti-apply-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.confetti-preview-canvas {
+    border-radius: var(--radius-l);
+}
+
+/* Mobile responsive for confetti modal */
+@media screen and (max-width: 640px) {
+    .confetti-modal .confetti-actions {
+        flex-direction: column;
+    }
+    .confetti-modal .confetti-reset-button {
+        margin-right: 0;
+    }
+    .confetti-modal .confetti-actions button {
+        width: 100%;
+    }
+}
+
+
 /* ========================= */
 /* == misc helper classes == */
 /* ========================= */
@@ -741,3 +917,16 @@
 .width-100 { width: 100% !important; }
 
 .cursor-pointer { cursor: pointer !important; }
+
+/* =============================== */
+/* == Confetti Canvas Styles == */
+/* =============================== */
+.pixel-banner-confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+}

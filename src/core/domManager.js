@@ -111,7 +111,8 @@ function updateFieldVisibility(view) {
         ...this.settings.customBannerIconPaddingYField,
         ...this.settings.customBannerIconBorderRadiusField,
         ...this.settings.customBannerIconVerticalOffsetField,
-        ...this.settings.customFlagColorField
+        ...this.settings.customFlagColorField,
+        ...this.settings.customBannerConfettiField
     ];
 
     const propertiesContainer = view.contentEl.querySelector('.metadata-container');

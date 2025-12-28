@@ -17,6 +17,9 @@
     "clean": "npx rimraf node_modules package-lock.json && npm install",
     "prepare": "husky"
   },
+  "dependencies": {
+    "canvas-confetti": "^1.9.3"
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^3.2.4",

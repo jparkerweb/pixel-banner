@@ -2,6 +2,15 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.8.0 - 2025-12-23
+#### ✨ Added
+- **Confetti/Particle Effects**: Add animated particle effects to notes using the `banner-confetti` frontmatter field
+  - 14 built-in presets: snow, snowflakes, leaves, rain_light, rain_heavy, space, aliens, fireworks, confetti, hearts, sparkles, pop_rocks, crystals, bubbles
+  - Customizable via ConfettiModal (accessible from Target Position modal)
+  - Custom SVG shapes and emoji particle support
+  - Settings: custom field names, mobile disable option
+  - Respects user's reduced motion preference for accessibility
+
 ### v3.7.0 - 2025-11-16
 #### ✨ Added
 - **Use Note Filename for Banner Images**: New setting that automatically uses the current note's filename as the default filename when saving banner images

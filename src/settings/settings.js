@@ -50,6 +50,7 @@ const DEFAULT_SETTINGS = {
     customBannerIconVerticalOffsetField: ['icon-y'],
     customBannerIconImageAlignmentField: ['banner-icon-image-alignment'],
     customFlagColorField: ['pixel-banner-flag-color'],
+    customBannerConfettiField: ['banner-confetti'],
     folderImages: [],
     contentStartPosition: 355,
     imageDisplay: 'cover',
@@ -97,6 +98,7 @@ const DEFAULT_SETTINGS = {
     bannerIconImageAlignment: 'left',
     openTargetingModalAfterSelectingBannerOrIcon: true,
     enableDailyGame: false,
+    confettiDisableOnMobile: false,
 };
 
 class FolderSuggestModal extends FuzzySuggestModal {

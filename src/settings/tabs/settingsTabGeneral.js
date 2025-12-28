@@ -1083,6 +1083,39 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
+    // Disable Confetti on Mobile setting
+    new Setting(containerEl)
+        .setName('Disable Confetti on Mobile')
+        .setDesc('Turn off confetti effects on mobile devices for better performance')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.confettiDisableOnMobile)
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.confettiDisableOnMobile = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.confettiDisableOnMobile = DEFAULT_SETTINGS.confettiDisableOnMobile;
+                    await plugin.saveSettings();
+
+                    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
+                    const toggleEl = checkboxContainer.querySelector('input');
+                    if (toggleEl) {
+                        toggleEl.checked = DEFAULT_SETTINGS.confettiDisableOnMobile;
+                        checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.confettiDisableOnMobile);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
     // Add the showViewImageIcon setting
     const showViewImageIconSetting = new Setting(containerEl)
         .setName('Show View Image Icon')

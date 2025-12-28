@@ -4,6 +4,15 @@
 
 ## 🎉 What's New
 
+### v3.8.0
+#### ✨ Added
+- **Confetti/Particle Effects**: Add animated effects to your notes!
+  - Use `banner-confetti: type:snow` (or any preset) in frontmatter
+  - 14 presets available: snow, snowflakes, leaves, rain, fireworks, confetti, hearts, sparkles, and more
+  - Customize colors, speed, size, and other properties
+  - Access via the 🎊 button in the Target Position modal
+  - Respects reduced motion preferences for accessibility
+
 ### v3.7.0
 #### ✨ Added
 - **Use Note Filename for Banner Images**: New setting that automatically uses the current note's filename as the default filename when saving banner images

@@ -1,6 +1,6 @@
 # Pixel Banner Plugin Inventory
 
-**Last Updated:** January 21, 2025
+**Last Updated:** December 23, 2025
 
 Below is a comprehensive overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key components in the codebase.
 
@@ -10,7 +10,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 
 **Target Obsidian Version:** 1.6.0+
 **Language:** JavaScript (no TypeScript)
-**Total Source Files:** ~45 JavaScript files
+**Total Source Files:** ~50 JavaScript files
 
 ---
 
@@ -243,10 +243,58 @@ Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode
 Functions for loading and saving plugin settings to disk.
 
 **Functions**:
-1. **loadSettings(plugin)**  
-   Reads the plugin's data, merges with defaults, ensures array-based fields.  
-2. **saveSettings(plugin)**  
+1. **loadSettings(plugin)**
+   Reads the plugin's data, merges with defaults, ensures array-based fields.
+2. **saveSettings(plugin)**
    Persists setting changes, then triggers a re-check of banners to apply updates.
+
+---
+
+## `/src/core/confettiManager.js`
+Manages the lifecycle and rendering of confetti/particle effects on notes.
+
+**Class**: `ConfettiManager` (singleton)
+
+**Key Methods**:
+1. **createCanvas(noteElement)** - Creates an overlay canvas for rendering confetti
+2. **mapPosition(position)** - Maps position strings ('top', 'center', etc.) to canvas coordinates
+3. **getEdgePosition(position, index, total)** - Calculates distributed positions along edges
+4. **createEmojiShapes(emojiString)** - Converts emoji strings to canvas-confetti shapes
+5. **buildOptions(presetName, overrides)** - Merges preset config with user overrides
+6. **start(noteId, noteElement, presetName, overrides, isMobile)** - Starts a confetti effect
+7. **fireBurst(confettiInstance, options)** - Executes particle bursts with different spread modes
+8. **stop(noteId, fadeOutDuration)** - Stops effects with fade-out transition
+9. **stopAll()** - Stops all active effects
+10. **hasActiveEffect(noteId)** - Checks if a note has an active effect
+
+---
+
+## `/src/core/confettiPresets.js`
+Defines preset configurations for different confetti visual effects.
+
+**Exports**:
+- **CONFETTI_PRESETS** - Object containing 14 preset configurations:
+  - snow, snowflakes, leaves, rain_light, rain_heavy, space, aliens
+  - fireworks, confetti, hearts, sparkles, pop_rocks, crystals, bubbles
+
+**Functions**:
+1. **getPresetNames()** - Returns array of available preset names
+2. **getPreset(name)** - Gets a preset by name
+3. **getPresetCopy(name)** - Gets a deep clone of a preset
+
+---
+
+## `/src/core/confettiShapes.js`
+Defines custom SVG path shapes for confetti particles.
+
+**Constants**:
+- **SHAPE_PATHS** - Object with 20+ SVG path definitions (snowflake, leaf, raindrop, alien, gem variants, etc.)
+
+**Functions**:
+1. **getPathShape(shapeName)** - Compiles and caches SVG paths into canvas-confetti shapes
+2. **isCustomPathShape(shapeName)** - Checks if a shape name is a custom path
+3. **getCustomShapeNames()** - Returns all available custom shape names
+4. **clearShapeCache()** - Clears the compiled shape cache
 
 ---
 
@@ -455,8 +503,27 @@ Helps visually set or tweak the X/Y offsets for the banner and icon.
    Draws a draggable or clickable target box to set X/Y.  
 4. **addStyle()**  
    Injects styles for crosshair lines, etc.  
-5. **onClose()**  
+5. **onClose()**
    Removes the style element.
+
+---
+
+## `/src/modal/modals/confettiModal.js`
+**Class**: `ConfettiModal` (extends `Modal`)
+Provides a comprehensive UI for configuring confetti particle effects per note.
+
+**Key Methods**:
+1. **onOpen()** - Builds the modal interface with sections for particles, appearance, timing
+2. **buildParticleSection()** - Creates controls for count, size, speed, gravity, drift, duration
+3. **buildAppearanceSection()** - Creates controls for position, colors, shapes, emoji, 3D wobble
+4. **buildTimingSection()** - Creates controls for continuous effects and burst intervals
+5. **buildAccessibilitySection()** - Creates controls for reduced motion preference
+6. **createSliderWithInput()** - Creates paired slider + text input for numeric values
+7. **createRangeSlider()** - Creates dual-thumb range sliders with visual feedback
+8. **renderColorSwatches()** - Renders interactive color picker interface
+9. **applySettings()** - Saves confetti configuration to note frontmatter
+10. **resetToDefaults()** - Resets settings to preset defaults
+11. **triggerConfettiOnNote()** - Triggers preview animation
 
 ---
 
@@ -665,8 +732,23 @@ Utilities for working with note frontmatter in Obsidian.
    Gets the first valid value from an array of values, properly handling zero values that shouldn't be treated as falsy.
 3. **updateNoteFrontmatter(imagePath, plugin, usedField)**  
    Updates the active note's frontmatter with a banner image reference, handling existing frontmatter and custom field names.
-4. **updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField)**  
+4. **updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField)**
    Updates the active note's frontmatter with a direct image URL reference, used when pinning API images without saving locally.
+
+## `/src/utils/confettiUtils.js`
+Utility functions for parsing, building, and validating confetti configurations.
+
+**Methods**:
+1. **parseConfettiConfig(value)** - Parses frontmatter confetti values (new and legacy formats)
+2. **buildConfettiFrontmatter(presetName, overrides)** - Serializes config to frontmatter string
+3. **parseConfettiValue(value)** - Type-safe parser for individual values
+4. **parseEmojiString(str)** - Sophisticated emoji parsing handling multi-codepoint sequences
+5. **isValidPreset(presetName)** - Validates preset names
+6. **getPresetDefaults(presetName)** - Retrieves default config for a preset
+7. **getFullConfig(presetName, overrides)** - Merges preset defaults with overrides
+8. **sanitizeConfig(config)** - Clamps numeric values to valid ranges
+9. **hasOverrides(presetName, config)** - Checks if config differs from preset defaults
+10. **getPresetNames()** - Re-exports preset names for convenience
 
 ## `/src/utils/debounce.js`
 Provides utility functions for debouncing function calls.

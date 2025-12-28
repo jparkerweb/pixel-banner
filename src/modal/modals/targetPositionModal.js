@@ -2,8 +2,10 @@ import { Modal, MarkdownView } from 'obsidian';
 import getCurrentTheme from '../../utils/getCurrentTheme';
 import { EmojiSelectionModal, IconImageSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
+import { ConfettiModal } from './confettiModal';
 import { flags } from '../../resources/flags.js';
 import { getFrontmatterValue, getValueWithZeroCheck } from '../../utils/frontmatterUtils.js';
+import { parseConfettiConfig } from '../../utils/confettiUtils.js';
 
 
 // ---------------------------
@@ -2615,6 +2617,69 @@ export class TargetPositionModal extends Modal {
             this.updateBannerIconBorderRadius(this.currentBannerIconBorderRadius);
         });
 
+        // Confetti Effect Section
+        const confettiSection = contentEl.createDiv({
+            cls: 'confetti-effect-section',
+            attr: {
+                style: `
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                    margin-top: 20px;
+                    padding: 15px;
+                    border-radius: 5px;
+                    background-color: var(--background-secondary);
+                    // max-width: 600px;
+                    align-items: center;
+                `
+            }
+        });
+
+        // Confetti Section Title
+        confettiSection.createEl('span', {
+            text: '🎊 Confetti Effect',
+            attr: {
+                style: `
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    min-width: 120px;
+                `
+            }
+        });
+
+        // Get current confetti config from frontmatter
+        const currentConfettiValue = getFrontmatterValue(frontmatter || {}, this.plugin.settings.customBannerConfettiField);
+        const currentConfettiConfig = currentConfettiValue ? parseConfettiConfig(currentConfettiValue) : null;
+
+        // Display current confetti status
+        const confettiStatus = confettiSection.createEl('span', {
+            text: currentConfettiConfig ? `Active: ${currentConfettiConfig.presetName}` : 'No effect',
+            attr: {
+                style: `
+                    color: ${currentConfettiConfig ? 'var(--text-success)' : 'var(--text-muted)'};
+                    font-size: 0.85em;
+                    flex: 1;
+                `
+            }
+        });
+
+        // Confetti settings button
+        const confettiButton = confettiSection.createEl('button', {
+            text: currentConfettiConfig ? '✏️ Edit Confetti' : '🎊 Add Confetti',
+            cls: 'confetti-settings-button cursor-pointer',
+            attr: {
+                style: `
+                    text-transform: uppercase;
+                    font-size: .8em;
+                `
+            }
+        });
+
+        confettiButton.addEventListener('click', () => {
+            this.close();
+            new ConfettiModal(this.app, this.plugin, currentConfettiConfig).open();
+        });
+
         // Flag Color Selection Section
         const flagColorSection = contentEl.createDiv({
             cls: 'flag-color-section',
@@ -2622,12 +2687,13 @@ export class TargetPositionModal extends Modal {
                 style: `
                     display: flex;
                     flex-direction: row;
+                    justify-content: space-between;
                     gap: 5px;
                     margin-top: 20px;
                     padding: 15px;
                     border-radius: 5px;
                     background-color: var(--background-secondary);
-                    max-width: 600px;
+                    // max-width: 600px;
                 `
             }
         });

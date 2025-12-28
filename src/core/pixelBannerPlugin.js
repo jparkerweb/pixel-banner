@@ -10,9 +10,10 @@ import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashIma
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
 import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
-import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
+import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange } from './eventHandler.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
+import { confettiManager } from './confettiManager.js';
 
 
 // -----------------------
@@ -160,13 +161,19 @@ export class PixelBannerPlugin extends Plugin {
 
         // Add metadata cache event listener for frontmatter changes
         this.registerEvent(
-            this.app.metadataCache.on('changed', async (file) => {
+            this.app.metadataCache.on('changed', async (file, data, cache) => {
                 // console.log('🔍 Metadata changed detected for file:', file.path);
-                
+
                 // Get the frontmatter
                 const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                 if (!frontmatter) {
                     // console.log('❌ No frontmatter found, skipping update');
+                    // Still check for confetti removal when frontmatter is removed
+                    try {
+                        handleConfettiMetadataChange.call(this, file, cache || { frontmatter: {} });
+                    } catch (error) {
+                        console.error('Pixel Banner: Confetti metadata change error:', error);
+                    }
                     return;
                 }
 
@@ -181,6 +188,20 @@ export class PixelBannerPlugin extends Plugin {
                 if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
                     // console.log('🟡 Frontmatter unchanged, skipping update');
                     return;
+                }
+
+                // Check for confetti field changes
+                const currentConfettiValue = getFrontmatterValue(frontmatter, this.settings.customBannerConfettiField);
+                const previousConfettiValue = getFrontmatterValue(previousFrontmatter || {}, this.settings.customBannerConfettiField);
+                const confettiFieldChanged = currentConfettiValue !== previousConfettiValue ||
+                    JSON.stringify(currentConfettiValue) !== JSON.stringify(previousConfettiValue);
+
+                if (confettiFieldChanged) {
+                    try {
+                        handleConfettiMetadataChange.call(this, file, cache || { frontmatter });
+                    } catch (error) {
+                        console.error('Pixel Banner: Confetti metadata change error:', error);
+                    }
                 }
 
                 // Check if any relevant fields exist and changed in the frontmatter
@@ -215,7 +236,7 @@ export class PixelBannerPlugin extends Plugin {
                 ];
 
                 // console.log('🔎 Checking relevant fields:', relevantFields);
-                const changedFields = relevantFields.filter(field => 
+                const changedFields = relevantFields.filter(field =>
                     frontmatter[field] !== previousFrontmatter?.[field]
                 );
 
@@ -224,12 +245,14 @@ export class PixelBannerPlugin extends Plugin {
 
                 if (!hasRelevantFieldChange) {
                     // console.log('🟡 No relevant fields changed, skipping update');
+                    // Update lastFrontmatter even if only confetti changed
+                    this.lastFrontmatter.set(file.path, {...frontmatter});
                     return;
                 }
 
                 // console.log('✅ Relevant changes detected, updating banner');
                 // Update the stored frontmatter
-                this.lastFrontmatter.set(file.path, frontmatter);
+                this.lastFrontmatter.set(file.path, {...frontmatter});
 
                 // Find all visible markdown leaves for this file
                 const leaves = this.app.workspace.getLeavesOfType("markdown");
@@ -834,7 +857,7 @@ export class PixelBannerPlugin extends Plugin {
         if (this.observer && typeof this.observer.disconnect === 'function') {
             this.observer.disconnect();
         }
-        
+
         // Clean up resize observers
         this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view instanceof MarkdownView) {
@@ -845,10 +868,17 @@ export class PixelBannerPlugin extends Plugin {
                 }
             }
         });
-        
+
         // Clear the icon overlay pool
         this.iconOverlayPool = [];
-        
+
+        // Stop all confetti effects
+        try {
+            confettiManager.stopAll();
+        } catch (error) {
+            console.error('Pixel Banner: Error stopping confetti effects:', error);
+        }
+
         const styleElTitle = document.getElementById('pixel-banner-embedded-titles');
         if (styleElTitle) styleElTitle.remove();
         const styleElBanner = document.getElementById('pixel-banner-embedded-banners');
