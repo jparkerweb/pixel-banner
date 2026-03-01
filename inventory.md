@@ -566,7 +566,7 @@ Exports all modals from the `modal/modals` directory.
 
 ---
 
-## `/src/services/apiPIxelBannerPlus.js`
+## `/src/services/apiPixelBannerPlus.js`
 **Methods**:
 1. **verifyPixelBannerPlusCredentials(plugin)**  
    Performs an HTTP GET to validate the user's email/API key with the Pixel Banner Plus service.
