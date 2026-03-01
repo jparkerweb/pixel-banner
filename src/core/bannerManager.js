@@ -343,10 +343,16 @@ async function addPixelBanner(plugin, el, ctx) {
     }
 
     // 4) Override setChildrenInPlace to preserve persistent elements
+    // NOTE: We must NOT inject persistent elements into the children array passed to
+    // the original setChildrenInPlace. Obsidian uses this method to manage reading view
+    // sections (e.g., during heading fold/collapse). Injecting extra non-section elements
+    // corrupts Obsidian's internal section tracking and breaks heading fold/unfold.
+    // Instead, we let the original operate on only Obsidian's children, then manually
+    // re-insert our persistent elements into the DOM afterward.
     if (!container._hasOverriddenSetChildrenInPlace) {
         const originalSetChildrenInPlace = container.setChildrenInPlace;
         container.setChildrenInPlace = function(children) {
-            // Get all persistent elements
+            // Capture persistent elements before the DOM update removes them
             const bannerElement = this.querySelector(':scope > .pixel-banner-image');
             const viewImageElement = this.querySelector(':scope > .view-image-icon');
             const pinElement = this.querySelector(':scope > .pin-icon');
@@ -354,8 +360,9 @@ async function addPixelBanner(plugin, el, ctx) {
             const selectImageElement = this.querySelector(':scope > .select-image-icon');
             const bannerIconOverlay = this.querySelector(':scope > .banner-icon-overlay');
 
-            // Filter out old duplicates
-            children = Array.from(children).filter(child => 
+            // Filter out persistent elements from incoming children so the original
+            // method only receives Obsidian's managed section elements
+            children = Array.from(children).filter(child =>
                 !child.classList?.contains('pixel-banner-image') &&
                 !child.classList?.contains('view-image-icon') &&
                 !child.classList?.contains('pin-icon') &&
@@ -364,27 +371,36 @@ async function addPixelBanner(plugin, el, ctx) {
                 !child.classList?.contains('banner-icon-overlay')
             );
 
-            // Re-inject "persistent" elements in the correct order:
+            // Mark that we're inside a setChildrenInPlace call so the mutation
+            // observer can skip unnecessary banner re-application (e.g., during fold)
+            this._isSetChildrenInPlaceActive = true;
+
+            // Call original with ONLY Obsidian's expected children
+            const result = originalSetChildrenInPlace.call(this, children);
+
+            // Re-insert persistent elements into the DOM after the update
             if (bannerElement?._isPersistentBanner) {
-                children.unshift(bannerElement);
+                this.insertBefore(bannerElement, this.firstChild);
             }
             if (bannerIconOverlay?._isPersistentBannerIcon) {
-                children.push(bannerIconOverlay);
+                this.appendChild(bannerIconOverlay);
             }
             if (selectImageElement?._isPersistentSelectImage) {
-                children.push(selectImageElement);
+                this.appendChild(selectImageElement);
             }
             if (viewImageElement?._isPersistentViewImage) {
-                children.push(viewImageElement);
+                this.appendChild(viewImageElement);
             }
             if (pinElement?._isPersistentPin) {
-                children.push(pinElement);
+                this.appendChild(pinElement);
             }
             if (refreshElement?._isPersistentRefresh) {
-                children.push(refreshElement);
+                this.appendChild(refreshElement);
             }
 
-            return originalSetChildrenInPlace.call(this, children);
+            this._isSetChildrenInPlaceActive = false;
+
+            return result;
         };
         container._hasOverriddenSetChildrenInPlace = true;
     }

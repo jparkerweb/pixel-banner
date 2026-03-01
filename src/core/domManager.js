@@ -37,8 +37,14 @@ function setupMutationObserver() {
                         if (!hasBanner) {
                             contentEl.classList.remove('pixel-banner');
                         }
-                        // Update banner when banner is removed or structural change occurs
-                        if (bannerRemoved || structuralChange) {
+
+                        // Skip re-ensuring banner if this was a structural change (e.g., heading
+                        // fold/unfold) and the banner is already present. The setChildrenInPlace
+                        // override handles banner preservation during folds. Only re-ensure when
+                        // the banner was actually removed from the DOM.
+                        if (bannerRemoved && !hasBanner) {
+                            this.debouncedEnsureBanner();
+                        } else if (structuralChange && !hasBanner) {
                             this.debouncedEnsureBanner();
                         }
                     }

@@ -170,7 +170,7 @@ describe('domManager', () => {
             expect(mockPlugin.debouncedEnsureBanner).toHaveBeenCalled();
         });
 
-        it('should handle structural change mutations', () => {
+        it('should handle structural change mutations without banner present', () => {
             const callback = vi.fn();
             MutationObserver.mockImplementation((cb) => {
                 callback.mockImplementation(cb);
@@ -186,21 +186,51 @@ describe('domManager', () => {
             // Create mock added node with structural class
             const addedNode = document.createElement('div');
             addedNode.className = 'markdown-preview-section';
-            
+
             const mutations = [{
                 type: 'childList',
                 removedNodes: [],
                 addedNodes: [addedNode]
             }];
 
-            // Add existing banner to content
+            // No banner present - should trigger debouncedEnsureBanner
+            callback(mutations);
+            expect(mockPlugin.debouncedEnsureBanner).toHaveBeenCalled();
+        });
+
+        it('should skip debouncedEnsureBanner for structural changes when banner is present', () => {
+            const callback = vi.fn();
+            MutationObserver.mockImplementation((cb) => {
+                callback.mockImplementation(cb);
+                return {
+                    observe: vi.fn(),
+                    disconnect: vi.fn(),
+                    takeRecords: vi.fn(() => [])
+                };
+            });
+
+            setupMutationObserver.call(mockPlugin);
+
+            // Create mock added node with structural class (e.g., heading fold/unfold)
+            const addedNode = document.createElement('div');
+            addedNode.className = 'markdown-preview-section';
+
+            const mutations = [{
+                type: 'childList',
+                removedNodes: [],
+                addedNodes: [addedNode]
+            }];
+
+            // Add existing banner to content - banner is present and visible
             const banner = document.createElement('div');
             banner.className = 'pixel-banner-image';
             banner.style.display = 'block';
             mockContentEl.appendChild(banner);
 
             callback(mutations);
-            expect(mockPlugin.debouncedEnsureBanner).toHaveBeenCalled();
+            // Should NOT call debouncedEnsureBanner since banner is already present
+            // This prevents unnecessary banner re-application during heading fold/unfold
+            expect(mockPlugin.debouncedEnsureBanner).not.toHaveBeenCalled();
         });
 
         it('should remove pixel-banner class when no banner present', () => {
