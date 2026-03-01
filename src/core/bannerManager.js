@@ -261,7 +261,7 @@ async function addPixelBanner(plugin, el, ctx) {
     let bannerDiv = container.querySelector(':scope > .pixel-banner-image');
     if (!bannerDiv) {
         bannerDiv = createDiv({ cls: 'pixel-banner-image' });
-        container.insertBefore(bannerDiv, container.firstChild);
+        container.appendChild(bannerDiv);
         bannerDiv._isPersistentBanner = true;
     }
 
@@ -366,7 +366,7 @@ async function addPixelBanner(plugin, el, ctx) {
 
             // Re-inject "persistent" elements in the correct order:
             if (bannerElement?._isPersistentBanner) {
-                children.unshift(bannerElement);
+                children.push(bannerElement);
             }
             if (bannerIconOverlay?._isPersistentBannerIcon) {
                 children.push(bannerIconOverlay);
@@ -1029,7 +1029,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
                 selectImageIcon._isPersistentSelectImage = true;
                 selectImageIcon.onclick = () => plugin.handleBannerIconClick();
-                container.insertBefore(selectImageIcon, container.firstChild);
+                container.appendChild(selectImageIcon);
             }
         }
 

@@ -7,7 +7,7 @@ import { loadSettings, saveSettings } from './settings.js';
 import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBannerIcon, handleSetBannerIconImage, cleanupIconOverlay } from './bannerIconHelpers.js'; 
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
-import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
+import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPixelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
 import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
