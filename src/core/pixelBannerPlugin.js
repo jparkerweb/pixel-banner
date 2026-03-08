@@ -162,12 +162,9 @@ export class PixelBannerPlugin extends Plugin {
         // Add metadata cache event listener for frontmatter changes
         this.registerEvent(
             this.app.metadataCache.on('changed', async (file, data, cache) => {
-                // console.log('🔍 Metadata changed detected for file:', file.path);
-
                 // Get the frontmatter
                 const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                 if (!frontmatter) {
-                    // console.log('❌ No frontmatter found, skipping update');
                     // Still check for confetti removal when frontmatter is removed
                     try {
                         handleConfettiMetadataChange.call(this, file, cache || { frontmatter: {} });
@@ -179,16 +176,15 @@ export class PixelBannerPlugin extends Plugin {
 
                 // Get the previous frontmatter
                 const previousFrontmatter = this.lastFrontmatter.get(file.path);
-                // console.log('📊 Frontmatter comparison:', {
-                //     current: frontmatter,
-                //     previous: previousFrontmatter
-                // });
 
                 // Check if frontmatter actually changed
-                if (JSON.stringify(frontmatter) === JSON.stringify(previousFrontmatter)) {
-                    // console.log('🟡 Frontmatter unchanged, skipping update');
+                const currentFrontmatterStr = JSON.stringify(frontmatter);
+                if (currentFrontmatterStr === JSON.stringify(previousFrontmatter)) {
                     return;
                 }
+
+                // Always store the latest frontmatter so subsequent comparisons work correctly
+                this.lastFrontmatter.set(file.path, JSON.parse(currentFrontmatterStr));
 
                 // Check for confetti field changes
                 const currentConfettiValue = getFrontmatterValue(frontmatter, this.settings.customBannerConfettiField);
@@ -235,31 +231,18 @@ export class PixelBannerPlugin extends Plugin {
                     ...this.settings.customBannerIconVerticalOffsetField
                 ];
 
-                // console.log('🔎 Checking relevant fields:', relevantFields);
                 const changedFields = relevantFields.filter(field =>
                     frontmatter[field] !== previousFrontmatter?.[field]
                 );
 
-                const hasRelevantFieldChange = changedFields.length > 0;
-                // console.log('🔄 Changed fields:', changedFields);
-
-                if (!hasRelevantFieldChange) {
-                    // console.log('🟡 No relevant fields changed, skipping update');
-                    // Update lastFrontmatter even if only confetti changed
-                    this.lastFrontmatter.set(file.path, {...frontmatter});
+                if (changedFields.length === 0) {
                     return;
                 }
 
-                // console.log('✅ Relevant changes detected, updating banner');
-                // Update the stored frontmatter
-                this.lastFrontmatter.set(file.path, {...frontmatter});
-
-                // Find all visible markdown leaves for this file
+                // Only update banner when banner-related fields actually changed
                 const leaves = this.app.workspace.getLeavesOfType("markdown");
                 for (const leaf of leaves) {
                     if (leaf.view instanceof MarkdownView && leaf.view.file === file) {
-                        // console.log('🔄 Updating banner for leaf:', leaf.id);
-                        // Force a refresh of the banner
                         this.loadedImages.delete(file.path);
                         this.lastKeywords.delete(file.path);
                         await this.updateBanner(leaf.view, true);
@@ -532,18 +515,58 @@ export class PixelBannerPlugin extends Plugin {
             this.app.metadataCache.on('resolved', () => {
                 const leaf = this.app.workspace.activeLeaf;
                 if (leaf && leaf.view instanceof MarkdownView) {
-                    // Only update if we have a banner and it's not just a content change
                     const contentEl = leaf.view.contentEl;
                     const hasBanner = contentEl.querySelector('.pixel-banner-image');
                     if (hasBanner) {
-                        // Check if this is a frontmatter change by looking at the metadata cache
                         const file = leaf.view.file;
                         const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+                        if (!frontmatter) return;
+
                         const previousFrontmatter = this.lastFrontmatter.get(file.path);
-                        
-                        // Only update if frontmatter changed
-                        if (JSON.stringify(frontmatter) !== JSON.stringify(previousFrontmatter)) {
-                            this.updateBanner(leaf.view, false);
+                        const currentStr = JSON.stringify(frontmatter);
+
+                        if (currentStr !== JSON.stringify(previousFrontmatter)) {
+                            // Store latest frontmatter to prevent repeated mismatches
+                            this.lastFrontmatter.set(file.path, JSON.parse(currentStr));
+
+                            // Only update if banner-relevant fields actually changed
+                            const relevantFields = [
+                                ...this.settings.customBannerField,
+                                ...this.settings.customYPositionField,
+                                ...this.settings.customXPositionField,
+                                ...this.settings.customContentStartField,
+                                ...this.settings.customImageDisplayField,
+                                ...this.settings.customImageRepeatField,
+                                ...this.settings.customBannerMaxWidthField,
+                                ...this.settings.customBannerHeightField,
+                                ...this.settings.customFadeField,
+                                ...this.settings.customBorderRadiusField,
+                                ...this.settings.customTitleColorField,
+                                ...this.settings.customBannerShuffleField,
+                                ...this.settings.customBannerIconField,
+                                ...this.settings.customBannerIconSizeField,
+                                ...this.settings.customBannerIconImageSizeMultiplierField,
+                                ...this.settings.customBannerIconTextVerticalOffsetField,
+                                ...this.settings.customBannerIconRotateField,
+                                ...this.settings.customBannerIconImageAlignmentField,
+                                ...this.settings.customBannerIconXPositionField,
+                                ...this.settings.customBannerIconOpacityField,
+                                ...this.settings.customBannerIconColorField,
+                                ...this.settings.customBannerIconFontWeightField,
+                                ...this.settings.customBannerIconBackgroundColorField,
+                                ...this.settings.customBannerIconPaddingXField,
+                                ...this.settings.customBannerIconPaddingYField,
+                                ...this.settings.customBannerIconBorderRadiusField,
+                                ...this.settings.customBannerIconVerticalOffsetField
+                            ];
+
+                            const hasRelevantChange = relevantFields.some(field =>
+                                frontmatter[field] !== previousFrontmatter?.[field]
+                            );
+
+                            if (hasRelevantChange) {
+                                this.updateBanner(leaf.view, false);
+                            }
                         }
                     }
                 }

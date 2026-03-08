@@ -2,7 +2,7 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-### v3.8.0 - 2025-12-23
+### v3.7.0 - ?
 #### ✨ Added
 - **Confetti/Particle Effects**: Add animated particle effects to notes using the `banner-confetti` frontmatter field
   - 14 built-in presets: snow, snowflakes, leaves, rain_light, rain_heavy, space, aliens, fireworks, confetti, hearts, sparkles, pop_rocks, crystals, bubbles
@@ -11,14 +11,20 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Settings: custom field names, mobile disable option
   - Respects user's reduced motion preference for accessibility
 
-### v3.7.0 - 2025-11-16
-#### ✨ Added
 - **Use Note Filename for Banner Images**: New setting that automatically uses the current note's filename as the default filename when saving banner images
   - When enabled, saved banners will be named after the note they belong to (e.g., `My Project Note.jpg` instead of `pixel-banner-image.jpg`)
   - Works with all save methods: pin icon, AI generation, and Plus Collection downloads
   - Automatically falls back to default filename if the note is named "Untitled" or has no name
   - Pre-fills the filename (still editable in the save dialog)
   - Located in Settings → General tab
+
+### v3.6.18 - 2026-03-08
+#### 🐛 Fixed
+- Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
+
+### v3.6.17 - 2026-03-08
+#### 🐛 Fixed
+- Fixed content start position not applying correctly when changed in settings (issue #297)
 
 ### v3.6.16 - 2025-11-15
 #### 🐛 Fixed

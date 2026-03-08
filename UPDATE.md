@@ -21,3 +21,8 @@
   - Automatically falls back to default filename if the note is named "Untitled" or has no name
   - Pre-fills the filename (still editable in the save dialog)
   - Located in Settings → General tab
+- Added `filesize` display to the store modal
+
+#### 🐛 Fixed
+- Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
+- Fixed content start position not applying correctly when changed in settings (issue #297)

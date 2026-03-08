@@ -165,6 +165,7 @@ describe('settings (simplified)', () => {
             loadedImages: new Map(),
             lastKeywords: new Map(),
             imageCache: new Map(),
+            lastFrontmatter: new Map(),
             updateBanner: vi.fn(() => Promise.resolve()),
             updateFieldVisibility: vi.fn()
         };
@@ -230,12 +231,14 @@ describe('settings (simplified)', () => {
             mockPlugin.loadedImages.set('test1', 'url1');
             mockPlugin.lastKeywords.set('test2', 'keywords');
             mockPlugin.imageCache.set('test3', 'data');
-            
+            mockPlugin.lastFrontmatter.set('test4', { banner: 'img.jpg' });
+
             await saveSettings(mockPlugin);
-            
+
             expect(mockPlugin.loadedImages.size).toBe(0);
             expect(mockPlugin.lastKeywords.size).toBe(0);
             expect(mockPlugin.imageCache.size).toBe(0);
+            expect(mockPlugin.lastFrontmatter.size).toBe(0);
         });
 
         it('should update banners for markdown views', async () => {
