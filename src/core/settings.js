@@ -39,6 +39,7 @@ export async function saveSettings(plugin) {
     plugin.loadedImages.clear();
     plugin.lastKeywords.clear();
     plugin.imageCache.clear();
+    plugin.lastFrontmatter.clear();
     
     // Update all banners and field visibility
     plugin.app.workspace.iterateAllLeaves(leaf => {
