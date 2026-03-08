@@ -2,6 +2,13 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.17 - 2026-03-08
+#### 🐛 Fixed
+- Fixed cursor invisibility in code blocks on iPadOS when a banner is present (Issue #285)
+  - Replaced `isolation: isolate` with `z-index: 0` to create stacking context without triggering WebKit compositing bugs
+  - Added `caret-color` workaround for iOS WebKit caret rendering (WebKit Bug 94985)
+  - Removed heavy-handed z-index overrides on `.cm-line` that could interfere with themes and plugins
+
 ### v3.6.7 - 2025-07-19
 #### 🐛 Fixed
 - Fixed ImageViewModal to properly display banner images and videos when clicking the "Show View Image Icon"
