@@ -9,6 +9,64 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Added `caret-color` workaround for iOS WebKit caret rendering (WebKit Bug 94985)
   - Removed heavy-handed z-index overrides on `.cm-line` that could interfere with themes and plugins
 
+### v3.6.16 - 2025-11-15
+#### 🐛 Fixed
+- Fixed an occasional error that could prevent banners from displaying correctly
+
+### v3.6.15 - 2025-10-14
+#### 🐛 Fixed
+- Resolved issue with plain paths not working for video files (`.mp4`, `.mov`)
+
+### v3.6.14 - 2025-09-15
+#### 🐛 Fixed
+- Resolved issue with `.webp` images not being displayed
+
+### v3.6.13 - 2025-09-11
+#### ✨ Added
+- Support for Multiple Image Reference for new AI Image Generation models
+  - `Nano Banana`
+  - `Seedream 4`
+
+### v3.6.12 - 2025-08-27
+#### 🐛 Fixed
+- Resolved incorrect `Pixel Banner Plus Server` URL
+
+### v3.6.11 - 2025-08-27
+#### ✨ Added
+- New toggle to turn on/off `Pixel Banner Plus` in the main Pixel Banner select modal
+- **Plain image format support**: Added `image` option to Image Property Format setting (without brackets), improving compatibility with Make.md and other plugins
+
+#### 📦 Updated
+- Added unquoted wiki-link support for Image Icons paths (e.g. `[[path/icon.png]]`)
+
+### v3.6.10 - 2025-08-25
+#### 🐛 Fixed
+- Icon images and emojis not being displayed properly
+
+### v3.6.9 - 2025-08-22
+#### ✨ Added
+- New `Icon Image Size Multiplier` setting to the `General` settings tab to control the global size of banner icon images
+- Check for version updates when opening `General` settings and show update button if available
+
+#### 📦 Updated
+- Moved `AI Model` selection from radio buttons to a dropdown for better organization
+- Changed default banner fade value from `-70` to `-40`
+
+### v3.6.8 - 2025-08-14
+#### ✨ Added
+- **Pin Choice Modal**: When pinning API images, users can now choose between saving locally or pinning the URL directly to frontmatter
+  - New choice modal presents "Save Image Locally" vs "Pin Image URL" options
+  - URL pinning saves no storage space in vault but requires internet connection
+  - Local saving remains available for offline access and permanence
+  - Choice only appears for user-initiated pin actions (pin icon, command palette)
+  - AI generation and Pixel Banner Plus continue to save locally automatically
+- **Auto-Focus Enhancement**: Folder selection modal now automatically focuses and selects the text input for improved workflow
+- `Enter` button support for submitting the save image form in the `Save Image Modal`
+- New `Pin Image URL` option to save API images directly as URL references in frontmatter without downloading to vault
+
+#### 📦 Updated
+- Replaced manual frontmatter string manipulation with Obsidian's native processFrontMatter API for more reliable metadata updates
+
 ### v3.6.7 - 2025-07-19
 #### 🐛 Fixed
 - Fixed ImageViewModal to properly display banner images and videos when clicking the "Show View Image Icon"

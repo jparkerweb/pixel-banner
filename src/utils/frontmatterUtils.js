@@ -95,46 +95,69 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
         }
     }
 
-    let fileContent = await plugin.app.vault.read(activeFile);
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-    const hasFrontmatter = frontmatterRegex.test(fileContent);
-    
     const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
         plugin.settings.customBannerField.length > 0 ? 
         plugin.settings.customBannerField[0] : 'banner');
 
-    fileContent = fileContent.replace(/^\s+/, '');
-
-    let updatedContent;
-    if (hasFrontmatter) {
-        updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-            let cleanedFrontmatter = frontmatter.trim();
-            
-            plugin.settings.customBannerField.forEach(field => {
-                const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
-                cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
-            });
-
-            const format = plugin.settings.imagePropertyFormat;
-            const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
-            const newFrontmatter = `${bannerField}: "${bannerValue}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
-            return `---\n${newFrontmatter}\n---`;
-        });
-    } else {
-        const cleanContent = fileContent.replace(/^\s+/, '');
-        const format = plugin.settings.imagePropertyFormat;
-        const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
-        updatedContent = `---\n${bannerField}: "${bannerValue}"\n---\n\n${cleanContent}`;
+    const format = plugin.settings.imagePropertyFormat;
+    // Apply the format based on the user's setting
+    let bannerValue;
+    if (format === 'image') {
+        bannerValue = imageReference;  // Plain path
+    } else if (format === '[[image]]') {
+        bannerValue = `[[${imageReference}]]`;  // Wiki link
+    } else {  // format === '![[image]]'
+        bannerValue = `![[${imageReference}]]`;  // Embedded image
     }
 
-    updatedContent = updatedContent.replace(/^\s+/, '');
-    
-    if (updatedContent !== fileContent) {
-        await plugin.app.vault.modify(activeFile, updatedContent);
-        if (plugin.settings.useShortPath && imageReference === imagePath) {
-            new Notice('Banner image pinned (full path used due to duplicate filenames)');
-        } else {
-            new Notice('Banner image pinned');
+    // Use Obsidian's processFrontMatter API to properly update frontmatter
+    await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        // Only remove old banner fields that are different from the one being set
+        // This prevents unintended property modifications on mobile devices
+        if (Array.isArray(plugin.settings.customBannerField)) {
+            for (const field of plugin.settings.customBannerField) {
+                // Only delete if it's a different field than the one we're setting
+                if (field !== bannerField && field in frontmatter) {
+                    delete frontmatter[field];
+                }
+            }
         }
+        
+        // Set the new banner field
+        frontmatter[bannerField] = bannerValue;
+    });
+
+    if (plugin.settings.useShortPath && imageReference === imagePath) {
+        new Notice('Banner image pinned (full path used due to duplicate filenames)');
+    } else {
+        new Notice('Banner image pinned');
     }
+}
+
+export async function updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField = null) {
+    const activeFile = plugin.app.workspace.getActiveFile();
+    if (!activeFile) return;
+
+    const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
+        plugin.settings.customBannerField.length > 0 ? 
+        plugin.settings.customBannerField[0] : 'banner');
+
+    // Use Obsidian's processFrontMatter API to properly update frontmatter
+    await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
+        // Only remove old banner fields that are different from the one being set
+        // This prevents unintended property modifications on mobile devices
+        if (Array.isArray(plugin.settings.customBannerField)) {
+            for (const field of plugin.settings.customBannerField) {
+                // Only delete if it's a different field than the one we're setting
+                if (field !== bannerField && field in frontmatter) {
+                    delete frontmatter[field];
+                }
+            }
+        }
+        
+        // Set the new banner field with the URL
+        frontmatter[bannerField] = imageUrl;
+    });
+
+    new Notice('Banner image URL pinned');
 }

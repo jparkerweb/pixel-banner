@@ -1,11 +1,104 @@
 import { Setting, MarkdownView } from 'obsidian';
 import { DEFAULT_SETTINGS, FolderSuggestModal } from '../settings';
 import { flags } from '../../resources/flags.js';
+import { semver } from '../../utils/semver.js';
+
+// Helper function to add the update button
+function addUpdateButtonIfNeeded(containerEl, plugin, insertAfterCallout = false) {
+    if (!plugin.pixelBannerVersion) {
+        console.log('[Pixel Banner] No cloud version available, skipping update button');
+        return;
+    }
+    
+    const cloudVersion = plugin.pixelBannerVersion;
+    const currentVersion = plugin.settings.lastVersion;
+    
+    // Check if cloudVersion is greater than currentVersion
+    const isCloudVersionGreater = semver.gt(cloudVersion, currentVersion);
+    
+    if (isCloudVersionGreater) {
+        // Check if button already exists to avoid duplicates
+        if (containerEl.querySelector('.pixel-banner-update-button')) {
+            return;
+        }
+        
+        // Create the update container
+        const updateContainer = document.createElement('div');
+        updateContainer.style.cssText = `
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        `;
+        
+        const updateButton = document.createElement('button');
+        updateButton.textContent = '🔄 Update Available!';
+        updateButton.className = 'pixel-banner-scale-up-down-animation pixel-banner-update-button';
+        updateButton.style.cssText = `
+            padding: 6px 12px;
+            background-color: var(--interactive-accent);
+            color: var(--text-on-accent);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        `;
+        
+        updateContainer.appendChild(updateButton);
+        
+        // Find the callout element and insert the update button right after it
+        const calloutEl = containerEl.querySelector('.tab-callout');
+        if (calloutEl && calloutEl.nextSibling) {
+            calloutEl.parentNode.insertBefore(updateContainer, calloutEl.nextSibling);
+        } else {
+            containerEl.appendChild(updateContainer);
+        }
+        
+        updateButton.addEventListener('click', async () => {
+            await plugin.app.setting.open();
+            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
+            
+            // Find and click the Community Plugins item in the settings sidebar
+            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
+            for (const tab of settingsTabs) {
+                if (tab.textContent.includes('Community plugins')) {
+                    tab.click();
+                    break;
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
+            
+            // Find the "Check for updates" button
+            const allTheButtons = document.querySelectorAll('button.mod-cta');
+            for (const button of allTheButtons) {
+                if (button.textContent.includes('Check for updates')) {
+                    button.click();
+                    break;
+                }
+            }
+        });
+    }
+}
 
 export function createGeneralSettings(containerEl, plugin) {
     // section callout
     const calloutEl = containerEl.createEl('div', { cls: 'tab-callout margin-bottom-0' });
-    calloutEl.createEl('div', { text: '⚙️ Configure default settings for all notes.' });
+    calloutEl.createEl('div', { text: `v${plugin.settings.lastVersion} ⋅ Configure default settings for all notes.` });
+
+    // Try to fetch version info if not already available and show update button when ready
+    if (!plugin.pixelBannerVersion) {
+        plugin.getPixelBannerInfo().then(() => {
+            // After fetching, check if update is available and add the button
+            addUpdateButtonIfNeeded(containerEl, plugin);
+        }).catch(error => {
+            console.log('[Pixel Banner] Failed to fetch version info:', error.message);
+        });
+    } else if (!plugin.pixelBannerVersion) {
+        console.log('[Pixel Banner] Version not available, skipping version check');
+    } else {
+        // If version info is already available, check immediately
+        addUpdateButtonIfNeeded(containerEl, plugin);
+    }
 
     // Create a group for the select image icon settings
     const SelectImageSettingsGroup = containerEl.createDiv({ cls: 'setting-group' });
@@ -17,23 +110,31 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.showSelectImageIcon)
             .onChange(async (value) => {
-                plugin.settings.showSelectImageIcon = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.showSelectImageIcon = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
-                await plugin.saveSettings();
-                
-                const toggleComponent = showSelectImageIconSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
+                try {
+                    plugin.settings.showSelectImageIcon = DEFAULT_SETTINGS.showSelectImageIcon;
+                    await plugin.saveSettings();
+                    
+                    const toggleComponent = showSelectImageIconSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.showSelectImageIcon);
+                    }
+                    
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                
-                plugin.updateAllBanners();
             }));
 
     // Add the selectImageIconOpacity setting
@@ -45,22 +146,30 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.selectImageIconOpacity)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.selectImageIconOpacity = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.selectImageIconOpacity = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.selectImageIconOpacity = DEFAULT_SETTINGS.selectImageIconOpacity;
-                await plugin.saveSettings();
-                
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.selectImageIconOpacity;
-                sliderEl.dispatchEvent(new Event('input'));
-                
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.selectImageIconOpacity = DEFAULT_SETTINGS.selectImageIconOpacity;
+                    await plugin.saveSettings();
+                    
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.selectImageIconOpacity;
+                    sliderEl.dispatchEvent(new Event('input'));
+                    
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Add the selectImageIconFlag setting
@@ -105,9 +214,13 @@ export function createGeneralSettings(containerEl, plugin) {
         // Add change event listener
         radio.addEventListener('change', async () => {
             if (radio.checked) {
-                plugin.settings.selectImageIconFlag = color;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.selectImageIconFlag = color;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }
         });
         
@@ -141,16 +254,20 @@ export function createGeneralSettings(containerEl, plugin) {
         .setIcon('reset')
         .setTooltip('Reset to default')
         .onClick(async () => {
-            plugin.settings.selectImageIconFlag = DEFAULT_SETTINGS.selectImageIconFlag;
-            await plugin.saveSettings();
-            
-            // Update radio button selection
-            const radios = flagRadioContainer.querySelectorAll('input[type="radio"]');
-            radios.forEach(radio => {
-                radio.checked = radio.value === DEFAULT_SETTINGS.selectImageIconFlag;
-            });
-            
-            plugin.updateAllBanners();
+            try {
+                plugin.settings.selectImageIconFlag = DEFAULT_SETTINGS.selectImageIconFlag;
+                await plugin.saveSettings();
+                
+                // Update radio button selection
+                const radios = selectImageIconFlagSetting.controlEl.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.checked = radio.value === DEFAULT_SETTINGS.selectImageIconFlag;
+                });
+                
+                plugin.updateAllBanners();
+            } catch (error) {
+                console.error('Failed to save settings:', error);
+            }
         }));
 
     // Add the Default Saved Banners Folder setting
@@ -161,8 +278,12 @@ export function createGeneralSettings(containerEl, plugin) {
             text.setPlaceholder('pixel-banner-images')
                 .setValue(plugin.settings.pinnedImageFolder)
                 .onChange(async (value) => {
-                    plugin.settings.pinnedImageFolder = value;
-                    await plugin.saveSettings();
+                    try {
+                        plugin.settings.pinnedImageFolder = value;
+                        await plugin.saveSettings();
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
+                    }
                 });
 
             // Add blur handler for validation
@@ -175,7 +296,11 @@ export function createGeneralSettings(containerEl, plugin) {
 
                 text.setValue(value);
                 plugin.settings.pinnedImageFolder = value;
-                await plugin.saveSettings();
+                try {
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             });
 
             return text;
@@ -196,12 +321,16 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.pinnedImageFolder = DEFAULT_SETTINGS.pinnedImageFolder;
-                await plugin.saveSettings();
-                
-                const textComponent = defaultSavedBannersFolderSetting.components[0];
-                if (textComponent) {
-                    textComponent.setValue(DEFAULT_SETTINGS.pinnedImageFolder);
+                try {
+                    plugin.settings.pinnedImageFolder = DEFAULT_SETTINGS.pinnedImageFolder;
+                    await plugin.saveSettings();
+                    
+                    const textComponent = defaultSavedBannersFolderSetting.components[0];
+                    if (textComponent) {
+                        textComponent.setValue(DEFAULT_SETTINGS.pinnedImageFolder);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }));
 
@@ -213,8 +342,12 @@ export function createGeneralSettings(containerEl, plugin) {
             text.setPlaceholder('Example: Images/Banners')
                 .setValue(plugin.settings.defaultSelectImagePath)
                 .onChange(async (value) => {
-                    plugin.settings.defaultSelectImagePath = value;
-                    await plugin.saveSettings();
+                    try {
+                        plugin.settings.defaultSelectImagePath = value;
+                        await plugin.saveSettings();
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
+                    }
                 });
             text.inputEl.style.width = '200px';
             return text;
@@ -235,12 +368,16 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
-                await plugin.saveSettings();
-                
-                const textComponent = defaultSelectImagePathSetting.components[0];
-                if (textComponent) {
-                    textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
+                try {
+                    plugin.settings.defaultSelectImagePath = DEFAULT_SETTINGS.defaultSelectImagePath;
+                    await plugin.saveSettings();
+                    
+                    const textComponent = defaultSelectImagePathSetting.components[0];
+                    if (textComponent) {
+                        textComponent.setValue(DEFAULT_SETTINGS.defaultSelectImagePath);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }));
 
@@ -252,8 +389,12 @@ export function createGeneralSettings(containerEl, plugin) {
             text.setPlaceholder('Example: Images/Icons')
                 .setValue(plugin.settings.defaultSelectIconPath)
                 .onChange(async (value) => {
-                    plugin.settings.defaultSelectIconPath = value;
-                    await plugin.saveSettings();
+                    try {
+                        plugin.settings.defaultSelectIconPath = value;
+                        await plugin.saveSettings();
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
+                    }
                 });
             text.inputEl.style.width = '200px';
             return text;
@@ -274,12 +415,16 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.defaultSelectIconPath = DEFAULT_SETTINGS.defaultSelectIconPath;
-                await plugin.saveSettings();
-                
-                const textComponent = defaultSelectIconPathSetting.components[0];
-                if (textComponent) {
-                    textComponent.setValue(DEFAULT_SETTINGS.defaultSelectIconPath);
+                try {
+                    plugin.settings.defaultSelectIconPath = DEFAULT_SETTINGS.defaultSelectIconPath;
+                    await plugin.saveSettings();
+                    
+                    const textComponent = defaultSelectIconPathSetting.components[0];
+                    if (textComponent) {
+                        textComponent.setValue(DEFAULT_SETTINGS.defaultSelectIconPath);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }));
 
@@ -290,19 +435,27 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.openTargetingModalAfterSelectingBannerOrIcon)
             .onChange(async (value) => {
-                plugin.settings.openTargetingModalAfterSelectingBannerOrIcon = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.openTargetingModalAfterSelectingBannerOrIcon = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.openTargetingModalAfterSelectingBannerOrIcon = DEFAULT_SETTINGS.openTargetingModalAfterSelectingBannerOrIcon;
-                await plugin.saveSettings();
-                
-                const toggleComponent = openTargetingModalSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.openTargetingModalAfterSelectingBannerOrIcon);
+                try {
+                    plugin.settings.openTargetingModalAfterSelectingBannerOrIcon = DEFAULT_SETTINGS.openTargetingModalAfterSelectingBannerOrIcon;
+                    await plugin.saveSettings();
+                    
+                    const toggleComponent = openTargetingModalSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.openTargetingModalAfterSelectingBannerOrIcon);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }));
 
@@ -315,21 +468,29 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerMaxWidth)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerMaxWidth = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.bannerMaxWidth = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerMaxWidth = DEFAULT_SETTINGS.bannerMaxWidth;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerMaxWidth;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.bannerMaxWidth = DEFAULT_SETTINGS.bannerMaxWidth;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerMaxWidth;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Image Horizontal Position setting
@@ -341,22 +502,30 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.xPosition)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.xPosition = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.xPosition = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             })
         )
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the slider value
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.xPosition;
-                sliderEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.xPosition;
+                    sliderEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Image Vertical Position setting
@@ -368,22 +537,30 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.yPosition)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.yPosition = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.yPosition = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             })
         )
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the slider value
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.yPosition;
-                sliderEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.yPosition;
+                    sliderEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
     
     // Content Start Position setting
@@ -394,11 +571,15 @@ export function createGeneralSettings(containerEl, plugin) {
             .setPlaceholder('150')
             .setValue(String(plugin.settings.contentStartPosition))
             .onChange(async (value) => {
-                const numValue = Number(value);
-                if (!isNaN(numValue) && numValue >= 0) {
-                plugin.settings.contentStartPosition = numValue;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    const numValue = Number(value);
+                    if (!isNaN(numValue) && numValue >= 0) {
+                    plugin.settings.contentStartPosition = numValue;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }))
         .then(setting => {
@@ -411,13 +592,17 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.contentStartPosition = DEFAULT_SETTINGS.contentStartPosition;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the input value
-                const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
-                inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
-                inputEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.contentStartPosition = DEFAULT_SETTINGS.contentStartPosition;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the input value
+                    const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
+                    inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
+                    inputEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Image Display setting
@@ -431,9 +616,13 @@ export function createGeneralSettings(containerEl, plugin) {
                 .addOption('contain', 'Contain')
                 .setValue(plugin.settings.imageDisplay || 'cover')
                 .onChange(async (value) => {
-                    plugin.settings.imageDisplay = value;
-                    await plugin.saveSettings();
-                    plugin.updateAllBanners();
+                    try {
+                        plugin.settings.imageDisplay = value;
+                        await plugin.saveSettings();
+                        plugin.updateAllBanners();
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
+                    }
                 });
             return dropdown;
         })
@@ -441,11 +630,15 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
-                await plugin.saveSettings();
-                const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
-                dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-                dropdownEl.dispatchEvent(new Event('change'));
+                try {
+                    plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
+                    await plugin.saveSettings();
+                    const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
+                    dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
+                    dropdownEl.dispatchEvent(new Event('change'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Image Repeat setting
@@ -456,9 +649,13 @@ export function createGeneralSettings(containerEl, plugin) {
             toggle
                 .setValue(plugin.settings.imageRepeat)
                 .onChange(async (value) => {
-                    plugin.settings.imageRepeat = value;
-                    await plugin.saveSettings();
-                    plugin.updateAllBanners();
+                    try {
+                        plugin.settings.imageRepeat = value;
+                        await plugin.saveSettings();
+                        plugin.updateAllBanners();
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
+                    }
                 });
             return toggle;
         })
@@ -466,17 +663,21 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.imageRepeat = DEFAULT_SETTINGS.imageRepeat;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
 
-                const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
-                const toggleEl = checkboxContainer.querySelector('input');
-                if (toggleEl) {
-                    toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-                    checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.imageRepeat);
-                    const event = new Event('change', { bubbles: true });
-                    toggleEl.dispatchEvent(event);
+                    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
+                    const toggleEl = checkboxContainer.querySelector('input');
+                    if (toggleEl) {
+                        toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
+                        checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.imageRepeat);
+                        const event = new Event('change', { bubbles: true });
+                        toggleEl.dispatchEvent(event);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }));
 
@@ -488,26 +689,34 @@ export function createGeneralSettings(containerEl, plugin) {
             text.setPlaceholder('350')
                 .setValue(String(plugin.settings.bannerHeight))
                 .onChange(async (value) => {
-                    // Allow any input, including empty string
-                    if (value === '' || !isNaN(Number(value))) {
-                        await plugin.saveSettings();
+                    try {
+                        // Allow any input, including empty string
+                        if (value === '' || !isNaN(Number(value))) {
+                            await plugin.saveSettings();
+                        }
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
                     }
                 });
             
             // Add event listener for 'blur' event
             text.inputEl.addEventListener('blur', async (event) => {
-                let numValue = Number(event.target.value);
-                if (isNaN(numValue) || event.target.value === '') {
-                    // If the value is not a number or is empty, set to default
-                    numValue = 350;
-                } else {
-                    // Ensure value is between 0 and 1280
-                    numValue = Math.max(0, Math.min(1280, numValue));
+                try {
+                    let numValue = Number(event.target.value);
+                    if (isNaN(numValue) || event.target.value === '') {
+                        // If the value is not a number or is empty, set to default
+                        numValue = 350;
+                    } else {
+                        // Ensure value is between 0 and 1280
+                        numValue = Math.max(0, Math.min(1280, numValue));
+                    }
+                    plugin.settings.bannerHeight = numValue;
+                    text.setValue(String(numValue));
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                plugin.settings.bannerHeight = numValue;
-                text.setValue(String(numValue));
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
             });
 
             text.inputEl.type = 'number';
@@ -519,13 +728,17 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the input value
-                const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
-                inputEl.value = DEFAULT_SETTINGS.bannerHeight;
-                inputEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the input value
+                    const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
+                    inputEl.value = DEFAULT_SETTINGS.bannerHeight;
+                    inputEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Fade setting
@@ -537,22 +750,30 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.fade)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.fade = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.fade = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             })
         )
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.fade = DEFAULT_SETTINGS.fade;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the slider value
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.fade;
-                sliderEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.fade = DEFAULT_SETTINGS.fade;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.fade;
+                    sliderEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Fade In Animation Duration setting
@@ -564,22 +785,30 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerFadeInAnimationDuration)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerFadeInAnimationDuration = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.bannerFadeInAnimationDuration = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             })
         )
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerFadeInAnimationDuration = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the slider value
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
-                sliderEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.bannerFadeInAnimationDuration = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
+                    sliderEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Border Radius setting
@@ -591,21 +820,29 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.borderRadius)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.borderRadius = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.borderRadius = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the slider value
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.borderRadius;
-                sliderEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.borderRadius;
+                    sliderEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Gap setting
@@ -617,22 +854,30 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerGap)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerGap = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.bannerGap = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             })
         )
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                // Update the slider value
-                const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                sliderEl.value = DEFAULT_SETTINGS.bannerGap;
-                sliderEl.dispatchEvent(new Event('input'));
+                try {
+                    plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the slider value
+                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
+                    sliderEl.value = DEFAULT_SETTINGS.bannerGap;
+                    sliderEl.dispatchEvent(new Event('input'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Inline Title Color setting
@@ -642,7 +887,7 @@ export function createGeneralSettings(containerEl, plugin) {
         .addColorPicker(color => color
             .setValue((() => {
                 const currentColor = plugin.settings.titleColor;
-                if (currentColor.startsWith('var(--')) {
+                if (currentColor && currentColor.startsWith('var(--')) {
                     const temp = document.createElement('div');
                     temp.style.color = currentColor;
                     document.body.appendChild(temp);
@@ -661,19 +906,24 @@ export function createGeneralSettings(containerEl, plugin) {
                     }
                     return '#000000';
                 }
-                return currentColor;
+                return currentColor || '#000000';
             })())
             .onChange(async (value) => {
-                plugin.settings.titleColor = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.titleColor = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
+                    await plugin.saveSettings();
                 
                 // Update color picker to show computed value
                 const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
@@ -694,6 +944,9 @@ export function createGeneralSettings(containerEl, plugin) {
                         colorPickerEl.value = hexColor;
                     }
                 }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
     
     // Add hide embedded note titles setting
@@ -703,23 +956,31 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.hideEmbeddedNoteTitles)
             .onChange(async (value) => {
-                plugin.settings.hideEmbeddedNoteTitles = value;
-                await plugin.saveSettings();
-                plugin.updateEmbeddedTitlesVisibility();
+                try {
+                    plugin.settings.hideEmbeddedNoteTitles = value;
+                    await plugin.saveSettings();
+                    plugin.updateEmbeddedTitlesVisibility();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
-                await plugin.saveSettings();
-                
-                const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
+                try {
+                    plugin.settings.hideEmbeddedNoteTitles = DEFAULT_SETTINGS.hideEmbeddedNoteTitles;
+                    await plugin.saveSettings();
+                    
+                    const toggleComponent = hideEmbeddedNoteTitlesSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteTitles);
+                    }
+                    
+                    plugin.updateEmbeddedTitlesVisibility();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                
-                plugin.updateEmbeddedTitlesVisibility();
             }));
 
     // Add hide embedded note banners setting
@@ -729,23 +990,31 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.hideEmbeddedNoteBanners)
             .onChange(async (value) => {
-                plugin.settings.hideEmbeddedNoteBanners = value;
-                await plugin.saveSettings();
-                plugin.updateEmbeddedBannersVisibility();
+                try {
+                    plugin.settings.hideEmbeddedNoteBanners = value;
+                    await plugin.saveSettings();
+                    plugin.updateEmbeddedBannersVisibility();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
-                await plugin.saveSettings();
-                
-                const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
+                try {
+                    plugin.settings.hideEmbeddedNoteBanners = DEFAULT_SETTINGS.hideEmbeddedNoteBanners;
+                    await plugin.saveSettings();
+                    
+                    const toggleComponent = hideEmbeddedNoteBannersSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.hideEmbeddedNoteBanners);
+                    }
+                    
+                    plugin.updateEmbeddedBannersVisibility();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                
-                plugin.updateEmbeddedBannersVisibility();
             }));
 
     // Show Banner in Popover Previews setting
@@ -755,23 +1024,31 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.showBannerInPopoverPreviews)
             .onChange(async (value) => {
-                plugin.settings.showBannerInPopoverPreviews = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.showBannerInPopoverPreviews = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.showBannerInPopoverPreviews = DEFAULT_SETTINGS.showBannerInPopoverPreviews;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
-                
-                const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
-                const toggleEl = checkboxContainer.querySelector('input');
-                if (toggleEl) {
-                    toggleEl.checked = DEFAULT_SETTINGS.showBannerInPopoverPreviews;
-                    checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.showBannerInPopoverPreviews);
+                try {
+                    plugin.settings.showBannerInPopoverPreviews = DEFAULT_SETTINGS.showBannerInPopoverPreviews;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    
+                    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
+                    const toggleEl = checkboxContainer.querySelector('input');
+                    if (toggleEl) {
+                        toggleEl.checked = DEFAULT_SETTINGS.showBannerInPopoverPreviews;
+                        checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.showBannerInPopoverPreviews);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }));
 
@@ -782,23 +1059,31 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.showViewImageIcon)
             .onChange(async (value) => {
-                plugin.settings.showViewImageIcon = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.showViewImageIcon = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
-                await plugin.saveSettings();
-                
-                const toggleComponent = showViewImageIconSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+                try {
+                    plugin.settings.showViewImageIcon = DEFAULT_SETTINGS.showViewImageIcon;
+                    await plugin.saveSettings();
+                    
+                    const toggleComponent = showViewImageIconSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.showViewImageIcon);
+                    }
+                    
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                
-                plugin.updateAllBanners();
             }));
 
     // Pinned Image Property Format
@@ -806,21 +1091,30 @@ export function createGeneralSettings(containerEl, plugin) {
         .setName('Image Property Format')
         .setDesc('Set the format for the banner property value.')
         .addDropdown(dropdown => dropdown
-            .addOption('![[image]]', '![[image]]')
+            .addOption('image', 'image')
             .addOption('[[image]]', '[[image]]')
+            .addOption('![[image]]', '![[image]]')
             .setValue(plugin.settings.imagePropertyFormat)
             .onChange(async (value) => {
-                plugin.settings.imagePropertyFormat = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.imagePropertyFormat = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.imagePropertyFormat = DEFAULT_SETTINGS.imagePropertyFormat;
-                await plugin.saveSettings();
-                const dropdown = button.extraSettingsEl.parentElement.querySelector('select');
-                dropdown.value = DEFAULT_SETTINGS.imagePropertyFormat;
+                try {
+                    plugin.settings.imagePropertyFormat = DEFAULT_SETTINGS.imagePropertyFormat;
+                    await plugin.saveSettings();
+                    const dropdown = button.extraSettingsEl.parentElement.querySelector('select');
+                    dropdown.value = DEFAULT_SETTINGS.imagePropertyFormat;
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
     
     // Create a group for the hide settings
@@ -833,65 +1127,73 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.hidePixelBannerFields)
             .onChange(async (value) => {
-                plugin.settings.hidePixelBannerFields = value;
-                if (!value) {
-                    // Turn off the dependent setting
-                    plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
-                    const dependentToggle = hidePropertiesSection.components[0];
-                    if (dependentToggle) {
-                        dependentToggle.setValue(false);
-                        dependentToggle.setDisabled(true);
-                    }
-                    hidePropertiesSection.settingEl.addClass('is-disabled');
-                    
-                    // Remove the hidden class from all previously hidden fields
-                    plugin.app.workspace.iterateAllLeaves(leaf => {
-                        if (leaf.view instanceof MarkdownView && leaf.view.contentEl) {
-                            const propertiesContainer = leaf.view.contentEl.querySelector('.metadata-container');
-                            if (propertiesContainer) {
-                                propertiesContainer.classList.remove('pixel-banner-hidden-section');
-                                const hiddenFields = propertiesContainer.querySelectorAll('.pixel-banner-hidden-field');
-                                hiddenFields.forEach(field => {
-                                    field.classList.remove('pixel-banner-hidden-field');
-                                });
-                            }
+                try {
+                    plugin.settings.hidePixelBannerFields = value;
+                    if (!value) {
+                        // Turn off the dependent setting
+                        plugin.settings.hidePropertiesSectionIfOnlyBanner = false;
+                        const dependentToggle = hidePropertiesSection.components[0];
+                        if (dependentToggle) {
+                            dependentToggle.setValue(false);
+                            dependentToggle.setDisabled(true);
                         }
-                    });
-                } else {
-                    // Enable the dependent toggle when this is turned on
-                    const dependentToggle = hidePropertiesSection.components[0];
-                    if (dependentToggle) {
-                        dependentToggle.setDisabled(false);
+                        hidePropertiesSection.settingEl.addClass('is-disabled');
+                        
+                        // Remove the hidden class from all previously hidden fields
+                        plugin.app.workspace.iterateAllLeaves(leaf => {
+                            if (leaf.view instanceof MarkdownView && leaf.view.contentEl) {
+                                const propertiesContainer = leaf.view.contentEl.querySelector('.metadata-container');
+                                if (propertiesContainer) {
+                                    propertiesContainer.classList.remove('pixel-banner-hidden-section');
+                                    const hiddenFields = propertiesContainer.querySelectorAll('.pixel-banner-hidden-field');
+                                    hiddenFields.forEach(field => {
+                                        field.classList.remove('pixel-banner-hidden-field');
+                                    });
+                                }
+                            }
+                        });
+                    } else {
+                        // Enable the dependent toggle when this is turned on
+                        const dependentToggle = hidePropertiesSection.components[0];
+                        if (dependentToggle) {
+                            dependentToggle.setDisabled(false);
+                        }
+                        hidePropertiesSection.settingEl.removeClass('is-disabled');
                     }
-                    hidePropertiesSection.settingEl.removeClass('is-disabled');
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                // Reset both settings to their defaults
-                plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
-                plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
-                await plugin.saveSettings();
-                
-                // Update the main toggle state
-                const mainToggle = hidePixelBannerFieldsSetting.components[0];
-                if (mainToggle) {
-                    mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
-                }
+                try {
+                    // Reset both settings to their defaults
+                    plugin.settings.hidePixelBannerFields = DEFAULT_SETTINGS.hidePixelBannerFields;
+                    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+                    await plugin.saveSettings();
+                    
+                    // Update the main toggle state
+                    const mainToggle = hidePixelBannerFieldsSetting.components[0];
+                    if (mainToggle) {
+                        mainToggle.setValue(DEFAULT_SETTINGS.hidePixelBannerFields);
+                    }
 
-                // Update the dependent toggle state
-                const dependentToggle = hidePropertiesSection.components[0];
-                if (dependentToggle) {
-                    dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
-                    dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
+                    // Update the dependent toggle state
+                    const dependentToggle = hidePropertiesSection.components[0];
+                    if (dependentToggle) {
+                        dependentToggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+                        dependentToggle.setDisabled(!DEFAULT_SETTINGS.hidePixelBannerFields);
+                    }
+                    hidePropertiesSection.settingEl.toggleClass('is-disabled', !DEFAULT_SETTINGS.hidePixelBannerFields);
+                    
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                hidePropertiesSection.settingEl.toggleClass('is-disabled', !DEFAULT_SETTINGS.hidePixelBannerFields);
-                
-                plugin.updateAllBanners();
             }));
 
     // Then create Hide Properties Section setting
@@ -902,23 +1204,31 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.hidePropertiesSectionIfOnlyBanner)
             .setDisabled(!plugin.settings.hidePixelBannerFields)
             .onChange(async (value) => {
-                plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
-                await plugin.saveSettings();
-                plugin.updateAllBanners();
+                try {
+                    plugin.settings.hidePropertiesSectionIfOnlyBanner = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
-                await plugin.saveSettings();
-                
-                const toggle = hidePropertiesSection.components[0];
-                if (toggle) {
-                    toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+                try {
+                    plugin.settings.hidePropertiesSectionIfOnlyBanner = DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner;
+                    await plugin.saveSettings();
+                    
+                    const toggle = hidePropertiesSection.components[0];
+                    if (toggle) {
+                        toggle.setValue(DEFAULT_SETTINGS.hidePropertiesSectionIfOnlyBanner);
+                    }
+                    
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
-                
-                plugin.updateAllBanners();
             }));
 
     // Add dependent styling
@@ -936,19 +1246,61 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerIconSize)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconSize = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconSize = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
+    // Banner Icon Image Size Multiplier
+    new Setting(containerEl)
+        .setName('Default Banner Icon Image Size Multiplier')
+        .setDesc('Set the default size multiplier for banner icon images (0.1-5)')
+        .addSlider(slider => slider
+            .setLimits(0.1, 5.0, 0.1)
+            .setValue(plugin.settings.bannerIconImageSizeMultiplier)
+            .setDynamicTooltip()
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.bannerIconImageSizeMultiplier = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.bannerIconImageSizeMultiplier = DEFAULT_SETTINGS.bannerIconImageSizeMultiplier;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconImageSizeMultiplier;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon X Position
@@ -960,19 +1312,27 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerIconXPosition)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconXPosition = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconXPosition = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Opacity
@@ -984,19 +1344,27 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerIconOpacity)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconOpacity = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconOpacity = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Text Color
@@ -1007,19 +1375,27 @@ export function createGeneralSettings(containerEl, plugin) {
             .setPlaceholder('Enter color (e.g., #ffffff or white)')
             .setValue(plugin.settings.bannerIconColor)
             .onChange(async (value) => {
-                plugin.settings.bannerIconColor = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconColor = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
-                await plugin.saveSettings();
-                const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
-                textInput.value = DEFAULT_SETTINGS.bannerIconColor;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                textInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
+                    await plugin.saveSettings();
+                    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+                    textInput.value = DEFAULT_SETTINGS.bannerIconColor;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    textInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Font Weight
@@ -1033,8 +1409,12 @@ export function createGeneralSettings(containerEl, plugin) {
                 .addOption('bold', 'Bold')
                 .setValue(plugin.settings.bannerIconFontWeight || 'normal')
                 .onChange(async (value) => {
-                    plugin.settings.bannerIconFontWeight = value;
-                    await plugin.saveSettings();
+                    try {
+                        plugin.settings.bannerIconFontWeight = value;
+                        await plugin.saveSettings();
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
+                    }
                 });
             return dropdown;
         })
@@ -1042,11 +1422,15 @@ export function createGeneralSettings(containerEl, plugin) {
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconFontWeight = DEFAULT_SETTINGS.bannerIconFontWeight;
-                await plugin.saveSettings();
-                const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
-                dropdownEl.value = DEFAULT_SETTINGS.bannerIconFontWeight;
-                dropdownEl.dispatchEvent(new Event('change'));
+                try {
+                    plugin.settings.bannerIconFontWeight = DEFAULT_SETTINGS.bannerIconFontWeight;
+                    await plugin.saveSettings();
+                    const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
+                    dropdownEl.value = DEFAULT_SETTINGS.bannerIconFontWeight;
+                    dropdownEl.dispatchEvent(new Event('change'));
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Background Color
@@ -1057,19 +1441,27 @@ export function createGeneralSettings(containerEl, plugin) {
             .setPlaceholder('Enter color (e.g., #ffffff or transparent)')
             .setValue(plugin.settings.bannerIconBackgroundColor)
             .onChange(async (value) => {
-                plugin.settings.bannerIconBackgroundColor = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconBackgroundColor = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
-                await plugin.saveSettings();
-                const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
-                textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                textInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+                    await plugin.saveSettings();
+                    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
+                    textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    textInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Padding X
@@ -1081,19 +1473,27 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerIconPaddingX)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconPaddingX = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconPaddingX = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconPaddingX = DEFAULT_SETTINGS.bannerIconPaddingX;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingX;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconPaddingX = DEFAULT_SETTINGS.bannerIconPaddingX;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingX;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Padding Y
@@ -1105,19 +1505,27 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerIconPaddingY)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconPaddingY = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconPaddingY = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconPaddingY = DEFAULT_SETTINGS.bannerIconPaddingY;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingY;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconPaddingY = DEFAULT_SETTINGS.bannerIconPaddingY;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingY;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Border Radius
@@ -1129,19 +1537,27 @@ export function createGeneralSettings(containerEl, plugin) {
             .setValue(plugin.settings.bannerIconBorderRadius)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconBorderRadius = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconBorderRadius = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Banner Icon Vertical Offset
@@ -1150,22 +1566,30 @@ export function createGeneralSettings(containerEl, plugin) {
         .setDesc('Set the default vertical offset for the banner icon')
         .addSlider(slider => slider
             .setLimits(-100, 100, 1)
-            .setValue(plugin.settings.bannerIconVeritalOffset)
+            .setValue(plugin.settings.bannerIconVerticalOffset)
             .setDynamicTooltip()
             .onChange(async (value) => {
-                plugin.settings.bannerIconVeritalOffset = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.bannerIconVerticalOffset = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.bannerIconVeritalOffset = DEFAULT_SETTINGS.bannerIconVeritalOffset;
-                await plugin.saveSettings();
-                const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                sliderInput.value = DEFAULT_SETTINGS.bannerIconVeritalOffset;
-                const event = new Event('input', { bubbles: true, cancelable: true });
-                sliderInput.dispatchEvent(event);
+                try {
+                    plugin.settings.bannerIconVerticalOffset = DEFAULT_SETTINGS.bannerIconVerticalOffset;
+                    await plugin.saveSettings();
+                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
+                    sliderInput.value = DEFAULT_SETTINGS.bannerIconVerticalOffset;
+                    const event = new Event('input', { bubbles: true, cancelable: true });
+                    sliderInput.dispatchEvent(event);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }));
 
     // Add back the Show Release Notes setting
@@ -1175,19 +1599,27 @@ export function createGeneralSettings(containerEl, plugin) {
         .addToggle(toggle => toggle
             .setValue(plugin.settings.showReleaseNotes)
             .onChange(async (value) => {
-                plugin.settings.showReleaseNotes = value;
-                await plugin.saveSettings();
+                try {
+                    plugin.settings.showReleaseNotes = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
             }))
         .addExtraButton(button => button
             .setIcon('reset')
             .setTooltip('Reset to default')
             .onClick(async () => {
-                plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
-                await plugin.saveSettings();
-                
-                const toggleComponent = showReleaseNotesSetting.components[0];
-                if (toggleComponent) {
-                    toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
+                try {
+                    plugin.settings.showReleaseNotes = DEFAULT_SETTINGS.showReleaseNotes;
+                    await plugin.saveSettings();
+                    
+                    const toggleComponent = showReleaseNotesSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.showReleaseNotes);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
                 }
             }));
 

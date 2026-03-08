@@ -24,7 +24,7 @@ const SUPPORTED_EXTENSIONS = [...SUPPORTED_IMAGE_EXTENSIONS, ...SUPPORTED_MOVIE_
 // ----------------------
 const debouncedAddPixelBanner = debounceAndSwallow(addPixelBanner, 350);
 async function addPixelBanner(plugin, el, ctx) {
-    const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView } = ctx;
+    const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView, updateMode } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
     const isHoverPopover = viewContent.closest('.hover-popover') !== null;
@@ -127,9 +127,9 @@ async function addPixelBanner(plugin, el, ctx) {
                     17
                 ]);
                 const bannerIconVerticalOffset = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
-                    folderSpecific?.bannerIconVeritalOffset,
-                    plugin.settings.bannerIconVeritalOffset,
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
+                    folderSpecific?.bannerIconVerticalOffset,
+                    plugin.settings.bannerIconVerticalOffset,
                     0
                 ]);
                 const bannerIconRotate = getValueWithZeroCheck([
@@ -199,16 +199,9 @@ async function addPixelBanner(plugin, el, ctx) {
                 // Set banner icon start
                 previewViewEl.style.setProperty('--pixel-banner-icon-start', `${(bannerHeight - (bannerIconSize / 2))}px`);
 
-                // Get banner-icon vertical offset
-                let bannerIconVeritalOffset = Number(getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
-                    folderSpecific?.bannerIconVeritalOffset,
-                    plugin.settings.bannerIconVeritalOffset,
-                    0
-                ]));
                 // calculate content start
                 const contentStart = !hideEmbeddedNoteBanners ? 
-                    `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
+                    `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVerticalOffset) + parseInt(bannerIconPaddingY))}px` : 
                     '0px';
                 previewViewEl.style.setProperty('--pixel-banner-content-start', contentStart);
             }
@@ -400,16 +393,34 @@ async function addPixelBanner(plugin, el, ctx) {
     if (bannerImage) {
         let imageUrl = plugin.loadedImages.get(file.path);
         const lastInput = plugin.lastKeywords.get(file.path);
-        const inputType = plugin.getInputType(bannerImage);
+        const inputType = plugin.getInputType(bannerImage, file.path);
         const folderSpecific = plugin.getFolderSpecificImage(file.path);
 
         // Check if this is a shuffled banner
         const hasShufflePath = getFrontmatterValue(frontmatter, plugin.settings.customBannerShuffleField);
         const isShuffled = hasShufflePath || folderSpecific?.enableImageShuffle;
 
-        // Force URL refresh for shuffled banners or normal cache miss conditions
-        if (!imageUrl || isShuffled || (isContentChange && bannerImage !== lastInput)) {
-            imageUrl = await plugin.getImageUrl(inputType, bannerImage);
+        // Default to FULL_UPDATE if updateMode is not provided
+        const effectiveUpdateMode = updateMode || plugin.UPDATE_MODE.FULL_UPDATE;
+        
+        // Determine if we should fetch a new image
+        let shouldFetchNewImage = false;
+        
+        if (effectiveUpdateMode === plugin.UPDATE_MODE.ENSURE_VISIBILITY) {
+            // For ENSURE_VISIBILITY mode, only fetch if we don't have a cached image
+            shouldFetchNewImage = !imageUrl;
+        } else {
+            // For other modes (FULL_UPDATE, SHUFFLE_UPDATE, etc.), apply normal conditions
+            shouldFetchNewImage = (
+                effectiveUpdateMode === plugin.UPDATE_MODE.FULL_UPDATE || 
+                !imageUrl || 
+                isShuffled || 
+                (isContentChange && bannerImage !== lastInput)
+            );
+        }
+        
+        if (shouldFetchNewImage) {
+            imageUrl = await plugin.getImageUrl(inputType, bannerImage, file.path);
             if (imageUrl) {
                 // Store the full object with metadata for videos
                 plugin.loadedImages.set(file.path, imageUrl);
@@ -464,8 +475,8 @@ async function addPixelBanner(plugin, el, ctx) {
                     URL.revokeObjectURL(fileUrl);
                     
                     // Get a fresh URL
-                    const inputType = plugin.getInputType(bannerImage);
-                    const freshResult = await plugin.getImageUrl(inputType, bannerImage);
+                    const inputType = plugin.getInputType(bannerImage, file.path);
+                    const freshResult = await plugin.getImageUrl(inputType, bannerImage, file.path);
                     if (freshResult) {
                         if (typeof freshResult === 'object' && freshResult !== null) {
                             isVideoFile = freshResult.isVideo === true;
@@ -643,7 +654,7 @@ async function addPixelBanner(plugin, el, ctx) {
                             // Get the original frontmatter value instead of the resolved bannerImage
                             // This ensures we always get the full comma-separated keywords for random selection
                             const originalBannerValue = getFrontmatterValue(frontmatter, plugin.settings.customBannerField);
-                            const result = await plugin.getImageUrl(inputType, originalBannerValue || bannerImage);
+                            const result = await plugin.getImageUrl(inputType, originalBannerValue || bannerImage, file.path);
                             if (result) {
                                 // Check if it's a video or an image result
                                 let isVideoFile = false;
@@ -704,7 +715,7 @@ async function addPixelBanner(plugin, el, ctx) {
                                     let displayUrl = bannerValue || file.path;
                                     
                             // For 3rd party APIs (keyword-based), use actual URL instead of keyword
-                            const refreshInputType = plugin.getInputType(bannerValue);
+                            const refreshInputType = plugin.getInputType(bannerValue, file.path);
                             if (refreshInputType === 'keyword') {
                                 if (fileUrl && typeof fileUrl === 'object' && fileUrl.url) {
                                     displayUrl = fileUrl.url;
@@ -873,10 +884,10 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     // Handle array flattening and internal link formatting
     if (bannerImage) {
         // Flatten the bannerImage if it's an array within an array
+        // Don't format here - let the downstream logic at line 920 handle formatting
+        // consistently for both array and string inputs
         if (Array.isArray(bannerImage)) {
             bannerImage = bannerImage.flat()[0];
-            // Format as internal link
-            bannerImage = `[[${bannerImage}]]`;
         }
 
         // Handle comma-delimited banner values in frontmatter
@@ -904,7 +915,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Format internal links
-        if (bannerImage && (!bannerImage.startsWith('[[') || !bannerImage.startsWith('![[')) && !bannerImage.startsWith('http')) {
+        if (bannerImage && typeof bannerImage === 'string' && !bannerImage.startsWith('[[') && !bannerImage.startsWith('![[') && !bannerImage.startsWith('http')) {
             const file = plugin.app.vault.getAbstractFileByPath(bannerImage);
             if (file && 'extension' in file) {
                 if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
@@ -949,7 +960,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             fade,
             borderRadius,
             maxWidth,
-            isReadingView: view.getMode && view.getMode() === 'preview'
+            isReadingView: view.getMode && view.getMode() === 'preview',
+            updateMode: updateMode
         });
         plugin.lastYPositions.set(view.file.path, yPosition);
     } else if (existingBanner) {
@@ -986,12 +998,14 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
 
         // Clean up any existing icons first
-        const oldViewIcons = container.querySelectorAll('.view-image-icon');
-        const oldPinIcons = container.querySelectorAll('.pin-icon');
-        const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
-        const oldSelectIcons = container.querySelectorAll('.select-image-icon');
+        if (container) {
+            const oldViewIcons = container.querySelectorAll('.view-image-icon');
+            const oldPinIcons = container.querySelectorAll('.pin-icon');
+            const oldRefreshIcons = container.querySelectorAll('.refresh-icon');
+            const oldSelectIcons = container.querySelectorAll('.select-image-icon');
 
-        [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach(el => el.remove());
+            [...oldViewIcons, ...oldPinIcons, ...oldRefreshIcons, ...oldSelectIcons].forEach(el => el.remove());
+        }
 
         // Only add select image icon if not embedded
         if (!isEmbedded && container && plugin.settings.showSelectImageIcon) {
@@ -1033,7 +1047,16 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     }
 
     const bannerIcon = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconField);
-    const bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
+    let bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
+    
+    // Handle array flattening for icon-image (same issue as main banner with unquoted wiki links)
+    if (Array.isArray(bannerIconImage)) {
+        bannerIconImage = bannerIconImage.flat()[0];
+        // Only format as internal link if it's not already formatted
+        if (bannerIconImage && !bannerIconImage.startsWith('[[') && !bannerIconImage.startsWith('![[')) {
+            bannerIconImage = `[[${bannerIconImage}]]`;
+        }
+    }
 
     // Only clean up overlays that belong to the current container context
     if (isEmbedded) {
@@ -1134,8 +1157,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                     plugin.settings.bannerIconBorderRadius,
                 ]),
                 verticalOffset: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField),
-                    plugin.settings.bannerIconVeritalOffset,
+                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
+                    plugin.settings.bannerIconVerticalOffset,
                 ]),
                 imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
                 viewType
@@ -1171,9 +1194,11 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             // Create image element if we have a banner icon image
             let imgElement = null;
             if (bannerIconImage) {
-                // Resolve the image path using existing utility functions
-                const inputType = plugin.getInputType(bannerIconImage);
+                // Resolve the image path using icon-specific utility functions for better partial path resolution
+                const inputType = plugin.getIconImageInputType(bannerIconImage, view.file.path);
+                
                 let imagePath = null;
+                let resolvedVaultPath = null;
 
                 // Skip processing if the input is invalid (e.g., corrupted object values)
                 if (inputType === 'invalid') {
@@ -1192,17 +1217,65 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                                 }
                             }
                             break;
+                        case 'markdownImage':
+                            const mdPath = plugin.getPathFromMarkdownImage(bannerIconImage);
+                            if (typeof mdPath === 'string') {
+                                // If path is a URL, use it directly
+                                try {
+                                    new URL(mdPath);
+                                    imagePath = mdPath;
+                                } catch (_) {
+                                    // Not a URL, treat as a vault path
+                                    imagePath = plugin.loadedImages.get(mdPath);
+                                    if (!imagePath) {
+                                        imagePath = await plugin.getVaultImageUrl(mdPath);
+                                        if (imagePath) plugin.loadedImages.set(mdPath, imagePath);
+                                    }
+                                }
+                            } else if (mdPath) {
+                                imagePath = plugin.loadedImages.get(mdPath.path);
+                                if (!imagePath) {
+                                    imagePath = await plugin.getVaultImageUrl(mdPath.path);
+                                    if (imagePath) plugin.loadedImages.set(mdPath.path, imagePath);
+                                }
+                            }
+                            break;
                         case 'vaultPath':
-                            // Get the image synchronously from the cached URLs if possible
-                            imagePath = plugin.loadedImages.get(bannerIconImage);
-                            if (!imagePath) {
-                                // Await the image loading instead of skipping
-                                imagePath = await plugin.getVaultImageUrl(bannerIconImage);
-                                if (imagePath) plugin.loadedImages.set(bannerIconImage, imagePath);
+                            // IMPORTANT: We need to resolve the partial path to a full path first!
+                            // Clean the input and try to resolve it
+                            const cleanedInput = bannerIconImage.trim().replace(/^["'](.*)["']$/, '$1');
+                            
+                            // Try exact match first
+                            let resolvedFile = plugin.app.vault.getAbstractFileByPath(cleanedInput);
+                            if (!resolvedFile) {
+                                // Try partial path resolution
+                                resolvedFile = plugin.app.metadataCache.getFirstLinkpathDest(cleanedInput, view.file.path);
+                            }
+                            
+                            if (resolvedFile && 'path' in resolvedFile) {
+                                resolvedVaultPath = resolvedFile.path;
+                                
+                                // Now get the image URL using the resolved path
+                                imagePath = plugin.loadedImages.get(resolvedVaultPath);
+                                if (!imagePath) {
+                                    imagePath = await plugin.getVaultImageUrl(resolvedVaultPath);
+                                    if (imagePath) plugin.loadedImages.set(resolvedVaultPath, imagePath);
+                                }
+                            } else {
+                                console.warn('[Icon Image] Could not resolve vault path:', cleanedInput);
                             }
                             break;
                         case 'url':
                             imagePath = bannerIconImage;
+                            break;
+                        case 'fileUrl':
+                            // For file:/// URLs, we should not handle them for icon images as they may be a security risk
+                            // and are only supported for main banners on desktop
+                            console.warn('file:/// URLs are not supported for banner icon images');
+                            break;
+                        case 'keyword':
+                            // Keywords are not supported for banner icon images - they're only for main banners
+                            console.warn('Keywords are not supported for banner icon images');
                             break;
                     }
 
@@ -1376,10 +1449,10 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     ]);
 
     // Get banner-icon vertical offset
-    const bannerIconVeritalOffset = getValueWithZeroCheck([
-        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVeritalOffsetField)),
-        folderSpecific?.bannerIconVeritalOffset,
-        plugin.settings.bannerIconVeritalOffset,
+    const bannerIconVerticalOffset = getValueWithZeroCheck([
+        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField)),
+        folderSpecific?.bannerIconVerticalOffset,
+        plugin.settings.bannerIconVerticalOffset,
         0
     ]);
 
@@ -1439,12 +1512,12 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         '--pixel-banner-icon-padding-x': `${bannerIconPaddingX}px`,
         '--pixel-banner-icon-padding-y': `${bannerIconPaddingY}px`,
         '--pixel-banner-icon-border-radius': `${bannerIconBorderRadius}px`,
-        '--pixel-banner-icon-vertical-offset': `${bannerIconVeritalOffset}px`,
+        '--pixel-banner-icon-vertical-offset': `${bannerIconVerticalOffset}px`,
         '--pixel-banner-icon-rotate': `${bannerIconRotate}deg`,
         '--pixel-banner-icon-image-size-multiplier': `${bannerIconImageSizeMultiplier}em`,
         '--pixel-banner-icon-text-vertical-offset': `${bannerIconTextVerticalOffset}px`,
         '--pixel-banner-embed-min-height': !hideEmbeddedNoteBanners ? 
-            `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVeritalOffset) + parseInt(bannerIconPaddingY))}px` : 
+            `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVerticalOffset) + parseInt(bannerIconPaddingY))}px` : 
             '0px',
         '--pixel-banner-alignment': alignmentValue
     };
@@ -1639,7 +1712,8 @@ function registerMarkdownPostProcessor(plugin) {
       xPosition,
       contentStartPosition,
       bannerImage,
-      isReadingView: true
+      isReadingView: true,
+      updateMode: plugin.UPDATE_MODE.FULL_UPDATE
     });
   });
 }

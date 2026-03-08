@@ -19,11 +19,15 @@ export function getCacheEntriesForFile(filePath) {
 export function cleanupCache(force = false) {
     const now = Date.now();
 
-    // Clean up by age
+    // Clean up by age and orphaned leaves
     for (const [key, entry] of this.bannerStateCache) {
         // Use shorter timeout for shuffle images
         const maxAge = entry.isShuffled ? this.SHUFFLE_CACHE_AGE : this.MAX_CACHE_AGE;
-        if (force || now - entry.timestamp > maxAge) {
+        
+        // Check if this is an orphaned entry (leaf no longer exists)
+        const isOrphaned = entry.leafId && !this.app.workspace.getLeafById(entry.leafId);
+        
+        if (force || now - entry.timestamp > maxAge || isOrphaned) {
             // Clean up any persistent icon overlays for this entry
             if (entry.leafId) {
                 const leaf = this.app.workspace.getLeafById(entry.leafId);

@@ -1,0 +1,797 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { requestUrl, Notice } from 'obsidian';
+import * as apiService from '@/services/apiService.js';
+
+const {
+  makeRequest,
+  fetchPexelsImage,
+  fetchPixabayImage,
+  fetchFlickrImage,
+  fetchUnsplashImage
+} = apiService;
+
+// Mock plugin with settings for testing
+const createMockPlugin = (overrides = {}) => ({
+  settings: {
+    pexelsApiKey: 'test-pexels-key',
+    pixabayApiKey: 'test-pixabay-key',
+    flickrApiKey: 'test-flickr-key',
+    unsplashApiKey: 'test-unsplash-key',
+    numberOfImages: 10,
+    imageSize: 'medium',
+    imageOrientation: 'all',
+    defaultKeywords: 'nature, landscape, abstract',
+    ...overrides
+  }
+});
+
+// Mock image responses
+const mockPexelsResponse = {
+  photos: [
+    {
+      id: 1,
+      src: {
+        small: 'https://images.pexels.com/small/image1.jpg',
+        medium: 'https://images.pexels.com/medium/image1.jpg',
+        large: 'https://images.pexels.com/large/image1.jpg'
+      }
+    },
+    {
+      id: 2,
+      src: {
+        small: 'https://images.pexels.com/small/image2.jpg',
+        medium: 'https://images.pexels.com/medium/image2.jpg',
+        large: 'https://images.pexels.com/large/image2.jpg'
+      }
+    }
+  ]
+};
+
+const mockPixabayResponse = {
+  hits: [
+    {
+      id: 1,
+      largeImageURL: 'https://pixabay.com/large/image1.jpg'
+    },
+    {
+      id: 2,
+      largeImageURL: 'https://pixabay.com/large/image2.jpg'
+    }
+  ]
+};
+
+const mockFlickrResponse = {
+  stat: 'ok',
+  photos: {
+    photo: [
+      {
+        id: '123456',
+        server: '1234',
+        secret: 'abcdef'
+      },
+      {
+        id: '789012',
+        server: '5678',
+        secret: 'ghijkl'
+      }
+    ]
+  }
+};
+
+const mockUnsplashResponse = {
+  results: [
+    {
+      id: '1',
+      urls: {
+        small: 'https://images.unsplash.com/small/image1.jpg',
+        regular: 'https://images.unsplash.com/regular/image1.jpg',
+        full: 'https://images.unsplash.com/full/image1.jpg'
+      }
+    },
+    {
+      id: '2',
+      urls: {
+        small: 'https://images.unsplash.com/small/image2.jpg',
+        regular: 'https://images.unsplash.com/regular/image2.jpg',
+        full: 'https://images.unsplash.com/full/image2.jpg'
+      }
+    }
+  ]
+};
+
+describe('apiService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    // Mock Math.random to return 0 for predictable results
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    // Mock Date.now for rate limiter consistency
+    vi.setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+    vi.useRealTimers();
+  });
+
+  describe('makeRequest', () => {
+    it('should make a successful request', async () => {
+      const mockResponse = { test: 'data' };
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockResponse,
+        text: JSON.stringify(mockResponse),
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      const result = await makeRequest('https://api.test.com/data');
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: 'https://api.test.com/data',
+        headers: {}
+      });
+      expect(result.status).toBe(200);
+      expect(result.json).toEqual(mockResponse);
+    });
+
+    it('should handle request with custom headers', async () => {
+      const mockResponse = { test: 'data' };
+      const customHeaders = { 'Authorization': 'Bearer test-token' };
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockResponse,
+        text: JSON.stringify(mockResponse),
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      await makeRequest('https://api.test.com/data', { headers: customHeaders });
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: 'https://api.test.com/data',
+        headers: customHeaders
+      });
+    });
+
+    it('should enforce rate limiting between requests', async () => {
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: {},
+        text: '{}',
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      // First request should go through immediately
+      const promise1 = makeRequest('https://api.test.com/data1');
+      await promise1;
+      
+      // Second request should be rate limited
+      const promise2Start = Date.now();
+      const promise2 = makeRequest('https://api.test.com/data2');
+      
+      // Advance time to simulate rate limiting delay
+      await vi.advanceTimersByTimeAsync(1000);
+      await promise2;
+
+      // Verify both requests were made
+      expect(requestUrl).toHaveBeenCalledTimes(2);
+    });
+
+    it('should throw error on request failure', async () => {
+      const errorMessage = 'Network error';
+      vi.mocked(requestUrl).mockRejectedValue(new Error(errorMessage));
+
+      await expect(makeRequest('https://api.test.com/data')).rejects.toThrow(
+        `Request failed: ${errorMessage}`
+      );
+    });
+  });
+
+  describe('fetchPexelsImage', () => {
+    it('should fetch image successfully with valid API key and keyword', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'sunset';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockPexelsResponse,
+        text: JSON.stringify(mockPexelsResponse),
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      const result = await fetchPexelsImage(plugin, keyword);
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: `https://api.pexels.com/v1/search?query=${encodeURIComponent(keyword)}&per_page=${plugin.settings.numberOfImages}`,
+        headers: {
+          'Authorization': plugin.settings.pexelsApiKey
+        }
+      });
+
+      expect(result).toBe('https://images.pexels.com/medium/image1.jpg');
+    });
+
+    it('should return null when API key is missing', async () => {
+      const plugin = createMockPlugin({ pexelsApiKey: '' });
+      const keyword = 'sunset';
+
+      const result = await fetchPexelsImage(plugin, keyword);
+
+      expect(result).toBeNull();
+      expect(requestUrl).not.toHaveBeenCalled();
+    });
+
+    it('should fallback to default keywords when no results found for original keyword', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'nonexistentkeyword';
+
+      // First call returns empty results, second call returns results
+      vi.mocked(requestUrl)
+        .mockResolvedValueOnce({
+          status: 200,
+          json: { photos: [] },
+          text: JSON.stringify({ photos: [] }),
+          arrayBuffer: new ArrayBuffer(0),
+          headers: {}
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          json: mockPexelsResponse,
+          text: JSON.stringify(mockPexelsResponse),
+          arrayBuffer: new ArrayBuffer(0),
+          headers: {}
+        });
+
+      const result = await fetchPexelsImage(plugin, keyword);
+
+      expect(result).toBe('https://images.pexels.com/medium/image1.jpg');
+      expect(requestUrl).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle different image sizes', async () => {
+      const testCases = [
+        { imageSize: 'small', expected: 'small' },
+        { imageSize: 'medium', expected: 'medium' },
+        { imageSize: 'large', expected: 'large' }
+      ];
+
+      for (const testCase of testCases) {
+        const plugin = createMockPlugin({ imageSize: testCase.imageSize });
+        
+        vi.mocked(requestUrl).mockResolvedValue({
+          status: 200,
+          json: mockPexelsResponse,
+          text: JSON.stringify(mockPexelsResponse),
+          arrayBuffer: new ArrayBuffer(0),
+          headers: {}
+        });
+
+        const result = await fetchPexelsImage(plugin, 'test');
+
+        expect(result).toBe(mockPexelsResponse.photos[0].src[testCase.expected]);
+        
+        // Clear mocks for next iteration
+        vi.clearAllMocks();
+        vi.spyOn(Math, 'random').mockReturnValue(0);
+      }
+    });
+
+    it('should handle API error responses', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'sunset';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 404,
+        json: {},
+        text: 'Not found',
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      const result = await fetchPexelsImage(plugin, keyword);
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle network errors', async () => {
+      const plugin = createMockPlugin();
+
+      vi.mocked(requestUrl).mockRejectedValue(new Error('Network error'));
+
+      const result = await fetchPexelsImage(plugin, 'test');
+
+      expect(result).toBeNull();
+      // Notice is called but we're not testing the UI notification here
+    });
+  });
+
+  describe('fetchPixabayImage', () => {
+    it('should fetch image successfully with valid API key and keyword', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'mountain';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockPixabayResponse,
+        text: JSON.stringify(mockPixabayResponse),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify(mockPixabayResponse)).buffer,
+        headers: {}
+      });
+
+      const result = await fetchPixabayImage(plugin, keyword);
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: expect.stringContaining('https://pixabay.com/api/'),
+        headers: {}
+      });
+
+      expect(result).toBe('https://pixabay.com/large/image1.jpg');
+    });
+
+    it('should return null when API key is missing', async () => {
+      const plugin = createMockPlugin({ pixabayApiKey: '' });
+      const keyword = 'mountain';
+
+      const result = await fetchPixabayImage(plugin, keyword);
+
+      expect(result).toBeNull();
+      expect(requestUrl).not.toHaveBeenCalled();
+    });
+
+    it('should try multiple attempts with different keywords', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'nonexistentkeyword';
+
+      // First few calls return empty results, last call returns results
+      vi.mocked(requestUrl)
+        .mockResolvedValueOnce({
+          status: 200,
+          json: { hits: [] },
+          text: JSON.stringify({ hits: [] }),
+          arrayBuffer: new TextEncoder().encode(JSON.stringify({ hits: [] })).buffer,
+          headers: {}
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          json: { hits: [] },
+          text: JSON.stringify({ hits: [] }),
+          arrayBuffer: new TextEncoder().encode(JSON.stringify({ hits: [] })).buffer,
+          headers: {}
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          json: mockPixabayResponse,
+          text: JSON.stringify(mockPixabayResponse),
+          arrayBuffer: new TextEncoder().encode(JSON.stringify(mockPixabayResponse)).buffer,
+          headers: {}
+        });
+
+      const result = await fetchPixabayImage(plugin, keyword);
+
+      expect(result).toBe('https://pixabay.com/large/image1.jpg');
+      expect(requestUrl).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle API error status codes', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'mountain';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 403,
+        json: {},
+        text: 'Forbidden',
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      const result = await fetchPixabayImage(plugin, keyword);
+
+      expect(result).toBeNull();
+      // Notice is called but we're not testing the UI notification here
+    });
+  });
+
+  describe('fetchFlickrImage', () => {
+    it('should fetch image successfully with valid API key and keyword', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'ocean';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockFlickrResponse,
+        text: JSON.stringify(mockFlickrResponse),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify(mockFlickrResponse)).buffer,
+        headers: {}
+      });
+
+      const result = await fetchFlickrImage(plugin, keyword);
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: expect.stringContaining('https://www.flickr.com/services/rest/'),
+        headers: {}
+      });
+
+      expect(result).toBe('https://live.staticflickr.com/1234/123456_abcdef_z.jpg');
+    });
+
+    it('should return null when API key is missing', async () => {
+      const plugin = createMockPlugin({ flickrApiKey: '' });
+      const keyword = 'ocean';
+
+      const result = await fetchFlickrImage(plugin, keyword);
+
+      expect(result).toBeNull();
+      expect(requestUrl).not.toHaveBeenCalled();
+    });
+
+    it('should handle different image size settings', async () => {
+      const testCases = [
+        { imageSize: 'small', expectedSize: 'n' },
+        { imageSize: 'medium', expectedSize: 'z' },
+        { imageSize: 'large', expectedSize: 'b' }
+      ];
+
+      for (const testCase of testCases) {
+        const plugin = createMockPlugin({ imageSize: testCase.imageSize });
+        
+        vi.mocked(requestUrl).mockResolvedValue({
+          status: 200,
+          json: mockFlickrResponse,
+          text: JSON.stringify(mockFlickrResponse),
+          arrayBuffer: new TextEncoder().encode(JSON.stringify(mockFlickrResponse)).buffer,
+          headers: {}
+        });
+
+        const result = await fetchFlickrImage(plugin, 'test');
+
+        expect(result).toMatch(new RegExp(`_${testCase.expectedSize}\\.jpg$`));
+        
+        // Clear mocks for next iteration
+        vi.clearAllMocks();
+        vi.spyOn(Math, 'random').mockReturnValue(0);
+      }
+    });
+
+    it('should handle Flickr API error responses', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'ocean';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: { stat: 'fail', message: 'Invalid API Key' },
+        text: JSON.stringify({ stat: 'fail', message: 'Invalid API Key' }),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify({ stat: 'fail', message: 'Invalid API Key' })).buffer,
+        headers: {}
+      });
+
+      const result = await fetchFlickrImage(plugin, keyword);
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle empty photo results', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'ocean';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: { stat: 'ok', photos: { photo: [] } },
+        text: JSON.stringify({ stat: 'ok', photos: { photo: [] } }),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify({ stat: 'ok', photos: { photo: [] } })).buffer,
+        headers: {}
+      });
+
+      const result = await fetchFlickrImage(plugin, keyword);
+
+      expect(result).toBeNull();
+      // Notice is called but we're not testing the UI notification here
+    });
+  });
+
+  describe('fetchUnsplashImage', () => {
+    it('should fetch image successfully with valid API key and keyword', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'forest';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockUnsplashResponse,
+        text: JSON.stringify(mockUnsplashResponse),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify(mockUnsplashResponse)).buffer,
+        headers: {}
+      });
+
+      const result = await fetchUnsplashImage(plugin, keyword);
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: expect.stringContaining('https://api.unsplash.com/search/photos'),
+        headers: {
+          'Authorization': `Client-ID ${plugin.settings.unsplashApiKey}`,
+          'Accept-Version': 'v1'
+        }
+      });
+
+      expect(result).toBe('https://images.unsplash.com/regular/image1.jpg');
+    });
+
+    it('should return null when API key is missing', async () => {
+      const plugin = createMockPlugin({ unsplashApiKey: '' });
+      const keyword = 'forest';
+
+      const result = await fetchUnsplashImage(plugin, keyword);
+
+      expect(result).toBeNull();
+      expect(requestUrl).not.toHaveBeenCalled();
+    });
+
+    it('should handle different image size settings', async () => {
+      const testCases = [
+        { imageSize: 'small', expectedKey: 'small' },
+        { imageSize: 'medium', expectedKey: 'regular' },
+        { imageSize: 'large', expectedKey: 'full' }
+      ];
+
+      for (const testCase of testCases) {
+        const plugin = createMockPlugin({ imageSize: testCase.imageSize });
+        
+        vi.mocked(requestUrl).mockResolvedValue({
+          status: 200,
+          json: mockUnsplashResponse,
+          text: JSON.stringify(mockUnsplashResponse),
+          arrayBuffer: new TextEncoder().encode(JSON.stringify(mockUnsplashResponse)).buffer,
+          headers: {}
+        });
+
+        const result = await fetchUnsplashImage(plugin, 'test');
+
+        expect(result).toBe(mockUnsplashResponse.results[0].urls[testCase.expectedKey]);
+        
+        // Clear mocks for next iteration
+        vi.clearAllMocks();
+        vi.spyOn(Math, 'random').mockReturnValue(0);
+      }
+    });
+
+    it('should include image orientation in API request', async () => {
+      const plugin = createMockPlugin({ imageOrientation: 'landscape' });
+      const keyword = 'forest';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockUnsplashResponse,
+        text: JSON.stringify(mockUnsplashResponse),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify(mockUnsplashResponse)).buffer,
+        headers: {}
+      });
+
+      await fetchUnsplashImage(plugin, keyword);
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: expect.stringContaining('orientation=landscape'),
+        headers: expect.any(Object)
+      });
+    });
+
+    it('should handle empty search results', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'forest';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: { results: [] },
+        text: JSON.stringify({ results: [] }),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify({ results: [] })).buffer,
+        headers: {}
+      });
+
+      const result = await fetchUnsplashImage(plugin, keyword);
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle rate limiting and unauthorized responses', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'forest';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 403,
+        json: {},
+        text: 'Rate limit exceeded',
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      const result = await fetchUnsplashImage(plugin, keyword);
+
+      expect(result).toBeNull();
+      // Notice is called but we're not testing the UI notification here
+    });
+
+    it('should try multiple attempts with fallback keywords', async () => {
+      const plugin = createMockPlugin();
+      const keyword = 'nonexistentkeyword';
+
+      // First attempt fails, second succeeds
+      vi.mocked(requestUrl)
+        .mockResolvedValueOnce({
+          status: 200,
+          json: { results: [] },
+          text: JSON.stringify({ results: [] }),
+          arrayBuffer: new TextEncoder().encode(JSON.stringify({ results: [] })).buffer,
+          headers: {}
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          json: mockUnsplashResponse,
+          text: JSON.stringify(mockUnsplashResponse),
+          arrayBuffer: new TextEncoder().encode(JSON.stringify(mockUnsplashResponse)).buffer,
+          headers: {}
+        });
+
+      const result = await fetchUnsplashImage(plugin, keyword);
+
+      expect(result).toBe('https://images.unsplash.com/regular/image1.jpg');
+      expect(requestUrl).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('error handling and edge cases', () => {
+    it('should handle null/undefined keywords gracefully', async () => {
+      const plugin = createMockPlugin();
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockPexelsResponse,
+        text: JSON.stringify(mockPexelsResponse),
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      const nullResult = await fetchPexelsImage(plugin, null);
+      const undefinedResult = await fetchPexelsImage(plugin, undefined);
+
+      expect(nullResult).toBe('https://images.pexels.com/medium/image1.jpg');
+      expect(undefinedResult).toBe('https://images.pexels.com/medium/image1.jpg');
+    });
+
+    it('should handle empty default keywords', async () => {
+      const plugin = createMockPlugin({ defaultKeywords: '' });
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: { photos: [] },
+        text: JSON.stringify({ photos: [] }),
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      const result = await fetchPexelsImage(plugin, 'nonexistent');
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle malformed JSON responses', async () => {
+      const plugin = createMockPlugin();
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: {},
+        text: 'malformed json {',
+        arrayBuffer: new TextEncoder().encode('malformed json {').buffer,
+        headers: {}
+      });
+
+      const result = await fetchPixabayImage(plugin, 'test');
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle network timeouts', async () => {
+      const plugin = createMockPlugin();
+
+      vi.mocked(requestUrl).mockRejectedValue(new Error('Request timeout'));
+
+      const result = await fetchPexelsImage(plugin, 'test');
+
+      expect(result).toBeNull();
+      // Notice is called but we're not testing the UI notification here
+    });
+  });
+
+  describe('API parameter validation', () => {
+    it('should include required parameters in Pexels API calls', async () => {
+      const plugin = createMockPlugin({ numberOfImages: 15 });
+      const keyword = 'test';
+
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockPexelsResponse,
+        text: JSON.stringify(mockPexelsResponse),
+        arrayBuffer: new ArrayBuffer(0),
+        headers: {}
+      });
+
+      await fetchPexelsImage(plugin, keyword);
+
+      expect(requestUrl).toHaveBeenCalledWith({
+        url: `https://api.pexels.com/v1/search?query=${encodeURIComponent(keyword)}&per_page=15`,
+        headers: {
+          'Authorization': plugin.settings.pexelsApiKey
+        }
+      });
+    });
+
+    it('should include required parameters in Pixabay API calls', async () => {
+      const plugin = createMockPlugin({ numberOfImages: 20 });
+      
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockPixabayResponse,
+        text: JSON.stringify(mockPixabayResponse),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify(mockPixabayResponse)).buffer,
+        headers: {}
+      });
+
+      await fetchPixabayImage(plugin, 'test');
+
+      const calledUrl = vi.mocked(requestUrl).mock.calls[0][0].url;
+      expect(calledUrl).toContain('key=' + plugin.settings.pixabayApiKey);
+      expect(calledUrl).toContain('per_page=20');
+      expect(calledUrl).toContain('image_type=photo');
+      expect(calledUrl).toContain('safesearch=true');
+    });
+
+    it('should include required parameters in Flickr API calls', async () => {
+      const plugin = createMockPlugin({ numberOfImages: 25 });
+      
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockFlickrResponse,
+        text: JSON.stringify(mockFlickrResponse),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify(mockFlickrResponse)).buffer,
+        headers: {}
+      });
+
+      await fetchFlickrImage(plugin, 'test');
+
+      const calledUrl = vi.mocked(requestUrl).mock.calls[0][0].url;
+      expect(calledUrl).toContain('api_key=' + plugin.settings.flickrApiKey);
+      expect(calledUrl).toContain('per_page=25');
+      expect(calledUrl).toContain('format=json');
+      expect(calledUrl).toContain('nojsoncallback=1');
+      expect(calledUrl).toContain('content_type=1');
+      expect(calledUrl).toContain('media=photos');
+      expect(calledUrl).toContain('safe_search=1');
+    });
+
+    it('should include required parameters in Unsplash API calls', async () => {
+      const plugin = createMockPlugin({ 
+        numberOfImages: 30,
+        imageOrientation: 'portrait'
+      });
+      
+      vi.mocked(requestUrl).mockResolvedValue({
+        status: 200,
+        json: mockUnsplashResponse,
+        text: JSON.stringify(mockUnsplashResponse),
+        arrayBuffer: new TextEncoder().encode(JSON.stringify(mockUnsplashResponse)).buffer,
+        headers: {}
+      });
+
+      await fetchUnsplashImage(plugin, 'test');
+
+      const calledUrl = vi.mocked(requestUrl).mock.calls[0][0].url;
+      expect(calledUrl).toContain('per_page=30');
+      expect(calledUrl).toContain('orientation=portrait');
+      
+      const headers = vi.mocked(requestUrl).mock.calls[0][0].headers;
+      expect(headers['Authorization']).toBe(`Client-ID ${plugin.settings.unsplashApiKey}`);
+      expect(headers['Accept-Version']).toBe('v1');
+    });
+  });
+});

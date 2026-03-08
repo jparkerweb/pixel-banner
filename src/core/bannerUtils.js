@@ -1,6 +1,6 @@
 import { MarkdownView } from 'obsidian';
 
-function getInputType(input) {
+function getInputType(input, sourcePath = '') {
     if (Array.isArray(input)) {
         input = input.flat()[0];
     }
@@ -19,8 +19,8 @@ function getInputType(input) {
         return 'fileUrl';
     }
 
-    // Check if it's an Obsidian internal link
-    if (input.match(/^\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
+    // Check if it's an Obsidian internal link (both quoted and unquoted)
+    if (input.match(/^!?\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
         return 'obsidianLink';
     }
 
@@ -30,16 +30,25 @@ function getInputType(input) {
     }
 
     try {
-        new URL(input);
+        new URL(cleanedInput);
         return 'url';
     } catch (_) {
-        // Check if the input is a valid file path within the vault
-        const file = this.app.vault.getAbstractFileByPath(input);
+        // First try exact path match
+        const file = this.app.vault.getAbstractFileByPath(cleanedInput);
         if (file && 'extension' in file) {
-            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg)$/i)) {
+            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif|mp4|mov)$/i)) {
                 return 'vaultPath';
             }
         }
+
+        // If exact path doesn't work, try resolving as a partial path using getFirstLinkpathDest
+        const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanedInput, sourcePath);
+        if (resolvedFile && 'extension' in resolvedFile) {
+            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif|mp4|mov)$/i)) {
+                return 'vaultPath';
+            }
+        }
+
         // If the file doesn't exist in the vault or isn't an image, treat it as a keyword
         return 'keyword';
     }
@@ -138,6 +147,61 @@ function preloadImage(url) {
     });
 }
 
+function getIconImageInputType(input, sourcePath = '') {
+    if (Array.isArray(input)) {
+        input = input.flat()[0];
+    }
+
+    if (typeof input !== 'string') {
+        return 'invalid';
+    }
+
+    // Trim the input and remove surrounding quotes if present
+    let cleanedInput = input.trim().replace(/^["'](.*)["']$/, '$1');
+    // remove markdown image and link syntax
+    cleanedInput = cleanedInput.replace(/^!\[\[(.*)\]\]$/, '$1').replace(/^\[\[(.*)\]\]$/, '$1');
+
+    // Check for file:/// protocol
+    if (cleanedInput.includes('file:///')) {
+        return 'fileUrl';
+    }
+
+    // Check if it's an Obsidian internal link (both quoted and unquoted)
+    if (input.match(/^!?\[{2}.*\]{2}$/) || input.match(/^"?!?\[{2}.*\]{2}"?$/)) {
+        return 'obsidianLink';
+    }
+
+    // Check if it's a Markdown image syntax (![](path.jpg) format)
+    if (input.match(/^!\[\]\(.*\)$/) || input.match(/^"?!\[\]\(.*\)"?$/)) {
+        return 'markdownImage';
+    }
+
+    try {
+        new URL(cleanedInput);
+        return 'url';
+    } catch (_) {
+        // First try exact path match
+        const file = this.app.vault.getAbstractFileByPath(cleanedInput);
+        if (file && 'extension' in file) {
+            if (file.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif|mp4|mov)$/i)) {
+                return 'vaultPath';
+            }
+        }
+
+        // For icon images, be more aggressive about trying partial path resolution
+        // Try resolving as a partial path using getFirstLinkpathDest
+        const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(cleanedInput, sourcePath);
+        if (resolvedFile && 'extension' in resolvedFile) {
+            if (resolvedFile.extension.match(/^(jpg|jpeg|png|gif|bmp|svg|webp|avif|mp4|mov)$/i)) {
+                return 'vaultPath';
+            }
+        }
+
+        // If no file found, treat as keyword (which will be ignored for icon images)
+        return 'keyword';
+    }
+}
+
 
 function getFolderPath(filePath) {
     if (!filePath) return '/';
@@ -234,6 +298,23 @@ function getActiveApiProvider() {
         return this.settings.apiProvider;
     }
 
+    // Check if apiProviders array is configured and use its order
+    if (this.settings.apiProviders && Array.isArray(this.settings.apiProviders)) {
+        for (const provider of this.settings.apiProviders) {
+            // Check if this provider has an API key configured
+            const hasKey = (
+                (provider === 'pexels' && this.settings.pexelsApiKey) ||
+                (provider === 'pixabay' && this.settings.pixabayApiKey) ||
+                (provider === 'flickr' && this.settings.flickrApiKey) ||
+                (provider === 'unsplash' && this.settings.unsplashApiKey)
+            );
+            if (hasKey) {
+                return provider;
+            }
+        }
+    }
+
+    // Fallback to the original random selection logic if no apiProviders configured
     const availableProviders = [];
     if (this.settings.pexelsApiKey) availableProviders.push('pexels');
     if (this.settings.pixabayApiKey) availableProviders.push('pixabay');
@@ -241,7 +322,7 @@ function getActiveApiProvider() {
     if (this.settings.unsplashApiKey) availableProviders.push('unsplash');
 
     if (availableProviders.length === 0) {
-        return 'pexels'; // Default fallback if no API keys are configured
+        return null; // Return null if no API keys are configured
     }
 
     return availableProviders[Math.floor(Math.random() * availableProviders.length)];
@@ -277,6 +358,7 @@ function createFolderImageSettings(folderImage) {
 
 export {
     getInputType, 
+    getIconImageInputType,
     getPathFromObsidianLink, 
     getPathFromMarkdownImage, 
     getVaultImageUrl, 

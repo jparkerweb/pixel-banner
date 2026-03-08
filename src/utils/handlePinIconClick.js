@@ -3,29 +3,54 @@
 // -------------
 import { FolderSelectionModal } from '../modal/modals/folderSelectionModal';
 import { SaveImageModal } from '../modal/modals/saveImageModal';
-import { updateNoteFrontmatter } from './frontmatterUtils';
+import { PinChoiceModal } from '../modal/modals/pinChoiceModal';
+import { updateNoteFrontmatter, updateNoteFrontmatterWithUrl } from './frontmatterUtils';
 
 
 // ----------------------------------------------------------------------------
 // -- helper for pinning an image once chosen from UI or loaded from keyword --
 // ----------------------------------------------------------------------------
-export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null) {
-    const imageBlob = await fetchImage(imageUrl);
-    const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
-    const finalPath = await waitForFileRename(file, plugin);
-
-    if (!finalPath) {
-        console.error('❌ Failed to resolve valid file path');
-        new Notice('Failed to save image - file not found');
-        return null;
-    }
+export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null, showChoiceModal = true) {
+    let choice = 'local'; // Default to local save behavior
     
-    if (useAsBanner) {
-        await updateNoteFrontmatter(finalPath, plugin, usedField);
-        hidePinIcon();
+    // Only show choice modal if explicitly requested (e.g., from pin icon or command palette)
+    if (showChoiceModal) {
+        choice = await new Promise((resolve) => {
+            const modal = new PinChoiceModal(plugin.app, (result) => {
+                resolve(result);
+            });
+            modal.open();
+        });
+
+        if (!choice) {
+            return null; // User cancelled
+        }
     }
 
-    return finalPath;
+    if (choice === 'url') {
+        // Pin URL directly to frontmatter
+        await updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField);
+        hidePinIcon();
+        return imageUrl;
+    } else {
+        // Original behavior: save locally
+        const imageBlob = await fetchImage(imageUrl);
+        const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
+        const finalPath = await waitForFileRename(file, plugin);
+
+        if (!finalPath) {
+            console.error('❌ Failed to resolve valid file path');
+            new Notice('Failed to save image - file not found');
+            return null;
+        }
+        
+        if (useAsBanner) {
+            await updateNoteFrontmatter(finalPath, plugin, usedField);
+            hidePinIcon();
+        }
+
+        return finalPath;
+    }
 }
 
 // -----------------

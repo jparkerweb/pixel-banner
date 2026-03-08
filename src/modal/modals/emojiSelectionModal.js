@@ -133,9 +133,9 @@ export class EmojiSelectionModal extends Modal {
                             ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
                             : this.plugin.settings.customBannerIconRotateField;
                         
-                        const iconYPositionField = Array.isArray(this.plugin.settings.customBannerIconVeritalOffsetField) 
-                            ? this.plugin.settings.customBannerIconVeritalOffsetField[0].split(',')[0].trim()
-                            : this.plugin.settings.customBannerIconVeritalOffsetField;
+                        const iconYPositionField = Array.isArray(this.plugin.settings.customBannerIconVerticalOffsetField) 
+                            ? this.plugin.settings.customBannerIconVerticalOffsetField[0].split(',')[0].trim()
+                            : this.plugin.settings.customBannerIconVerticalOffsetField;
                         
                         const iconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField) 
                             ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()

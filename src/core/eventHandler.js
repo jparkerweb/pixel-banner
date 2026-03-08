@@ -65,10 +65,7 @@ async function handleActiveLeafChange(leaf) {
         let shouldUpdateBanner = false;
 
         if (cachedState) {
-            // Update timestamp to keep entry fresh
-            cachedState.timestamp = currentTime;
-
-            // For shuffled banners, check if cache has expired
+            // For shuffled banners, check if cache has expired before updating timestamp
             if (isShuffled && (currentTime - cachedState.timestamp > this.SHUFFLE_CACHE_AGE)) {
                 shouldUpdateBanner = true;
                 // Cache expired for shuffled banner, force update
@@ -77,6 +74,8 @@ async function handleActiveLeafChange(leaf) {
                 this.imageCache.delete(currentPath);
                 this.bannerStateCache.delete(cacheKey);
             } else {
+                // Update timestamp to keep entry fresh (only if not expired)
+                cachedState.timestamp = currentTime;
                 // Compare frontmatter for relevant changes
                 const relevantFields = [
                     ...this.settings.customBannerField,
@@ -100,7 +99,7 @@ async function handleActiveLeafChange(leaf) {
                     ...this.settings.customBannerIconPaddingXField,
                     ...this.settings.customBannerIconPaddingYField,
                     ...this.settings.customBannerIconBorderRadiusField,
-                    ...this.settings.customBannerIconVeritalOffsetField
+                    ...this.settings.customBannerIconVerticalOffsetField
                 ];
 
                 const hasRelevantChanges = relevantFields.some(field => 
@@ -121,11 +120,7 @@ async function handleActiveLeafChange(leaf) {
         }
 
         // At this point we know we need to update the banner
-        // Clean up previous leaf first
-        const previousLeaf = this.app.workspace.activeLeaf;
-        if (previousLeaf && previousLeaf.view instanceof MarkdownView && previousLeaf !== leaf) {  // Only cleanup if it's actually a different leaf
-            this.cleanupPreviousLeaf(previousLeaf);
-        }
+        // Note: Previous leaf cleanup is already handled above at the beginning of the function
 
         // Update banner if needed
         if (shouldUpdateBanner) {
@@ -144,7 +139,7 @@ async function handleActiveLeafChange(leaf) {
                 paddingX: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || this.settings.bannerIconPaddingX,
                 paddingY: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || this.settings.bannerIconPaddingY,
                 borderRadius: getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || this.settings.bannerIconBorderRadius,
-                verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVeritalOffsetField) || this.settings.bannerIconVeritalOffset
+                verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVerticalOffsetField) || this.settings.bannerIconVerticalOffset
             } : null;
 
             // Cache the new state
@@ -201,15 +196,17 @@ function handleLayoutChange() {
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
             // Only update if we have a banner
             const contentEl = activeLeaf.view.contentEl;
-            const hasBanner = contentEl.querySelector('.pixel-banner-image');
-            if (hasBanner) {
-                // Check if we have a valid cache entry before updating
-                const cacheKey = activeLeaf.id;
-                const cachedState = this.bannerStateCache.get(cacheKey);
-                
-                // Only update if we don't have a valid cache entry
-                if (!cachedState) {
-                    this.updateBanner(activeLeaf.view, false);
+            if (contentEl) {
+                const hasBanner = contentEl.querySelector('.pixel-banner-image');
+                if (hasBanner) {
+                    // Check if we have a valid cache entry before updating
+                    const cacheKey = activeLeaf.id;
+                    const cachedState = this.bannerStateCache.get(cacheKey);
+                    
+                    // Only update if we don't have a valid cache entry
+                    if (!cachedState) {
+                        this.updateBanner(activeLeaf.view, false);
+                    }
                 }
             }
         }

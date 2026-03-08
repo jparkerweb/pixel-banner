@@ -9,7 +9,7 @@ import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafC
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
-import { getInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
+import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
@@ -73,7 +73,8 @@ export class PixelBannerPlugin extends Plugin {
     // --------------------------------------------
     // -- add bindings for the utility functions --
     // --------------------------------------------
-    getInputType(input) { return getInputType.call(this, input); }
+    getInputType(input, sourcePath = '') { return getInputType.call(this, input, sourcePath); }
+    getIconImageInputType(input, sourcePath = '') { return getIconImageInputType.call(this, input, sourcePath); }
     getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
     getPathFromMarkdownImage(link) { return getPathFromMarkdownImage.call(this, link); }
     getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
@@ -210,7 +211,7 @@ export class PixelBannerPlugin extends Plugin {
                     ...this.settings.customBannerIconPaddingXField,
                     ...this.settings.customBannerIconPaddingYField,
                     ...this.settings.customBannerIconBorderRadiusField,
-                    ...this.settings.customBannerIconVeritalOffsetField
+                    ...this.settings.customBannerIconVerticalOffsetField
                 ];
 
                 // console.log('🔎 Checking relevant fields:', relevantFields);
@@ -553,7 +554,7 @@ export class PixelBannerPlugin extends Plugin {
     // -------------------
     // -- get image url --
     // -------------------
-    async getImageUrl(type, input) {
+    async getImageUrl(type, input, sourcePath = '') {
         if (type === 'url' || type === 'path') {
             return input;
         }
@@ -621,7 +622,19 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'vaultPath') {
-            return this.getVaultImageUrl(input);
+            // First try exact path
+            let file = this.app.vault.getAbstractFileByPath(input);
+            if (file && 'extension' in file) {
+                return this.getVaultImageUrl(input);
+            }
+            
+            // If exact path doesn't work, try resolving as a partial path
+            const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(input, sourcePath);
+            if (resolvedFile && 'extension' in resolvedFile) {
+                return this.getVaultImageUrl(resolvedFile.path);
+            }
+            
+            return null;
         }
 
         if (type === 'keyword') {
@@ -634,26 +647,98 @@ export class PixelBannerPlugin extends Plugin {
             
             if (keywords.length > 0) {
                 const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-                const provider = this.getActiveApiProvider();
                 
-                // Check if the selected provider has an API key before attempting to fetch
-                const apiKey = provider === 'pexels' ? this.settings.pexelsApiKey :
-                             provider === 'pixabay' ? this.settings.pixabayApiKey :
-                             provider === 'flickr' ? this.settings.flickrApiKey :
-                             provider === 'unsplash' ? this.settings.unsplashApiKey : null;
+                // Get all available providers with API keys
+                const availableProviders = [];
+                if (this.settings.apiProviders && Array.isArray(this.settings.apiProviders)) {
+                    // Use configured provider order
+                    for (const provider of this.settings.apiProviders) {
+                        const hasKey = (
+                            (provider === 'pexels' && this.settings.pexelsApiKey) ||
+                            (provider === 'pixabay' && this.settings.pixabayApiKey) ||
+                            (provider === 'flickr' && this.settings.flickrApiKey) ||
+                            (provider === 'unsplash' && this.settings.unsplashApiKey)
+                        );
+                        if (hasKey) {
+                            availableProviders.push(provider);
+                        }
+                    }
+                } else {
+                    // Fallback to default order
+                    if (this.settings.pexelsApiKey) availableProviders.push('pexels');
+                    if (this.settings.pixabayApiKey) availableProviders.push('pixabay');
+                    if (this.settings.flickrApiKey) availableProviders.push('flickr');
+                    if (this.settings.unsplashApiKey) availableProviders.push('unsplash');
+                }
                 
-                if (!apiKey) {
-                    // Just save the keyword without showing a warning
+                if (availableProviders.length === 0) {
                     return null;
                 }
                 
-                switch (provider) {
-                    case 'pexels': return fetchPexelsImage(this, selectedKeyword);
-                    case 'pixabay': return fetchPixabayImage(this, selectedKeyword);
-                    case 'flickr': return fetchFlickrImage(this, selectedKeyword);
-                    case 'unsplash': return fetchUnsplashImage(this, selectedKeyword);
-                    default: return null;
+                // Try all providers with original keyword first
+                for (const provider of availableProviders) {
+                    try {
+                        let result = null;
+                        switch (provider) {
+                            case 'pexels': 
+                                result = await fetchPexelsImage(this, selectedKeyword, true);
+                                break;
+                            case 'pixabay': 
+                                result = await fetchPixabayImage(this, selectedKeyword);
+                                break;
+                            case 'flickr': 
+                                result = await fetchFlickrImage(this, selectedKeyword);
+                                break;
+                            case 'unsplash': 
+                                result = await fetchUnsplashImage(this, selectedKeyword);
+                                break;
+                        }
+                        
+                        if (result) {
+                            return result;
+                        }
+                    } catch (error) {
+                        console.error(`Error with ${provider} for keyword "${selectedKeyword}":`, error);
+                        // Continue to next provider
+                    }
                 }
+                
+                // If all providers failed with original keyword, try fallback keywords
+                const defaultKeywords = this.settings.defaultKeywords 
+                    ? this.settings.defaultKeywords.split(',').map(k => k.trim()).filter(k => k.length > 0)
+                    : [];
+                
+                for (const fallbackKeyword of defaultKeywords) {
+                    for (const provider of availableProviders) {
+                        try {
+                            let result = null;
+                            switch (provider) {
+                                case 'pexels': 
+                                    result = await fetchPexelsImage(this, fallbackKeyword, true);
+                                    break;
+                                case 'pixabay': 
+                                    result = await fetchPixabayImage(this, fallbackKeyword);
+                                    break;
+                                case 'flickr': 
+                                    result = await fetchFlickrImage(this, fallbackKeyword);
+                                    break;
+                                case 'unsplash': 
+                                    result = await fetchUnsplashImage(this, fallbackKeyword);
+                                    break;
+                            }
+                            
+                            if (result) {
+                                return result;
+                            }
+                        } catch (error) {
+                            console.error(`Error with ${provider} for fallback keyword "${fallbackKeyword}":`, error);
+                            // Continue to next provider/keyword
+                        }
+                    }
+                }
+                
+                // All providers failed
+                return null;
             }
         }
         return null;
@@ -725,7 +810,7 @@ export class PixelBannerPlugin extends Plugin {
                         ...this.settings.customBannerIconPaddingXField,
                         ...this.settings.customBannerIconPaddingYField,
                         ...this.settings.customBannerIconBorderRadiusField,
-                        ...this.settings.customBannerIconVeritalOffsetField
+                        ...this.settings.customBannerIconVerticalOffsetField
                     ];
 
                     // Add hide class to matching fields
@@ -746,7 +831,7 @@ export class PixelBannerPlugin extends Plugin {
     // -- onunload --
     // --------------
     onunload() {
-        if (this.observer) {
+        if (this.observer && typeof this.observer.disconnect === 'function') {
             this.observer.disconnect();
         }
         
@@ -754,7 +839,7 @@ export class PixelBannerPlugin extends Plugin {
         this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view instanceof MarkdownView) {
                 const viewContent = leaf.view.contentEl;
-                if (viewContent._resizeObserver) {
+                if (viewContent._resizeObserver && typeof viewContent._resizeObserver.disconnect === 'function') {
                     viewContent._resizeObserver.disconnect();
                     delete viewContent._resizeObserver;
                 }
@@ -876,6 +961,12 @@ export class PixelBannerPlugin extends Plugin {
             // Update the last shown version
             this.settings.lastVersion = currentVersion;
             await this.saveSettings();
+        }
+        
+        // If the plugin version has changed, invalidate cached cloud version
+        if (lastVersion && lastVersion !== currentVersion) {
+            console.log('[Pixel Banner] Plugin updated from', lastVersion, 'to', currentVersion, '- invalidating cached cloud version');
+            this.pixelBannerVersion = undefined;
         }
     }
 

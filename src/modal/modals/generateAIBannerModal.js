@@ -131,33 +131,20 @@ export class GenerateAIBannerModal extends Modal {
             
             .pixel-banner-dynamic-controls select.dropdown {
                 width: 100%;
-                padding: 8px;
+                padding: 4px 8px;
                 border-radius: 4px;
                 background-color: var(--background-secondary);
                 color: var(--text-normal);
                 border: 1px solid var(--background-modifier-border);
             }
             
-            .pixel-banner-model-option {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                margin-right: 15px;
-                margin-bottom: 5px;
+            .pixel-banner-ai-modal select.dropdown:hover {
+                border-color: var(--interactive-accent-hover);
             }
             
-            .pixel-banner-model-option label {
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-            
-            .pixel-banner-model-token-cost {
-                border-left: 1px solid var(--text-accent);
-                font-size: 0.8em;
-                margin-left: 3px;
-                padding-left: 4px;
+            .pixel-banner-ai-modal select.dropdown:focus {
+                border-color: var(--interactive-accent);
+                outline: none;
             }
         `;
         document.head.appendChild(styleEl);
@@ -223,24 +210,34 @@ export class GenerateAIBannerModal extends Modal {
         container.empty();
         
         const modelInfo = container.createDiv({ cls: 'setting-item-info' });
-        modelInfo.createDiv({ cls: 'setting-item-name', text: 'AI Model' });
-        modelInfo.createDiv({ 
-            cls: 'setting-item-description', 
-            text: 'Select an AI model for Banner generation',
-            attr: { style: 'font-size: 0.8em;' }
+        modelInfo.createDiv({
+            cls: 'setting-item-name', 
+            text: 'AI Model',
+            attr: {
+                style: `
+                    min-width: 100px;
+                `
+            }
         });
         
         const modelControl = container.createDiv({ 
             cls: 'setting-item-control',
-            attr: { style: 'display: flex; flex-wrap: wrap; gap: 15px;' }
+            attr: { style: 'width: 100%;' }
         });
         
-        let isFirstEnabled = true;
+        // Create select dropdown
+        const modelSelect = modelControl.createEl('select', {
+            cls: 'dropdown',
+            attr: {
+                id: 'ai-model-select',
+                style: 'width: 100%; padding: 4px 8px; border-radius: 4px; background-color: var(--background-secondary); color: var(--text-normal); border: 1px solid var(--background-modifier-border);'
+            }
+        });
+        
         let hasEnabledModels = false;
         let firstEnabledModelId = null;
-        const radioButtons = [];
         
-        // Create radio button for each enabled model
+        // Add enabled models to the select dropdown
         Object.entries(this.availableModels).forEach(([modelId, modelData]) => {
             // Skip disabled models
             if (modelData.enabled === false) {
@@ -249,84 +246,36 @@ export class GenerateAIBannerModal extends Modal {
             
             hasEnabledModels = true;
             
-            const modelContainer = modelControl.createDiv({ 
-                cls: 'pixel-banner-model-option',
-                attr: { style: 'display: flex; align-items: center; gap: 5px;' } 
-            });
-            
-            const radio = modelContainer.createEl('input', { 
-                type: 'radio',
-                attr: {
-                    id: `model-${modelId}`,
-                    name: 'textToImageModel',
-                    value: modelId,
-                    checked: isFirstEnabled, // Select first model by default
-                    style: 'cursor: pointer;'
-                }
-            });
-            
-            // Add to radio buttons array for later initialization
-            radioButtons.push({
-                element: radio,
-                modelId: modelId,
-                shouldBeChecked: isFirstEnabled
-            });
-            
-            // Show token cost with model name
+            // Create option element
             const tokenCost = modelData.tokens || 1;
-            let labelText = modelData.name;
+            const optionText = `${modelData.name} ⋅ 🪙 ${decimalToFractionString(tokenCost)}`;
             
-            const label = modelContainer.createEl('label', { 
+            const option = modelSelect.createEl('option', {
+                text: optionText,
                 attr: {
-                    for: `model-${modelId}`,
-                    style: 'cursor: pointer;'
-                }
-            });
-            
-            label.innerHTML = `${labelText} <span class="pixel-banner-model-token-cost">🪙 ${decimalToFractionString(tokenCost)}</span>`;
-            
-            // Set description as tooltip if available
-            if (modelData.description) {
-                modelContainer.setAttribute('title', modelData.description);
-            }
-            
-            // Handle model selection
-            radio.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    // Store previous model ID to check if it changed
-                    const previousModelId = this.selectedModelId;
-                    
-                    // Update selected model
-                    this.selectedModelId = modelId;
-                    
-                    // Only re-render controls if model changed
-                    if (previousModelId !== this.selectedModelId) {
-                        this.renderModelControls();
-                    }
+                    value: modelId,
+                    title: modelData.description || ''
                 }
             });
             
             // Set first enabled model as selected
-            if (isFirstEnabled) {
-                this.selectedModelId = modelId;
+            if (!firstEnabledModelId) {
                 firstEnabledModelId = modelId;
-                isFirstEnabled = false;
+                this.selectedModelId = modelId;
+                option.selected = true;
             }
         });
         
-        // Use a small delay to ensure the DOM is fully updated before setting radio button state
-        setTimeout(() => {
-            radioButtons.forEach(item => {
-                if (item.shouldBeChecked) {
-                    // Ensure the radio button is checked
-                    item.element.checked = true;
-                    
-                    // Dispatch a change event to trigger any listeners
-                    const event = new Event('change', { bubbles: true });
-                    item.element.dispatchEvent(event);
-                }
-            });
-        }, 50);
+        // Handle model selection change
+        modelSelect.addEventListener('change', (e) => {
+            const previousModelId = this.selectedModelId;
+            this.selectedModelId = e.target.value;
+            
+            // Only re-render controls if model changed
+            if (previousModelId !== this.selectedModelId) {
+                this.renderModelControls();
+            }
+        });
         
         return hasEnabledModels;
     }
@@ -521,6 +470,154 @@ export class GenerateAIBannerModal extends Modal {
                     }
                 });
             }
+            else if (control.type === 'image_files') {
+                // Create multiple file input container
+                const fileContainer = controlElement.createDiv({
+                    attr: { style: 'display: flex; flex-direction: column; gap: 10px;' }
+                });
+                
+                // Store selected files array for this control
+                if (!this.selectedFiles) this.selectedFiles = {};
+                this.selectedFiles[controlKey] = [];
+                
+                const fileInput = fileContainer.createEl('input', {
+                    type: 'file',
+                    attr: {
+                        id: `control-${this.selectedModelId}-${controlKey}`,
+                        accept: 'image/jpeg,image/jpg,image/png,image/webp,image/gif',
+                        multiple: true
+                    }
+                });
+                
+                const previewContainer = fileContainer.createDiv({
+                    attr: {
+                        id: `${fileInput.id}-previews`,
+                        style: 'display: flex; flex-wrap: wrap; gap: 10px; display: none;'
+                    }
+                });
+                
+                const fileInfo = fileContainer.createDiv({
+                    attr: {
+                        id: `${fileInput.id}-info`,
+                        style: 'font-size: 12px; color: var(--text-muted);'
+                    },
+                    text: 'No files selected (max 10MB each)'
+                });
+                
+                // Function to update the preview display
+                const updatePreviewDisplay = () => {
+                    previewContainer.empty();
+                    
+                    const validFiles = this.selectedFiles[controlKey];
+                    
+                    if (validFiles.length > 0) {
+                        validFiles.forEach((file, index) => {
+                            // Create preview for each valid file
+                            const previewItem = previewContainer.createDiv({
+                                attr: { 
+                                    style: 'display: flex; flex-direction: column; align-items: center; position: relative;' 
+                                }
+                            });
+                            
+                            // Remove button
+                            const removeButton = previewItem.createEl('button', {
+                                text: 'X',
+                                attr: {
+                                    style: 'position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; background: maroon; color: white; border: none; font-weight: bold; cursor: pointer; z-index: 1; line-height: 1; font-size: 14px;',
+                                    title: 'Remove this image'
+                                }
+                            });
+                            
+                            const previewImage = previewItem.createEl('img', {
+                                attr: {
+                                    style: 'max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid var(--background-modifier-border);'
+                                }
+                            });
+                            
+                            const fileName = previewItem.createDiv({
+                                text: file.name,
+                                attr: { style: 'font-size: 10px; color: var(--text-muted); text-align: center; max-width: 100px; word-break: break-word;' }
+                            });
+                            
+                            // Load preview
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                previewImage.src = e.target.result;
+                            };
+                            reader.onerror = (e) => {
+                                console.error('File reader error:', e);
+                            };
+                            reader.readAsDataURL(file);
+                            
+                            // Remove file handler
+                            removeButton.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                this.selectedFiles[controlKey] = this.selectedFiles[controlKey].filter((_, i) => i !== index);
+                                updatePreviewDisplay();
+                            });
+                        });
+                        
+                        // Update file info
+                        const totalSize = validFiles.reduce((sum, file) => sum + file.size, 0);
+                        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
+                        let infoText = `📁 ${validFiles.length} file${validFiles.length !== 1 ? 's' : ''} selected (${totalSizeMB}MB total)`;
+                        fileInfo.textContent = infoText;
+                        
+                        previewContainer.style.display = 'flex';
+                        this.controlValues[controlKey] = 'FILES_SELECTED';
+                        controlValueDisplay.textContent = `${validFiles.length} files selected`;
+                    } else {
+                        fileInfo.textContent = 'No files selected (max 10MB each)';
+                        previewContainer.style.display = 'none';
+                        this.controlValues[controlKey] = null;
+                        controlValueDisplay.textContent = 'No files';
+                    }
+                };
+                
+                fileInput.addEventListener('change', (e) => {
+                    const newFiles = Array.from(e.target.files);
+                    
+                    if (newFiles.length > 0) {
+                        let errors = [];
+                        
+                        newFiles.forEach((file) => {
+                            const maxFileSize = 10 * 1024 * 1024; // 10MB
+                            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                            
+                            // Check if file already exists (by name and size)
+                            const isDuplicate = this.selectedFiles[controlKey].some(existingFile => 
+                                existingFile.name === file.name && existingFile.size === file.size
+                            );
+                            
+                            if (file.size > maxFileSize) {
+                                errors.push(`${file.name}: ${fileSizeMB}MB (too large)`);
+                                return;
+                            }
+                            
+                            if (isDuplicate) {
+                                errors.push(`${file.name}: already selected`);
+                                return;
+                            }
+                            
+                            // Add to selected files
+                            this.selectedFiles[controlKey].push(file);
+                        });
+                        
+                        // Show errors if any
+                        if (errors.length > 0) {
+                            const errorMsg = `❌ ${errors.length} file${errors.length !== 1 ? 's' : ''} rejected: ${errors.join(', ')}`;
+                            fileInfo.innerHTML = errorMsg;
+                            setTimeout(() => updatePreviewDisplay(), 3000); // Clear error after 3 seconds
+                        } else {
+                            updatePreviewDisplay();
+                        }
+                    }
+                    
+                    // Clear the file input so same files can be selected again if needed
+                    fileInput.value = '';
+                });
+            }
         });
         
         // Use a small delay to ensure the DOM is fully updated before setting values
@@ -544,7 +641,7 @@ export class GenerateAIBannerModal extends Modal {
 
     // Helper method to collect control values
     async collectControlValues() {
-        console.log('collectControlValues called');
+        // console.log('collectControlValues called');
         if (!this.selectedModelId || !this.availableModels[this.selectedModelId]) {
             console.error('No selected model or model data not found');
             return {};
@@ -563,6 +660,10 @@ export class GenerateAIBannerModal extends Modal {
                 } else if (controls[controlKey].type === 'image_file') {
                     const file = controlElement.files[0];
                     controlValues[controlKey] = file ? 'FILE_SELECTED' : null;
+                } else if (controls[controlKey].type === 'image_files') {
+                    // Use our custom selectedFiles array instead of the input element's files
+                    const selectedFiles = this.selectedFiles?.[controlKey] || [];
+                    controlValues[controlKey] = selectedFiles.length > 0 ? 'FILES_SELECTED' : null;
                 } else {
                     controlValues[controlKey] = controlElement.value;
                 }
@@ -632,6 +733,64 @@ export class GenerateAIBannerModal extends Modal {
                 } else {
                     updatedControlValues[controlKey] = null;
                 }
+            } else if (controls[controlKey]?.type === 'image_files' && controlValues[controlKey] === 'FILES_SELECTED') {
+                // Use our custom selectedFiles array instead of the input element's files
+                const files = this.selectedFiles?.[controlKey] || [];
+                
+                if (files.length > 0) {
+                    try {
+                        const uploadedImageIds = [];
+                        
+                        for (const file of files) {
+                            // Check file size limit (10MB should be fine for direct upload)
+                            const maxFileSize = 10 * 1024 * 1024; // 10MB
+                            if (file.size > maxFileSize) {
+                                throw new Error(`Image file too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB, but file is ${(file.size / (1024 * 1024)).toFixed(1)}MB`);
+                            }
+                            
+                            // Create FormData for proper file upload
+                            const formData = new FormData();
+                            formData.append('image', file);
+                            
+                            const uploadUrl = new URL(PIXEL_BANNER_PLUS.ENDPOINTS.UPLOAD_TEMP_IMAGE, PIXEL_BANNER_PLUS.API_URL).toString();
+                            
+                            // Use fetch instead of requestUrl for FormData
+                            const response = await fetch(uploadUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'X-User-Email': this.plugin.settings.pixelBannerPlusEmail,
+                                    'X-API-Key': this.plugin.settings.pixelBannerPlusApiKey,
+                                    'X-Pixel-Banner-Version': this.plugin.settings.lastVersion,
+                                    // Don't set Content-Type - let browser set it with boundary for FormData
+                                },
+                                body: formData
+                            });
+                            
+                            if (!response.ok) {
+                                const errorText = await response.text();
+                                console.error(`Upload failed with status ${response.status}:`, errorText);
+                                throw new Error(`Failed to upload ${controlKey} image: HTTP ${response.status}`);
+                            }
+                            
+                            const responseData = await response.json();
+                            
+                            if (!responseData?.imageId) {
+                                console.error('Upload response missing imageId:', responseData);
+                                throw new Error(`Upload response missing imageId for ${controlKey}`);
+                            }
+                            
+                            uploadedImageIds.push(responseData.imageId);
+                        }
+                        
+                        // Set the array of image IDs for multiple files
+                        updatedControlValues[controlKey] = uploadedImageIds;
+                    } catch (error) {
+                        console.error(`Error uploading ${controlKey}:`, error);
+                        throw new Error(`Failed to upload ${controlKey}: ${error.message}`);
+                    }
+                } else {
+                    updatedControlValues[controlKey] = null;
+                }
             }
         }
         
@@ -673,7 +832,7 @@ export class GenerateAIBannerModal extends Modal {
             let controlValues = await this.collectControlValues();
             
             // Check if any image files need to be uploaded first
-            const hasImageFiles = Object.values(controlValues).includes('FILE_SELECTED');
+            const hasImageFiles = Object.values(controlValues).includes('FILE_SELECTED') || Object.values(controlValues).includes('FILES_SELECTED');
             
             if (hasImageFiles) {
                 // Update loading text for file uploads
@@ -774,7 +933,7 @@ export class GenerateAIBannerModal extends Modal {
                     const imageUrl = `data:image/jpeg;base64,${response.json.image}`;
                     let filename = this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                     filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                    const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename);
+                    const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename, false);
                     this.downloadHistory.addImage(response.json.imageId);
                     this.close();
                     
@@ -785,7 +944,17 @@ export class GenerateAIBannerModal extends Modal {
                     // Open the target position modal after setting the banner
                     await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                         const bannerField = this.plugin.settings.customBannerField[0];
-                        frontmatter[bannerField] = `![[${savedPath}]]`;
+                        const format = this.plugin.settings.imagePropertyFormat;
+                        // Apply the format based on the user's setting
+                        let bannerValue;
+                        if (format === 'image') {
+                            bannerValue = savedPath;  // Plain path
+                        } else if (format === '[[image]]') {
+                            bannerValue = `[[${savedPath}]]`;  // Wiki link
+                        } else {  // format === '![[image]]'
+                            bannerValue = `![[${savedPath}]]`;  // Embedded image
+                        }
+                        frontmatter[bannerField] = bannerValue;
                     });
 
                     // Check if we should open the targeting modal
@@ -1153,22 +1322,6 @@ export class GenerateAIBannerModal extends Modal {
                     .pixel-banner-generate-btn-container { flex-direction: column !important; }
                     .pixel-banner-generate-btn-container button { width: 100% !important; }
                 }
-                
-                .pixel-banner-ai-modal .setting-item-control select.dropdown {
-                    width: 100%;
-                    height: auto;
-                    border-radius: 4px;
-                    padding: 8px;
-                    background-color: var(--background-secondary);
-                    color: var(--text-normal);
-                    border: 1px solid var(--background-modifier-border);
-                }
-                
-                .pixel-banner-ai-modal .setting-item-control select.dropdown:focus {
-                    border-color: var(--interactive-accent);
-                    outline: none;
-                }
-                
                 /* ------------------- */
             `
         });
@@ -1264,7 +1417,7 @@ export class GenerateAIBannerModal extends Modal {
         
         const rewritePromptButton = promptInspirationContainer.createEl('button', {
             cls: 'pixel-banner-rewrite-button',
-            text: '✏️ REWRITE PROMPT',
+            text: '✏️ REWRITE',
             attr: {
                 style: `
                     border-bottom: 1px solid var(--interactive-accent-hover);
@@ -1284,7 +1437,7 @@ export class GenerateAIBannerModal extends Modal {
             cls: 'setting-item pixel-banner-ai-control-row',
             attr: {
                 style: `
-                    align-items: flex-start;
+                    align-items: center;
                     padding-bottom: 0;
                 ` 
             } 
@@ -1793,7 +1946,7 @@ export class GenerateAIBannerModal extends Modal {
             if (!shouldDownload) return;
             
             const filename = img.getAttribute('filename');
-            const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename);
+            const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename, false);
             this.downloadHistory.addImage(img.getAttribute('imageid'));
             this.close();
             
@@ -1804,7 +1957,17 @@ export class GenerateAIBannerModal extends Modal {
             // Open the target position modal after setting the banner
             await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
                 const bannerField = this.plugin.settings.customBannerField[0];
-                frontmatter[bannerField] = `![[${savedPath}]]`;
+                const format = this.plugin.settings.imagePropertyFormat;
+                // Apply the format based on the user's setting
+                let bannerValue;
+                if (format === 'image') {
+                    bannerValue = savedPath;  // Plain path
+                } else if (format === '[[image]]') {
+                    bannerValue = `[[${savedPath}]]`;  // Wiki link
+                } else {  // format === '![[image]]'
+                    bannerValue = `![[${savedPath}]]`;  // Embedded image
+                }
+                frontmatter[bannerField] = bannerValue;
             });
 
             // Check if we should open the targeting modal
