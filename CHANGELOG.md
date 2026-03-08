@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.17 - 2026-03-08
+#### 🐛 Fixed
+- Fixed content start position not applying correctly when changed in settings (issue #297)
+
 ### v3.6.16 - 2025-11-15
 #### 🐛 Fixed
 - Fixed an occasional error that could prevent banners from displaying correctly

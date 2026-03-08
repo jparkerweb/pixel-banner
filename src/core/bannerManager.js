@@ -34,19 +34,22 @@ async function addPixelBanner(plugin, el, ctx) {
 
     // Add pixel-banner class to the appropriate container
     if (!isEmbedded && !isHoverPopover && viewContent.classList.contains('view-content')) {
+        // Apply content start position CSS variable immediately so padding-top resolves correctly
+        applyContentStartPosition(plugin, viewContent, contentStartPosition ?? plugin.settings.contentStartPosition);
+
         // set padding-top for source & preview elements as inline style for FAST rendering!
         const sourceEl = viewContent.querySelector(':scope > .markdown-source-view .cm-sizer');
         if (sourceEl) {
             sourceEl.style.paddingTop = 'var(--pixel-banner-content-start, 355px)';
             sourceEl.style.paddingBottom = '0px !important';
         }
-        
+
         const previewEl = viewContent.querySelector(':scope > .markdown-reading-view .markdown-preview-sizer');
         if (previewEl) {
             previewEl.style.paddingTop = 'var(--pixel-banner-content-start, 355px)';
             previewEl.style.paddingBottom = '0px !important';
         }
-        
+
         viewContent.classList.add('pixel-banner');
         plugin.setupResizeObserver(viewContent);
         plugin.applyBannerWidth(viewContent);
