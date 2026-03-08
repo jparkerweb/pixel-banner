@@ -94,6 +94,7 @@ describe('domManager', () => {
             },
             observer: null,
             loadedImages: new Map(),
+            lastFrontmatter: new Map(),
             debouncedEnsureBanner: vi.fn(),
             applyBannerWidth: vi.fn(),
             returnIconOverlay: vi.fn(),

@@ -2,6 +2,10 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.18 - 2026-03-08
+#### 🐛 Fixed
+- Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
+
 ### v3.6.17 - 2026-03-08
 #### 🐛 Fixed
 - Fixed content start position not applying correctly when changed in settings (issue #297)
