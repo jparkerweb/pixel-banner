@@ -2,6 +2,13 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.6.19 - 2026-03-09
+#### 🐛 Fixed
+- Fixed cursor invisibility in code blocks on iPadOS when a banner is present (Issue #285)
+  - Replaced `isolation: isolate` with `z-index: 0` to create stacking context without triggering WebKit compositing bugs
+  - Added `caret-color` workaround for iOS WebKit caret rendering (WebKit Bug 94985)
+  - Removed heavy-handed z-index overrides on `.cm-line` that could interfere with themes and plugins
+
 ### v3.6.18 - 2026-03-08
 #### 🐛 Fixed
 - Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
