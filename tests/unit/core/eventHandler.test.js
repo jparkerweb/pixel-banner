@@ -146,6 +146,7 @@ describe('eventHandler', () => {
             loadedImages: new Map(),
             lastKeywords: new Map(),
             imageCache: new Map(),
+            lastFrontmatter: new Map(),
             bannerStateCache: new Map(),
             SHUFFLE_CACHE_AGE: 3600000,
             UPDATE_MODE: {

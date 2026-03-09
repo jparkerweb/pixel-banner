@@ -126,6 +126,18 @@
 #### 🐛 Fixed
 - Fixed an occasional error that could prevent banners from displaying correctly
 
+### v3.6.18 - 2026-03-08
+#### 🐛 Fixed
+- Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
+
+### v3.6.17 - 2026-03-08
+#### 🐛 Fixed
+- Fixed content start position not applying correctly when changed in settings (issue #297)
+
+### v3.6.18 - 2026-03-08
+#### 🐛 Fixed
+- Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
+
 <a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
   <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
 </a>
