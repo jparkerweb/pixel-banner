@@ -48,7 +48,7 @@ export function getPathShape(shapeName) {
 
 // Check if a shape name is a custom path shape
 export function isCustomPathShape(name) {
-    return SHAPE_PATHS.hasOwnProperty(name);
+    return Object.prototype.hasOwnProperty.call(SHAPE_PATHS, name);
 }
 
 // Get all available custom shape names

@@ -36,6 +36,8 @@ async function handleActiveLeafChange(leaf) {
         this.cleanupPreviousLeaf(previousLeaf);
         // Use the plugin's bound method
         this.cleanupIconOverlay(previousLeaf.view);
+        // Stop confetti effect on the previous note
+        handleConfettiCleanup(previousLeaf);
     }
 
     const currentPath = leaf.view.file.path;
@@ -329,6 +331,14 @@ function handleConfettiForNote(leaf, frontmatter) {
     const noteId = leaf.view.file.path;
     const noteElement = leaf.view.contentEl;
 
+    // Stop confetti on any other notes (handles leaf switching)
+    const activeNoteIds = confettiManager.getActiveNoteIds();
+    for (const activeId of activeNoteIds) {
+        if (activeId !== noteId) {
+            confettiManager.stop(activeId, 500);
+        }
+    }
+
     // Check if confetti is configured in frontmatter
     const confettiValue = getFrontmatterValue(frontmatter, this.settings.customBannerConfettiField);
     if (!confettiValue) {
@@ -374,7 +384,15 @@ function handleConfettiForNote(leaf, frontmatter) {
     }
 
     // Start or update confetti effect
-    if (!confettiManager.hasActiveEffect(noteId)) {
+    if (confettiManager.hasActiveEffect(noteId)) {
+        confettiManager.update(
+            noteId,
+            noteElement,
+            confettiConfig.presetName,
+            confettiConfig.overrides || {},
+            isMobile
+        );
+    } else {
         confettiManager.start(
             noteId,
             noteElement,
@@ -443,8 +461,7 @@ function handleConfettiMetadataChange(file, cache) {
         for (const leaf of leaves) {
             if (leaf.view && leaf.view.file === file) {
                 try {
-                    // handleConfettiForNote will stop the existing effect and start a new one
-                    // since it calls confettiManager.start which internally calls stop first
+                    // handleConfettiForNote will update the existing effect with new config
                     handleConfettiForNote.call(this, leaf, frontmatter);
                 } catch (error) {
                     console.error('Pixel Banner: Error updating confetti on metadata change:', error);

@@ -367,9 +367,24 @@ describe('confettiUtils', () => {
         });
 
         it('should clamp count minimum', () => {
-            const config = { count: 1 };
+            // count: 1 is a valid value (continuous presets like snow use it)
+            const config = { count: 0 };
             const result = sanitizeConfig(config);
-            expect(result.count).toBeGreaterThanOrEqual(10);
+            expect(result.count).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should preserve count of 1 (used by continuous presets)', () => {
+            const result = sanitizeConfig({ count: 1 });
+            expect(result.count).toBe(1);
+        });
+
+        it('should clamp range arrays against their scalar bounds', () => {
+            const result = sanitizeConfig({
+                gravityRange: [-10, 10],
+                sizeRange: [0.01, 99]
+            });
+            expect(result.gravityRange).toEqual([-3, 3]);
+            expect(result.sizeRange).toEqual([0.1, 5.0]);
         });
 
         it('should clamp size to valid range', () => {

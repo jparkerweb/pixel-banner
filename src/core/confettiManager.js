@@ -1,12 +1,52 @@
 import confetti from 'canvas-confetti';
 import { CONFETTI_PRESETS, getPresetCopy } from './confettiPresets';
-import { parseEmojiString } from '../utils/confettiUtils';
+import { parseEmojiString, sanitizeConfig } from '../utils/confettiUtils';
 import { getPathShape } from './confettiShapes';
 
 class ConfettiManager {
     constructor() {
         this.activeCanvases = new Map(); // noteId -> { canvas, confettiInstance }
-        this.activeAnimations = new Map(); // noteId -> { intervalId, timeoutId, config }
+        this.activeAnimations = new Map(); // noteId -> { intervalId, timeoutId, config, fireBurst, isContinuous, onScreen, observer }
+        this.pendingFadeOuts = new Map(); // noteId -> timeoutId for fade-out removal
+
+        // Whether the document is currently visible. Continuous effects are
+        // paused while the tab/window is hidden to avoid burning CPU/battery.
+        this.docVisible = true;
+        this._setupVisibilityHandling();
+    }
+
+    // Pause continuous effects when the document is hidden, resume when shown.
+    _setupVisibilityHandling() {
+        if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') {
+            return;
+        }
+        this.docVisible = !document.hidden;
+        document.addEventListener('visibilitychange', () => {
+            this.docVisible = !document.hidden;
+            for (const noteId of this.activeAnimations.keys()) {
+                this._reconcileAnimation(noteId);
+            }
+        });
+    }
+
+    // Start or stop a continuous animation's interval based on whether it
+    // should currently be running (document visible AND canvas on-screen).
+    // Single-burst effects have no interval and are unaffected.
+    _reconcileAnimation(noteId) {
+        const animation = this.activeAnimations.get(noteId);
+        if (!animation || !animation.isContinuous) return;
+
+        const shouldRun = this.docVisible && animation.onScreen;
+
+        if (shouldRun && animation.intervalId === null) {
+            // Resume: fire immediately so there's no visible gap, then schedule
+            animation.fireBurst();
+            animation.intervalId = setInterval(animation.fireBurst, animation.config.interval);
+        } else if (!shouldRun && animation.intervalId !== null) {
+            // Pause
+            clearInterval(animation.intervalId);
+            animation.intervalId = null;
+        }
     }
 
     // Create canvas overlay for a note element
@@ -21,7 +61,8 @@ class ConfettiManager {
         canvas.style.width = '100%';
         canvas.style.height = '100%';
         canvas.style.pointerEvents = 'none';
-        canvas.style.zIndex = '100'; // Above content but below modals (1000+)
+        // z-index lives in styles.css (.pixel-banner-confetti-canvas) so users
+        // can override the layering with a CSS snippet.
         canvas.style.opacity = '0';
         canvas.style.transition = 'opacity 0s linear';
 
@@ -132,8 +173,10 @@ class ConfettiManager {
             return null;
         }
 
-        // Merge preset with overrides
-        const config = { ...preset, ...overrides };
+        // Merge preset with overrides, then clamp every value to valid ranges.
+        // This guards against out-of-range or malformed numbers from
+        // hand-edited frontmatter (the modal already constrains its inputs).
+        const config = sanitizeConfig({ ...preset, ...overrides });
 
         // Build canvas-confetti API options
         const options = {
@@ -221,23 +264,26 @@ class ConfettiManager {
         const animationState = {
             intervalId: null,
             timeoutId: null,
-            config: config
+            config: config,
+            fireBurst: () => this.fireBurst(confettiInstance, config, options),
+            isContinuous: false,
+            onScreen: true,
+            observer: null
         };
 
-        // Function to fire a single burst
-        const fireBurst = () => {
-            this.fireBurst(confettiInstance, config, options);
-        };
+        // Store animation state up front so _reconcileAnimation can find it
+        this.activeAnimations.set(noteId, animationState);
 
         // Handle delay before starting
         const startAnimation = () => {
             if (config.continuous && config.interval > 0) {
-                // Continuous effect with interval
-                fireBurst(); // Initial burst
-                animationState.intervalId = setInterval(fireBurst, config.interval);
+                // Continuous effect: let _reconcileAnimation manage the interval
+                // so it can pause/resume on visibility and on-screen changes.
+                animationState.isContinuous = true;
+                this._reconcileAnimation(noteId);
             } else {
                 // Single burst
-                fireBurst();
+                animationState.fireBurst();
             }
         };
 
@@ -247,8 +293,17 @@ class ConfettiManager {
             startAnimation();
         }
 
-        // Store animation state
-        this.activeAnimations.set(noteId, animationState);
+        // Pause continuous effects while the canvas is scrolled out of view
+        if (config.continuous && config.interval > 0 && typeof IntersectionObserver !== 'undefined') {
+            const observer = new IntersectionObserver((entries) => {
+                for (const entry of entries) {
+                    animationState.onScreen = entry.isIntersecting;
+                }
+                this._reconcileAnimation(noteId);
+            }, { threshold: 0 });
+            observer.observe(canvas);
+            animationState.observer = observer;
+        }
     }
 
     // Fire single burst
@@ -266,15 +321,37 @@ class ConfettiManager {
                 options.particleCount = particlesPerBurst;
                 options.origin = this.getEdgePosition(config.position, i, numBursts, yOffset);
 
-                // Add slight randomization to drift for natural variation
-                if (config.drift !== undefined) {
+                // Apply randomization ranges if specified
+                if (config.sizeRange && Array.isArray(config.sizeRange)) {
+                    const [min, max] = config.sizeRange;
+                    options.scalar = min + Math.random() * (max - min);
+                }
+                if (config.gravityRange && Array.isArray(config.gravityRange)) {
+                    const [min, max] = config.gravityRange;
+                    options.gravity = min + Math.random() * (max - min);
+                }
+                if (config.driftRange && Array.isArray(config.driftRange)) {
+                    const [min, max] = config.driftRange;
+                    options.drift = min + Math.random() * (max - min);
+                } else if (config.drift !== undefined) {
+                    // Fallback: add slight randomization for natural variation
                     options.drift = config.drift + (Math.random() - 0.5) * 0.5;
+                }
+                if (config.speedRange && Array.isArray(config.speedRange)) {
+                    const [min, max] = config.speedRange;
+                    options.startVelocity = min + Math.random() * (max - min);
                 }
 
                 // If using emoji shapes, randomly select one for variety
                 if (config.emoji && options.shapes && options.shapes.length > 1) {
                     const randomShape = options.shapes[Math.floor(Math.random() * options.shapes.length)];
                     options.shapes = [randomShape];
+                }
+
+                // For low particle counts per burst, randomly pick one color for variety
+                if (options.colors && options.colors.length > 1 && particlesPerBurst <= 3) {
+                    const randomColor = options.colors[Math.floor(Math.random() * options.colors.length)];
+                    options.colors = [randomColor];
                 }
 
                 try {
@@ -304,10 +381,13 @@ class ConfettiManager {
             if (config.driftRange && Array.isArray(config.driftRange)) {
                 const [min, max] = config.driftRange;
                 options.drift = min + Math.random() * (max - min);
+            } else if (config.drift !== undefined) {
+                // Fallback: add slight randomization for natural variation
+                options.drift = config.drift + (Math.random() - 0.5) * 0.5;
             }
             if (config.speedRange && Array.isArray(config.speedRange)) {
                 const [min, max] = config.speedRange;
-                options.speed = min + Math.random() * (max - min);
+                options.startVelocity = min + Math.random() * (max - min);
             }
 
             // If using emoji shapes, randomly select one for variety
@@ -367,7 +447,17 @@ class ConfettiManager {
             if (animationData.timeoutId) {
                 clearTimeout(animationData.timeoutId);
             }
+            if (animationData.observer) {
+                animationData.observer.disconnect();
+            }
             this.activeAnimations.delete(noteId);
+        }
+
+        // Cancel any pending fade-out timeout for this note
+        const pendingFadeOut = this.pendingFadeOuts.get(noteId);
+        if (pendingFadeOut) {
+            clearTimeout(pendingFadeOut);
+            this.pendingFadeOuts.delete(noteId);
         }
 
         // Reset the confetti instance (clears particles)
@@ -382,9 +472,11 @@ class ConfettiManager {
             canvas.style.transition = `opacity ${fadeOutDuration}ms ease-out`;
             canvas.style.opacity = '0';
 
-            setTimeout(() => {
+            const fadeOutTimeout = setTimeout(() => {
+                this.pendingFadeOuts.delete(noteId);
                 this.removeCanvas(noteId);
             }, fadeOutDuration);
+            this.pendingFadeOuts.set(noteId, fadeOutTimeout);
         } else {
             this.removeCanvas(noteId);
         }
@@ -401,14 +493,18 @@ class ConfettiManager {
             canvas.parentNode.removeChild(canvas);
         }
 
+        // Nullify references to aid garbage collection
+        canvasData.canvas = null;
+        canvasData.confettiInstance = null;
+
         this.activeCanvases.delete(noteId);
     }
 
     // Stop all active effects
-    stopAll() {
+    stopAll(immediate = false) {
         const noteIds = Array.from(this.activeCanvases.keys());
         for (const noteId of noteIds) {
-            this.stop(noteId, 500);
+            this.stop(noteId, immediate ? 0 : 500);
         }
     }
 

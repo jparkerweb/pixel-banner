@@ -307,7 +307,7 @@ export function parseEmojiString(emojiString) {
 
 // Validate that a preset name exists
 export function isValidPreset(presetName) {
-    return CONFETTI_PRESETS.hasOwnProperty(presetName);
+    return Object.prototype.hasOwnProperty.call(CONFETTI_PRESETS, presetName);
 }
 
 // Get default configuration for a preset (for display in UI)
@@ -324,43 +324,55 @@ export function getFullConfig(presetName, overrides = {}) {
     return { ...preset, ...overrides };
 }
 
-// Sanitize config values to be within valid ranges
+// Valid ranges for every clampable config value.
+// These MUST stay in sync with the slider bounds in confettiModal.js so that
+// hand-edited frontmatter is constrained to exactly what the UI allows.
+const CONFETTI_RANGES = {
+    count: [1, 150],
+    size: [0.1, 5.0],
+    speed: [0, 100],
+    gravity: [-3, 3],
+    spread: [0, 360],
+    drift: [-5, 5],
+    duration: [50, 1000],
+    delay: [0, 5000],
+    fadeIn: [0, 2000],
+    opacity: [0.1, 1.0],
+    interval: [50, 10000]
+};
+
+// Range-array fields share the bounds of their scalar counterpart.
+const CONFETTI_RANGE_ARRAYS = {
+    sizeRange: 'size',
+    speedRange: 'speed',
+    gravityRange: 'gravity',
+    driftRange: 'drift'
+};
+
+const clampNumber = (value, [lo, hi]) =>
+    typeof value === 'number' && Number.isFinite(value)
+        ? Math.max(lo, Math.min(hi, value))
+        : value;
+
+// Sanitize config values to be within valid ranges.
+// Applied to every effect regardless of source (modal or hand-edited
+// frontmatter) so out-of-range or malformed numbers can never reach
+// canvas-confetti.
 export function sanitizeConfig(config) {
     const sanitized = { ...config };
 
-    // Clamp numeric values to valid ranges
-    if (sanitized.count !== undefined) {
-        sanitized.count = Math.max(10, Math.min(500, sanitized.count));
+    // Clamp scalar numeric values
+    for (const [key, range] of Object.entries(CONFETTI_RANGES)) {
+        if (sanitized[key] !== undefined) {
+            sanitized[key] = clampNumber(sanitized[key], range);
+        }
     }
-    if (sanitized.size !== undefined) {
-        sanitized.size = Math.max(0.1, Math.min(5.0, sanitized.size));
-    }
-    if (sanitized.speed !== undefined) {
-        sanitized.speed = Math.max(1, Math.min(100, sanitized.speed));
-    }
-    if (sanitized.gravity !== undefined) {
-        sanitized.gravity = Math.max(-3, Math.min(3, sanitized.gravity));
-    }
-    if (sanitized.spread !== undefined) {
-        sanitized.spread = Math.max(0, Math.min(360, sanitized.spread));
-    }
-    if (sanitized.drift !== undefined) {
-        sanitized.drift = Math.max(-5, Math.min(5, sanitized.drift));
-    }
-    if (sanitized.duration !== undefined) {
-        sanitized.duration = Math.max(50, Math.min(1000, sanitized.duration));
-    }
-    if (sanitized.delay !== undefined) {
-        sanitized.delay = Math.max(0, Math.min(5000, sanitized.delay));
-    }
-    if (sanitized.fadeIn !== undefined) {
-        sanitized.fadeIn = Math.max(0, Math.min(2000, sanitized.fadeIn));
-    }
-    if (sanitized.opacity !== undefined) {
-        sanitized.opacity = Math.max(0.1, Math.min(1.0, sanitized.opacity));
-    }
-    if (sanitized.interval !== undefined) {
-        sanitized.interval = Math.max(50, Math.min(5000, sanitized.interval));
+
+    // Clamp [min, max] range arrays against their scalar counterpart's bounds
+    for (const [key, scalarKey] of Object.entries(CONFETTI_RANGE_ARRAYS)) {
+        if (Array.isArray(sanitized[key])) {
+            sanitized[key] = sanitized[key].map(v => clampNumber(v, CONFETTI_RANGES[scalarKey]));
+        }
     }
 
     return sanitized;

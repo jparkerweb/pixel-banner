@@ -33,7 +33,7 @@ describe('Confetti Workflow Integration', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        confettiManager.stopAll();
+        confettiManager.stopAll(true);
 
         // Mock leaf and view
         mockLeaf = {
@@ -70,7 +70,7 @@ describe('Confetti Workflow Integration', () => {
     });
 
     afterEach(() => {
-        confettiManager.stopAll();
+        confettiManager.stopAll(true);
     });
 
     describe('Complete workflow from frontmatter to rendering', () => {
@@ -403,7 +403,7 @@ describe('Confetti Workflow Integration', () => {
 
             handleConfettiForNote.call(mockPlugin, mockLeaf1, { 'banner-confetti': 'type:confetti' });
 
-            confettiManager.stopAll();
+            confettiManager.stopAll(true);
             await new Promise(resolve => setTimeout(resolve, 600));
 
             const canvas = mockLeaf1.view.contentEl.querySelector('.pixel-banner-confetti-canvas');
@@ -551,7 +551,7 @@ describe('Confetti Workflow Integration', () => {
 
         it('should do nothing when field is not present and no effect is running', async () => {
             // Ensure no effect is running by explicitly stopping any leftover effects
-            confettiManager.stopAll();
+            confettiManager.stopAll(true);
             await new Promise(resolve => setTimeout(resolve, 600));
 
             expect(confettiManager.hasActiveEffect('test-note.md')).toBe(false);
@@ -561,6 +561,41 @@ describe('Confetti Workflow Integration', () => {
             handleConfettiMetadataChange.call(mockPluginWithWorkspace, mockFile, mockCache);
 
             expect(confettiManager.hasActiveEffect('test-note.md')).toBe(false);
+        });
+
+        it('should call update (not just start) when changing preset on active effect', () => {
+            // Start with one preset
+            handleConfettiForNote.call(mockPlugin, mockLeafWithMatchingFile, { 'banner-confetti': 'type:confetti' });
+            expect(confettiManager.hasActiveEffect('test-note.md')).toBe(true);
+
+            // Spy on update
+            const updateSpy = vi.spyOn(confettiManager, 'update');
+
+            // Change to different preset via metadata change
+            mockCache.frontmatter = { 'banner-confetti': 'type:snow' };
+            handleConfettiMetadataChange.call(mockPluginWithWorkspace, mockFile, mockCache);
+
+            // handleConfettiForNote should call update (not just start) since effect is already running
+            expect(updateSpy).toHaveBeenCalled();
+            expect(confettiManager.hasActiveEffect('test-note.md')).toBe(true);
+
+            updateSpy.mockRestore();
+        });
+
+        it('should handle rapid preset changes without errors', () => {
+            // Start confetti
+            handleConfettiForNote.call(mockPlugin, mockLeafWithMatchingFile, { 'banner-confetti': 'type:confetti' });
+
+            // Rapidly change presets
+            const presets = ['snow', 'fireworks', 'sparkles', 'hearts', 'confetti'];
+            for (const preset of presets) {
+                mockCache.frontmatter = { 'banner-confetti': `type:${preset}` };
+                expect(() => {
+                    handleConfettiMetadataChange.call(mockPluginWithWorkspace, mockFile, mockCache);
+                }).not.toThrow();
+            }
+
+            expect(confettiManager.hasActiveEffect('test-note.md')).toBe(true);
         });
 
         it('should handle leaf without matching file', () => {

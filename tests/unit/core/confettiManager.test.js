@@ -17,12 +17,12 @@ vi.mock('canvas-confetti', () => {
 describe('confettiManager', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        // Reset the manager state
-        confettiManager.stopAll();
+        // Reset the manager state immediately (no fade-out delay)
+        confettiManager.stopAll(true);
     });
 
     afterEach(() => {
-        confettiManager.stopAll();
+        confettiManager.stopAll(true);
     });
 
     describe('mapPosition', () => {
@@ -403,6 +403,69 @@ describe('confettiManager', () => {
         });
     });
 
+    describe('continuous effect pausing', () => {
+        afterEach(() => {
+            // Restore visible state so other tests are unaffected
+            confettiManager.docVisible = true;
+        });
+
+        it('should run an interval for a continuous preset', () => {
+            const el = document.createElement('div');
+            confettiManager.start('note-cont', el, 'snow', {});
+            const animation = confettiManager.activeAnimations.get('note-cont');
+            expect(animation.isContinuous).toBe(true);
+            expect(animation.intervalId).not.toBeNull();
+            confettiManager.stop('note-cont', 0);
+        });
+
+        it('should pause the interval when the document is hidden', () => {
+            const el = document.createElement('div');
+            confettiManager.start('note-cont', el, 'snow', {});
+
+            confettiManager.docVisible = false;
+            confettiManager._reconcileAnimation('note-cont');
+
+            const animation = confettiManager.activeAnimations.get('note-cont');
+            expect(animation.intervalId).toBeNull();
+            confettiManager.stop('note-cont', 0);
+        });
+
+        it('should resume the interval when the document becomes visible again', () => {
+            const el = document.createElement('div');
+            confettiManager.start('note-cont', el, 'snow', {});
+
+            confettiManager.docVisible = false;
+            confettiManager._reconcileAnimation('note-cont');
+            confettiManager.docVisible = true;
+            confettiManager._reconcileAnimation('note-cont');
+
+            const animation = confettiManager.activeAnimations.get('note-cont');
+            expect(animation.intervalId).not.toBeNull();
+            confettiManager.stop('note-cont', 0);
+        });
+
+        it('should pause when the canvas scrolls off-screen', () => {
+            const el = document.createElement('div');
+            confettiManager.start('note-cont', el, 'snow', {});
+
+            const animation = confettiManager.activeAnimations.get('note-cont');
+            animation.onScreen = false;
+            confettiManager._reconcileAnimation('note-cont');
+
+            expect(animation.intervalId).toBeNull();
+            confettiManager.stop('note-cont', 0);
+        });
+
+        it('should not start an interval for a single-burst (non-continuous) effect', () => {
+            const el = document.createElement('div');
+            confettiManager.start('note-once', el, 'confetti', { continuous: false });
+            const animation = confettiManager.activeAnimations.get('note-once');
+            expect(animation.isContinuous).toBe(false);
+            expect(animation.intervalId).toBeNull();
+            confettiManager.stop('note-once', 0);
+        });
+    });
+
     describe('getActiveNoteIds', () => {
         it('should return empty array when no effects active', () => {
             const result = confettiManager.getActiveNoteIds();
@@ -585,6 +648,75 @@ describe('confettiManager', () => {
                 expect(drift).toBeGreaterThanOrEqual(0.25);
                 expect(drift).toBeLessThanOrEqual(0.75);
             });
+        });
+    });
+
+    describe('fireBurst randomization ranges', () => {
+        it('should apply speedRange as startVelocity (not speed)', () => {
+            const mockConfettiInstance = vi.fn(() => Promise.resolve());
+            const config = {
+                count: 1,
+                position: 'random',
+                originSpread: 'random',
+                speedRange: [3, 11],
+                emoji: null
+            };
+            const baseOptions = {
+                particleCount: 1,
+                origin: { x: 0.5, y: 0.5 },
+                startVelocity: 15
+            };
+
+            confettiManager.fireBurst(mockConfettiInstance, config, baseOptions);
+
+            const call = mockConfettiInstance.mock.calls[0][0];
+            expect(call.startVelocity).toBeGreaterThanOrEqual(3);
+            expect(call.startVelocity).toBeLessThanOrEqual(11);
+            expect(call.speed).toBeUndefined();
+        });
+
+        it('should apply sizeRange as scalar', () => {
+            const mockConfettiInstance = vi.fn(() => Promise.resolve());
+            const config = {
+                count: 1,
+                position: 'random',
+                originSpread: 'random',
+                sizeRange: [0.5, 1.0],
+                emoji: null
+            };
+            const baseOptions = {
+                particleCount: 1,
+                origin: { x: 0.5, y: 0.5 },
+                scalar: 0.7
+            };
+
+            confettiManager.fireBurst(mockConfettiInstance, config, baseOptions);
+
+            const call = mockConfettiInstance.mock.calls[0][0];
+            expect(call.scalar).toBeGreaterThanOrEqual(0.5);
+            expect(call.scalar).toBeLessThanOrEqual(1.0);
+        });
+
+        it('should apply gravityRange as gravity', () => {
+            const mockConfettiInstance = vi.fn(() => Promise.resolve());
+            const config = {
+                count: 1,
+                position: 'random',
+                originSpread: 'random',
+                gravityRange: [0.4, 0.6],
+                emoji: null
+            };
+            const baseOptions = {
+                particleCount: 1,
+                origin: { x: 0.5, y: 0.5 },
+                gravity: 0.5
+            };
+
+            confettiManager.fireBurst(mockConfettiInstance, config, baseOptions);
+
+            const call = mockConfettiInstance.mock.calls[0][0];
+            expect(call.gravity).toBeGreaterThanOrEqual(0.4);
+            expect(call.gravity).toBeLessThanOrEqual(0.6);
         });
     });
 

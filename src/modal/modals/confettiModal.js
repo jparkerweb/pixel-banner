@@ -1,8 +1,7 @@
 import { Modal, Setting, MarkdownView } from 'obsidian';
-import confetti from 'canvas-confetti';
-import { CONFETTI_PRESETS } from '../../core/confettiPresets';
 import { confettiManager } from '../../core/confettiManager';
-import { getPresetNames, buildConfettiFrontmatter, hasOverrides, getFullConfig, getPresetDefaults, sanitizeConfig } from '../../utils/confettiUtils';
+import { getPresetNames, buildConfettiFrontmatter, getPresetDefaults } from '../../utils/confettiUtils';
+import { getCustomShapeNames } from '../../core/confettiShapes';
 
 // ---------------------------
 // -- Confetti Settings Modal --
@@ -16,6 +15,7 @@ export class ConfettiModal extends Modal {
         this.settings = this.initializeSettings();
         this.isModified = false;
         this.sliderInputRefs = {};
+        this.dragAbortController = null;
     }
 
     initializeSettings() {
@@ -89,6 +89,10 @@ export class ConfettiModal extends Modal {
     }
 
     onClose() {
+        if (this.dragAbortController) {
+            this.dragAbortController.abort();
+            this.dragAbortController = null;
+        }
         if (this.styleEl && this.styleEl.parentNode) {
             this.styleEl.parentNode.removeChild(this.styleEl);
         }
@@ -127,7 +131,7 @@ export class ConfettiModal extends Modal {
                 dropdown.addOption('none', 'None');
                 const presets = getPresetNames();
                 presets.forEach(preset => {
-                    const displayName = preset.charAt(0).toUpperCase() + preset.slice(1);
+                    const displayName = preset.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
                     dropdown.addOption(preset, displayName);
                 });
                 dropdown.setValue(this.selectedPreset);
@@ -240,10 +244,10 @@ export class ConfettiModal extends Modal {
             isInteger: false
         });
 
-        // Duration (ticks)
+        // Duration
         this.createSliderWithInput(section, {
             name: 'Duration',
-            desc: 'How long particles live (50-1000 ticks)',
+            desc: 'How long particles stay visible (higher = longer)',
             key: 'duration',
             min: 50,
             max: 1000,
@@ -307,9 +311,10 @@ export class ConfettiModal extends Modal {
                 dropdown.addOption('square', 'Square');
                 dropdown.addOption('star', 'Star');
                 // Add custom shapes from confettiShapes
-                const customShapeNames = ['diamond', 'snowflake', 'triangle', 'heart', 'raindrop', 'alien', 'leaf'];
+                const customShapeNames = getCustomShapeNames();
                 customShapeNames.forEach(shape => {
-                    const displayName = shape.charAt(0).toUpperCase() + shape.slice(1);
+                    const base = shape.replace(/(\d+)$/, ' $1');
+                    const displayName = base.charAt(0).toUpperCase() + base.slice(1);
                     dropdown.addOption(shape, displayName);
                 });
                 // Get current shape value
@@ -464,12 +469,18 @@ export class ConfettiModal extends Modal {
             .setName(name)
             .setDesc(desc);
 
-        // Initialize range if not set - use sensible defaults based on min/max
+        // Initialize range if not set - derive from the singular value if available
         if (!this.settings[key] || !Array.isArray(this.settings[key]) || this.settings[key].length < 2) {
-            // Default to a reasonable range in the middle
-            const defaultMin = min + (max - min) * 0.25;
-            const defaultMax = min + (max - min) * 0.75;
-            this.settings[key] = [defaultMin, defaultMax];
+            // Use the singular property value (e.g. sizeRange from size) if available
+            const singularKey = key.replace('Range', '');
+            const singularValue = this.settings[singularKey];
+            if (singularValue !== undefined && typeof singularValue === 'number') {
+                this.settings[key] = [singularValue, singularValue];
+            } else {
+                const defaultMin = min + (max - min) * 0.25;
+                const defaultMax = min + (max - min) * 0.75;
+                this.settings[key] = [defaultMin, defaultMax];
+            }
         }
 
         const rangeContainer = setting.controlEl.createDiv({ cls: 'range-slider-container' });
@@ -520,14 +531,19 @@ export class ConfettiModal extends Modal {
 
         updateThumbPositions();
 
-        // Drag handling
+        // Drag handling - use AbortController for cleanup
+        if (!this.dragAbortController) {
+            this.dragAbortController = new AbortController();
+        }
+        const signal = this.dragAbortController.signal;
+
         const handleDrag = (thumb, isMin) => {
             let isDragging = false;
 
             thumb.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 e.preventDefault();
-            });
+            }, { signal });
 
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
@@ -555,11 +571,11 @@ export class ConfettiModal extends Modal {
 
                 updateThumbPositions();
                 this.checkIfModified();
-            });
+            }, { signal });
 
             document.addEventListener('mouseup', () => {
                 isDragging = false;
-            });
+            }, { signal });
         };
 
         handleDrag(minThumb, true);
@@ -761,11 +777,10 @@ export class ConfettiModal extends Modal {
         for (const key in this.settings) {
             if (!Object.prototype.hasOwnProperty.call(this.settings, key)) continue;
 
-            // Skip properties not in defaults, but always check 'flat' since it defaults to false
+            // Skip properties not in defaults, but always include 'flat' if explicitly set
             if (!Object.prototype.hasOwnProperty.call(defaults, key)) {
-                // Include 'flat' if it's true (since default is false/tumble)
-                if (key === 'flat' && this.settings[key] === true) {
-                    overrides[key] = true;
+                if (key === 'flat' && this.settings[key] !== undefined) {
+                    overrides[key] = this.settings[key];
                 }
                 continue;
             }
@@ -813,24 +828,26 @@ export class ConfettiModal extends Modal {
             return;
         }
 
-        if (this.selectedPreset === 'none') {
-            // Remove confetti from frontmatter
-            await this.removeConfettiFromFrontmatter(activeFile);
-        } else {
-            // Build frontmatter value
-            const overrides = this.getOverridesFromDefaults();
-            const frontmatterValue = buildConfettiFrontmatter(this.selectedPreset, overrides);
+        try {
+            if (this.selectedPreset === 'none') {
+                // Remove confetti from frontmatter
+                await this.removeConfettiFromFrontmatter(activeFile);
+            } else {
+                // Build frontmatter value
+                const overrides = this.getOverridesFromDefaults();
+                const frontmatterValue = buildConfettiFrontmatter(this.selectedPreset, overrides);
 
-            // Update frontmatter
-            const confettiFieldName = this.plugin.settings.customBannerConfettiField[0] || 'banner-confetti';
-            await this.app.fileManager.processFrontMatter(activeFile, (fm) => {
-                fm[confettiFieldName] = frontmatterValue;
-            });
+                // Update frontmatter
+                const confettiFieldName = (this.plugin.settings.customBannerConfettiField && this.plugin.settings.customBannerConfettiField[0]) || 'banner-confetti';
+                await this.app.fileManager.processFrontMatter(activeFile, (fm) => {
+                    fm[confettiFieldName] = frontmatterValue;
+                });
 
-            // Trigger confetti render on note
-            setTimeout(() => {
+                // Trigger confetti render on note after frontmatter is saved
                 this.triggerConfettiOnNote();
-            }, 100);
+            }
+        } catch (error) {
+            console.error('Pixel Banner: Error applying confetti settings:', error);
         }
 
         this.close();

@@ -14,6 +14,7 @@ import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSel
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { confettiManager } from './confettiManager.js';
+import { clearShapeCache } from './confettiShapes.js';
 
 
 // -----------------------
@@ -895,11 +896,18 @@ export class PixelBannerPlugin extends Plugin {
         // Clear the icon overlay pool
         this.iconOverlayPool = [];
 
-        // Stop all confetti effects
+        // Stop all confetti effects immediately (no fade during unload)
         try {
-            confettiManager.stopAll();
+            confettiManager.stopAll(true);
         } catch (error) {
             console.error('Pixel Banner: Error stopping confetti effects:', error);
+        }
+
+        // Clear cached shape objects
+        try {
+            clearShapeCache();
+        } catch (error) {
+            // Shape cache cleanup is optional
         }
 
         const styleElTitle = document.getElementById('pixel-banner-embedded-titles');

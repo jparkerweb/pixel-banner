@@ -85,7 +85,7 @@ export const CONFETTI_PRESETS = {
         interval: 400,
         position: 'top',
         startY: -0.1,
-        colors: ['#1b78d4ff', '#aaccee'],
+        colors: ['#1b78d4', '#aaccee'],
         customShapes: ['raindrop'],
         shapes: ['circle'],
         emoji: null,
@@ -108,7 +108,7 @@ export const CONFETTI_PRESETS = {
         continuous: true,
         interval: 150,
         position: 'top',
-        colors: ['#1b78d4ff', '#aaccee'],
+        colors: ['#1b78d4', '#aaccee'],
         customShapes: ['raindrop'],
         flat: true,
         emoji: null,
@@ -156,7 +156,7 @@ export const CONFETTI_PRESETS = {
         interval: 700,
         position: 'left',
         startY: 0,
-        colors: ['#ffffff', '#49c05dff'],
+        colors: ['#ffffff', '#49c05d'],
         customShapes: ['alien', 'ufo'],
         emoji: null,
         flat: true,
@@ -176,11 +176,11 @@ export const CONFETTI_PRESETS = {
         duration: 90,
         delay: 0,
         fadeIn: 0,
-        opacity: 1.0,
+        opacity: 0.7,
         continuous: true,
         interval: 2500,
         position: 'random',
-        colors: ['#ff000042', '#3e8a3eb7', '#008cff9d', '#ffff00b7', '#ff660098', '#00ffff7e', '#ffa600b2', '#ffffffb0'],
+        colors: ['#ff0000', '#3e8a3e', '#008cff', '#ffff00', '#ff6600', '#00ffff', '#ffa600', '#ffffff'],
         shapes: ['star'],
         emoji: null,
         originSpread: 'random'
@@ -285,7 +285,7 @@ export const CONFETTI_PRESETS = {
         continuous: true,
         interval: 300,
         position: 'random',
-        colors: ['#e0115f', '#36bbf8ff', '#50c878', '#9966cc', '#ffc30b'],
+        colors: ['#e0115f', '#36bbf8', '#50c878', '#9966cc', '#ffc30b'],
         customShapes: ['gem', 'gem2', 'gem3', 'gem4', 'gem5'],
         flat: true,
         emoji: null,
@@ -332,8 +332,12 @@ export function getPresetCopy(name) {
 
     return {
         ...preset,
-        colors: preset.colors ? [...preset.colors] : null,
-        shapes: preset.shapes ? [...preset.shapes] : null,
-        customShapes: preset.customShapes ? [...preset.customShapes] : null
+        colors: preset.colors ? [...preset.colors] : undefined,
+        shapes: preset.shapes ? [...preset.shapes] : undefined,
+        customShapes: preset.customShapes ? [...preset.customShapes] : undefined,
+        sizeRange: preset.sizeRange ? [...preset.sizeRange] : undefined,
+        gravityRange: preset.gravityRange ? [...preset.gravityRange] : undefined,
+        driftRange: preset.driftRange ? [...preset.driftRange] : undefined,
+        speedRange: preset.speedRange ? [...preset.speedRange] : undefined
     };
 }
