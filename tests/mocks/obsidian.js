@@ -353,12 +353,14 @@ export class Setting {
   addText(cb) {
     const text = new TextComponent(this.controlEl);
     if (cb) cb(text);
+    this.components.push(text);
     return this._createChainableObject();
   }
 
   addTextArea(cb) {
     const textArea = new TextAreaComponent(this.controlEl);
     if (cb) cb(textArea);
+    this.components.push(textArea);
     return this._createChainableObject();
   }
 
@@ -372,6 +374,7 @@ export class Setting {
   addDropdown(cb) {
     const dropdown = new DropdownComponent(this.controlEl);
     if (cb) cb(dropdown);
+    this.components.push(dropdown);
     return this._createChainableObject();
   }
 
@@ -384,6 +387,7 @@ export class Setting {
   addSlider(cb) {
     const slider = new SliderComponent(this.controlEl);
     if (cb) cb(slider);
+    this.components.push(slider);
     return this._createChainableObject();
   }
 
@@ -398,6 +402,7 @@ export class Setting {
   addColorPicker(cb) {
     const colorPicker = new ColorPickerComponent(this.controlEl);
     if (cb) cb(colorPicker);
+    this.components.push(colorPicker);
     return this._createChainableObject();
   }
 

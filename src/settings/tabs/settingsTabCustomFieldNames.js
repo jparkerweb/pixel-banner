@@ -264,7 +264,7 @@ export function createCustomFieldsSettings(containerEl, plugin) {
     ];
 
     customFields.forEach(field => {
-        new Setting(containerEl)
+        const fieldSetting = new Setting(containerEl)
             .setName(field.name)
             .setDesc(createFragment(el => {
                 el.createEl('div', { text: field.desc });
@@ -299,14 +299,9 @@ export function createCustomFieldsSettings(containerEl, plugin) {
                     plugin.settings[field.setting] = DEFAULT_SETTINGS[field.setting];
                     await plugin.saveSettings();
                     
-                    // Update only this specific setting
-                    const settingEl = button.extraSettingsEl.parentElement;
-                    const textInput = settingEl.querySelector('input[type="text"]');
-                    textInput.value = arrayToString(DEFAULT_SETTINGS[field.setting]);
-                    
-                    // Trigger the change event to update the plugin's state
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    textInput.dispatchEvent(event);
+                    // Update only this specific setting via the component API
+                    const textComponent = fieldSetting.components[0];
+                    if (textComponent) textComponent.setValue(arrayToString(DEFAULT_SETTINGS[field.setting]));
                 }));
     });
 } 

@@ -1,3 +1,11 @@
+> **⚠️ As-Shipped Addendum (2026-06-10)** — This prompt drove the initial implementation, but the shipped code (v3.7.0) deliberately diverged. Where this spec and the code disagree, **the code is authoritative**:
+>
+> - **Live preview is implemented** (added 2026-06-10), but differently than sketched in requirement #5: instead of a separate `previewCanvas`/`previewInstance`, the modal reuses `confettiManager.start()` under the synthetic note ID `<<confetti-modal-preview>>` targeting `modalEl` — so the preview goes through the exact same render path as the on-note effect. Debounce is 100ms via `schedulePreviewUpdate()`, hooked into `checkIfModified()` (the single funnel every control change passes through). Cleanup via `cleanupPreview()` in `onClose()`. Tests: `tests/unit/modal/confettiModal.test.js`.
+> - **Coverage Area dropdown was dropped** along with the coverage feature (see addendum in 001).
+> - **Control differences**: Size/Speed/Gravity/Drift are dual-thumb *range* sliders (min/max), not single-value sliders. Count is 1–150 (not 10–500); Burst Interval is 50–10000ms (not 50–5000). There are no Spread, Start Delay, or Fade In sliders. A "3D Wobble" (flat/tumble) dropdown and a Shape dropdown (built-ins + custom SVG shapes from `confettiShapes.js`) were added.
+> - **Effect dropdown lists 14 presets** + None (see 001 addendum for names).
+> - **Styles are injected by the modal's `addStyles()`** (removed in `onClose()`), not added to `styles.css`.
+
 <objective>
 Create the confetti settings modal UI for Pixel Banner that allows users to configure confetti effects with live preview, preset selection, and parameter customization using sliders and controls.
 </objective>

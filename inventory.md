@@ -1,6 +1,6 @@
 # Pixel Banner Plugin Inventory
 
-**Last Updated:** December 23, 2025
+**Last Updated:** June 10, 2026
 
 Below is a comprehensive overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key components in the codebase.
 
@@ -19,7 +19,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 ### `manifest.json`
 **Description**:  
 - Plugin manifest containing metadata like ID, name, version, minimum app version, description, author info, and funding URL.
-- Current Version: 3.6.7
+- Current Version: 3.7.0
 
 ### `package.json`
 **Description**:  
@@ -208,7 +208,7 @@ Manages DOM observers and watchers to keep banners in sync when Obsidian reflows
 
 **Methods**:
 1. **setupMutationObserver()**  
-   Watches for large-scale DOM changes (like banner removal) and triggers re-check if needed.
+   Watches `document.body` for banner removal (safety net to re-ensure the banner) and editor mode switches (a new `.cm-sizer`). Intentionally ignores `.markdown-preview-section` adds (scroll churn), since the `setChildrenInPlace` override keeps the banner in place during reconciliation.
 2. **setupResizeObserver(viewContent)**  
    Attaches a `ResizeObserver` to adjust banner width dynamically when the container changes size.
 3. **updateFieldVisibility(view)**  
@@ -513,7 +513,7 @@ Helps visually set or tweak the X/Y offsets for the banner and icon.
 Provides a comprehensive UI for configuring confetti particle effects per note.
 
 **Key Methods**:
-1. **onOpen()** - Builds the modal interface with sections for particles, appearance, timing
+1. **onOpen()** - Builds the modal interface with sections for particles, appearance, timing; starts the live preview
 2. **buildParticleSection()** - Creates controls for count, size, speed, gravity, drift, duration
 3. **buildAppearanceSection()** - Creates controls for position, colors, shapes, emoji, 3D wobble
 4. **buildTimingSection()** - Creates controls for continuous effects and burst intervals
@@ -521,9 +521,13 @@ Provides a comprehensive UI for configuring confetti particle effects per note.
 6. **createSliderWithInput()** - Creates paired slider + text input for numeric values
 7. **createRangeSlider()** - Creates dual-thumb range sliders with visual feedback
 8. **renderColorSwatches()** - Renders interactive color picker interface
-9. **applySettings()** - Saves confetti configuration to note frontmatter
-10. **resetToDefaults()** - Resets settings to preset defaults
-11. **triggerConfettiOnNote()** - Triggers preview animation
+9. **updatePreview()** - Renders the live preview over the modal via `confettiManager` under a synthetic note ID (same render path as the on-note effect)
+10. **schedulePreviewUpdate()** - Debounced (100ms) preview refresh; hooked into `checkIfModified()` so every control change refreshes the preview
+11. **cleanupPreview()** - Stops the preview effect and cancels pending debounced refreshes (called from `onClose()`)
+12. **suppressNoteEffect()** / **restoreNoteEffect()** - Pauses the note's own active effect while the modal previews (so the two don't compete visually); restores it on Cancel, no-op on Apply
+13. **applySettings()** - Saves confetti configuration to note frontmatter
+14. **resetToDefaults()** - Resets settings to preset defaults
+15. **triggerConfettiOnNote()** - Fires the real effect on the active note after Apply
 
 ---
 

@@ -2,14 +2,16 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-### v3.7.0 - ?
+### v3.7.0 - 2026-06-10
 #### ✨ Added
 - **Confetti/Particle Effects**: Add animated particle effects to notes using the `banner-confetti` frontmatter field
   - 14 built-in presets: snow, snowflakes, leaves, rain_light, rain_heavy, space, aliens, fireworks, confetti, hearts, sparkles, pop_rocks, crystals, bubbles
   - Customizable via ConfettiModal (accessible from Target Position modal)
+  - Live preview rendered over the modal itself (debounced, reuses `confettiManager` under a synthetic note ID so it goes through the exact same render path as the on-note effect); the note's own active effect is paused while the modal is open so the preview is the only confetti on screen, and is restored on Cancel
   - Custom SVG shapes and emoji particle support
   - Settings: custom field names, mobile disable option
   - Respects user's reduced motion preference for accessibility
+- Added `filesize` display to the store modal
 
 - **Use Note Filename for Banner Images**: New setting that automatically uses the current note's filename as the default filename when saving banner images
   - When enabled, saved banners will be named after the note they belong to (e.g., `My Project Note.jpg` instead of `pixel-banner-image.jpg`)
@@ -17,6 +19,16 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Automatically falls back to default filename if the note is named "Untitled" or has no name
   - Pre-fills the filename (still editable in the save dialog)
   - Located in Settings → General tab
+
+#### 🔧 Changed
+- **Banner persistence override hardened and optimized** (`bannerManager.js`): the `setChildrenInPlace` override that keeps the banner alive through Obsidian's render reconciliation now (1) wraps its body in a try/catch that falls back to the original method, so an error can never break a note's render; (2) feature-detects the undocumented `setChildrenInPlace` internal before patching; and (3) adds a fast-path early-out when no banner elements are present, keying re-injection off element class instead of the per-element `_isPersistent*` flags
+- **Reduced MutationObserver scroll churn** (`domManager.js`): the global observer no longer calls `debouncedEnsureBanner()` on every `.markdown-preview-section` add (which fired on every scroll). It now re-ensures only on a genuine mode switch (`.cm-sizer` added) or actual banner removal — the proactive override keeps the banner in place during scrolling, so the per-section re-ensure was redundant. See `OBSIDIAN_DOM_LIFECYCLE.md` for the full rationale
+- **Settings "Reset to default" buttons refactored to use Obsidian's component API**: replaced fragile direct DOM manipulation (`button.extraSettingsEl.parentElement.querySelector(...)` + manual `dispatchEvent`) with the recommended `Setting.components[0].setValue(...)` pattern across the settings tabs
+  - Affected: General, API Settings, Custom Field Names, Folder Images, and Pixel Banner Plus tabs (sliders, text inputs, dropdowns, toggles, and color pickers)
+  - Removes dependence on Obsidian's internal DOM structure / CSS class names, which could silently break across Obsidian versions
+  - Eliminates redundant synthetic `input`/`change` events (and the duplicate saves they triggered)
+  - Folder-path "Browse" buttons now update their text fields via `TextComponent.setValue()` instead of writing to `inputEl.value`
+  - Test mock (`tests/mocks/obsidian.js`) updated so `Setting.components` tracks text/textarea/dropdown/slider/color-picker components, matching the real Obsidian API
 
 ### v3.6.18 - 2026-03-08
 #### 🐛 Fixed

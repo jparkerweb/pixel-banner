@@ -16,15 +16,18 @@ function setupMutationObserver() {
                 const addedNodes = Array.from(mutation.addedNodes);
 
                 // Only care about banner removal or structural changes
-                const bannerRemoved = removedNodes.some(node => 
+                const bannerRemoved = removedNodes.some(node =>
                     node.classList && node.classList.contains('pixel-banner-image')
                 );
 
-                // Only care about major structural changes that could affect banner placement
-                const structuralChange = addedNodes.some(node => 
-                    node.nodeType === Node.ELEMENT_NODE && 
-                    (node.classList.contains('markdown-preview-section') || 
-                     node.classList.contains('cm-sizer'))  // Changed from cm-content to cm-sizer
+                // Only care about mode switches (a new editor sizer appearing), NOT scroll.
+                // The proactive setChildrenInPlace override (bannerManager.js) keeps the banner
+                // in place during reconciliation, so we no longer re-ensure on every
+                // `.markdown-preview-section` add (which fires on every scroll). See
+                // OBSIDIAN_DOM_LIFECYCLE.md §6.5.
+                const structuralChange = addedNodes.some(node =>
+                    node.nodeType === Node.ELEMENT_NODE &&
+                    node.classList.contains('cm-sizer')
                 );
 
                 if (bannerRemoved || structuralChange) {

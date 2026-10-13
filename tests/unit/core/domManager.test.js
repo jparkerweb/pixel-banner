@@ -172,7 +172,7 @@ describe('domManager', () => {
             expect(mockPlugin.debouncedEnsureBanner).toHaveBeenCalled();
         });
 
-        it('should handle structural change mutations', () => {
+        it('should re-ensure on mode-switch structural change (cm-sizer added)', () => {
             const callback = vi.fn();
             MutationObserver.mockImplementation((cb) => {
                 callback.mockImplementation(cb);
@@ -185,10 +185,10 @@ describe('domManager', () => {
 
             setupMutationObserver.call(mockPlugin);
 
-            // Create mock added node with structural class
+            // A new editor sizer appearing signals a mode switch (edit <-> preview)
             const addedNode = document.createElement('div');
-            addedNode.className = 'markdown-preview-section';
-            
+            addedNode.className = 'cm-sizer';
+
             const mutations = [{
                 type: 'childList',
                 removedNodes: [],
@@ -203,6 +203,41 @@ describe('domManager', () => {
 
             callback(mutations);
             expect(mockPlugin.debouncedEnsureBanner).toHaveBeenCalled();
+        });
+
+        it('should NOT re-ensure on scroll section adds (markdown-preview-section)', () => {
+            const callback = vi.fn();
+            MutationObserver.mockImplementation((cb) => {
+                callback.mockImplementation(cb);
+                return {
+                    observe: vi.fn(),
+                    disconnect: vi.fn(),
+                    takeRecords: vi.fn(() => [])
+                };
+            });
+
+            setupMutationObserver.call(mockPlugin);
+
+            // markdown-preview-section nodes are added on every scroll; with the proactive
+            // setChildrenInPlace override keeping the banner in place, these must NOT trigger
+            // a re-ensure (that was the old scroll-churn firehose).
+            const addedNode = document.createElement('div');
+            addedNode.className = 'markdown-preview-section';
+
+            const mutations = [{
+                type: 'childList',
+                removedNodes: [],
+                addedNodes: [addedNode]
+            }];
+
+            // Banner is present and untouched
+            const banner = document.createElement('div');
+            banner.className = 'pixel-banner-image';
+            banner.style.display = 'block';
+            mockContentEl.appendChild(banner);
+
+            callback(mutations);
+            expect(mockPlugin.debouncedEnsureBanner).not.toHaveBeenCalled();
         });
 
         it('should remove pixel-banner class when no banner present', () => {

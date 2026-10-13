@@ -2,7 +2,7 @@
 
 This file provides guidance to AI coding agents like Claude Code (claude.ai/code), Cursor AI, Codex, Gemini CLI, GitHub Copilot, and other AI coding assistants when working with code in this repository.
 
-## Overview
+## Project Overview
 
 Pixel Banner is an Obsidian plugin that adds customizable banner images to notes. It supports AI-generated banners via Pixel Banner Plus, local images/videos, and integrations with Pexels, Pixabay, Flickr, and Unsplash APIs.
 
@@ -11,86 +11,39 @@ Pixel Banner is an Obsidian plugin that adds customizable banner images to notes
 - **Bundler**: esbuild (ES2018)
 - **No linting/formatting tools** - maintain consistent style manually
 
+## How to Use This File
+
+This file is an index. Each section below has a short summary; open the linked `.agents-docs/` file only when your task touches that area. Sections short enough to read every time stay inline here.
+
 ## Essential Commands
 
-```bash
-# Development build (copies to test vault)
-npm run test-build
+`npm run test-build` is the primary dev command (builds and copies to the test vault); `npx vitest run` runs the suite once (`npm test` stays in watch mode); `npx vitest run <file>` or `-t "<name>"` narrows it. Commits run the full suite via a Husky pre-commit hook.
 
-# Production build
-npm run build
-
-# Run all tests
-npm test
-
-# Run single test file
-npx vitest tests/unit/core/bannerUtils.test.js
-
-# Run tests matching pattern
-npx vitest -t "getInputType"
-
-# Watch mode
-npx vitest --watch
-```
+Details: [Essential Commands](./.agents-docs/AGENTS-essential-commands.md)
 
 ## Architecture
 
-### Core Plugin Flow
+Entry is `src/core/pixelBannerPlugin.js`, a thin class that binds module functions; `eventHandler.js` reacts to workspace events, `bannerManager.js` resolves banners (`addPixelBanner()`, `updateBanner()`), `domManager.js` runs the DOM observers, `bannerUtils.js:getInputType()` classifies frontmatter input (path, wiki link, markdown image, URL, file://, keyword), and `cacheHelpers.js` caches images. Covers the delegator pattern, input resolution order, DOM persistence, the confetti subsystem, the release notes pipeline, modals, services and a key-files table. Before changing banner insertion or cleanup, read `OBSIDIAN_DOM_LIFECYCLE.md`.
 
-1. **Entry**: `src/core/pixelBannerPlugin.js` extends Obsidian's `Plugin` class
-2. **Events**: `eventHandler.js` handles workspace events (leaf changes, mode changes)
-3. **Resolution**: `bannerManager.js` determines and displays banners based on frontmatter/folder settings
-4. **Input Detection**: `bannerUtils.js:getInputType()` identifies input type (keyword, URL, vault path, wiki link)
-5. **DOM**: `bannerManager.js:insertBanner()` handles DOM manipulation
-6. **Caching**: `cacheHelpers.js` manages image caching
+Details: [Architecture](./.agents-docs/AGENTS-architecture.md)
 
-### Input Type Detection (`bannerUtils.js:getInputType()`)
+## Testing
 
-The plugin reads multiple input formats:
-- Plain paths: `image.jpg`, `folder/image.jpg`
-- Wiki links: `[[image.jpg]]`, `![[image.jpg]]`
-- Markdown images: `![](image.jpg)`
-- URLs: `https://example.com/image.jpg`
-- file:// protocol: `file:///C:/path/image.jpg`
-- Keywords: `sunset beach` (triggers API search)
+Vitest with happy-dom; tests in `tests/unit/` and `tests/integration/`; `obsidian` and `virtual:release-notes` are aliased to mocks in `tests/mocks/`.
 
-Resolution order:
-1. Check for wiki/markdown syntax
-2. Clean quotes and syntax
-3. Check for file:/// protocol
-4. Try URL parsing
-5. Check vault for exact path match
-6. Try partial path matching
-7. Default to keyword
+Details: [Testing](./.agents-docs/AGENTS-testing.md)
 
-### Modal Pattern
+## Live UI Testing
 
-All modals extend Obsidian's `Modal` class:
-```javascript
-class ExampleModal extends Modal {
-  constructor(app, plugin) { /* setup */ }
-  onOpen() { /* build UI */ }
-  onClose() { /* cleanup */ }
-}
-```
+Drive a running Obsidian through the official Obsidian CLI to verify changes for real: build, reload the plugin, check errors, inspect DOM, take screenshots, send real mouse clicks over CDP. The plugin id is `pexels-banner`, and always pass `vault=pixel-banner-example`.
 
-### Service Layer
+Details: [Live UI Testing](./.agents-docs/AGENTS-live-ui-testing.md)
 
-- `apiService.js`: Pexels, Pixabay, Flickr, Unsplash integrations
-- `apiPixelBannerPlus.js`: Premium AI generation features
-- API keys stored in plugin settings, never in code
+## Adding New Features
 
-## Key Files
+Step lists for adding a new image provider and a new Image Property Format, naming every file to touch.
 
-| File | Purpose |
-|------|---------|
-| `src/core/pixelBannerPlugin.js` | Main entry point |
-| `src/core/bannerManager.js` | Banner creation/updates |
-| `src/core/bannerUtils.js` | Input type detection, path resolution |
-| `src/core/eventHandler.js` | Workspace event handlers |
-| `src/core/settings.js` | Settings load/save |
-| `src/utils/frontmatterUtils.js` | Frontmatter parsing/updates |
-| `src/modal/modals.js` | Modal exports |
+Details: [Adding New Features](./.agents-docs/AGENTS-adding-new-features.md)
 
 ## Required Updates When Modifying Code
 
@@ -99,44 +52,19 @@ class ExampleModal extends Modal {
 3. **Update `CHANGELOG.md`** for technical changes
 4. Test in `.vault/pixel-banner-example/` before committing
 
-## Testing
-
-- Framework: Vitest with happy-dom
-- Tests: `tests/unit/` and `tests/integration/`
-- Mocks: `tests/mocks/obsidian.js` simulates Obsidian API
-- Test vault: `.vault/pixel-banner-example/`
-
-Key test files:
-- `bannerUtils.test.js` - Input type detection
-- `frontmatterUtils.test.js` - Frontmatter handling
-- `bannerWorkflow.test.js` - E2E banner workflows
-
 ## Code Style
 
 - camelCase for variables/functions
 - PascalCase for classes/components
 - Ensure desktop and mobile Obsidian compatibility
 - Console logs acceptable during development
-
-## Adding New Features
-
-### New Image Provider
-1. Add config to `src/resources/constants.js`
-2. Implement API in `src/services/apiService.js`
-3. Add UI in `src/modal/modals/searchModal.js`
-4. Update settings tabs if API key required
-5. Add tests in `tests/unit/services/`
-
-### New Image Property Format
-1. Add dropdown option in `src/settings/tabs/settingsTabGeneral.js`
-2. Handle format in `src/utils/frontmatterUtils.js:updateNoteFrontmatter()`
-3. Add to DEFAULT_SETTINGS in `src/core/settings.js` if needed
-4. Add tests in `tests/unit/utils/frontmatterUtils.test.js`
+- Before settings UI, DOM construction, lifecycle, vault or networking work, check `OBSIDIAN_DEVELOPMENT_STANDARDS.md` (repo root); its [REQUIRED] items are what the Obsidian review team enforces
 
 ## Debugging
 
 - Obsidian Developer Tools: Ctrl+Shift+I
 - Banner issues: Check `bannerManager.js`
+- Banner disappears or flickers: Check `domManager.js` observers and the `setChildrenInPlace` override in `bannerManager.js` (see `OBSIDIAN_DOM_LIFECYCLE.md`)
 - Path resolution issues: Check `bannerUtils.js:getInputType()`
 
 ## Release Process
@@ -146,3 +74,18 @@ Key test files:
 3. Update `inventory.md` if files changed
 4. Run `npm run build`
 5. Test in `.vault` environment
+
+## Keeping this file current
+
+The `Failure log` section below is a recording of mistakes made by previous AI Agents while working with this code base.
+
+When you make a mistake, get corrected, or discover something about this codebase that wasn't written down:
+
+1. Add one line to the `Failure log` below, in the imperative, describing the correct behaviour.
+2. Keep it specific to this repo. General advice belongs nowhere.
+3. If this fix is a workflow rather than a rule, put it in `.claude/skills/` and link it from here.
+4. Include the change in the same commit and mention it in your summary.
+
+## Failure log
+
+- Preserve line endings in files whose git blob mixes CRLF and LF (e.g. `src/settings/tabs/settingsTabAPISettings.js`): if `git diff --stat` is far larger than your change, compare with `git diff --stat --ignore-all-space`, restore the file and re-apply the edit byte-preserving.

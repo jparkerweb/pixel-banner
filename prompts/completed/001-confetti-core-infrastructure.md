@@ -1,3 +1,13 @@
+> **⚠️ As-Shipped Addendum (2026-06-10)** — This prompt drove the initial implementation, but the shipped code (v3.7.0) deliberately diverged. Where this spec and the code disagree, **the code is authoritative**:
+>
+> - **Presets**: 14 shipped, not 9 — `snow, snowflakes, leaves, rain_light, rain_heavy, space, aliens, fireworks, confetti, hearts, sparkles, pop_rocks, crystals, bubbles` (`src/core/confettiPresets.js`). `stars` and plain `rain` from this spec do not exist. Default values below were retuned during development and no longer match.
+> - **New per-preset fields** not in this spec: `sizeRange`, `speedRange`, `gravityRange`, `driftRange`, `customShapes`, `originSpread`, `startY`, `flat`.
+> - **`coverage` ('note' vs 'banner') was dropped** — the canvas always overlays the entire note element; `createCanvas(noteElement)` takes no coverage param.
+> - **Frontmatter format**: saved as a string — `type:preset, key:val, ...` (`buildConfettiFrontmatter` in `src/utils/confettiUtils.js`). The array form `['preset', {overrides}]` from this spec is still *parsed* for backward compat but never written.
+> - **Unspec'd additions**: `src/core/confettiShapes.js` (custom SVG path shapes: snowflake, leaf, raindrop, gems, alien, ufo, …) and `sanitizeConfig()` range-clamping in `confettiUtils.js` (guards hand-edited frontmatter).
+> - **Ranges**: `count` clamps to 1–150 (not 10–500); `interval` to 50–10000ms (not 50–5000).
+> - **Performance hardening beyond spec**: continuous effects pause while the document is hidden (visibilitychange) and while the canvas is scrolled off-screen (IntersectionObserver).
+
 <objective>
 Implement the core confetti infrastructure for Pixel Banner plugin using the canvas-confetti library. This establishes the foundation that the modal UI and integration phases will build upon.
 </objective>

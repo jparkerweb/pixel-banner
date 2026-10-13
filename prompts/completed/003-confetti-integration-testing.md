@@ -1,3 +1,9 @@
+> **⚠️ As-Shipped Addendum (2026-06-10)** — This prompt drove the initial implementation, but the shipped code (v3.7.0) deliberately diverged. Where this spec and the code disagree, **the code is authoritative**:
+>
+> - **`createCanvas(noteElement)` takes no `coverage` param** — the banner-only canvas placement sketched here was dropped with the coverage feature (see 001 addendum); the canvas always overlays the entire note element.
+> - **Frontmatter format** is the string form `type:preset, key:val, ...`, not the array form (see 001 addendum); `parseConfettiConfig` accepts both.
+> - **Test suite as shipped**: `tests/unit/core/confettiManager.test.js`, `tests/unit/core/confettiPresets.test.js`, `tests/unit/utils/confettiUtils.test.js`, `tests/integration/confettiWorkflow.test.js`, plus `tests/unit/modal/confettiModal.test.js` (live preview, added 2026-06-10).
+
 <objective>
 Integrate the confetti system into Pixel Banner's note lifecycle, add the confetti button to the Position modal, handle cleanup and edge cases, and create comprehensive tests for all confetti functionality.
 </objective>

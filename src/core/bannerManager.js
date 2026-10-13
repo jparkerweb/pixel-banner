@@ -348,49 +348,56 @@ async function addPixelBanner(plugin, el, ctx) {
         const hasBanner = activeFile && plugin.hasBannerFrontmatter(activeFile);
     }
 
-    // 4) Override setChildrenInPlace to preserve persistent elements
-    if (!container._hasOverriddenSetChildrenInPlace) {
+    // 4) Override setChildrenInPlace to preserve persistent elements.
+    //    Obsidian rebuilds a container's child list during render reconciliation; without
+    //    this override our banner (a child it doesn't own) gets stripped. We re-inject our
+    //    elements proactively so they never leave the DOM (no flicker), in both reading and
+    //    editing views. See OBSIDIAN_DOM_LIFECYCLE.md §6.5.
+    //    setChildrenInPlace is an undocumented Obsidian internal, so we feature-detect it and
+    //    fail safe: any error inside the override falls back to the original to never break
+    //    Obsidian's render.
+    if (typeof container.setChildrenInPlace === 'function' && !container._hasOverriddenSetChildrenInPlace) {
         const originalSetChildrenInPlace = container.setChildrenInPlace;
         container.setChildrenInPlace = function(children) {
-            // Get all persistent elements
-            const bannerElement = this.querySelector(':scope > .pixel-banner-image');
-            const viewImageElement = this.querySelector(':scope > .view-image-icon');
-            const pinElement = this.querySelector(':scope > .pin-icon');
-            const refreshElement = this.querySelector(':scope > .refresh-icon');
-            const selectImageElement = this.querySelector(':scope > .select-image-icon');
-            const bannerIconOverlay = this.querySelector(':scope > .banner-icon-overlay');
+            try {
+                // Find our persistent elements by class (every element we create carries its
+                // class, so this is equivalent to the old _isPersistent* flags but more robust).
+                const bannerElement = this.querySelector(':scope > .pixel-banner-image');
+                const bannerIconOverlay = this.querySelector(':scope > .banner-icon-overlay');
+                const selectImageElement = this.querySelector(':scope > .select-image-icon');
+                const viewImageElement = this.querySelector(':scope > .view-image-icon');
+                const pinElement = this.querySelector(':scope > .pin-icon');
+                const refreshElement = this.querySelector(':scope > .refresh-icon');
 
-            // Filter out old duplicates
-            children = Array.from(children).filter(child => 
-                !child.classList?.contains('pixel-banner-image') &&
-                !child.classList?.contains('view-image-icon') &&
-                !child.classList?.contains('pin-icon') &&
-                !child.classList?.contains('refresh-icon') &&
-                !child.classList?.contains('select-image-icon') &&
-                !child.classList?.contains('banner-icon-overlay')
-            );
+                // Fast path: nothing of ours present — don't touch the array.
+                if (!bannerElement && !bannerIconOverlay && !selectImageElement &&
+                    !viewImageElement && !pinElement && !refreshElement) {
+                    return originalSetChildrenInPlace.call(this, children);
+                }
 
-            // Re-inject "persistent" elements in the correct order:
-            if (bannerElement?._isPersistentBanner) {
-                children.unshift(bannerElement);
-            }
-            if (bannerIconOverlay?._isPersistentBannerIcon) {
-                children.push(bannerIconOverlay);
-            }
-            if (selectImageElement?._isPersistentSelectImage) {
-                children.push(selectImageElement);
-            }
-            if (viewImageElement?._isPersistentViewImage) {
-                children.push(viewImageElement);
-            }
-            if (pinElement?._isPersistentPin) {
-                children.push(pinElement);
-            }
-            if (refreshElement?._isPersistentRefresh) {
-                children.push(refreshElement);
-            }
+                // Filter out any of our elements from the incoming list (defensive against
+                // duplicates), then re-inject in the correct order: banner first, icons last.
+                const filtered = Array.from(children).filter(child =>
+                    !child.classList?.contains('pixel-banner-image') &&
+                    !child.classList?.contains('view-image-icon') &&
+                    !child.classList?.contains('pin-icon') &&
+                    !child.classList?.contains('refresh-icon') &&
+                    !child.classList?.contains('select-image-icon') &&
+                    !child.classList?.contains('banner-icon-overlay')
+                );
 
-            return originalSetChildrenInPlace.call(this, children);
+                if (bannerElement) filtered.unshift(bannerElement);
+                if (bannerIconOverlay) filtered.push(bannerIconOverlay);
+                if (selectImageElement) filtered.push(selectImageElement);
+                if (viewImageElement) filtered.push(viewImageElement);
+                if (pinElement) filtered.push(pinElement);
+                if (refreshElement) filtered.push(refreshElement);
+
+                return originalSetChildrenInPlace.call(this, filtered);
+            } catch (e) {
+                console.error('Pixel Banner: setChildrenInPlace override failed; using original', e);
+                return originalSetChildrenInPlace.call(this, children);
+            }
         };
         container._hasOverriddenSetChildrenInPlace = true;
     }

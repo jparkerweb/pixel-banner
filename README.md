@@ -193,6 +193,15 @@ To configure this:
 - **Seamless Experience**: All existing banner features work with videos (icons, positioning, etc.)
 - **Flexible Saving**: Choose where to save downloaded videos and customize filenames
 
+## 🎊 Confetti & Particle Effects
+
+Bring a note to life with animated effects that play over it while it is open.
+
+- **Quick start**: add `banner-confetti: type:snow` to a note's frontmatter (the field name can be changed in settings)
+- **Presets**: 14 to choose from, including snow, leaves, light and heavy rain, fireworks, confetti, hearts, sparkles and bubbles
+- **Customize**: tweak colors, speed, size and other properties with a live preview, from the 🎊 button in the Target Position modal
+- **Considerate by default**: respects your system's reduced-motion preference, and can be turned off on mobile
+
 ### 🎉 Happy Pixel Bannering 🤣
 
 __click a version below to view its features via a YouTube video 📺__

@@ -3,6 +3,15 @@ import { confettiManager } from '../../core/confettiManager';
 import { getPresetNames, buildConfettiFrontmatter, getPresetDefaults } from '../../utils/confettiUtils';
 import { getCustomShapeNames } from '../../core/confettiShapes';
 
+// Synthetic note ID for the in-modal live preview. Uses characters that can
+// never appear in a real vault file path, so it can't collide with an actual
+// note's effect in confettiManager's maps.
+const PREVIEW_NOTE_ID = '<<confetti-modal-preview>>';
+
+// Debounce for live preview refreshes so slider drags don't restart the
+// effect on every mousemove (spec: 50-100ms).
+const PREVIEW_DEBOUNCE_MS = 100;
+
 // ---------------------------
 // -- Confetti Settings Modal --
 // ---------------------------
@@ -16,6 +25,9 @@ export class ConfettiModal extends Modal {
         this.isModified = false;
         this.sliderInputRefs = {};
         this.dragAbortController = null;
+        this.previewDebounceTimeout = null;
+        this.suppressedNote = null; // {path, element} of the note effect paused while previewing
+        this.applied = false;
     }
 
     initializeSettings() {
@@ -85,10 +97,14 @@ export class ConfettiModal extends Modal {
         contentEl.empty();
         contentEl.addClass('confetti-modal');
 
+        this.suppressNoteEffect();
         this.buildUI();
+        this.updatePreview();
     }
 
     onClose() {
+        this.cleanupPreview();
+        this.restoreNoteEffect();
         if (this.dragAbortController) {
             this.dragAbortController.abort();
             this.dragAbortController = null;
@@ -745,7 +761,82 @@ export class ConfettiModal extends Modal {
     }
 
 
+    // ----------------------------------------------------------------------
+    // Live preview — renders the effect over the modal itself so users can
+    // see the result before applying. Reuses confettiManager (under a
+    // synthetic note ID) so the preview goes through the exact same code path
+    // as the real on-note effect: presets, overrides, sanitizeConfig, shapes,
+    // emoji, continuous intervals, and visibility pausing all behave
+    // identically.
+    // ----------------------------------------------------------------------
+
+    updatePreview() {
+        if (this.selectedPreset === 'none') {
+            this.cleanupPreview();
+            return;
+        }
+        if (!this.modalEl) return;
+
+        // Same config the Apply button would write, but fire immediately —
+        // a preview that honors a long start delay would just look broken.
+        const overrides = { ...this.getOverridesFromDefaults(), delay: 0 };
+        confettiManager.start(PREVIEW_NOTE_ID, this.modalEl, this.selectedPreset, overrides);
+    }
+
+    // Debounced preview refresh; slider drags call this on every change and
+    // the preview restarts once the user pauses.
+    schedulePreviewUpdate() {
+        if (this.previewDebounceTimeout) {
+            clearTimeout(this.previewDebounceTimeout);
+        }
+        this.previewDebounceTimeout = setTimeout(() => {
+            this.previewDebounceTimeout = null;
+            this.updatePreview();
+        }, PREVIEW_DEBOUNCE_MS);
+    }
+
+    cleanupPreview() {
+        if (this.previewDebounceTimeout) {
+            clearTimeout(this.previewDebounceTimeout);
+            this.previewDebounceTimeout = null;
+        }
+        // Immediate stop (no fade) — the modal is closing or the effect was
+        // set to None; clears intervals/observers and removes the canvas.
+        confettiManager.stop(PREVIEW_NOTE_ID, 0);
+    }
+
+    // Pause the note's own active effect while the modal is open so the live
+    // preview is the only confetti on screen — otherwise the note's applied
+    // effect and the preview run side by side and compete visually.
+    suppressNoteEffect() {
+        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (activeView?.file && confettiManager.hasActiveEffect(activeView.file.path)) {
+            this.suppressedNote = { path: activeView.file.path, element: activeView.contentEl };
+            confettiManager.stop(activeView.file.path, 0);
+        }
+    }
+
+    // On Cancel, resume the note's original effect that suppressNoteEffect()
+    // paused. On Apply this is a no-op — applySettings already started the
+    // new effect (or removed it).
+    restoreNoteEffect() {
+        if (this.applied || !this.suppressedNote) return;
+        const { path, element } = this.suppressedNote;
+        this.suppressedNote = null;
+        if (!this.currentConfig?.presetName || this.currentConfig.presetName === 'none') return;
+        // Guard against the note element having been torn down while the
+        // modal was open (e.g. the user switched notes behind the modal).
+        if (element && element.isConnected !== false) {
+            confettiManager.start(path, element, this.currentConfig.presetName, this.currentConfig.overrides || {});
+        }
+    }
+
     checkIfModified() {
+        // Every control change handler funnels through here, so this is the
+        // single hook point for live preview refreshes (covers sliders, range
+        // thumbs, colors, emoji, dropdowns, toggles, and reset).
+        this.schedulePreviewUpdate();
+
         if (this.selectedPreset === 'none') {
             this.isModified = false;
             this.modifiedIndicator.style.display = 'none';
@@ -829,6 +920,10 @@ export class ConfettiModal extends Modal {
         }
 
         try {
+            // Either branch supersedes the suppressed note effect, so
+            // restoreNoteEffect() must not resurrect the old config on close.
+            this.applied = true;
+
             if (this.selectedPreset === 'none') {
                 // Remove confetti from frontmatter
                 await this.removeConfettiFromFrontmatter(activeFile);

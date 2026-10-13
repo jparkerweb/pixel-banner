@@ -121,6 +121,7 @@ class FolderImageSetting extends Setting {
                         this.folderImage.folder = value;
                         await this.plugin.saveSettings();
                     });
+                this.folderInputComponent = text;
                 this.folderInputEl = text.inputEl;
                 this.folderInputEl.style.width = '300px';
             });
@@ -130,7 +131,7 @@ class FolderImageSetting extends Setting {
             .onClick(() => {
                 new FolderSuggestModal(this.plugin.app, (chosenPath) => {
                     this.folderImage.folder = chosenPath;
-                    this.folderInputEl.value = chosenPath;
+                    this.folderInputComponent.setValue(chosenPath);
                     this.plugin.saveSettings();
                 }).open();
             }));
@@ -175,7 +176,8 @@ class FolderImageSetting extends Setting {
             .onClick(() => {
                 new FolderSuggestModal(this.plugin.app, (chosenPath) => {
                     this.folderImage.shuffleFolder = chosenPath;
-                    shuffleFolderInput.controlEl.querySelector('input').value = chosenPath;
+                    const shuffleTextComponent = shuffleFolderInput.components[0];
+                    if (shuffleTextComponent) shuffleTextComponent.setValue(chosenPath);
                     this.plugin.saveSettings();
                 }).open();
             }));
@@ -402,7 +404,7 @@ class FolderImageSetting extends Setting {
         const colorContainer = containerEl.createDiv('color-settings-container');
         
         // Inline Title Color
-        new Setting(colorContainer)
+        const titleColorSetting = new Setting(colorContainer)
             .setName("Inline Title Color")
             .addColorPicker(color => color
                 .setValue((() => {
@@ -441,9 +443,9 @@ class FolderImageSetting extends Setting {
                     this.folderImage.titleColor = this.plugin.settings.titleColor;
                     await this.plugin.saveSettings();
                     
-                    // Update color picker to show computed value
-                    const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
-                    if (colorPickerEl) {
+                    // Update color picker to show computed value via the component API
+                    const colorComponent = titleColorSetting.components[0];
+                    if (colorComponent) {
                         const currentColor = this.plugin.settings.titleColor;
                         if (currentColor.startsWith('var(--')) {
                             const temp = document.createElement('div');
@@ -451,18 +453,18 @@ class FolderImageSetting extends Setting {
                             document.body.appendChild(temp);
                             const computedColor = getComputedStyle(temp).color;
                             document.body.removeChild(temp);
-                            
+
                             const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
                             if (rgbMatch) {
                                 const [_, r, g, b] = rgbMatch;
-                                const hexColor = '#' + 
+                                const hexColor = '#' +
                                     parseInt(r).toString(16).padStart(2, '0') +
                                     parseInt(g).toString(16).padStart(2, '0') +
                                     parseInt(b).toString(16).padStart(2, '0');
-                                colorPickerEl.value = hexColor;
+                                colorComponent.setValue(hexColor);
                             }
                         } else {
-                            colorPickerEl.value = currentColor;
+                            colorComponent.setValue(currentColor);
                         }
                     }
                 }));
