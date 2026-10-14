@@ -36,6 +36,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 **Description**:  
 - Global styles for the plugin, including banner appearance, controls, modals, and UI components.
 - Settings tab: `.pixel-banner-settings` lays out the pane, and the 800px reading-width cap sits on the inner `.pixel-banner-main-content` (centered), never on the pane itself, which Obsidian 1.13+ pads to center its settings column.
+- Image View Modal: `.modal.pixel-banner-image-viewer` (size only, never position) and `.pixel-banner-image-view-modal` (image, path, Copy Path and Close layout).
 - Embed min-height: `--pixel-banner-embed-min-height` applies only to `.internal-embed.pixel-banner > .markdown-embed-content > .markdown-preview-view` (embeds that show a banner); the variable also sits on the host note's view and inherits into every embed, so an unscoped rule padded block and heading embeds (issue #331).
 - Phone layout: banner pieces that are direct children of a root pane's sizer (`.pixel-banner-image`, `.banner-icon-overlay` and the top-left icon buttons) get `translate: 0 var(--view-top-spacing-markdown)` under `.is-phone .mod-root`, matching the top padding Obsidian gives the scroller to clear its floating header (issue #335).
 - Confetti: the overlay canvas (`.pixel-banner-confetti-canvas`), the pane host class (`.pixel-banner-confetti-host`), the confetti modal (scoped under `.confetti-modal`, dynamic values read from CSS variables such as `--confetti-swatch-color`), its fixed preview layer, and the Target Position modal's confetti row (`.confetti-effect-section`, `.confetti-status-active` / `-none` / `-unknown`).
@@ -485,7 +486,7 @@ The modal handles validation of image URLs, provides user feedback for errors, a
 
 ## `/src/modal/modals/imageViewModal.js`
 **Class**: `ImageViewModal`  
-Shows banners at larger size in a centered modal, now supporting both images and videos.
+Shows banners at larger size in a centered modal, now supporting both images and videos. The modal gets the `pixel-banner-image-viewer` class and is styled from `styles.css` (no injected `<style>`, no inline positioning); Obsidian's `.modal-container` centers it (issue #328).
 
 **Key Methods**:
 - **onOpen()**: Embeds images or videos in the modal with appropriate controls. Automatically detects video files (MP4, MOV) and displays with video player controls.
