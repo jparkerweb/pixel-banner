@@ -165,6 +165,10 @@ Handles adding and updating "pixel banners" (the large images at the top of note
    Updates the note's frontmatter for custom X/Y positions (used by "Target Position" modals).
 8. **registerMarkdownPostProcessor(plugin)**
    Markdown post process to add banners to "hover preview" note views
+9. **insertPersistentElement(container, el)**
+   Inserts one of our elements (icons) after our other front elements and before Obsidian's own children. Our elements must never trail the note's sections, or heading fold in reading view breaks (issue #315).
+10. **installPersistentChildrenOverride(container)**
+   Installs the `setChildrenInPlace` override (feature-detected, once per container, fail-safe) that keeps the banner, icon overlay and icons in front of the children Obsidian passes in.
 
 ---
 

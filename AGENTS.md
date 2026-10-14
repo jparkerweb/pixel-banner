@@ -97,4 +97,5 @@ When you make a mistake, get corrected, or discover something about this codebas
 - Call `dev:cdp` through `%LOCALAPPDATA%\Programs\Obsidian\Obsidian.com vault=pixel-banner-example`: the `obsidian` shim exits 127 for it, as for `dev:screenshot`.
 - Do not expect `obsidian eval` to await a promise: it prints nothing for async code, so store results on `window` and read them back with a second synchronous `eval`.
 - Expect `app.emulateMobile(true|false)` to reload the window: anything injected with `eval` is gone afterwards.
+- Insert plugin elements into a sizer with `insertPersistentElement` (in front of Obsidian's children), never `appendChild`: a trailing absolutely positioned element breaks reading view heading fold (issue #315). Reproduce fold bugs in a long note (e.g. 4 H1s x 40 paragraphs) in a fresh tab; short notes fold fine and a reused tab keeps the old override.
 - Wait at least 3s after an editor edit before checking metadata-driven behaviour (confetti restarts, lastFrontmatter): edits reach the metadata cache only after Obsidian's ~2s save.

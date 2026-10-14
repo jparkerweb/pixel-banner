@@ -37,9 +37,16 @@ what belongs there** — and the Pixel Banner div (a direct child of the sizer t
 Obsidian didn't create) **is not in that list**, so it gets stripped on every
 reconciliation pass (view toggle, edit, re-render, sometimes scroll).
 
-This is exactly what the override at `bannerManager.js:352–396` intercepts: it
-filters the incoming child list and re-`unshift`s the persistent banner elements back
-in before delegating to the original method.
+This is exactly what the override (`installPersistentChildrenOverride` in
+`bannerManager.js`) intercepts: it filters the incoming child list and puts the
+persistent banner elements back in front before delegating to the original method.
+
+**Order matters: all of our elements go in front of Obsidian's children, never after
+them.** Reading view measures a section's height as the next sibling's `offsetTop`
+minus its own. Our icons are absolutely positioned (`offsetTop` ~0), so when one
+trailed the sections, a collapsed heading that was the last rendered section got a
+negative height and the sections below it were never drawn (issue #315). Insert
+icons with `insertPersistentElement`, not `appendChild`.
 
 **Key consequence:** the banner doesn't vanish because it "scrolled away" — it
 vanishes because it lives in a container whose children Obsidian owns and rebuilds.

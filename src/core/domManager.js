@@ -185,8 +185,8 @@ function updateEmbeddedBannersVisibility() {
                 padding-top: unset !important;
             }
             /* hide pusher to prevent content from being pushed down */
-            .internal-embed > .markdown-embed-content .cm-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher,
-            .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image + .markdown-preview-pusher {
+            .internal-embed > .markdown-embed-content .cm-sizer:first-of-type > .pixel-banner-image ~ .markdown-preview-pusher,
+            .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type > .pixel-banner-image ~ .markdown-preview-pusher {
                 display: none !important;
             }
         `;
