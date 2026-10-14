@@ -4,7 +4,7 @@
 - **Source:** [PLAN-DRAFT-20261013.md](./PLAN-DRAFT-20261013.md) (conversation log: [PLAN-CONVERSATION-20261013.md](./PLAN-CONVERSATION-20261013.md))
 - **Branch:** `develop`
 
-**Status:** Not Started
+**Status:** Complete
 
 ## Summary
 
@@ -14,12 +14,12 @@ Findings are numbered F1-F53 as in Appendix A of the PLAN-DRAFT; every task name
 
 ## Phase Checklist
 
-- [/] [Phase 1: Config codec and frontmatter round-trip](./phase-1.md)
-- [ ] [Phase 2: Per-pane effect engine and lifecycle](./phase-2.md)
-- [ ] [Phase 3: Modal correctness and access](./phase-3.md)
-- [ ] [Phase 4: Preset looks](./phase-4.md)
-- [ ] [Phase 5: Obsidian standards, styles and docs](./phase-5.md)
-- [ ] [Phase 6: Test hardening and live verification](./phase-6.md)
+- [x] [Phase 1: Config codec and frontmatter round-trip](./phase-1.md)
+- [x] [Phase 2: Per-pane effect engine and lifecycle](./phase-2.md)
+- [x] [Phase 3: Modal correctness and access](./phase-3.md)
+- [x] [Phase 4: Preset looks](./phase-4.md)
+- [x] [Phase 5: Obsidian standards, styles and docs](./phase-5.md)
+- [x] [Phase 6: Test hardening and live verification](./phase-6.md)
 
 ## Parallel Execution Groups
 
@@ -190,6 +190,47 @@ None.
 
 ## Completion Summary
 
-_Filled during finalization._
+**Feature:** Confetti Wrap-Up | **Completed:** 2026-10-13 | **Completion:** 100% (73/73 tasks)
+
+### What Was Built
+All 53 findings from the verification run are closed. A single config codec (`src/utils/confettiConfig.js`) now owns parsing, sanitizing, comparing and writing `banner-confetti`, so a modal Apply reads back with real numbers and an untouched preset writes `type: <preset>` only. Effects run one per pane on main-thread canvas-confetti instances, so split panes animate independently and pause when hidden, scrolled away or in a background tab. The modal edits exactly what it shows, every preset is visible in light and dark themes, and the confetti files meet the [REQUIRED] Obsidian standards. The test suite grew from 904 to 1153 tests and no longer contains tests that cannot fail. A live pass in Obsidian through the CLI (results table in `phase-6.md`) found and fixed three further bugs.
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/utils/confettiConfig.js` | Schema-driven codec: `parse`, `serialize`, `normalize`, `diffFromPreset`, `writeConfettiField`, preset name resolution, hex colour sanitizing |
+| `tests/unit/utils/confettiConfig.test.js` | Codec tests, golden tests over the fixtures |
+
+### Files Modified
+| File | Changes |
+|------|---------|
+| `src/core/confettiManager.js` | `ConfettiEffect` per pane (leaf id), `useWorker: false`, resize and visibility observers, fades, `init`/`destroy`, gates (`shouldRunConfetti`), range randomisation in every spread mode, hex validation, light-theme palettes, host class instead of inline styles |
+| `src/core/confettiPresets.js` | All four ranges on every preset, retuned looks, own-property lookup, `getLightThemeColors` |
+| `src/core/confettiShapes.js` | Shape fixes, no `console.log` |
+| `src/core/eventHandler.js` | Per-leaf start/update/stop, layout-change reconciliation, metadata changes scoped to panes showing the file, startup pass, slow-banner race guard |
+| `src/core/pixelBannerPlugin.js` | Startup pass on layout ready, reduced-motion listener, frontmatter removal handling, manager init and destroy |
+| `src/core/settings.js` | Settings save re-runs the confetti pass |
+| `src/modal/modals/confettiModal.js` | UI-only range state, reseed on preset switch and Reset, Modified on open, fixed preview layer, accessible range thumbs and swatches, Apply through the gates, light-theme colour hint, styles moved to CSS |
+| `src/modal/modals/targetPositionModal.js` | Confetti entry status (active, none, unknown preset), classes instead of inline styles |
+| `src/settings/tabs/settingsTabCustomFieldNames.js` | Reset clears the invalid state and copies defaults |
+| `src/utils/confettiUtils.js` | Thin wrappers over the codec; `Intl.Segmenter` emoji splitting |
+| `styles.css` | Confetti canvas, host class, modal and entry styles; corrected z-index comment |
+| `tests/` (confetti files, `eventHandler.test.js`, `mocks/obsidian.js`, `setup.js`) | Rewritten and new tests; mock additions (`Platform`, `register`, `onLayoutReady`, component helpers, `setCssProps`) |
+| `AGENTS.md`, `.agents-docs/AGENTS-architecture.md`, `README.md`, `UPDATE.md`, `CHANGELOG.md`, `inventory.md` | Confetti subsystem docs, release notes, failure-log lines |
+
+### Dependencies Added
+None (`canvas-confetti` 1.9.4 was already installed).
+
+### Configuration Required
+None.
+
+### Known Limitations / Blocked Items
+- NFR-6: two panes stay smooth with burst presets at the 150 cap (p95 4.6 ms), but Snow itself at the 150 cap reaches p95 96 ms. Follow-up in `phase-6.md` Notes: the worker for a single active pane, or a cap that accounts for interval and particle lifetime.
+- Sparkles stays faint on white backgrounds: it draws the ✨ emoji, which a palette cannot recolour.
+- A theme change recolours a running effect at its next start, not live.
+- Mobile was verified by emulation only; startup was checked with a full window reload.
+- `ConfettiEffect.reconcile` keeps a raw `setInterval`, released through `plugin.register(destroy)` (recorded deviation from Task 5.5's wording).
+- `example-vault.zip` was not regenerated (built by `npm run build`).
 
 <!-- METRICS_JSON {"step": "document", "total_tasks": 73, "tasks_per_phase": [12, 16, 14, 11, 10, 10], "phase_count": 6, "parallel_groups_identified": 1, "verification_items_added": 4} -->
+<!-- METRICS_JSON {"step": "finalize", "completion_rate_at_audit": 1, "tasks_completed": 73, "tasks_total": 73, "verification_failures_found": 0, "documentation_updates_needed": 2} -->
