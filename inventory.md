@@ -172,6 +172,8 @@ Handles adding and updating "pixel banners" (the large images at the top of note
    Inserts one of our elements (icons) after our other front elements and before Obsidian's own children. Our elements must never trail the note's sections, or heading fold in reading view breaks (issue #315).
 10. **installPersistentChildrenOverride(container)**
    Installs the `setChildrenInPlace` override (feature-detected, once per container, fail-safe) that keeps the banner, icon overlay and icons in front of the children Obsidian passes in.
+11. **setBannerBackground(bannerDiv, fileUrl)**
+   Sets the banner's `background-image`, waiting for the new image to decode when one is already showing, so switching notes never paints the banner empty (issue #327). The latest call wins; a banner cleared meanwhile stays cleared. Tests in `tests/unit/core/bannerManager.setBannerBackground.test.js`.
 
 ---
 

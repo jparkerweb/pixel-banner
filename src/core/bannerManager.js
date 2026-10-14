@@ -82,6 +82,35 @@ function installPersistentChildrenOverride(container) {
 }
 
 
+// ----------------------------
+// -- set banner background --
+// ----------------------------
+// Swapping background-image to a URL that is not decoded yet paints the banner
+// empty until the image is ready (several frames for a large PNG), which shows as
+// a flicker when switching notes, even between notes that use the same image file,
+// since each note gets its own blob URL (issue #327). Keep the current image until
+// the new one is decoded. A banner showing nothing yet gets its image at once.
+function setBannerBackground(bannerDiv, fileUrl) {
+    const backgroundImage = `url('${fileUrl}')`;
+    bannerDiv._pixelBannerPendingUrl = fileUrl;
+
+    const img = typeof Image === 'function' ? new Image() : null;
+    if (!bannerDiv.style.backgroundImage || !img || typeof img.decode !== 'function') {
+        bannerDiv.style.backgroundImage = backgroundImage;
+        return;
+    }
+
+    img.src = fileUrl;
+    img.decode().catch(() => {}).then(() => {
+        // Skip if a newer update replaced the URL or a cleanup cleared the banner meanwhile
+        if (bannerDiv._pixelBannerPendingUrl !== fileUrl || !bannerDiv.style.backgroundImage) {
+            return;
+        }
+        bannerDiv.style.backgroundImage = backgroundImage;
+    });
+}
+
+
 // ----------------------
 // -- add pixel banner --
 // ----------------------
@@ -548,8 +577,8 @@ async function addPixelBanner(plugin, el, ctx) {
                     existingVideo.remove();
                 }
                 
-                // Set the background image
-                bannerDiv.style.backgroundImage = `url('${fileUrl}')`;
+                // Set the background image (once decoded, so the swap does not flicker)
+                setBannerBackground(bannerDiv, fileUrl);
 
                 if (isSvg) {
                     bannerDiv.style.backgroundSize = imageDisplay === 'contain' ? 'contain' : '100% 100%';
@@ -1755,5 +1784,6 @@ export {
     debouncedUpdateBannerPosition as updateBannerPosition,
     registerMarkdownPostProcessor,
     insertPersistentElement,
+    setBannerBackground,
     installPersistentChildrenOverride
 };
