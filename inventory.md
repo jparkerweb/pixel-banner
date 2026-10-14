@@ -766,6 +766,17 @@ Manages history of downloaded AI-generated images to prevent duplicates.
 5. **hasImage(imageId)**  
    Checks if an image ID already exists in download history.
 
+## `/src/utils/unquotedBannerLink.js`
+Warns when a banner link was typed into frontmatter without quotes (issue #289). YAML reads an unquoted `[[image.jpg]]` as a list inside a list (`[["image.jpg"]]`, which the next properties save writes back as `- - image.jpg` with type `?`), and an unquoted `![[image.jpg]]` can stop Obsidian parsing the properties at all.
+
+**Functions**:
+- **findUnquotedBannerLink(frontmatter, fieldNames)**: a banner field parsed as `[["x"]]`; returns `{ field, value }` with the quoted value to suggest.
+- **findUnquotedBannerLinkInText(text, fieldNames)**: an unquoted `[[...]]` / `![[...]]` banner line in the raw frontmatter block, for notes Obsidian could not parse.
+- **checkUnquotedBannerLink(plugin, file, text)**: shows a 12 s `Notice` with the corrected line, once per note per session (`plugin.unquotedBannerLinkWarned`). Called from `handleActiveLeafChange` and the metadata `changed` handler (which passes the note text); reads the note only when it has an unparsed frontmatter block.
+- Tests in `tests/unit/utils/unquotedBannerLink.test.js`.
+
+---
+
 ## `/src/utils/frontmatterUtils.js`
 Utilities for working with note frontmatter in Obsidian.
 

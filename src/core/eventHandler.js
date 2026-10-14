@@ -3,6 +3,7 @@ import { ImageSelectionModal, SelectPixelBannerModal, PixelBannerStoreModal } fr
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { confettiManager, shouldRunConfetti } from './confettiManager.js';
 import { parse } from '../utils/confettiConfig.js';
+import { checkUnquotedBannerLink } from '../utils/unquotedBannerLink.js';
 
 // Debouncing map to prevent multiple rapid banner updates for the same file in
 // the same view. Keyed by the view (holding { filePath, time }), not the file path
@@ -22,6 +23,9 @@ async function handleActiveLeafChange(leaf) {
     
     const filePath = leaf.view.file.path;
     const debounceCheckTime = Date.now();
+
+    // Tell the user once when a banner link was typed without quotes (issue #289)
+    checkUnquotedBannerLink(this, leaf.view.file).catch(() => {});
     
     // Check if we recently updated this file's banner
     const lastUpdate = bannerUpdateDebounceMap.get(leaf.view);

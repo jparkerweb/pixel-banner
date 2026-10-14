@@ -11,6 +11,7 @@ import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../service
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
 import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange, handleConfettiForNote, runConfettiPass } from './eventHandler.js';
+import { checkUnquotedBannerLink } from '../utils/unquotedBannerLink.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { confettiManager } from './confettiManager.js';
@@ -181,6 +182,9 @@ export class PixelBannerPlugin extends Plugin {
         // Add metadata cache event listener for frontmatter changes
         this.registerEvent(
             this.app.metadataCache.on('changed', async (file, data, cache) => {
+                // Tell the user once when a banner link was typed without quotes (issue #289)
+                checkUnquotedBannerLink(this, file, data).catch(() => {});
+
                 // Get the frontmatter
                 const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                 if (!frontmatter) {
