@@ -71,7 +71,9 @@
     object-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%) !important;
 }
 
-.markdown-embed-content .markdown-preview-view {
+/* only embeds that show a banner: the variable also sits on the host note's view */
+/* and inherits into every embed, padding block and heading embeds (issue #331)   */
+.internal-embed.pixel-banner > .markdown-embed-content > .markdown-preview-view {
     min-height: var(--pixel-banner-embed-min-height, unset) !important;
 }
 .markdown-embed-content .pixel-banner-image {
