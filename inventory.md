@@ -183,9 +183,13 @@ General-purpose utilities for processing banner-related inputs and folder-based 
 
 **Methods**:
 1. **getInputType(input)**  
-   Figures out if the banner input is a local vault path, an Obsidian link, a direct URL, or a keyword for API usage.
+   Figures out if the banner input is a local vault path, an Obsidian link, a Markdown image or link (`markdownImage`), a direct URL, or a keyword for API usage.
 2. **getPathFromObsidianLink(link)**  
    Resolves an internal link `[[...]]` to the corresponding file in the vault.
+- **getMarkdownLinkTarget(input)**  
+   Returns the target of `![alt](target)` or `[text](target)` (the form Obsidian writes when "Use [[Wikilinks]]" is off), handling `<angle brackets>`, a trailing `"title"` and URL-encoded vault paths; `null` for anything else (issue #310). Used by `getInputType`, `getIconImageInputType` and `getPathFromMarkdownImage`.
+- **getPathFromMarkdownImage(link, sourcePath)**  
+   Resolves a Markdown image or link to a URL or a vault file (exact path first, then link resolution relative to the note).
 3. **getVaultImageUrl(path)**  
    Reads an image from the vault, returns a `blob:` URL to display in the banner.
 4. **preloadImage(url)**  

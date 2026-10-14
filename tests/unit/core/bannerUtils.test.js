@@ -4,6 +4,7 @@ import {
     getIconImageInputType,
     getPathFromObsidianLink, 
     getPathFromMarkdownImage, 
+    getMarkdownLinkTarget,
     getVaultImageUrl, 
     preloadImage, 
     getFolderPath, 
@@ -127,6 +128,15 @@ describe('bannerUtils', () => {
         it('should detect URL input type', () => {
             const result = getInputType.call(testContext, 'https://example.com/image.jpg');
             expect(result).toBe('url');
+        });
+
+        // Issue #310: Obsidian writes Markdown links when "Use [[Wikilinks]]" is off
+        it('should detect Markdown images with alt text and plain Markdown links', () => {
+            expect(getInputType.call(testContext, '![](test-image.jpg)')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '![photo](test-image.jpg)')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '[title](test-image.jpg)')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '"[title](images/image1.png)"')).toBe('markdownImage');
+            expect(getIconImageInputType.call(testContext, '[icon](test-image.jpg)')).toBe('markdownImage');
         });
 
         it('should detect obsidian link input type', () => {
@@ -363,8 +373,18 @@ describe('bannerUtils', () => {
         });
 
         it('should extract vault path from markdown image syntax', () => {
-            getPathFromMarkdownImage.call(testContext, '![](test-image.jpg)');
-            expect(testContext.app.metadataCache.getFirstLinkpathDest).toHaveBeenCalledWith('test-image.jpg', '');
+            const result = getPathFromMarkdownImage.call(testContext, '![](test-image.jpg)');
+            expect(result?.path).toBe('test-image.jpg');
+        });
+
+        it('should resolve plain Markdown links and alt text the same way', () => {
+            expect(getPathFromMarkdownImage.call(testContext, '[title](images/image1.png)')?.path).toBe('images/image1.png');
+            expect(getPathFromMarkdownImage.call(testContext, '![photo](images/image1.png)')?.path).toBe('images/image1.png');
+        });
+
+        it('should fall back to link resolution relative to the note', () => {
+            getPathFromMarkdownImage.call(testContext, '[title](image1.png)', 'notes/note.md');
+            expect(testContext.app.metadataCache.getFirstLinkpathDest).toHaveBeenCalledWith('image1.png', 'notes/note.md');
         });
 
         it('should handle quoted markdown images', () => {
@@ -375,6 +395,35 @@ describe('bannerUtils', () => {
         it('should return null for invalid format', () => {
             const result = getPathFromMarkdownImage.call(testContext, 'invalid-format');
             expect(result).toBeNull();
+        });
+    });
+
+    describe('getMarkdownLinkTarget', () => {
+        it('should read the target of Markdown images and links', () => {
+            expect(getMarkdownLinkTarget('![](a.png)')).toBe('a.png');
+            expect(getMarkdownLinkTarget('![alt text](a.png)')).toBe('a.png');
+            expect(getMarkdownLinkTarget('[title](folder/a.png)')).toBe('folder/a.png');
+        });
+
+        it('should decode URL-encoded vault paths', () => {
+            expect(getMarkdownLinkTarget('[My Image](Banners/My%20Image.png)')).toBe('Banners/My Image.png');
+        });
+
+        it('should keep URLs as written', () => {
+            expect(getMarkdownLinkTarget('[x](https://example.com/a%20b.png)')).toBe('https://example.com/a%20b.png');
+        });
+
+        it('should handle angle brackets and a link title', () => {
+            expect(getMarkdownLinkTarget('[x](<Banners/My Image.png>)')).toBe('Banners/My Image.png');
+            expect(getMarkdownLinkTarget('[x](a.png "A title")')).toBe('a.png');
+        });
+
+        it('should return null for anything else', () => {
+            expect(getMarkdownLinkTarget('[[a.png]]')).toBeNull();
+            expect(getMarkdownLinkTarget('a.png')).toBeNull();
+            expect(getMarkdownLinkTarget('nature')).toBeNull();
+            expect(getMarkdownLinkTarget('[x]()')).toBeNull();
+            expect(getMarkdownLinkTarget(null)).toBeNull();
         });
     });
 

@@ -1,5 +1,37 @@
 import { MarkdownView } from 'obsidian';
 
+// Target of a Markdown image or link: ![alt](target) or [text](target), the
+// form Obsidian writes when "Use [[Wikilinks]]" is off (issue #310). Handles
+// <angle bracket> targets, a trailing "title" and %20-style encoding of vault
+// paths. Returns null when the input is not a Markdown image or link.
+function getMarkdownLinkTarget(input) {
+    if (typeof input !== 'string') return null;
+    const cleaned = input.trim().replace(/^["'](.*)["']$/, '$1');
+    const match = cleaned.match(/^!?\[[^\]]*\]\((.*)\)$/);
+    if (!match) return null;
+
+    let target = match[1].trim();
+    const angled = target.match(/^<(.*)>$/);
+    if (angled) {
+        target = angled[1];
+    } else {
+        target = target.replace(/\s+"[^"]*"$/, '');
+    }
+    if (!target) return null;
+
+    // URLs stay as written; vault paths are stored URL-encoded
+    try {
+        new URL(target);
+        return target;
+    } catch (_) {
+        try {
+            return decodeURIComponent(target);
+        } catch (_) {
+            return target;
+        }
+    }
+}
+
 function getInputType(input, sourcePath = '') {
     if (Array.isArray(input)) {
         input = input.flat()[0];
@@ -24,8 +56,8 @@ function getInputType(input, sourcePath = '') {
         return 'obsidianLink';
     }
 
-    // Check if it's a Markdown image syntax (![](path.jpg) format)
-    if (input.match(/^!\[\]\(.*\)$/) || input.match(/^"?!\[\]\(.*\)"?$/)) {
+    // Check if it's a Markdown image or link (![alt](path.jpg) or [text](path.jpg))
+    if (getMarkdownLinkTarget(input) !== null) {
         return 'markdownImage';
     }
 
@@ -74,22 +106,18 @@ function getPathFromObsidianLink(link) {
     return this.app.metadataCache.getFirstLinkpathDest(path, '');
 }
 
-function getPathFromMarkdownImage(link) {
-    // Remove surrounding quotes if they exist
-    let cleanLink = link.replace(/^["'](.*)["']$/, '$1');
-    
-    // Extract the URL from the Markdown image syntax ![](url)
-    const match = cleanLink.match(/^!\[\]\((.*)\)$/);
-    if (match && match[1]) {
-        const path = match[1];
-        
+function getPathFromMarkdownImage(link, sourcePath = '') {
+    // Extract the target from ![alt](target) or [text](target)
+    const path = getMarkdownLinkTarget(link);
+    if (path) {
         // Check if it's a URL
         try {
             new URL(path);
             return path; // It's a URL, return as is
         } catch (_) {
-            // It's a vault path, resolve it
-            return this.app.metadataCache.getFirstLinkpathDest(path, '');
+            // It's a vault path (full, shortest or relative to the note), resolve it
+            return this.app.vault.getAbstractFileByPath(path) ||
+                this.app.metadataCache.getFirstLinkpathDest(path, sourcePath);
         }
     }
     
@@ -171,8 +199,8 @@ function getIconImageInputType(input, sourcePath = '') {
         return 'obsidianLink';
     }
 
-    // Check if it's a Markdown image syntax (![](path.jpg) format)
-    if (input.match(/^!\[\]\(.*\)$/) || input.match(/^"?!\[\]\(.*\)"?$/)) {
+    // Check if it's a Markdown image or link (![alt](path.jpg) or [text](path.jpg))
+    if (getMarkdownLinkTarget(input) !== null) {
         return 'markdownImage';
     }
 
@@ -361,6 +389,7 @@ export {
     getIconImageInputType,
     getPathFromObsidianLink, 
     getPathFromMarkdownImage, 
+    getMarkdownLinkTarget,
     getVaultImageUrl, 
     preloadImage, 
     getFolderPath, 

@@ -78,7 +78,7 @@ export class PixelBannerPlugin extends Plugin {
     getInputType(input, sourcePath = '') { return getInputType.call(this, input, sourcePath); }
     getIconImageInputType(input, sourcePath = '') { return getIconImageInputType.call(this, input, sourcePath); }
     getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
-    getPathFromMarkdownImage(link) { return getPathFromMarkdownImage.call(this, link); }
+    getPathFromMarkdownImage(link, sourcePath = '') { return getPathFromMarkdownImage.call(this, link, sourcePath); }
     getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
     preloadImage(url) { return preloadImage.call(this, url); }
     getFolderPath(filePath) { return getFolderPath.call(this, filePath); }
@@ -667,7 +667,7 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'markdownImage') {
-            const path = this.getPathFromMarkdownImage(input);
+            const path = this.getPathFromMarkdownImage(input, sourcePath);
             if (typeof path === 'string') {
                 // If path is a URL, return it directly
                 try {
