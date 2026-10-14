@@ -36,6 +36,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 **Description**:  
 - Global styles for the plugin, including banner appearance, controls, modals, and UI components.
 - Settings tab: `.pixel-banner-settings` lays out the pane, and the 800px reading-width cap sits on the inner `.pixel-banner-main-content` (centered), never on the pane itself, which Obsidian 1.13+ pads to center its settings column.
+- Phone layout: banner pieces that are direct children of a root pane's sizer (`.pixel-banner-image`, `.banner-icon-overlay` and the top-left icon buttons) get `translate: 0 var(--view-top-spacing-markdown)` under `.is-phone .mod-root`, matching the top padding Obsidian gives the scroller to clear its floating header (issue #335).
 - Confetti: the overlay canvas (`.pixel-banner-confetti-canvas`), the pane host class (`.pixel-banner-confetti-host`), the confetti modal (scoped under `.confetti-modal`, dynamic values read from CSS variables such as `--confetti-swatch-color`), its fixed preview layer, and the Target Position modal's confetti row (`.confetti-effect-section`, `.confetti-status-active` / `-none` / `-unknown`).
 
 ### `README.md`

@@ -103,6 +103,15 @@
     isolation: isolate;
 }
 
+/* phone: Obsidian pads the scroller by --view-top-spacing-markdown so content */
+/* clears the floating view header, but absolutely positioned banner pieces    */
+/* ignore that padding and end up under the header (issue #335). Shift them   */
+/* by the same amount; `translate` composes with any transform or inline top.  */
+.is-phone .mod-root .workspace-leaf-content .view-content .markdown-reading-view > .markdown-preview-view > .markdown-preview-sizer > :is(.pixel-banner-image, .banner-icon-overlay, .select-image-icon, .pin-icon, .refresh-icon, .view-image-icon),
+.is-phone .mod-root .workspace-leaf-content .view-content .markdown-source-view > .cm-editor > .cm-scroller > .cm-sizer > :is(.pixel-banner-image, .banner-icon-overlay, .select-image-icon, .pin-icon, .refresh-icon, .view-image-icon) {
+    translate: 0 var(--view-top-spacing-markdown, 0px);
+}
+
 
 /* ----------------------------------------------- */
 /* -- Specific styles for hover popover banners -- */
