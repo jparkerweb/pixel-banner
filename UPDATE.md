@@ -26,6 +26,7 @@
 #### 🐛 Fixed
 - Collapsing and expanding headings in Reading view works again in long notes with a banner: headings no longer swallow the ones below or stay hidden after expanding (issue #315, thanks @Amvtxrvsu)
 - Pixel Banner settings no longer shrink to a narrow column in wide settings windows on Obsidian 1.13+ (issue #337, thanks @zx2021210538)
+- Banners in hover previews and Hover Editor windows follow your Image Display and Image Repeat settings instead of repeating (issue #312)
 - Banners no longer flicker when switching between notes, especially with large banner images (issue #327)
 - The "Show full image" window opens centered on screen again, including with themes that previously pushed it to the bottom right (issue #328)
 - Embedded blocks and headings (`![[note#^block]]`, `![[note#heading]]`) no longer show a large empty space below them in notes with a banner (issue #331)

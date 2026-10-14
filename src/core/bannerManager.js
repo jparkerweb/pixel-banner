@@ -1758,6 +1758,13 @@ function registerMarkdownPostProcessor(plugin) {
     const contentStartPosition = getFrontmatterValue(frontmatter, plugin.settings.customContentStartField) || 
                                 folderSpecific?.contentStartPosition || 
                                 plugin.settings.contentStartPosition;
+    // Same resolution as updateBanner, so hover previews honor Image Display and Image Repeat (issue #312)
+    const imageDisplay = getFrontmatterValue(frontmatter, plugin.settings.customImageDisplayField) || 
+                         folderSpecific?.imageDisplay || 
+                         plugin.settings.imageDisplay;
+    const imageRepeat = getFrontmatterValue(frontmatter, plugin.settings.customImageRepeatField) ?? 
+                        folderSpecific?.imageRepeat ?? 
+                        plugin.settings.imageRepeat;
     
     // Add the banner to the preview view
     addPixelBanner(plugin, ctx.containerEl, {
@@ -1768,6 +1775,8 @@ function registerMarkdownPostProcessor(plugin) {
       xPosition,
       contentStartPosition,
       bannerImage,
+      imageDisplay,
+      imageRepeat,
       isReadingView: true,
       updateMode: plugin.UPDATE_MODE.FULL_UPDATE
     });

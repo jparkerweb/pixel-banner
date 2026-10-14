@@ -121,8 +121,9 @@
 .popover.hover-popover {
     min-height: 200px !important;
 }
+/* no forced background-repeat: it overrode the Image Repeat setting and tiled */
+/* "contain" banners in hover popovers and Hover Editor (issue #312)            */
 .popover.hover-popover .pixel-banner-image {
-    background-repeat: repeat !important;
     min-height: 100px !important;
 }
 .pixel-banner-image + .markdown-preview-sizer.markdown-preview-section {
