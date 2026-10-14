@@ -606,6 +606,60 @@ describe('eventHandler', () => {
     });
 
     describe('handleLayoutChange', () => {
+        // Issue #207: a linked tab changes note without focus, so it gets no
+        // active-leaf-change; layout-change refreshes it instead
+        describe('panes that changed note without focus', () => {
+            function makePane(path, { marker, shown = true } = {}) {
+                const view = new MarkdownView();
+                view.file = new TFile(path);
+                view.contentEl = document.createElement('div');
+                if (marker) view.contentEl._pixelBannerFilePath = marker;
+                view.containerEl = document.createElement('div');
+                view.containerEl.isShown = () => shown;
+                return { id: `leaf-${path}`, view };
+            }
+
+            beforeEach(() => {
+                mockApp.workspace.activeLeaf = mockLeaf;
+            });
+
+            it('updates a visible pane whose banner was rendered for another note', () => {
+                const linked = makePane('b.md', { marker: 'a.md' });
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, linked]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(linked.view, false);
+            });
+
+            it('updates a visible pane that never had a banner update', () => {
+                const pane = makePane('b.md');
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, pane]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(pane.view, false);
+            });
+
+            it('leaves a pane alone when its banner matches its note', () => {
+                const pane = makePane('b.md', { marker: 'b.md' });
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, pane]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                expect(mockPlugin.updateBanner).not.toHaveBeenCalledWith(pane.view, false);
+            });
+
+            it('leaves hidden panes (background tabs) for when they are shown', () => {
+                const pane = makePane('b.md', { marker: 'a.md', shown: false });
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, pane]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                expect(mockPlugin.updateBanner).not.toHaveBeenCalledWith(pane.view, false);
+            });
+        });
+
         it('should clean up cache for closed leaves', () => {
             const closedLeafId = 'closed-leaf-id';
             const activeLeafId = 'active-leaf-id';

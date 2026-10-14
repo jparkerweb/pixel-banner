@@ -47,6 +47,13 @@ describe('Banner Workflow Integration Tests', () => {
         return { testFile, testView };
     }
 
+    // getImageUrl calls for one note. Banner updates are debounced per pane, so
+    // the startup update of the active pane (mockView) runs too and is not
+    // cancelled by the test's own update (issue #207)
+    function callsFor(spy, file) {
+        return spy.mock.calls.filter(call => call[2] === file.path);
+    }
+
     beforeEach(() => {
         // Use fake timers to prevent async operations from continuing after tests
         vi.useFakeTimers();
@@ -361,7 +368,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise2;
             
             // Should only call getImageUrl once for the first request
-            expect(getImageUrlSpy).toHaveBeenCalledTimes(1);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(1);
         });
     });
 
@@ -537,7 +544,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise;
             
             // Should use cached image, not fetch new one
-            expect(getImageUrlSpy).not.toHaveBeenCalled();
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(0);
             // Check that applyBannerSettings was called (called by addPixelBanner)
             expect(plugin.applyBannerSettings).toHaveBeenCalled();
         });
@@ -746,7 +753,7 @@ describe('Banner Workflow Integration Tests', () => {
             
             // Verify that banners were created in both updates
             expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg', expect.stringContaining('.md'));
-            expect(getImageUrlSpy).toHaveBeenCalledTimes(2);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(2);
             
             // Verify the banner exists
             const container2 = testView.contentEl;

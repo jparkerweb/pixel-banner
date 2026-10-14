@@ -271,6 +271,18 @@ function handleLayoutChange() {
                 }
             }
         }
+
+        // A pane that changes note without focus (linked tabs) gets no
+        // active-leaf-change, so its banner was never updated (issue #207).
+        // Refresh visible panes whose banner was rendered for another note.
+        this.app.workspace.getLeavesOfType('markdown').forEach(leaf => {
+            if (leaf === activeLeaf || !(leaf.view instanceof MarkdownView) || !leaf.view.file) return;
+            const { contentEl, containerEl } = leaf.view;
+            if (!contentEl || contentEl._pixelBannerFilePath === leaf.view.file.path) return;
+            const isShown = typeof containerEl?.isShown === 'function' ? containerEl.isShown() : !!containerEl?.offsetParent;
+            if (!isShown) return;
+            this.updateBanner(leaf.view, false);
+        });
     }, 100);
 }
 

@@ -26,6 +26,7 @@
 #### 🐛 Fixed
 - Collapsing and expanding headings in Reading view works again in long notes with a banner: headings no longer swallow the ones below or stay hidden after expanding (issue #315, thanks @Amvtxrvsu)
 - Pixel Banner settings no longer shrink to a narrow column in wide settings windows on Obsidian 1.13+ (issue #337, thanks @zx2021210538)
+- Linked tabs ("Link with tab...") now show the banner of the note they follow, and a split pane opened without focus gets its banner right away (issue #207)
 - If a banner link is typed without quotes (like `banner: [[image.jpg]]`), Pixel Banner now tells you once and shows the corrected line, `banner: "[[image.jpg]]"`. Unquoted links get mangled into `- - image.jpg` when properties are saved (issue #289)
 - Banners set with Markdown links, such as `[title](image.jpg)` (what Obsidian writes when "Use [[Wikilinks]]" is turned off) or `![alt](image.jpg)`, now show their image (issue #310)
 - Banners are visible again in themes that hid them, such as Mocha and RetroNotes (issue #311)

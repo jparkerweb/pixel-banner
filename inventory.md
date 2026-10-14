@@ -156,7 +156,7 @@ Handles adding and updating "pixel banners" (the large images at the top of note
 1. **addPixelBanner(plugin, el, ctx)**  
    Creates or updates a banner `<div>` in the specified element, adds icons (e.g. view, pin, refresh, set icon).
 2. **updateBanner(plugin, view, isContentChange, updateMode)**  
-   Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates.
+   Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates. Exported with a trailing 50 ms debounce per pane (keyed by `view.contentEl`), and skips a repeat for the same pane and file within 250 ms; both used to be global or per file path, which dropped the update of a second pane showing the same note (issue #207). Records the rendered note on `contentEl._pixelBannerFilePath`.
 3. **applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded)**  
    Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`. Exported without a throttle: a shared one dropped the call for a second banner rendered within 350ms (issue #333).
 4. **applyContentStartPosition(plugin, el, contentStartPosition)**  
@@ -252,7 +252,7 @@ Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode
 1. **handleActiveLeafChange(leaf)**  
    Cleans up the previous leaf's banner resources, updates or shuffles the new leaf's banner, and caches state. Skips a repeat within 300ms only for the same view and file (a `WeakMap` keyed by view), so a note re-opened in a new view, as the Homepage plugin does on startup, still gets its banner (issue #333).
 2. **handleLayoutChange()**  
-   Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed, and drops confetti effects of closed or re-targeted panes.
+   Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed, and drops confetti effects of closed or re-targeted panes. Also updates visible non-active panes whose banner was rendered for a different note (`contentEl._pixelBannerFilePath`), such as linked tabs, which change note without an `active-leaf-change` (issue #207).
 3. **handleModeChange(leaf)**  
    Re-renders or hides frontmatter fields if the user toggles between preview/edit modes.
 4. **handleSelectImage()**  

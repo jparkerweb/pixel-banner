@@ -9,8 +9,10 @@ import { debounceFunction, debounceImmediate, debounceAndSwallow } from '../util
 const markdownPostProcessorDebounceMap = new Map();
 const MARKDOWN_PROCESSOR_DEBOUNCE_DELAY = 200; // 200ms debounce window
 
-// Global debouncing map for updateBanner to prevent concurrent updates
-const updateBannerDebounceMap = new Map();
+// Debouncing map for updateBanner to prevent concurrent updates, keyed by the
+// view's content element (holding { filePath, time }), not the file path alone:
+// linked tabs show the same file in two panes and both need their banner (issue #207)
+const updateBannerDebounceMap = new WeakMap();
 const UPDATE_BANNER_DEBOUNCE_DELAY = 250; // 250ms debounce window
 
 // Supported file extensions constants
@@ -808,8 +810,23 @@ async function addPixelBanner(plugin, el, ctx) {
 // ---------------------------
 // -- updateBanner function --
 // ---------------------------
-// Using standard debounce instead of debounceImmediate to prevent double execution
-const debouncedUpdateBanner = debounceFunction(updateBanner, 50);
+// Trailing debounce per pane (content element): a shared one let an update for one
+// pane cancel a pending update for another (issue #207)
+const updateBannerTimers = new WeakMap();
+function debouncedUpdateBanner(plugin, view, ...args) {
+    const key = view?.contentEl || view;
+    if (!key || typeof key !== 'object') {
+        return;
+    }
+    clearTimeout(updateBannerTimers.get(key));
+    updateBannerTimers.set(key, setTimeout(() => {
+        updateBannerTimers.delete(key);
+        // Nobody awaits a debounced call, so report a failed update (image or API error) here
+        updateBanner(plugin, view, ...args).catch(error => {
+            console.error('Pixel Banner: banner update failed', error);
+        });
+    }, 50));
+}
 async function updateBanner(plugin, view, isContentChange, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
     if (!view || !view.file) {
         return;
@@ -817,15 +834,21 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     
     const filePath = view.file.path;
     const currentTime = Date.now();
+    const debounceKey = view.contentEl || view;
     
-    // Check if we recently updated this file's banner
-    const lastUpdateTime = updateBannerDebounceMap.get(filePath);
-    if (lastUpdateTime && (currentTime - lastUpdateTime) < UPDATE_BANNER_DEBOUNCE_DELAY) {
+    // Check if we recently updated this file's banner in this pane
+    const lastUpdate = updateBannerDebounceMap.get(debounceKey);
+    if (lastUpdate && lastUpdate.filePath === filePath && (currentTime - lastUpdate.time) < UPDATE_BANNER_DEBOUNCE_DELAY) {
         return;
     }
     
     // Update the debounce timestamp
-    updateBannerDebounceMap.set(filePath, currentTime);
+    updateBannerDebounceMap.set(debounceKey, { filePath, time: currentTime });
+
+    // Remember which note this pane's banner was rendered for (see handleLayoutChange)
+    if (view.contentEl) {
+        view.contentEl._pixelBannerFilePath = filePath;
+    }
 
     // Add a small delay if this is a frontmatter change
     if (!isContentChange) {
