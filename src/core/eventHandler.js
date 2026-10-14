@@ -4,8 +4,12 @@ import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { confettiManager, shouldRunConfetti } from './confettiManager.js';
 import { parse } from '../utils/confettiConfig.js';
 
-// Global debouncing map to prevent multiple rapid banner updates for the same file
-const bannerUpdateDebounceMap = new Map();
+// Debouncing map to prevent multiple rapid banner updates for the same file in
+// the same view. Keyed by the view (holding { filePath, time }), not the file path
+// alone: a plugin that re-opens a note on startup (e.g. Homepage) replaces the view
+// the first update was queued for, and that new view must not be skipped (issue #333).
+// A WeakMap so closed views are not retained.
+const bannerUpdateDebounceMap = new WeakMap();
 const BANNER_UPDATE_DEBOUNCE_DELAY = 300; // 300ms debounce window
 
 async function handleActiveLeafChange(leaf) {
@@ -20,13 +24,13 @@ async function handleActiveLeafChange(leaf) {
     const debounceCheckTime = Date.now();
     
     // Check if we recently updated this file's banner
-    const lastUpdateTime = bannerUpdateDebounceMap.get(filePath);
-    if (lastUpdateTime && (debounceCheckTime - lastUpdateTime) < BANNER_UPDATE_DEBOUNCE_DELAY) {
+    const lastUpdate = bannerUpdateDebounceMap.get(leaf.view);
+    if (lastUpdate && lastUpdate.filePath === filePath && (debounceCheckTime - lastUpdate.time) < BANNER_UPDATE_DEBOUNCE_DELAY) {
         return;
     }
     
     // Update the debounce timestamp
-    bannerUpdateDebounceMap.set(filePath, debounceCheckTime);
+    bannerUpdateDebounceMap.set(leaf.view, { filePath, time: debounceCheckTime });
     
     this.cleanupCache();
 

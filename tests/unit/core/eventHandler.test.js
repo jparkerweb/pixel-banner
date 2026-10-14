@@ -396,6 +396,27 @@ describe('eventHandler', () => {
             expect(mockPlugin.updateBanner).toHaveBeenCalledTimes(1);
         });
 
+        // Issue #333: a plugin that re-opens the note on startup (e.g. Homepage)
+        // gives the same leaf and file a new view within the debounce window
+        it('does not skip a new view of the same file within the debounce window', async () => {
+            const filePath = 'homepage.md';
+            mockLeaf.view.file.path = filePath;
+
+            await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+            const reopenedView = new MarkdownView();
+            reopenedView.file = new TFile(filePath);
+            reopenedView.contentEl = mockContentEl;
+            reopenedView.containerEl = mockView.containerEl;
+            mockLeaf.view = reopenedView;
+            currentTime += 100;
+
+            await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+            expect(mockPlugin.updateBanner).toHaveBeenCalledTimes(2);
+            expect(mockPlugin.updateBanner).toHaveBeenLastCalledWith(reopenedView, false, 'full');
+        });
+
         it('should clean up previous leaf when switching', async () => {
             const previousLeaf = {
                 id: 'previous-leaf',

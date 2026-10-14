@@ -1380,7 +1380,9 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 // ----------------------------------
 // -- applyBannerSettings function --
 // ----------------------------------
-const debouncedApplyBannerSettings = debounceAndSwallow(applyBannerSettings, 350);
+// Not throttled: it only sets CSS variables, so a repeat call is harmless, and a
+// shared throttle dropped the call for a second banner rendered within 350ms of
+// another, leaving it with default fade and icon position (issue #333)
 function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     // console.log('🔍 Applying banner settings');
     const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius, maxWidth } = ctx;
@@ -1746,7 +1748,7 @@ function registerMarkdownPostProcessor(plugin) {
 export {
     debouncedAddPixelBanner as addPixelBanner,
     debouncedUpdateBanner as updateBanner,
-    debouncedApplyBannerSettings as applyBannerSettings,
+    applyBannerSettings,
     debouncedApplyContentStartPosition as applyContentStartPosition,
     debouncedApplyBannerWidth as applyBannerWidth,
     debouncedUpdateAllBanners as updateAllBanners,

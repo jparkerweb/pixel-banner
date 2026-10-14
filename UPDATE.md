@@ -26,4 +26,5 @@
 #### 🐛 Fixed
 - Collapsing and expanding headings in Reading view works again in long notes with a banner: headings no longer swallow the ones below or stay hidden after expanding (issue #315, thanks @Amvtxrvsu)
 - Pixel Banner settings no longer shrink to a narrow column in wide settings windows on Obsidian 1.13+ (issue #337, thanks @zx2021210538)
+- Notes opened automatically at startup, such as a homepage set by the Homepage plugin, now show their banner and banner icon correctly on launch instead of missing or with default styling (issue #333)
 - On phones, the banner no longer hides under the top toolbar, and `content-start` places your note where it does on tablet and desktop (issue #335)

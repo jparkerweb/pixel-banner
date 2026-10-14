@@ -155,7 +155,7 @@ Handles adding and updating "pixel banners" (the large images at the top of note
 2. **updateBanner(plugin, view, isContentChange, updateMode)**  
    Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates.
 3. **applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded)**  
-   Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`.
+   Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`. Exported without a throttle: a shared one dropped the call for a second banner rendered within 350ms (issue #333).
 4. **applyContentStartPosition(plugin, el, contentStartPosition)**  
    Sets the vertical offset at which the note content begins below the banner.
 5. **applyBannerWidth(plugin, el)**  
@@ -241,7 +241,7 @@ Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode
 
 **Methods**:
 1. **handleActiveLeafChange(leaf)**  
-   Cleans up the previous leaf's banner resources, updates or shuffles the new leaf's banner, and caches state.
+   Cleans up the previous leaf's banner resources, updates or shuffles the new leaf's banner, and caches state. Skips a repeat within 300ms only for the same view and file (a `WeakMap` keyed by view), so a note re-opened in a new view, as the Homepage plugin does on startup, still gets its banner (issue #333).
 2. **handleLayoutChange()**  
    Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed, and drops confetti effects of closed or re-targeted panes.
 3. **handleModeChange(leaf)**  
