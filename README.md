@@ -9,7 +9,7 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 
 <br>
 
-![pixel-banner](img/pixel-banner.jpg)
+<img src="https://raw.githubusercontent.com/jparkerweb/pixel-banner/main/img/pixel-banner.jpg" alt="banner">
 
 ## Key Features
 

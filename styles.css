@@ -195,7 +195,6 @@
     flex-direction: column;
     overflow: hidden;
     padding: 20px;
-    max-width: 800px;
 }
 
 .pixel-banner-header {
@@ -212,12 +211,21 @@
     color: var(--text-accent);
 }
 
+/* Readable-width cap belongs here, not on .pixel-banner-settings:
+   the Obsidian 1.13+ settings window centers the settings pane with
+   "padding-inline: max(32px, (100% - 700px) / 2)" on .vertical-tab-content,
+   which is the same element .pixel-banner-settings is applied to - capping the
+   pane there squeezed the whole settings UI into a few dozen pixels on wide
+   windows (see #337). */
 .pixel-banner-main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 10px;
     overflow: hidden;
+    width: 100%;
+    max-width: 800px;
+    margin-inline: auto;
 }
 
 .pixel-banner-settings-tabs {
