@@ -105,6 +105,18 @@
     isolation: isolate;
 }
 
+/* the banner sits at z-index -1, under the layers between it and .view-content.  */
+/* Obsidian leaves them transparent, but some themes paint them with              */
+/* --background-primary, which hides the banner (issue #311). Keep them clear in  */
+/* banner notes; .view-content still paints the note background below the banner. */
+.view-content.pixel-banner > .markdown-source-view,
+.view-content.pixel-banner > .markdown-source-view > .cm-editor,
+.view-content.pixel-banner > .markdown-source-view > .cm-editor > .cm-scroller,
+.view-content.pixel-banner > .markdown-reading-view,
+.view-content.pixel-banner > .markdown-reading-view > .markdown-preview-view {
+    background-color: transparent !important;
+}
+
 /* phone: Obsidian pads the scroller by --view-top-spacing-markdown so content */
 /* clears the floating view header, but absolutely positioned banner pieces    */
 /* ignore that padding and end up under the header (issue #335). Shift them   */
