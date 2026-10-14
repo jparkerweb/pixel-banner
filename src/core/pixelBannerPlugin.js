@@ -10,7 +10,7 @@ import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashIma
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
 import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
-import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange } from './eventHandler.js';
+import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange, handleConfettiForNote, runConfettiPass } from './eventHandler.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { confettiManager } from './confettiManager.js';
@@ -97,6 +97,8 @@ export class PixelBannerPlugin extends Plugin {
     handleModeChange(leaf) { return handleModeChange.call(this, leaf); }
     handleSelectImage() { return handleSelectImage.call(this); }
     handleBannerIconClick() { return handleBannerIconClick.call(this); }
+    handleConfettiForNote(leaf, frontmatter) { return handleConfettiForNote.call(this, leaf, frontmatter); }
+    runConfettiPass() { return runConfettiPass.call(this); }
 
     // -------------------------------------
     // -- add bindings for DOM management --
@@ -149,6 +151,22 @@ export class PixelBannerPlugin extends Plugin {
             }
         });
 
+        // Confetti effects register their document listener and intervals
+        // through the plugin, so unload releases them
+        confettiManager.init(this);
+
+        // Notes already open when the plugin loads get their confetti too
+        // (runs at once when the layout is already ready)
+        this.app.workspace.onLayoutReady(() => this.runConfettiPass());
+
+        // Re-check the reduced-motion gate when the OS setting changes
+        if (typeof window.matchMedia === 'function') {
+            const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            if (reducedMotionQuery && typeof reducedMotionQuery.addEventListener === 'function') {
+                this.registerDomEvent(reducedMotionQuery, 'change', () => this.runConfettiPass());
+            }
+        }
+
         // Register event handlers
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', this.handleActiveLeafChange.bind(this))
@@ -166,6 +184,9 @@ export class PixelBannerPlugin extends Plugin {
                 // Get the frontmatter
                 const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                 if (!frontmatter) {
+                    // Forget it, so restoring the frontmatter (undo, paste) counts as a change
+                    this.lastFrontmatter.delete(file.path);
+
                     // Still check for confetti removal when frontmatter is removed
                     try {
                         handleConfettiMetadataChange.call(this, file, cache || { frontmatter: {} });
@@ -187,18 +208,14 @@ export class PixelBannerPlugin extends Plugin {
                 // Always store the latest frontmatter so subsequent comparisons work correctly
                 this.lastFrontmatter.set(file.path, JSON.parse(currentFrontmatterStr));
 
-                // Check for confetti field changes
-                const currentConfettiValue = getFrontmatterValue(frontmatter, this.settings.customBannerConfettiField);
-                const previousConfettiValue = getFrontmatterValue(previousFrontmatter || {}, this.settings.customBannerConfettiField);
-                const confettiFieldChanged = currentConfettiValue !== previousConfettiValue ||
-                    JSON.stringify(currentConfettiValue) !== JSON.stringify(previousConfettiValue);
-
-                if (confettiFieldChanged) {
-                    try {
-                        handleConfettiMetadataChange.call(this, file, cache || { frontmatter });
-                    } catch (error) {
-                        console.error('Pixel Banner: Confetti metadata change error:', error);
-                    }
+                // Confetti: each pane showing this file compares the parsed
+                // config with the one it is running and restarts only on a
+                // real change, so an unseeded note (or a lastFrontmatter
+                // cleared by saveSettings) never restarts a running effect.
+                try {
+                    handleConfettiMetadataChange.call(this, file, cache || { frontmatter });
+                } catch (error) {
+                    console.error('Pixel Banner: Confetti metadata change error:', error);
                 }
 
                 // Check if any relevant fields exist and changed in the frontmatter
@@ -896,9 +913,9 @@ export class PixelBannerPlugin extends Plugin {
         // Clear the icon overlay pool
         this.iconOverlayPool = [];
 
-        // Stop all confetti effects immediately (no fade during unload)
+        // Dispose every confetti effect immediately (no fade during unload)
         try {
-            confettiManager.stopAll(true);
+            confettiManager.destroy();
         } catch (error) {
             console.error('Pixel Banner: Error stopping confetti effects:', error);
         }

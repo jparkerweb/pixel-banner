@@ -89,3 +89,12 @@ When you make a mistake, get corrected, or discover something about this codebas
 ## Failure log
 
 - Preserve line endings in files whose git blob mixes CRLF and LF (e.g. `src/settings/tabs/settingsTabAPISettings.js`): if `git diff --stat` is far larger than your change, compare with `git diff --stat --ignore-all-space`, restore the file and re-apply the edit byte-preserving.
+- Reload the plugin through the app API (`obsidian vault=pixel-banner-example eval code="(async()=>{await app.plugins.disablePlugin('pexels-banner');await app.plugins.enablePlugin('pexels-banner')})()"`): `obsidian plugin:reload`, `plugin:disable` and `plugin:enable` exit 127 without doing anything, so check a new method exists on `app.plugins.plugins['pexels-banner']` before trusting a live check.
+- Keep the Obsidian window on screen during live confetti checks: a covered window reports `document.hidden`, effects pause by design and Chromium stops animation frames, so nothing draws.
+- Take live screenshots with `%LOCALAPPDATA%\Programs\Obsidian\Obsidian.com vault=pixel-banner-example dev:screenshot path=<absolute Windows path>`: the `obsidian` shim on PATH exits 127 for `dev:screenshot` too, and paths inside the agent scratchpad are reported written but never land, so write to a plain `%TEMP%` folder.
+- Treat an empty `getComputedStyle(el).position` as `static` in code that checks for an unpositioned container: happy-dom returns `''`, not `static`, so a `=== 'static'` check silently never fires in tests.
+- Restart Obsidian (or clear the inline style) before a live check of confetti container styling: a plugin reload keeps inline styles the previous build set on open panes, such as the old `position: relative` on `.view-content`.
+- Call `dev:cdp` through `%LOCALAPPDATA%\Programs\Obsidian\Obsidian.com vault=pixel-banner-example`: the `obsidian` shim exits 127 for it, as for `dev:screenshot`.
+- Do not expect `obsidian eval` to await a promise: it prints nothing for async code, so store results on `window` and read them back with a second synchronous `eval`.
+- Expect `app.emulateMobile(true|false)` to reload the window: anything injected with `eval` is gone afterwards.
+- Wait at least 3s after an editor edit before checking metadata-driven behaviour (confetti restarts, lastFrontmatter): edits reach the metadata cache only after Obsidian's ~2s save.

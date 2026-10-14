@@ -1,6 +1,14 @@
 // Confetti preset configurations for Pixel Banner
 // Each preset defines default parameters for a specific visual effect
 
+// Keys every preset must define, so the modal, diffFromPreset and the
+// renderer always see the same baseline
+export const REQUIRED_PRESET_KEYS = [
+    'count', 'size', 'speed', 'gravity', 'spread', 'drift', 'duration', 'delay',
+    'fadeIn', 'opacity', 'continuous', 'interval', 'position', 'colors', 'emoji',
+    'originSpread', 'sizeRange', 'speedRange', 'gravityRange', 'driftRange'
+];
+
 export const CONFETTI_PRESETS = {
     snow: {
         count: 1,
@@ -9,18 +17,20 @@ export const CONFETTI_PRESETS = {
         gravity: 0.5,
         spread: 0,
         drift: 0,
-        duration: 400,
+        duration: 700,
         delay: 0,
         fadeIn: 500,
         opacity: 0.8,
         continuous: true,
         interval: 100,
         position: 'top',
-        colors: ['#ffffff'],
+        colors: ['#ffffff', '#b8cde0', '#9fb3c8'],
         shapes: ['circle'],
+        flat: true,
         emoji: null,
         originSpread: 'random',
-        sizeRange: [0.1, 0.5],
+        sizeRange: [0.3, 0.8],
+        speedRange: [0, 0],
         gravityRange: [0.4, 0.6],
         driftRange: [-0.4, 0.4]
     },
@@ -41,8 +51,10 @@ export const CONFETTI_PRESETS = {
         startY: -0.1,
         colors: ['#afc7d9', '#4cb3cd'],
         customShapes: ['snowflake'],
+        emoji: null,
         originSpread: 'random',
         sizeRange: [1, 3],
+        speedRange: [0, 0],
         gravityRange: [0.1, 0.4],
         driftRange: [-0.4, 0.4]
     },
@@ -63,15 +75,17 @@ export const CONFETTI_PRESETS = {
         position: 'top',
         colors: ['#e74c3c', '#e67e22', '#f39c12', '#d35400', '#c0392b'],
         customShapes: ['leaf'],
+        emoji: null,
         flat: false,
         originSpread: 'random',
         sizeRange: [1, 2],
+        speedRange: [0, 0],
         gravityRange: [0.2, 0.4],
         driftRange: [-1.0, 1.0]
     },
 
     rain_light: {
-        count: 1,
+        count: 4,
         size: 0.5,
         speed: 0,
         gravity: 2.0,
@@ -85,17 +99,19 @@ export const CONFETTI_PRESETS = {
         interval: 400,
         position: 'top',
         startY: -0.1,
-        colors: ['#1b78d4', '#aaccee'],
+        colors: ['#2196f3', '#64b5f6'],
         customShapes: ['raindrop'],
         shapes: ['circle'],
+        flat: true,
         emoji: null,
         originSpread: 'random',
-        sizeRange: [0.3, 0.6],
+        sizeRange: [0.6, 1.0],
+        speedRange: [0, 0],
         gravityRange: [1.8, 2.2],
         driftRange: [0, 0]
     },
     rain_heavy: {
-        count: 1,
+        count: 4,
         size: 0.5,
         speed: 0,
         gravity: 2.0,
@@ -113,7 +129,8 @@ export const CONFETTI_PRESETS = {
         flat: true,
         emoji: null,
         originSpread: 'random',
-        sizeRange: [0.3, 0.6],
+        sizeRange: [0.6, 1.0],
+        speedRange: [0, 0],
         gravityRange: [1.8, 2.2],
         driftRange: [0, 0]
     },
@@ -133,11 +150,12 @@ export const CONFETTI_PRESETS = {
         interval: 124,
         position: 'left',
         startY: 0,
-        colors: ['#ffffff', '#ffffcc', '#fffacd'],
+        colors: ['#ffffff', '#ffffcc', '#fffacd', '#b8cde0', '#9fb3c8'],
         shapes: ['circle'],
         emoji: null,
         originSpread: 'random',
-        sizeRange: [0.1, 0.4],
+        sizeRange: [0.2, 0.6],
+        speedRange: [0, 0],
         gravityRange: [-0.05, 0.05],
         driftRange: [2.0, 4.0]
     },
@@ -156,12 +174,13 @@ export const CONFETTI_PRESETS = {
         interval: 700,
         position: 'left',
         startY: 0,
-        colors: ['#ffffff', '#49c05d'],
+        colors: ['#ffffff', '#49c05d', '#9fb3c8'],
         customShapes: ['alien', 'ufo'],
         emoji: null,
         flat: true,
         originSpread: 'random',
         sizeRange: [1, 2.75],
+        speedRange: [0, 0],
         gravityRange: [-0.05, 0.05],
         driftRange: [1.0, 4.0]
     },
@@ -183,7 +202,11 @@ export const CONFETTI_PRESETS = {
         colors: ['#ff0000', '#3e8a3e', '#008cff', '#ffff00', '#ff6600', '#00ffff', '#ffa600', '#ffffff'],
         shapes: ['star'],
         emoji: null,
-        originSpread: 'random'
+        originSpread: 'random',
+        sizeRange: [0.85, 0.85],
+        speedRange: [20, 20],
+        gravityRange: [0.2, 0.2],
+        driftRange: [-0.25, 0.25]
     },
 
     confetti: {
@@ -202,7 +225,11 @@ export const CONFETTI_PRESETS = {
         position: 'center',
         colors: ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'],
         emoji: null,
-        originSpread: 'fixed'
+        originSpread: 'fixed',
+        sizeRange: [1, 1],
+        speedRange: [55, 55],
+        gravityRange: [1, 1],
+        driftRange: [0, 0]
     },
 
     hearts: {
@@ -223,8 +250,9 @@ export const CONFETTI_PRESETS = {
         emoji: '❤️💕💖',
         originSpread: 'random',
         sizeRange: [1.5, 3],
-        gravityRange: [-0.05, 0.05],
-        driftRange: [0.5, 1.2]
+        speedRange: [30, 30],
+        gravityRange: [-0.6, -0.3],
+        driftRange: [-0.8, 0.8]
     },
 
     sparkles: {
@@ -232,7 +260,7 @@ export const CONFETTI_PRESETS = {
         size: 0.7,
         speed: 15,
         gravity: 0.1,
-        spread: 1000,
+        spread: 360,
         drift: 0.1,
         duration: 400,
         delay: 0,
@@ -244,9 +272,10 @@ export const CONFETTI_PRESETS = {
         colors: ['#ffd700', '#c0c0c0', '#ffffff'],
         emoji: '✨',
         originSpread: 'random',
-        driftRange: [-4, 4],
-        sizeRange: [0.5, 1],
-        speedRange: [3, 11]
+        sizeRange: [1.2, 2.2],
+        speedRange: [3, 11],
+        gravityRange: [0.1, 0.1],
+        driftRange: [-4, 4]
     },
 
     pop_rocks: {
@@ -254,7 +283,7 @@ export const CONFETTI_PRESETS = {
         size: 0.7,
         speed: 15,
         gravity: 0.1,
-        spread: 1000,
+        spread: 360,
         drift: 0.1,
         duration: 400,
         delay: 0,
@@ -266,9 +295,10 @@ export const CONFETTI_PRESETS = {
         colors: ['#ffd700', '#c0c0c0', '#ffffff'],
         emoji: '🔴🟠🟡🟢🔵🟣',
         originSpread: 'random',
-        driftRange: [-4, 4],
-        sizeRange: [0.5, 1],
-        speedRange: [3, 11]
+        sizeRange: [1.2, 2.2],
+        speedRange: [3, 11],
+        gravityRange: [0.1, 0.1],
+        driftRange: [-4, 4]
     },
 
     crystals: {
@@ -291,6 +321,7 @@ export const CONFETTI_PRESETS = {
         emoji: null,
         originSpread: 'random',
         sizeRange: [0.8, 2.5],
+        speedRange: [0, 0],
         gravityRange: [0.2, 0.4],
         driftRange: [-0.3, 0.3]
     },
@@ -305,13 +336,19 @@ export const CONFETTI_PRESETS = {
         duration: 500,
         delay: 0,
         fadeIn: 800,
-        opacity: 0.5,
+        opacity: 0.7,
         continuous: true,
         interval: 1000,
         position: 'bottom',
-        colors: ['#87ceeb', '#add8e6', '#b0e0e6'],
+        colors: ['#5dade2', '#87ceeb', '#7fb3d5'],
+        shapes: ['circle'],
+        flat: true,
         emoji: null,
-        originSpread: 'random'
+        originSpread: 'random',
+        sizeRange: [1.0, 2.0],
+        speedRange: [20, 20],
+        gravityRange: [-0.8, -0.8],
+        driftRange: [0.25, 0.75]
     }
 };
 
@@ -321,23 +358,41 @@ export function getPresetNames() {
 }
 
 // Get a specific preset configuration
+// Own-property lookup, so 'toString' or '__proto__' return null
 export function getPreset(name) {
-    return CONFETTI_PRESETS[name] || null;
+    return Object.prototype.hasOwnProperty.call(CONFETTI_PRESETS, name) ? CONFETTI_PRESETS[name] : null;
 }
+
+// Light-theme palettes for presets drawn mostly in white, which wash out on a
+// white page. Kept outside the presets so the modal and the codec never see
+// them: the renderer swaps them in only when the note sets no colours.
+const LIGHT_THEME_COLORS = {
+    snow: ['#5c7d9e', '#7d9bb8', '#4a6a8a'],
+    snowflakes: ['#4a7fa7', '#2f8fb0', '#6b93b5'],
+    space: ['#4a5a8a', '#b8860b', '#6a5acd', '#5c7d9e'],
+    aliens: ['#2e8b57', '#3f8f4f', '#5c7d9e']
+};
+
+// The preset's light-theme palette (a copy), or null when it has none
+export function getLightThemeColors(name) {
+    return Object.prototype.hasOwnProperty.call(LIGHT_THEME_COLORS, name) ? [...LIGHT_THEME_COLORS[name]] : null;
+}
+
+// Array-valued preset keys, deep-copied by getPresetCopy
+const PRESET_ARRAY_KEYS = ['colors', 'shapes', 'customShapes', 'sizeRange', 'speedRange', 'gravityRange', 'driftRange'];
 
 // Get a copy of preset with deep clone to avoid mutations
 export function getPresetCopy(name) {
-    const preset = CONFETTI_PRESETS[name];
+    const preset = getPreset(name);
     if (!preset) return null;
 
-    return {
-        ...preset,
-        colors: preset.colors ? [...preset.colors] : undefined,
-        shapes: preset.shapes ? [...preset.shapes] : undefined,
-        customShapes: preset.customShapes ? [...preset.customShapes] : undefined,
-        sizeRange: preset.sizeRange ? [...preset.sizeRange] : undefined,
-        gravityRange: preset.gravityRange ? [...preset.gravityRange] : undefined,
-        driftRange: preset.driftRange ? [...preset.driftRange] : undefined,
-        speedRange: preset.speedRange ? [...preset.speedRange] : undefined
-    };
+    // Arrays are copied only when the preset defines them, so the copy
+    // never carries keys set to undefined
+    const copy = { ...preset, emoji: preset.emoji ?? null };
+    for (const key of PRESET_ARRAY_KEYS) {
+        if (Array.isArray(preset[key])) {
+            copy[key] = [...preset[key]];
+        }
+    }
+    return copy;
 }

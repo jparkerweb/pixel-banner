@@ -11,7 +11,6 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Custom SVG shapes and emoji particle support
   - Settings: custom field names, mobile disable option
   - Respects user's reduced motion preference for accessibility
-- Added `filesize` display to the store modal
 
 - **Use Note Filename for Banner Images**: New setting that automatically uses the current note's filename as the default filename when saving banner images
   - When enabled, saved banners will be named after the note they belong to (e.g., `My Project Note.jpg` instead of `pixel-banner-image.jpg`)
@@ -21,8 +20,18 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Located in Settings → General tab
 
 #### 🔧 Changed
+- **Confetti hardened before release**: fixes for the issues found when the feature was reviewed and tested live
+  - One config codec (`src/utils/confettiConfig.js`) owns parsing, sanitizing, comparing and writing the `banner-confetti` value, so a value the modal writes reads back the same and unchanged settings are not rewritten
+  - Effects run one per pane, keyed by leaf id, on canvas-confetti main-thread instances (`useWorker: false`): the library's worker is bound to a single canvas, so split panes now animate independently. Effects pause while the window is hidden, the pane has no size or the banner is scrolled away, and the plugin's unload disposes all of them
+  - Confetti modal: edits exactly what it shows, writes only real changes, keeps Shape and 3D Wobble usable after switching to None and back, snaps dragged values without float noise, and names an unknown preset instead of showing it as no effect
+  - Presets retuned so each one is visible and recognisable in light and dark themes; emoji split into whole graphemes (`Intl.Segmenter` with a regex fallback)
+  - Obsidian standards: the confetti canvas, the confetti modal and the Target Position confetti row are styled from `styles.css` (the injected modal stylesheet and inline styles are gone, dynamic values use CSS variables via `setCssProps`), the pane container gets a `pixel-banner-confetti-host` class while an effect runs instead of a permanent `position: relative`, and `console.log` diagnostics were removed
+  - Custom Field Names: the reset button now clears the red invalid state and its tooltip, and stores a copy of the defaults
+  - Tests for the codec and the per-pane engine; `tests/setup.js` adds a `setCssProps` polyfill
+  - Fixes from the live verification pass: a note opened in a new split pane now animates (the effect no longer watches its container against the pane's own scroller before the banner exists), and a background tab resumes when shown again (only a banner in the shown view is watched); a banner that renders after the effect starts is picked up at the next burst or `update()`, so scrolling it away still pauses the effect. In the light theme, snow, snowflakes, space and aliens use a darker palette (`getLightThemeColors`) unless the note sets colours, and the modal's Colours row says so
+  - Tests that could not fail were fixed or removed; new tests cover the mobile, reduced-motion and plugin metadata gates, a modal Apply round trip for every preset, and the slow-banner race guard
 - **Banner persistence override hardened and optimized** (`bannerManager.js`): the `setChildrenInPlace` override that keeps the banner alive through Obsidian's render reconciliation now (1) wraps its body in a try/catch that falls back to the original method, so an error can never break a note's render; (2) feature-detects the undocumented `setChildrenInPlace` internal before patching; and (3) adds a fast-path early-out when no banner elements are present, keying re-injection off element class instead of the per-element `_isPersistent*` flags
-- **Reduced MutationObserver scroll churn** (`domManager.js`): the global observer no longer calls `debouncedEnsureBanner()` on every `.markdown-preview-section` add (which fired on every scroll). It now re-ensures only on a genuine mode switch (`.cm-sizer` added) or actual banner removal — the proactive override keeps the banner in place during scrolling, so the per-section re-ensure was redundant. See `OBSIDIAN_DOM_LIFECYCLE.md` for the full rationale
+- **Reduced MutationObserver scroll churn** (`domManager.js`): the global observer no longer calls `debouncedEnsureBanner()` on every `.markdown-preview-section` add (which fired on every scroll). It now re-ensures only on a genuine mode switch (`.cm-sizer` added) or actual banner removal. The proactive override keeps the banner in place during scrolling, so the per-section re-ensure was redundant. See `OBSIDIAN_DOM_LIFECYCLE.md` for the full rationale
 - **Settings "Reset to default" buttons refactored to use Obsidian's component API**: replaced fragile direct DOM manipulation (`button.extraSettingsEl.parentElement.querySelector(...)` + manual `dispatchEvent`) with the recommended `Setting.components[0].setValue(...)` pattern across the settings tabs
   - Affected: General, API Settings, Custom Field Names, Folder Images, and Pixel Banner Plus tabs (sliders, text inputs, dropdowns, toggles, and color pickers)
   - Removes dependence on Obsidian's internal DOM structure / CSS class names, which could silently break across Obsidian versions

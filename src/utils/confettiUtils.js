@@ -1,125 +1,16 @@
-import { CONFETTI_PRESETS, getPresetNames as getPresetNamesFromPresets, getPresetCopy } from '../core/confettiPresets';
+import { getPresetNames as getPresetNamesFromPresets, getPresetCopy } from '../core/confettiPresets';
+import { resolvePresetName, parse, serialize, normalize, diffFromPreset } from './confettiConfig';
 
-// Parse a single value from a key:value pair string
-function parseConfettiValue(val) {
-    if (val === undefined || val === null || val === '') {
-        return val;
-    }
-
-    // Boolean
-    if (val === 'true') return true;
-    if (val === 'false') return false;
-
-    // Array (pipe-separated)
-    if (typeof val === 'string' && val.includes('|')) {
-        return val.split('|');
-    }
-
-    // Number
-    const num = Number(val);
-    if (!isNaN(num) && val !== '') return num;
-
-    // String (default)
-    return val;
-}
-
-// Parse frontmatter confetti value
-// New format: "type:presetName, key:value, key:value"
-// Backward compatible with: ["presetName"] or ["presetName", {overrides}]
+// Parse frontmatter confetti value into { presetName, overrides } or null.
+// Accepts 'type: snow, count: 5', unspaced and bare-preset forms, YAML
+// objects and the legacy ["presetName", {overrides}] array.
 export function parseConfettiConfig(value) {
-    if (!value) {
-        return null;
-    }
-
-    // Handle new string format: "type:presetName" or "type:presetName, key:value, ..."
-    if (typeof value === 'string') {
-        const trimmedValue = value.trim();
-
-        // Check if it's the new key:value format (contains colon)
-        if (trimmedValue.includes(':')) {
-            // Split by ", " to get key:value pairs
-            const pairs = trimmedValue.split(', ');
-            const config = {};
-            let presetName = null;
-
-            for (const pair of pairs) {
-                const colonIndex = pair.indexOf(':');
-                if (colonIndex === -1) continue;
-
-                const key = pair.substring(0, colonIndex).trim();
-                const val = pair.substring(colonIndex + 1).trim();
-
-                if (key === 'type') {
-                    presetName = val;
-                } else {
-                    // Parse value type (boolean, number, array, string)
-                    config[key] = parseConfettiValue(val);
-                }
-            }
-
-            if (!presetName) {
-                return null;
-            }
-
-            return {
-                presetName,
-                overrides: config
-            };
-        }
-
-        // Backward compatibility: simple string preset name (old format)
-        return {
-            presetName: trimmedValue,
-            overrides: {}
-        };
-    }
-
-    // Backward compatibility: Handle array format: ["presetName"] or ["presetName", {overrides}]
-    if (Array.isArray(value)) {
-        if (value.length === 0) {
-            return null;
-        }
-
-        const presetName = typeof value[0] === 'string' ? value[0].trim() : null;
-        if (!presetName) {
-            return null;
-        }
-
-        const overrides = value.length > 1 && typeof value[1] === 'object' && value[1] !== null
-            ? value[1]
-            : {};
-
-        return {
-            presetName,
-            overrides
-        };
-    }
-
-    return null;
+    return parse(value);
 }
 
-// Build frontmatter value from config
-// New format: "type:presetName, key:value, key:value"
+// Build frontmatter value from config: 'type: presetName, key: value'
 export function buildConfettiFrontmatter(presetName, overrides = {}) {
-    if (!presetName) {
-        return null;
-    }
-
-    const parts = [`type:${presetName}`];
-
-    // Add overrides as key:value pairs
-    if (overrides && typeof overrides === 'object') {
-        for (const [key, value] of Object.entries(overrides)) {
-            if (Array.isArray(value)) {
-                // Join array values with pipe separator
-                parts.push(`${key}:${value.join('|')}`);
-            } else {
-                parts.push(`${key}:${value}`);
-            }
-        }
-    }
-
-    return parts.join(', ');
+    return serialize(presetName, overrides);
 }
 
 // Check if config has any overrides from preset defaults
@@ -127,37 +18,7 @@ export function hasOverrides(presetName, config) {
     if (!presetName || !config) {
         return false;
     }
-
-    const preset = getPresetCopy(presetName);
-    if (!preset) {
-        return false;
-    }
-
-    // Compare each property
-    for (const key in config) {
-        if (!Object.prototype.hasOwnProperty.call(config, key)) {
-            continue;
-        }
-
-        const presetValue = preset[key];
-        const configValue = config[key];
-
-        // Handle array comparison (colors)
-        if (Array.isArray(presetValue) && Array.isArray(configValue)) {
-            if (presetValue.length !== configValue.length) {
-                return true;
-            }
-            for (let i = 0; i < presetValue.length; i++) {
-                if (presetValue[i] !== configValue[i]) {
-                    return true;
-                }
-            }
-        } else if (presetValue !== configValue) {
-            return true;
-        }
-    }
-
-    return false;
+    return Object.keys(diffFromPreset(presetName, config)).length > 0;
 }
 
 // Get list of preset names (re-export for convenience)
@@ -165,13 +26,34 @@ export function getPresetNames() {
     return getPresetNamesFromPresets();
 }
 
+// A grapheme counts as emoji if it holds a pictograph, a flag letter,
+// a keycap combiner (U+20E3) or one of the (c)/(r)/TM symbols
+const EMOJI_SEGMENT_REGEX = /\p{Extended_Pictographic}|\p{Regional_Indicator}|⃣|[©®™]/u;
+
 // Validate emoji string (split into array of individual emoji)
-// Handles multi-codepoint emoji properly using spread operator
+// Uses Intl.Segmenter grapheme clusters when available, so flags,
+// keycaps, ZWJ and tag sequences stay whole
 export function parseEmojiString(emojiString) {
     if (!emojiString || typeof emojiString !== 'string') {
         return [];
     }
 
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+        const emojiArray = [];
+        for (const { segment } of segmenter.segment(emojiString)) {
+            if (EMOJI_SEGMENT_REGEX.test(segment)) {
+                emojiArray.push(segment);
+            }
+        }
+        return emojiArray;
+    }
+
+    return parseEmojiStringFallback(emojiString);
+}
+
+// Fallback for runtimes without Intl.Segmenter: manual codepoint walk
+function parseEmojiStringFallback(emojiString) {
     // Use spread operator to properly split multi-codepoint emoji
     // This handles emoji with modifiers, ZWJ sequences, etc.
     const characters = [...emojiString];
@@ -307,7 +189,7 @@ export function parseEmojiString(emojiString) {
 
 // Validate that a preset name exists
 export function isValidPreset(presetName) {
-    return Object.prototype.hasOwnProperty.call(CONFETTI_PRESETS, presetName);
+    return resolvePresetName(presetName) !== null;
 }
 
 // Get default configuration for a preset (for display in UI)
@@ -324,56 +206,10 @@ export function getFullConfig(presetName, overrides = {}) {
     return { ...preset, ...overrides };
 }
 
-// Valid ranges for every clampable config value.
-// These MUST stay in sync with the slider bounds in confettiModal.js so that
-// hand-edited frontmatter is constrained to exactly what the UI allows.
-const CONFETTI_RANGES = {
-    count: [1, 150],
-    size: [0.1, 5.0],
-    speed: [0, 100],
-    gravity: [-3, 3],
-    spread: [0, 360],
-    drift: [-5, 5],
-    duration: [50, 1000],
-    delay: [0, 5000],
-    fadeIn: [0, 2000],
-    opacity: [0.1, 1.0],
-    interval: [50, 10000]
-};
-
-// Range-array fields share the bounds of their scalar counterpart.
-const CONFETTI_RANGE_ARRAYS = {
-    sizeRange: 'size',
-    speedRange: 'speed',
-    gravityRange: 'gravity',
-    driftRange: 'drift'
-};
-
-const clampNumber = (value, [lo, hi]) =>
-    typeof value === 'number' && Number.isFinite(value)
-        ? Math.max(lo, Math.min(hi, value))
-        : value;
-
 // Sanitize config values to be within valid ranges.
 // Applied to every effect regardless of source (modal or hand-edited
 // frontmatter) so out-of-range or malformed numbers can never reach
 // canvas-confetti.
 export function sanitizeConfig(config) {
-    const sanitized = { ...config };
-
-    // Clamp scalar numeric values
-    for (const [key, range] of Object.entries(CONFETTI_RANGES)) {
-        if (sanitized[key] !== undefined) {
-            sanitized[key] = clampNumber(sanitized[key], range);
-        }
-    }
-
-    // Clamp [min, max] range arrays against their scalar counterpart's bounds
-    for (const [key, scalarKey] of Object.entries(CONFETTI_RANGE_ARRAYS)) {
-        if (Array.isArray(sanitized[key])) {
-            sanitized[key] = sanitized[key].map(v => clampNumber(v, CONFETTI_RANGES[scalarKey]));
-        }
-    }
-
-    return sanitized;
+    return normalize(config);
 }

@@ -1,6 +1,7 @@
 // -------------
 // -- imports --
 // -------------
+import { Notice } from 'obsidian';
 import { FolderSelectionModal } from '../modal/modals/folderSelectionModal';
 import { SaveImageModal } from '../modal/modals/saveImageModal';
 import { PinChoiceModal } from '../modal/modals/pinChoiceModal';
@@ -42,8 +43,9 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
         if (plugin.settings.useNoteFilenameForBanner && noteFile) {
             // Get the note's basename without extension
             const noteBasename = noteFile.basename;
-            // Check if filename starts with "Untitled" - if so, fall back to suggestedFilename or default
-            if (!noteBasename.startsWith('Untitled')) {
+            // Obsidian's default names ("Untitled", "Untitled 2") fall back to
+            // suggestedFilename or the default; "Untitled Project Ideas" is kept
+            if (!/^Untitled( \d+)?$/.test(noteBasename)) {
                 finalSuggestedFilename = noteBasename;
             }
         }

@@ -50,4 +50,10 @@ export async function saveSettings(plugin) {
             }
         }
     });
+
+    // Re-apply confetti so Disable on Mobile or a renamed confetti field
+    // takes effect at once
+    if (typeof plugin.runConfettiPass === 'function') {
+        plugin.runConfettiPass();
+    }
 }

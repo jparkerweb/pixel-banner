@@ -197,8 +197,9 @@ To configure this:
 
 Bring a note to life with animated effects that play over it while it is open.
 
-- **Quick start**: add `banner-confetti: type:snow` to a note's frontmatter (the field name can be changed in settings)
+- **Quick start**: add `banner-confetti: "type: snow"` to a note's frontmatter (the field name can be changed in settings)
 - **Presets**: 14 to choose from, including snow, leaves, light and heavy rain, fireworks, confetti, hearts, sparkles and bubbles
+- **Works everywhere you look**: each split pane runs its own effect, and the white presets switch to darker colours in light themes
 - **Customize**: tweak colors, speed, size and other properties with a live preview, from the 🎊 button in the Target Position modal
 - **Considerate by default**: respects your system's reduced-motion preference, and can be turned off on mobile
 

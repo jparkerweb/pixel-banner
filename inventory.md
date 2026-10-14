@@ -35,6 +35,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 ### `styles.css`
 **Description**:  
 - Global styles for the plugin, including banner appearance, controls, modals, and UI components.
+- Confetti: the overlay canvas (`.pixel-banner-confetti-canvas`), the pane host class (`.pixel-banner-confetti-host`), the confetti modal (scoped under `.confetti-modal`, dynamic values read from CSS variables such as `--confetti-swatch-color`), its fixed preview layer, and the Target Position modal's confetti row (`.confetti-effect-section`, `.confetti-status-active` / `-none` / `-unknown`).
 
 ### `README.md`
 **Description**:  
@@ -109,7 +110,14 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
    Retrieves or returns release notes content for the given version.
 6. **debouncedEnsureBanner()**  
    Debounced function that re-checks and updates the banner display if needed.
-7. Plus many "bound" methods that delegate to helpers (e.g. `updateBanner()`, `cleanupCache()`, etc.) after binding them to `this`.
+7. Plus many "bound" methods that delegate to helpers (e.g. `updateBanner()`, `cleanupCache()`, etc.) after binding them to `this`, including `handleConfettiForNote(leaf, frontmatter)` and `runConfettiPass()` from `eventHandler.js`.
+
+**Confetti wiring**:
+- `onload()` calls `confettiManager.init(this)`, so the effects' document listener and intervals are registered through the plugin and released on unload.
+- `onload()` runs `runConfettiPass()` from `app.workspace.onLayoutReady()`, so notes already open when the plugin loads get their effect.
+- `onload()` registers a `change` listener (via `registerDomEvent`) on the `(prefers-reduced-motion: reduce)` media query, when `window.matchMedia` is available, that re-runs `runConfettiPass()`.
+- The `metadataCache` `changed` handler calls `handleConfettiMetadataChange()` for every frontmatter change, including frontmatter removal.
+- `onunload()` calls `confettiManager.destroy()` (every effect disposed immediately, no fade) and `clearShapeCache()`.
 
 ---
 
@@ -229,13 +237,19 @@ Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode
 1. **handleActiveLeafChange(leaf)**  
    Cleans up the previous leaf's banner resources, updates or shuffles the new leaf's banner, and caches state.
 2. **handleLayoutChange()**  
-   Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed.
+   Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed, and drops confetti effects of closed or re-targeted panes.
 3. **handleModeChange(leaf)**  
    Re-renders or hides frontmatter fields if the user toggles between preview/edit modes.
 4. **handleSelectImage()**  
    Opens a modal to select or upload a new banner image from the vault, then modifies frontmatter.
 5. **handleBannerIconClick()**  
    Opens the Select Pixel Banner modal for choosing between different banner selection methods.
+6. **handleConfettiForNote(leaf, frontmatter)**  
+   Starts, updates or stops the confetti effect of one pane (keyed by `leaf.id`), after the mobile and reduced-motion gates.
+7. **handleConfettiCleanup(previousLeaf)** / **handleConfettiMetadataChange(file, cache)**  
+   Stop a pane's effect when it leaves its note; route a frontmatter change to every pane showing the file.
+8. **runConfettiPass()** / **reconcileConfettiEffects()**  
+   Apply confetti to every open markdown pane (startup, settings save, reduced-motion change); drop effects whose pane is gone.
 
 ---
 
@@ -246,26 +260,31 @@ Functions for loading and saving plugin settings to disk.
 1. **loadSettings(plugin)**
    Reads the plugin's data, merges with defaults, ensures array-based fields.
 2. **saveSettings(plugin)**
-   Persists setting changes, then triggers a re-check of banners to apply updates.
+   Persists setting changes, then triggers a re-check of banners to apply updates and re-runs the confetti pass.
 
 ---
 
 ## `/src/core/confettiManager.js`
-Manages the lifecycle and rendering of confetti/particle effects on notes.
+Manages the lifecycle and rendering of confetti/particle effects, one effect per pane (keyed by leaf id) plus the modal preview.
+
+**Exports**: `confettiManager` (singleton), `ConfettiManager`, `ConfettiEffect`, `PREVIEW_EFFECT_ID`, `CONFETTI_HOST_CLASS`, `isLightTheme()`, `shouldRunConfetti(plugin, overrides)` (mobile setting and reduced-motion gate)
+
+**Class**: `ConfettiEffect` - one pane's canvas, main-thread canvas-confetti instance (`useWorker: false`), timers and observers. Runs only while the document is visible, the pane has a size and its banner is on screen (it watches the banner inside the shown scroller, otherwise the pane container against the viewport, re-targeting the banner once the pane is shown, at each burst while it still watches the container, and on a matching `update()`); adds `pixel-banner-confetti-host` to a static container and removes it when the last effect there is disposed. Methods: `start()`, `handleResize()`, `observeVisibility()`, `reconcile()`, `pause()` / `resume()`, `stop(fadeMs)`, `dispose()`, `removeHostClass()`.
 
 **Class**: `ConfettiManager` (singleton)
 
 **Key Methods**:
-1. **createCanvas(noteElement)** - Creates an overlay canvas for rendering confetti
+1. **init(plugin)** / **destroy()** - Registers the visibility listener and an unload cleanup through the plugin; disposes every effect
 2. **mapPosition(position)** - Maps position strings ('top', 'center', etc.) to canvas coordinates
-3. **getEdgePosition(position, index, total)** - Calculates distributed positions along edges
-4. **createEmojiShapes(emojiString)** - Converts emoji strings to canvas-confetti shapes
-5. **buildOptions(presetName, overrides)** - Merges preset config with user overrides
-6. **start(noteId, noteElement, presetName, overrides, isMobile)** - Starts a confetti effect
-7. **fireBurst(confettiInstance, options)** - Executes particle bursts with different spread modes
-8. **stop(noteId, fadeOutDuration)** - Stops effects with fade-out transition
-9. **stopAll()** - Stops all active effects
-10. **hasActiveEffect(noteId)** - Checks if a note has an active effect
+3. **getEdgePosition(position, index, total, yOffset)** / **getRandomEdgePosition(position)** - Positions along edges
+4. **createEmojiShapes(emojiString, scalar)** - Converts emoji strings to canvas-confetti shapes
+5. **buildOptions(presetName, overrides)** - Merges preset config with user overrides; in the light theme, presets with a light palette use it unless the note sets colours
+6. **start(effectId, containerEl, presetName, overrides, opts)** - Starts an effect in a container
+7. **update(effectId, containerEl, presetName, overrides, opts)** - Starts, or restarts only when the config really changed
+8. **fireBurst(confettiInstance, config, baseOptions)** - Executes particle bursts with different spread modes
+9. **stop(effectId, fadeOutDuration)** / **stopAll(immediate)** - Stops effects with a fade-out
+10. **pause(effectId)** / **resume(effectId)** - Pause or resume one effect by id; nothing in `src/` calls them outside `confettiManager.js` (the modal stops the note's effect while it is open and restarts it on Cancel)
+11. **hasActiveEffect(effectId)** / **getEffect(effectId)** / **getNoteEffectIds()** / **refreshVisibility()**
 
 ---
 
@@ -273,6 +292,7 @@ Manages the lifecycle and rendering of confetti/particle effects on notes.
 Defines preset configurations for different confetti visual effects.
 
 **Exports**:
+- **REQUIRED_PRESET_KEYS** - Keys every preset must define, so the modal, `diffFromPreset` and the renderer see the same baseline
 - **CONFETTI_PRESETS** - Object containing 14 preset configurations:
   - snow, snowflakes, leaves, rain_light, rain_heavy, space, aliens
   - fireworks, confetti, hearts, sparkles, pop_rocks, crystals, bubbles
@@ -281,6 +301,7 @@ Defines preset configurations for different confetti visual effects.
 1. **getPresetNames()** - Returns array of available preset names
 2. **getPreset(name)** - Gets a preset by name
 3. **getPresetCopy(name)** - Gets a deep clone of a preset
+4. **getLightThemeColors(name)** - The light-theme palette for presets drawn mostly in white (snow, snowflakes, space, aliens), or null
 
 ---
 
@@ -288,10 +309,11 @@ Defines preset configurations for different confetti visual effects.
 Defines custom SVG path shapes for confetti particles.
 
 **Constants**:
-- **SHAPE_PATHS** - Object with 20+ SVG path definitions (snowflake, leaf, raindrop, alien, gem variants, etc.)
+- **SHAPE_PATHS** - Object with 13 SVG path definitions: diamond, snowflake, alien, ufo, raindrop, triangle, heart, leaf, gem, gem2, gem3, gem4, gem5
+- **SHAPE_MATRICES** - Precomputed `shapeFromPath` transform matrix for each `SHAPE_PATHS` entry, so compiling a shape does not sample the path on the main thread
 
 **Functions**:
-1. **getPathShape(shapeName)** - Compiles and caches SVG paths into canvas-confetti shapes
+1. **getPathShape(shapeName)** - Compiles and caches SVG paths into canvas-confetti shapes (null for an unknown name, which falls back to the default shapes)
 2. **isCustomPathShape(shapeName)** - Checks if a shape name is a custom path
 3. **getCustomShapeNames()** - Returns all available custom shape names
 4. **clearShapeCache()** - Clears the compiled shape cache
@@ -521,13 +543,15 @@ Provides a comprehensive UI for configuring confetti particle effects per note.
 6. **createSliderWithInput()** - Creates paired slider + text input for numeric values
 7. **createRangeSlider()** - Creates dual-thumb range sliders with visual feedback
 8. **renderColorSwatches()** - Renders interactive color picker interface
-9. **updatePreview()** - Renders the live preview over the modal via `confettiManager` under a synthetic note ID (same render path as the on-note effect)
+   - **updateColorHint()** - In the light theme, notes on the Colours row that a white preset draws in darker colours until a colour is changed
+9. **updatePreview()** - Renders the live preview over the modal via `confettiManager` under `PREVIEW_EFFECT_ID` (same render path as the on-note effect), on a fixed layer positioned through CSS variables
 10. **schedulePreviewUpdate()** - Debounced (100ms) preview refresh; hooked into `checkIfModified()` so every control change refreshes the preview
 11. **cleanupPreview()** - Stops the preview effect and cancels pending debounced refreshes (called from `onClose()`)
 12. **suppressNoteEffect()** / **restoreNoteEffect()** - Pauses the note's own active effect while the modal previews (so the two don't compete visually); restores it on Cancel, no-op on Apply
 13. **applySettings()** - Saves confetti configuration to note frontmatter
 14. **resetToDefaults()** - Resets settings to preset defaults
 15. **triggerConfettiOnNote()** - Fires the real effect on the active note after Apply
+- Styles live in `styles.css` under `.confetti-modal`; the modal sets classes (`is-hidden`, `confetti-setting-disabled`, `confetti-number-input`) and CSS variables (`setCssProps`) instead of inline styles
 
 ---
 
@@ -576,6 +600,7 @@ Provides an interactive UI for adjusting banner position, size, and appearance w
    Creates controls for banner icon styling, including size, position, opacity, and rotation.
 5. **onClose()**  
    Cleans up the modal and saves any changes to banner settings.
+- Confetti row (`.confetti-effect-section`): shows the note's effect as active, none or unknown preset (status classes in `styles.css`) and opens `ConfettiModal`.
 
 ---
 
@@ -682,7 +707,7 @@ Contains multiple small modules for organizing plugin settings sub-UI, mostly us
 - **settingsTabAPISettings.js**  
   Creates or loads API-related fields (API keys, test buttons).  
 - **settingsTabCustomFieldNames.js**  
-  Lets users define custom frontmatter field names for banners, X/Y positions, and more.  
+  Lets users define custom frontmatter field names for banners, X/Y positions, and more. Each reset button stores a copy of the defaults and clears the invalid state and tooltip.  
 - **settingsTabFolderImages.js**  
   Manages settings for folder-specific banner overrides.  
 - **settingsTabGeneral.js**  
@@ -739,20 +764,35 @@ Utilities for working with note frontmatter in Obsidian.
 4. **updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField)**
    Updates the active note's frontmatter with a direct image URL reference, used when pinning API images without saving locally.
 
+## `/src/utils/confettiConfig.js`
+Single codec for the `banner-confetti` frontmatter value: field schema, parsing, normalizing, comparing and writing.
+
+**Exports**:
+1. **CONFETTI_SCHEMA** - Every override key with its type, bounds, step and allowed values; `RANGE_KEYS` and `ARRAY_KEYS` list the range and array keys
+2. **sanitizeHexColors(colors)** - Keeps only hex colours canvas-confetti can draw: `#rgb` expanded to `#rrggbb`, `#rrggbbaa` loses its alpha, lowercased, anything else dropped
+3. **resolvePresetName(name)** - Case-insensitive, own-property preset lookup (rejects `toString`, `__proto__`)
+4. **parseValue(key, raw)** - Parses one value to its schema type (numbers, ranges, colour/shape arrays, booleans, enums, emoji)
+5. **readPresetName(value)** - The preset name as written in a `banner-confetti` value (string, legacy array or YAML object), whether or not it resolves, so callers can name an unknown preset; null when there is none
+6. **parse(value)** - Parses the string form (spaced, unspaced, bare preset), YAML objects and the legacy array form to `{ presetName, overrides }` or null
+7. **normalize(config)** - Coerces, clamps and rounds every known key; drops invalid values; never throws
+8. **roundForKey(key, value)** - Rounds a number to its key's precision (removes float noise)
+9. **diffFromPreset(presetName, config)** - Returns only the keys that really differ from the preset
+10. **serialize(presetName, overrides)** - Writes `type: preset, key: value` (pipes for arrays, never `null`)
+11. **writeConfettiField(frontmatter, settings, value)** - Writes to the alias the note already uses and removes the others; null removes all
+
 ## `/src/utils/confettiUtils.js`
-Utility functions for parsing, building, and validating confetti configurations.
+Utility functions for confetti configurations. The parse, build and sanitize exports are thin wrappers over `confettiConfig.js`.
 
 **Methods**:
-1. **parseConfettiConfig(value)** - Parses frontmatter confetti values (new and legacy formats)
-2. **buildConfettiFrontmatter(presetName, overrides)** - Serializes config to frontmatter string
-3. **parseConfettiValue(value)** - Type-safe parser for individual values
-4. **parseEmojiString(str)** - Sophisticated emoji parsing handling multi-codepoint sequences
-5. **isValidPreset(presetName)** - Validates preset names
-6. **getPresetDefaults(presetName)** - Retrieves default config for a preset
-7. **getFullConfig(presetName, overrides)** - Merges preset defaults with overrides
-8. **sanitizeConfig(config)** - Clamps numeric values to valid ranges
-9. **hasOverrides(presetName, config)** - Checks if config differs from preset defaults
-10. **getPresetNames()** - Re-exports preset names for convenience
+1. **parseConfettiConfig(value)** - Parses frontmatter confetti values (wraps `parse`)
+2. **buildConfettiFrontmatter(presetName, overrides)** - Serializes config to frontmatter string (wraps `serialize`)
+3. **parseEmojiString(str)** - Sophisticated emoji parsing handling multi-codepoint sequences
+4. **isValidPreset(presetName)** - Validates preset names (case-insensitive, own-property)
+5. **getPresetDefaults(presetName)** - Retrieves default config for a preset
+6. **getFullConfig(presetName, overrides)** - Merges preset defaults with overrides
+7. **sanitizeConfig(config)** - Coerces and clamps values to valid ranges (wraps `normalize`)
+8. **hasOverrides(presetName, config)** - Checks if config differs from preset defaults (uses `diffFromPreset`)
+9. **getPresetNames()** - Re-exports preset names for convenience
 
 ## `/src/utils/debounce.js`
 Provides utility functions for debouncing function calls.

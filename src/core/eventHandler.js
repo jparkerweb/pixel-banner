@@ -1,8 +1,8 @@
-import { MarkdownView, Notice, Platform } from 'obsidian';
+import { MarkdownView, Notice } from 'obsidian';
 import { ImageSelectionModal, SelectPixelBannerModal, PixelBannerStoreModal } from '../modal/modals.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
-import { confettiManager } from './confettiManager.js';
-import { parseConfettiConfig } from '../utils/confettiUtils.js';
+import { confettiManager, shouldRunConfetti } from './confettiManager.js';
+import { parse } from '../utils/confettiConfig.js';
 
 // Global debouncing map to prevent multiple rapid banner updates for the same file
 const bannerUpdateDebounceMap = new Map();
@@ -158,9 +158,17 @@ async function handleActiveLeafChange(leaf) {
                 }
             });
 
-            // Handle confetti effect after banner is updated
+            // A slow banner load may finish after the pane moved on. Effects
+            // are per leaf, so a note left visible in a split keeps its confetti
+            // even when focus went to another pane.
+            if (!isLeafStillShowing(leaf, currentPath)) {
+                return;
+            }
+
+            // Handle confetti effect after banner is updated, with frontmatter
+            // read now: an edit during the banner load must not be overridden
             try {
-                handleConfettiForNote.call(this, leaf, frontmatter);
+                handleConfettiForNote.call(this, leaf, readLeafFrontmatter.call(this, leaf));
             } catch (error) {
                 console.error('Pixel Banner: Confetti error:', error);
             }
@@ -168,9 +176,16 @@ async function handleActiveLeafChange(leaf) {
             // Even if we don't need to update the banner, we should still ensure it's visible
             await this.updateBanner(leaf.view, false, this.UPDATE_MODE.ENSURE_VISIBILITY);
 
-            // Still check for confetti effect
+            // A slow banner load may finish after the pane moved on. Effects
+            // are per leaf, so a note left visible in a split keeps its confetti
+            // even when focus went to another pane.
+            if (!isLeafStillShowing(leaf, currentPath)) {
+                return;
+            }
+
+            // Still check for confetti effect, with frontmatter read after the await
             try {
-                handleConfettiForNote.call(this, leaf, frontmatter);
+                handleConfettiForNote.call(this, leaf, readLeafFrontmatter.call(this, leaf));
             } catch (error) {
                 console.error('Pixel Banner: Confetti error:', error);
             }
@@ -189,6 +204,19 @@ async function handleActiveLeafChange(leaf) {
     }
 }
 
+// True while the leaf is still attached and still shows the given file
+function isLeafStillShowing(leaf, filePath) {
+    const view = leaf && leaf.view;
+    if (!view || !view.file || view.file.path !== filePath) {
+        return false;
+    }
+    return view.containerEl?.isConnected !== false;
+}
+
+// Current frontmatter for the file a leaf shows
+function readLeafFrontmatter(leaf) {
+    return this.app.metadataCache.getFileCache(leaf.view.file)?.frontmatter;
+}
 
 function handleLayoutChange() {
     // Get current leaves to compare with cached ones
@@ -206,6 +234,13 @@ function handleLayoutChange() {
             }
             this.bannerStateCache.delete(key);
         }
+    }
+
+    // Confetti: drop effects of closed or re-targeted panes
+    try {
+        reconcileConfettiEffects.call(this);
+    } catch (error) {
+        console.error('Pixel Banner: Confetti error:', error);
     }
 
     // Handle layout changes for active leaf
@@ -322,160 +357,135 @@ function handleOpenStore() {
     new PixelBannerStoreModal(this.app, this).open();
 }
 
-// Handle confetti effect for a note
+// Handle confetti effect for a note shown in a leaf. Effects are keyed by
+// leaf id, so other panes keep their own effects.
 function handleConfettiForNote(leaf, frontmatter) {
     if (!leaf || !leaf.view || !leaf.view.file) {
         return;
     }
 
-    const noteId = leaf.view.file.path;
-    const noteElement = leaf.view.contentEl;
+    const effectId = leaf.id;
+    const filePath = leaf.view.file.path;
+    const containerEl = leaf.view.contentEl;
 
-    // Stop confetti on any other notes (handles leaf switching)
-    const activeNoteIds = confettiManager.getActiveNoteIds();
-    for (const activeId of activeNoteIds) {
-        if (activeId !== noteId) {
-            confettiManager.stop(activeId, 500);
-        }
+    // The leaf now shows a different file: its old effect goes
+    const existing = confettiManager.getEffect(effectId);
+    if (existing && existing.filePath !== filePath) {
+        confettiManager.stop(effectId, 500);
     }
 
     // Check if confetti is configured in frontmatter
-    const confettiValue = getFrontmatterValue(frontmatter, this.settings.customBannerConfettiField);
-    if (!confettiValue) {
-        // No confetti config, stop any existing effect
-        if (confettiManager.hasActiveEffect(noteId)) {
-            confettiManager.stop(noteId, 500);
+    const confettiValue = getFrontmatterValue(frontmatter || {}, this.settings.customBannerConfettiField);
+    const confettiConfig = confettiValue ? parse(confettiValue) : null;
+    if (!confettiConfig) {
+        // No or invalid config, stop any existing effect
+        if (confettiManager.hasActiveEffect(effectId)) {
+            confettiManager.stop(effectId, 500);
         }
         return;
     }
 
-    // Parse the confetti configuration
-    const confettiConfig = parseConfettiConfig(confettiValue);
-    if (!confettiConfig || !confettiConfig.presetName) {
-        // Invalid config, stop any existing effect
-        if (confettiManager.hasActiveEffect(noteId)) {
-            confettiManager.stop(noteId, 500);
+    // Mobile and reduced-motion gates
+    if (!shouldRunConfetti(this, confettiConfig.overrides)) {
+        if (confettiManager.hasActiveEffect(effectId)) {
+            confettiManager.stop(effectId, 500);
         }
         return;
     }
 
-    // Check if user prefers reduced motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const disableForReducedMotion = confettiConfig.overrides?.respectReducedMotion !== false;
-
-    if (prefersReducedMotion && disableForReducedMotion) {
-        // User prefers reduced motion and config respects it
-        if (confettiManager.hasActiveEffect(noteId)) {
-            confettiManager.stop(noteId, 500);
-        }
-        return;
-    }
-
-    // Check mobile settings
-    const isMobile = Platform.isMobile;
-    const disableOnMobile = this.settings.confettiDisableOnMobile;
-
-    if (isMobile && disableOnMobile) {
-        // Mobile and disabled for mobile
-        if (confettiManager.hasActiveEffect(noteId)) {
-            confettiManager.stop(noteId, 500);
-        }
-        return;
-    }
-
-    // Start or update confetti effect
-    if (confettiManager.hasActiveEffect(noteId)) {
-        confettiManager.update(
-            noteId,
-            noteElement,
-            confettiConfig.presetName,
-            confettiConfig.overrides || {},
-            isMobile
-        );
-    } else {
-        confettiManager.start(
-            noteId,
-            noteElement,
-            confettiConfig.presetName,
-            confettiConfig.overrides || {},
-            isMobile
-        );
-    }
+    // Start, or restart only if the config really changed
+    confettiManager.update(
+        effectId,
+        containerEl,
+        confettiConfig.presetName,
+        confettiConfig.overrides,
+        { filePath }
+    );
 }
 
-// Stop confetti when switching away from a note
+// Stop a leaf's confetti once it no longer shows the file the effect belongs to
 function handleConfettiCleanup(previousLeaf) {
-    if (!previousLeaf || !previousLeaf.view || !previousLeaf.view.file) {
+    if (!previousLeaf) {
         return;
     }
 
-    const noteId = previousLeaf.view.file.path;
-    if (confettiManager.hasActiveEffect(noteId)) {
-        confettiManager.stop(noteId, 500);
+    const effect = confettiManager.getEffect(previousLeaf.id);
+    if (!effect) {
+        return;
+    }
+
+    const view = previousLeaf.view;
+    const filePath = view && view.file ? view.file.path : null;
+    if (filePath !== effect.filePath) {
+        confettiManager.stop(previousLeaf.id, 500);
     }
 }
 
-// Handle confetti metadata changes for a file
-// This is called when frontmatter changes while viewing a note
+// Handle confetti metadata changes for a file: only the leaves showing that
+// file are touched, never other files' effects and never the modal preview.
 function handleConfettiMetadataChange(file, cache) {
-    if (!file || !cache) {
+    if (!file) {
         return;
     }
 
-    const frontmatter = cache.frontmatter || {};
-    const noteId = file.path;
-
-    // Get the new confetti configuration from frontmatter
-    const newConfettiValue = getFrontmatterValue(frontmatter, this.settings.customBannerConfettiField);
-    const newConfig = parseConfettiConfig(newConfettiValue);
-
-    // Check if confetti is currently running for this note
-    const hasActiveEffect = confettiManager.hasActiveEffect(noteId);
-
-    // Scenario 1: Field removed entirely -> stop and cleanup
-    if (!newConfettiValue && hasActiveEffect) {
-        confettiManager.stop(noteId, 500);
-        return;
-    }
-
-    // Scenario 2: Field added -> start confetti
-    if (newConfettiValue && !hasActiveEffect && newConfig && newConfig.presetName) {
-        // Find the leaf(s) showing this file to get the contentEl
-        const leaves = this.app.workspace.getLeavesOfType('markdown');
-        for (const leaf of leaves) {
-            if (leaf.view && leaf.view.file === file) {
-                try {
-                    handleConfettiForNote.call(this, leaf, frontmatter);
-                } catch (error) {
-                    console.error('Pixel Banner: Error starting confetti on metadata change:', error);
-                }
+    const frontmatter = (cache && cache.frontmatter) || {};
+    const leaves = this.app.workspace.getLeavesOfType('markdown');
+    for (const leaf of leaves) {
+        if (leaf.view && leaf.view.file && leaf.view.file.path === file.path) {
+            try {
+                handleConfettiForNote.call(this, leaf, frontmatter);
+            } catch (error) {
+                console.error('Pixel Banner: Error updating confetti on metadata change:', error);
             }
         }
-        return;
     }
+}
 
-    // Scenario 3: Field value changed -> stop old, start new
-    if (newConfettiValue && hasActiveEffect && newConfig && newConfig.presetName) {
-        // Find the leaf(s) showing this file to update the effect
-        const leaves = this.app.workspace.getLeavesOfType('markdown');
-        for (const leaf of leaves) {
-            if (leaf.view && leaf.view.file === file) {
-                try {
-                    // handleConfettiForNote will update the existing effect with new config
-                    handleConfettiForNote.call(this, leaf, frontmatter);
-                } catch (error) {
-                    console.error('Pixel Banner: Error updating confetti on metadata change:', error);
-                }
+// Run confetti for every open markdown leaf (plugin load, settings save,
+// reduced-motion change). Hidden leaves start paused until shown. Seeds
+// lastFrontmatter so the first edit is not mistaken for a change.
+function runConfettiPass() {
+    const leaves = this.app.workspace.getLeavesOfType('markdown');
+    for (const leaf of leaves) {
+        const file = leaf.view && leaf.view.file;
+        if (!file) continue;
+        const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+        if (frontmatter && this.lastFrontmatter) {
+            this.lastFrontmatter.set(file.path, JSON.parse(JSON.stringify(frontmatter)));
+        }
+        try {
+            handleConfettiForNote.call(this, leaf, frontmatter);
+        } catch (error) {
+            console.error('Pixel Banner: Confetti error:', error);
+        }
+    }
+}
+
+// Dispose note effects whose leaf closed or now shows another file (close,
+// rename, file switch), restart renamed notes, and re-resolve the element
+// each effect watches (mode switch, banner re-render).
+function reconcileConfettiEffects() {
+    const leavesById = new Map(
+        this.app.workspace.getLeavesOfType('markdown').map(leaf => [leaf.id, leaf])
+    );
+
+    for (const effectId of confettiManager.getNoteEffectIds()) {
+        const effect = confettiManager.getEffect(effectId);
+        const leaf = leavesById.get(effectId);
+        const filePath = leaf && leaf.view && leaf.view.file ? leaf.view.file.path : null;
+
+        if (!effect) continue;
+        if (!leaf || filePath !== effect.filePath) {
+            confettiManager.stop(effectId, 0);
+            // Same pane, new path (rename or file switch): run it for what it shows now
+            if (filePath) {
+                const frontmatter = this.app.metadataCache.getFileCache(leaf.view.file)?.frontmatter;
+                handleConfettiForNote.call(this, leaf, frontmatter);
             }
         }
-        return;
     }
 
-    // Scenario 4: Invalid config -> stop if running
-    if (newConfettiValue && hasActiveEffect && (!newConfig || !newConfig.presetName)) {
-        confettiManager.stop(noteId, 500);
-        return;
-    }
+    confettiManager.refreshVisibility();
 }
 
 export {
@@ -487,5 +497,7 @@ export {
     handleOpenStore,
     handleConfettiForNote,
     handleConfettiCleanup,
-    handleConfettiMetadataChange
+    handleConfettiMetadataChange,
+    runConfettiPass,
+    reconcileConfettiEffects
 };

@@ -89,10 +89,10 @@ describe('confettiUtils', () => {
         });
 
         it('should handle legacy array with preset and overrides', () => {
-            const config = ['confetti', { count: 200, speed: 60 }];
+            const config = ['confetti', { count: 120, speed: 60 }];
             const result = parseConfettiConfig(config);
             expect(result.presetName).toBe('confetti');
-            expect(result.overrides.count).toBe(200);
+            expect(result.overrides.count).toBe(120);
             expect(result.overrides.speed).toBe(60);
         });
 
@@ -121,13 +121,13 @@ describe('confettiUtils', () => {
     describe('buildConfettiFrontmatter', () => {
         it('should build string with type only for no overrides', () => {
             const result = buildConfettiFrontmatter('confetti', {});
-            expect(result).toBe('type:confetti');
+            expect(result).toBe('type: confetti');
         });
 
         it('should build string with type and overrides', () => {
-            const overrides = { count: 200, speed: 60 };
+            const overrides = { count: 120, speed: 60 };
             const result = buildConfettiFrontmatter('confetti', overrides);
-            expect(result).toBe('type:confetti, count:200, speed:60');
+            expect(result).toBe('type: confetti, count: 120, speed: 60');
         });
 
         it('should include array values with pipe separator', () => {
@@ -136,12 +136,12 @@ describe('confettiUtils', () => {
                 colors: ['#ff0000', '#00ff00', '#0000ff']
             };
             const result = buildConfettiFrontmatter('snow', overrides);
-            expect(result).toBe('type:snow, count:150, colors:#ff0000|#00ff00|#0000ff');
+            expect(result).toBe('type: snow, count: 150, colors: #ff0000|#00ff00|#0000ff');
         });
 
         it('should handle empty overrides object', () => {
             const result = buildConfettiFrontmatter('fireworks', {});
-            expect(result).toBe('type:fireworks');
+            expect(result).toBe('type: fireworks');
         });
 
         it('should preserve all override types in string format', () => {
@@ -153,7 +153,7 @@ describe('confettiUtils', () => {
                 opacity: 0.5         // float
             };
             const result = buildConfettiFrontmatter('confetti', overrides);
-            expect(result).toBe('type:confetti, count:100, continuous:true, colors:#000, emoji:🎉, opacity:0.5');
+            expect(result).toBe('type: confetti, count: 100, continuous: true, colors: #000000, emoji: 🎉, opacity: 0.5');
         });
 
         it('should return null for missing preset name', () => {
@@ -164,7 +164,7 @@ describe('confettiUtils', () => {
         it('should handle boolean false values', () => {
             const overrides = { continuous: false, respectReducedMotion: false };
             const result = buildConfettiFrontmatter('confetti', overrides);
-            expect(result).toBe('type:confetti, continuous:false, respectReducedMotion:false');
+            expect(result).toBe('type: confetti, continuous: false, respectReducedMotion: false');
         });
 
         it('should round-trip correctly', () => {
@@ -288,7 +288,14 @@ describe('confettiUtils', () => {
 
         it('should return a copy that can be modified', () => {
             const result = getPresetDefaults('confetti');
-            expect(result.count).toBeGreaterThanOrEqual(10);
+            const originalCount = result.count;
+            result.count = originalCount + 1;
+            result.colors.push('#123456');
+
+            const fresh = getPresetDefaults('confetti');
+            expect(fresh).not.toBe(result);
+            expect(fresh.count).toBe(originalCount);
+            expect(fresh.colors).not.toContain('#123456');
         });
     });
 
@@ -344,18 +351,48 @@ describe('confettiUtils', () => {
             expect(result.length).toBe(0);
         });
 
-        it('should handle emoji with zero-width joiners', () => {
-            const result = parseEmojiString('👨‍👩‍👧‍👦');
-            expect(Array.isArray(result)).toBe(true);
-            expect(result.length).toBeGreaterThanOrEqual(1);
-        });
-
         it('should handle mixed content (ignoring non-emoji)', () => {
             const result = parseEmojiString('🎉 🎊');
             expect(Array.isArray(result)).toBe(true);
             // Should contain emoji, may or may not include space
             expect(result.some(item => item === '🎉')).toBe(true);
             expect(result.some(item => item === '🎊')).toBe(true);
+        });
+
+        it('should keep adjacent flags separate', () => {
+            expect(parseEmojiString('🇺🇸🇬🇧')).toEqual(['🇺🇸', '🇬🇧']);
+        });
+
+        it('should keep a keycap as one item', () => {
+            expect(parseEmojiString('1️⃣')).toEqual(['1️⃣']);
+        });
+
+        it('should keep copyright, registered and trademark symbols', () => {
+            expect(parseEmojiString('©️')).toEqual(['©️']);
+            expect(parseEmojiString('®')).toEqual(['®']);
+            expect(parseEmojiString('™')).toEqual(['™']);
+        });
+
+        it('should keep a ZWJ family as one item', () => {
+            expect(parseEmojiString('👨‍👩‍👧‍👦')).toEqual(['👨‍👩‍👧‍👦']);
+        });
+
+        it('should keep a tag-sequence flag as one item', () => {
+            expect(parseEmojiString('🏴󠁧󠁢󠁳󠁣󠁴󠁿')).toEqual(['🏴󠁧󠁢󠁳󠁣󠁴󠁿']);
+        });
+
+        it('should drop plain text letters', () => {
+            expect(parseEmojiString('a🎉b')).toEqual(['🎉']);
+        });
+
+        it('should fall back to the codepoint walk without Intl.Segmenter', () => {
+            const savedSegmenter = Intl.Segmenter;
+            try {
+                Intl.Segmenter = undefined;
+                expect(parseEmojiString('🍂🍁')).toEqual(['🍂', '🍁']);
+            } finally {
+                Intl.Segmenter = savedSegmenter;
+            }
         });
     });
 
@@ -428,7 +465,7 @@ describe('confettiUtils', () => {
             const config = { position: 'center', colors: ['#fff'] };
             const result = sanitizeConfig(config);
             expect(result.position).toBe('center');
-            expect(result.colors).toEqual(['#fff']);
+            expect(result.colors).toEqual(['#ffffff']);
         });
     });
 });

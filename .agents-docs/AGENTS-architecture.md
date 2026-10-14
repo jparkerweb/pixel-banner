@@ -40,9 +40,12 @@ Obsidian's child reconciliation (`setChildrenInPlace`) removes injected DOM, so 
 
 ## Confetti Subsystem
 
-- `src/core/confettiManager.js`: exported `confettiManager` singleton that runs effects (built on `canvas-confetti`, the only runtime dependency)
-- `src/core/confettiPresets.js` / `confettiShapes.js`: preset definitions and custom shapes
-- `src/utils/confettiUtils.js`: parse, sanitize and build the `banner-confetti` frontmatter config
+- `src/utils/confettiConfig.js`: the one codec for the `banner-confetti` value (schema, `parse`, `normalize`, `diffFromPreset`, `serialize`, `writeConfettiField`). Read and write the value only through it, so the modal's writes read back the same and unchanged settings are not rewritten
+- `src/core/confettiManager.js`: exported `confettiManager` singleton, a registry of `ConfettiEffect` objects keyed by `leaf.id` (plus `PREVIEW_EFFECT_ID` for the modal preview). Each effect owns its canvas and a main-thread canvas-confetti instance (`useWorker: false`; the library's worker is a module singleton bound to one canvas), and runs only while the document is visible, the pane has a size and the banner is on screen. `init(plugin)` registers the visibility listener and an unload cleanup; a static pane container gets the `pixel-banner-confetti-host` class while an effect runs. Built on `canvas-confetti`, the only runtime dependency
+- On-screen tracking: an effect watches the banner inside the shown scroller (`.cm-scroller` or `.markdown-preview-view` with an `offsetParent`), otherwise the pane container against the viewport. Never pair the container with its own scroller as root: it contains the root, never intersects it, and the effect stays paused for good (a new split has no banner yet when its effect starts; a pane behind another tab has no shown scroller). While it watches the container, each burst and each matching `update()` re-checks for the banner
+- `src/core/confettiPresets.js` / `confettiShapes.js`: preset definitions and custom shapes. Light-theme palettes (`getLightThemeColors`) live outside the presets so the modal and the codec never see them; `buildOptions` swaps them in only while the note sets no colours
+- `src/utils/confettiUtils.js`: thin wrappers over the codec plus `parseEmojiString` (grapheme splitting)
+- Styles for the canvas, the modal and the Target Position confetti row are in `styles.css`; dynamic values go through CSS variables (`setCssProps`), never inline styles
 - `src/modal/modals/confettiModal.js`: settings modal with live preview, opened from the Target Position modal
 - `eventHandler.js`: `handleConfettiForNote`, `handleConfettiCleanup`, `handleConfettiMetadataChange` start, stop and live-update effects
 - Settings: `customBannerConfettiField` (default `banner-confetti`), `confettiDisableOnMobile`

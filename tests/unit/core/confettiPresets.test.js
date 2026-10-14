@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { CONFETTI_PRESETS } from '@/core/confettiPresets.js';
+import { CONFETTI_PRESETS, REQUIRED_PRESET_KEYS, getPresetCopy } from '@/core/confettiPresets.js';
+import { CONFETTI_SCHEMA } from '@/utils/confettiConfig.js';
 
 describe('confettiPresets', () => {
     describe('CONFETTI_PRESETS structure', () => {
@@ -280,6 +281,74 @@ describe('confettiPresets', () => {
             const crystals = CONFETTI_PRESETS.crystals;
             expect(crystals.customShapes).toBeTruthy();
             expect(crystals.customShapes.length).toBeGreaterThan(0);
+        });
+    });
+    describe('preset invariants', () => {
+        const presets = Object.entries(CONFETTI_PRESETS);
+        const RANGE_KEYS = ['sizeRange', 'speedRange', 'gravityRange', 'driftRange'];
+
+        it('every preset defines every required key', () => {
+            for (const [name, preset] of presets) {
+                for (const key of REQUIRED_PRESET_KEYS) {
+                    expect(Object.prototype.hasOwnProperty.call(preset, key), `${name}.${key}`).toBe(true);
+                }
+            }
+        });
+
+        it('every preset defines all four ranges and emoji', () => {
+            for (const [name, preset] of presets) {
+                for (const key of RANGE_KEYS) {
+                    expect(Array.isArray(preset[key]) && preset[key].length === 2, `${name}.${key}`).toBe(true);
+                    expect(preset[key][0] <= preset[key][1], `${name}.${key} is ordered`).toBe(true);
+                }
+                expect(preset.emoji === null || typeof preset.emoji === 'string', `${name}.emoji`).toBe(true);
+            }
+        });
+
+        it('every numeric value is within the schema bounds', () => {
+            for (const [name, preset] of presets) {
+                for (const [key, value] of Object.entries(preset)) {
+                    const schema = CONFETTI_SCHEMA[key];
+                    if (!schema || schema.min === undefined) continue;
+                    const values = Array.isArray(value) ? value : [value];
+                    for (const v of values) {
+                        expect(v >= schema.min && v <= schema.max, `${name}.${key} = ${v}`).toBe(true);
+                    }
+                }
+            }
+        });
+
+        it('no preset spread exceeds 360', () => {
+            for (const [name, preset] of presets) {
+                expect(preset.spread, name).toBeLessThanOrEqual(360);
+            }
+        });
+
+        it('bubbles are round and flat', () => {
+            expect(CONFETTI_PRESETS.bubbles.shapes).toEqual(['circle']);
+            expect(CONFETTI_PRESETS.bubbles.flat).toBe(true);
+        });
+
+        it('hearts rise', () => {
+            const [min, max] = CONFETTI_PRESETS.hearts.gravityRange;
+            expect(min).toBeLessThan(0);
+            expect(max).toBeLessThan(0);
+            const [driftMin, driftMax] = CONFETTI_PRESETS.hearts.driftRange;
+            expect(driftMin).toBe(-driftMax);
+        });
+
+        it('getPresetCopy copies emoji and every range without undefined keys', () => {
+            for (const name of Object.keys(CONFETTI_PRESETS)) {
+                const copy = getPresetCopy(name);
+                expect(Object.prototype.hasOwnProperty.call(copy, 'emoji'), name).toBe(true);
+                for (const [key, value] of Object.entries(copy)) {
+                    expect(value, `${name}.${key}`).not.toBeUndefined();
+                }
+                for (const key of RANGE_KEYS) {
+                    expect(copy[key], `${name}.${key}`).toEqual(CONFETTI_PRESETS[name][key]);
+                    expect(copy[key], `${name}.${key} is a copy`).not.toBe(CONFETTI_PRESETS[name][key]);
+                }
+            }
         });
     });
 });

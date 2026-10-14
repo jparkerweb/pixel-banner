@@ -1,86 +1,466 @@
 import confetti from 'canvas-confetti';
-import { CONFETTI_PRESETS, getPresetCopy } from './confettiPresets';
+import { Platform } from 'obsidian';
+import { getPresetCopy, getLightThemeColors } from './confettiPresets';
 import { parseEmojiString, sanitizeConfig } from '../utils/confettiUtils';
+import { normalize, resolvePresetName, sanitizeHexColors } from '../utils/confettiConfig';
 import { getPathShape } from './confettiShapes';
 
-class ConfettiManager {
-    constructor() {
-        this.activeCanvases = new Map(); // noteId -> { canvas, confettiInstance }
-        this.activeAnimations = new Map(); // noteId -> { intervalId, timeoutId, config, fireBurst, isContinuous, onScreen, observer }
-        this.pendingFadeOuts = new Map(); // noteId -> timeoutId for fade-out removal
+// Effect id the confetti modal uses for its live preview
+export const PREVIEW_EFFECT_ID = '<<confetti-modal-preview>>';
 
-        // Whether the document is currently visible. Continuous effects are
-        // paused while the tab/window is hidden to avoid burning CPU/battery.
-        this.docVisible = true;
-        this._setupVisibilityHandling();
+// Class that gives a pane's container position: relative while an effect runs in it
+export const CONFETTI_HOST_CLASS = 'pixel-banner-confetti-host';
+
+// Whether confetti may run at all: the mobile setting and the OS reduced-motion
+// preference (unless the effect opts out with respectReducedMotion: false).
+// Every start path (note open, metadata change, startup, Apply, preview) asks this.
+export function shouldRunConfetti(plugin, overrides = {}) {
+    if (plugin && plugin.settings && plugin.settings.confettiDisableOnMobile && Platform.isMobile) {
+        return false;
+    }
+    const prefersReducedMotion = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion && (!overrides || overrides.respectReducedMotion !== false)) {
+        return false;
+    }
+    return true;
+}
+
+// Stable string for comparing two configs (key order independent)
+function configKey(presetName, overrides) {
+    const normalized = normalize(overrides || {});
+    const sorted = {};
+    for (const key of Object.keys(normalized).sort()) {
+        sorted[key] = normalized[key];
+    }
+    return JSON.stringify([resolvePresetName(presetName) || presetName, sorted]);
+}
+
+// Singular keys and the range each one stands in for at burst time
+const SINGULAR_RANGE_KEYS = {
+    size: 'sizeRange',
+    speed: 'speedRange',
+    gravity: 'gravityRange',
+    drift: 'driftRange'
+};
+
+// Obsidian marks the light theme on body; read when an effect starts
+export function isLightTheme() {
+    return typeof document !== 'undefined' && !!document.body && document.body.classList.contains('theme-light');
+}
+
+// Randomise one burst's size, speed, gravity and drift within the config's
+// ranges. Without a driftRange, drift gets a slight jitter for variety.
+function applyRanges(options, config) {
+    const pick = ([min, max]) => min + Math.random() * (max - min);
+    if (Array.isArray(config.sizeRange)) {
+        options.scalar = pick(config.sizeRange);
+    }
+    if (Array.isArray(config.speedRange)) {
+        options.startVelocity = pick(config.speedRange);
+    }
+    if (Array.isArray(config.gravityRange)) {
+        options.gravity = pick(config.gravityRange);
+    }
+    if (Array.isArray(config.driftRange)) {
+        options.drift = pick(config.driftRange);
+    } else if (config.drift !== undefined) {
+        options.drift = config.drift + (Math.random() - 0.5) * 0.5;
+    }
+}
+
+// A burst of 3 or fewer emoji shows one random emoji for variety; larger
+// bursts keep the full list so multi-emoji presets show their mix
+function pickBurstEmoji(options, config) {
+    if (config.emoji && options.shapes && options.shapes.length > 1 && options.particleCount <= 3) {
+        options.shapes = [options.shapes[Math.floor(Math.random() * options.shapes.length)]];
+    }
+}
+
+// One pane's effect: its canvas, canvas-confetti instance, timers and
+// observers. Runs only while the document is visible, the pane has a size and
+// its banner (or content) is on screen.
+class ConfettiEffect {
+    constructor(manager, id, containerEl, { presetName, overrides, options, config, isPreview, filePath }) {
+        this.manager = manager;
+        this.id = id;
+        this.containerEl = containerEl;
+        // The pane's own document: a popout window has its own, with its own visibility
+        this.doc = containerEl.doc || containerEl.ownerDocument || document;
+        this.presetName = presetName;
+        this.overrides = overrides || {};
+        this.rawConfig = { presetName, overrides: this.overrides };
+        this.configKey = configKey(presetName, this.overrides);
+        this.options = options;
+        this.config = config;
+        this.isPreview = !!isPreview;
+        this.filePath = filePath || null;
+
+        this.canvas = null;
+        this.confettiInstance = null;
+        this.intervalId = null;
+        this.timeoutId = null;
+        this.fadeInTimeoutId = null;
+        this.fadeOutTimeoutId = null;
+        this.resizeObserver = null;
+        this.intersectionObserver = null;
+        this.observedEl = null;
+        this.observedRoot = null;
+        this.lastTargetLookup = 0;
+
+        this.isContinuous = !!(config.continuous && config.interval > 0);
+        this.delayDone = false;
+        this.hasSize = false;
+        this.onScreen = true;
+        this.paused = false;
+        this.firedOnce = false;
+        this.stopped = false;
+        this.disposed = false;
     }
 
-    // Pause continuous effects when the document is hidden, resume when shown.
-    _setupVisibilityHandling() {
-        if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') {
-            return;
-        }
-        this.docVisible = !document.hidden;
-        document.addEventListener('visibilitychange', () => {
-            this.docVisible = !document.hidden;
-            for (const noteId of this.activeAnimations.keys()) {
-                this._reconcileAnimation(noteId);
-            }
-        });
+    // Same preset and normalized overrides as this running effect?
+    matches(presetName, overrides) {
+        return this.configKey === configKey(presetName, overrides);
     }
 
-    // Start or stop a continuous animation's interval based on whether it
-    // should currently be running (document visible AND canvas on-screen).
-    // Single-burst effects have no interval and are unaffected.
-    _reconcileAnimation(noteId) {
-        const animation = this.activeAnimations.get(noteId);
-        if (!animation || !animation.isContinuous) return;
-
-        const shouldRun = this.docVisible && animation.onScreen;
-
-        if (shouldRun && animation.intervalId === null) {
-            // Resume: fire immediately so there's no visible gap, then schedule
-            animation.fireBurst();
-            animation.intervalId = setInterval(animation.fireBurst, animation.config.interval);
-        } else if (!shouldRun && animation.intervalId !== null) {
-            // Pause
-            clearInterval(animation.intervalId);
-            animation.intervalId = null;
-        }
-    }
-
-    // Create canvas overlay for a note element
-    createCanvas(noteElement) {
-        const canvas = document.createElement('canvas');
+    start() {
+        this.manager._watchDocument(this.doc);
+        const canvas = this.doc.createElement('canvas');
+        // Overlay layout (position, size, z-index) lives in styles.css under
+        // .pixel-banner-confetti-canvas; only the fade is set here.
         canvas.className = 'pixel-banner-confetti-canvas';
-
-        // Style the canvas for overlay
-        canvas.style.position = 'absolute';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        canvas.style.pointerEvents = 'none';
-        // z-index lives in styles.css (.pixel-banner-confetti-canvas) so users
-        // can override the layering with a CSS snippet.
         canvas.style.opacity = '0';
         canvas.style.transition = 'opacity 0s linear';
 
-        // Ensure noteElement has relative positioning for absolute canvas
-        const parentPosition = window.getComputedStyle(noteElement).position;
-        if (parentPosition === 'static') {
-            noteElement.style.position = 'relative';
+        // The absolute canvas needs a positioned container. A host class
+        // does that without changing Obsidian's own element for good: it is
+        // removed again when the last effect in this container goes.
+        const win = this.containerEl.win || this.doc.defaultView || window;
+        const position = win.getComputedStyle(this.containerEl).position;
+        if (!position || position === 'static') {
+            this.containerEl.classList.add(CONFETTI_HOST_CLASS);
         }
 
-        noteElement.appendChild(canvas);
+        this.containerEl.appendChild(canvas);
+        this.canvas = canvas;
 
-        // Create confetti instance bound to this canvas
-        const confettiInstance = confetti.create(canvas, {
-            resize: true,
-            useWorker: true
+        // Main-thread instance: canvas-confetti's worker is a module-level
+        // singleton bound to one canvas, so it cannot drive several panes.
+        // The canvas buffer is sized by our ResizeObserver, not by the library.
+        this.confettiInstance = confetti.create(canvas, {
+            resize: false,
+            useWorker: false
         });
 
-        return { canvas, confettiInstance };
+        // Apply fadeIn opacity transition
+        if (this.config.fadeIn > 0) {
+            canvas.style.transition = `opacity ${this.config.fadeIn}ms ease-in`;
+        }
+        this.fadeInTimeoutId = setTimeout(() => {
+            this.fadeInTimeoutId = null;
+            if (this.canvas) this.canvas.style.opacity = String(this.config.opacity);
+        }, 10);
+
+        // Track the pane size; nothing fires until the canvas has a size
+        if (typeof ResizeObserver !== 'undefined') {
+            this.resizeObserver = new ResizeObserver(() => this.handleResize());
+            this.resizeObserver.observe(this.containerEl);
+        }
+        this.handleResize();
+
+        // Pause while the banner is scrolled away or the pane is hidden
+        this.observeVisibility();
+
+        if (this.config.delay > 0) {
+            this.timeoutId = setTimeout(() => {
+                this.timeoutId = null;
+                this.delayDone = true;
+                this.reconcile();
+            }, this.config.delay);
+        } else {
+            this.delayDone = true;
+            this.reconcile();
+        }
+    }
+
+    // Keep the canvas buffer at the container's size. A size change clears the
+    // particles in flight, since the library keeps drawing at the old size.
+    handleResize() {
+        if (this.stopped || !this.canvas) return;
+        const width = this.containerEl.clientWidth || 0;
+        const height = this.containerEl.clientHeight || 0;
+        this.hasSize = width > 0 && height > 0;
+
+        if (this.hasSize && (this.canvas.width !== width || this.canvas.height !== height)) {
+            if (this.firedOnce) {
+                try {
+                    this.confettiInstance.reset();
+                } catch (error) {
+                    // Nothing in flight to clear; the new size applies anyway
+                }
+            }
+            this.canvas.width = width;
+            this.canvas.height = height;
+        }
+
+        this.reconcile();
+    }
+
+    // The element to watch for on-screen state and its scroll container:
+    // the banner inside the scroller that is currently shown (editing or
+    // reading view), otherwise the container itself against the viewport.
+    // The container holds the scroller, so it can never intersect it (a new
+    // split pane has no banner yet when its effect starts), and a banner
+    // outside the shown scroller sits in a hidden view that never comes on
+    // screen (a pane hidden behind another tab has no shown scroller).
+    resolveVisibilityTarget() {
+        this.lastTargetLookup = Date.now();
+        const scrollers = Array.from(this.containerEl.querySelectorAll('.cm-scroller, .markdown-preview-view'));
+        const root = scrollers.find(el => el.offsetParent !== null) || null;
+        const banner = root ? root.querySelector('.pixel-banner-image') : null;
+        return banner ? { root, target: banner } : { root: null, target: this.containerEl };
+    }
+
+    observeVisibility() {
+        if (typeof IntersectionObserver === 'undefined') return;
+
+        const { root, target } = this.resolveVisibilityTarget();
+        if (this.intersectionObserver && target === this.observedEl && root === this.observedRoot) return;
+
+        if (this.intersectionObserver) this.intersectionObserver.disconnect();
+        this.observedEl = target;
+        this.observedRoot = root;
+        this.intersectionObserver = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                // The banner was re-rendered: watch the new one instead of
+                // pausing on the detached element.
+                if (!entry.target.isConnected) {
+                    this.observeVisibility();
+                    return;
+                }
+                this.onScreen = entry.isIntersecting;
+            }
+            this.reconcile();
+            // The pane is shown again: watch its banner from here on, so
+            // scrolling the banner away pauses the effect
+            if (this.onScreen && this.observedEl === this.containerEl) {
+                this.observeVisibility();
+            }
+        }, { root, threshold: 0 });
+        this.intersectionObserver.observe(target);
+    }
+
+    // Re-resolve the watched element (after a mode switch or banner re-render)
+    refreshVisibilityTarget() {
+        if (this.stopped) return;
+        this.observeVisibility();
+        this.handleResize();
+    }
+
+    shouldRun() {
+        return !this.stopped && !this.paused && this.delayDone && this.hasSize
+            && this.onScreen && !this.doc.hidden;
+    }
+
+    // Start or stop the interval (continuous) or fire the one burst, based on
+    // whether the effect should be running right now. Resuming fires once
+    // immediately so there is no visible gap.
+    reconcile() {
+        if (this.stopped) return;
+        const run = this.shouldRun();
+
+        if (!this.isContinuous) {
+            if (run && !this.firedOnce) {
+                this.fireBurst();
+            }
+            return;
+        }
+
+        if (run && this.intervalId === null) {
+            this.fireBurst();
+            this.intervalId = setInterval(() => this.fireBurst(), this.config.interval);
+        } else if (!run && this.intervalId !== null) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    }
+
+    fireBurst() {
+        if (this.stopped || !this.confettiInstance) return;
+        // Still watching the container: the banner renders after the effect
+        // starts in a new pane, so look for it and watch it once it exists.
+        // At most once a second: the lookup forces layout, and a note without
+        // a banner never finds one (layout changes and update() still re-resolve).
+        if (this.intersectionObserver && this.observedEl === this.containerEl
+            && Date.now() - this.lastTargetLookup >= 1000) {
+            this.observeVisibility();
+        }
+        this.firedOnce = true;
+        this.manager.fireBurst(this.confettiInstance, this.config, this.options);
+    }
+
+    pause() {
+        this.paused = true;
+        this.reconcile();
+    }
+
+    resume() {
+        this.paused = false;
+        this.reconcile();
+    }
+
+    _clearRunning() {
+        if (this.intervalId !== null) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        if (this.timeoutId !== null) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
+        if (this.fadeInTimeoutId !== null) {
+            clearTimeout(this.fadeInTimeoutId);
+            this.fadeInTimeoutId = null;
+        }
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+        if (this.intersectionObserver) {
+            this.intersectionObserver.disconnect();
+            this.intersectionObserver = null;
+        }
+    }
+
+    // Stop spawning at once; let the particles fade with the canvas, then
+    // clear them and remove the canvas. fadeMs 0 removes everything now.
+    stop(fadeMs = 500) {
+        if (this.disposed) return;
+        if (this.stopped) {
+            if (fadeMs <= 0) this.dispose();
+            return;
+        }
+        this.stopped = true;
+        this._clearRunning();
+
+        if (fadeMs > 0 && this.canvas) {
+            this.canvas.style.transition = `opacity ${fadeMs}ms ease-out`;
+            this.canvas.style.opacity = '0';
+            this.fadeOutTimeoutId = setTimeout(() => {
+                this.fadeOutTimeoutId = null;
+                this.dispose();
+            }, fadeMs);
+        } else {
+            this.dispose();
+        }
+    }
+
+    // Release everything: timers, observers, particles and the canvas. Safe to call twice.
+    dispose() {
+        if (this.disposed) return;
+        this.disposed = true;
+        this.stopped = true;
+        this._clearRunning();
+        if (this.fadeOutTimeoutId !== null) {
+            clearTimeout(this.fadeOutTimeoutId);
+            this.fadeOutTimeoutId = null;
+        }
+
+        if (this.confettiInstance) {
+            try {
+                this.confettiInstance.reset();
+            } catch (error) {
+                // Nothing in flight to clear; the canvas is removed anyway
+            }
+        }
+        if (this.canvas && this.canvas.parentNode) {
+            this.canvas.parentNode.removeChild(this.canvas);
+        }
+
+        this.canvas = null;
+        this.confettiInstance = null;
+        this.observedEl = null;
+        this.observedRoot = null;
+        this.manager._forget(this);
+        this.removeHostClass();
+    }
+
+    // Drop the host class unless another live effect still draws in this container
+    removeHostClass() {
+        const shared = [...this.manager.effects.values(), ...this.manager.fadingEffects]
+            .some(effect => effect !== this && !effect.disposed && effect.containerEl === this.containerEl);
+        if (!shared) {
+            this.containerEl.classList.remove(CONFETTI_HOST_CLASS);
+        }
+    }
+}
+
+// Registry of running effects, one per pane (keyed by leaf id) plus the
+// modal preview.
+class ConfettiManager {
+    constructor() {
+        this.effects = new Map(); // effectId -> ConfettiEffect
+        this.fadingEffects = new Set(); // stopped effects still fading out
+        this.plugin = null;
+        // Popout window documents listened to while an effect runs in them
+        this.popoutDocs = new Set();
+
+        // Effects pause while their window is hidden (each reads its own
+        // document's hidden flag) to avoid burning CPU/battery.
+        this._onVisibilityChange = this._onVisibilityChange.bind(this);
+    }
+
+    // Register lifecycle hooks through the plugin so unload releases them:
+    // the main window's visibility listener, and one cleanup that disposes
+    // every effect (with its interval) even if onunload's destroy() is missed.
+    // Intervals are not registered one by one: a resume creates a new one each
+    // time, and each registration would live until unload.
+    init(plugin) {
+        if (this.plugin === plugin) return;
+        this.plugin = plugin;
+        if (typeof document !== 'undefined') {
+            plugin.registerDomEvent(document, 'visibilitychange', this._onVisibilityChange);
+        }
+        if (typeof plugin.register === 'function') {
+            plugin.register(() => this.destroy());
+        }
+    }
+
+    // Dispose every effect (plugin unload)
+    destroy() {
+        for (const effect of [...this.effects.values(), ...this.fadingEffects]) {
+            effect.dispose();
+        }
+        this.effects.clear();
+        this.fadingEffects.clear();
+        this.plugin = null;
+    }
+
+    _onVisibilityChange() {
+        for (const effect of this.effects.values()) {
+            effect.reconcile();
+        }
+    }
+
+    // A popout window's document gets its own listener while an effect runs
+    // there; init() covers the main document for the plugin's lifetime
+    _watchDocument(doc) {
+        if (doc === document || this.popoutDocs.has(doc)) return;
+        doc.addEventListener('visibilitychange', this._onVisibilityChange);
+        this.popoutDocs.add(doc);
+    }
+
+    _forget(effect) {
+        this.fadingEffects.delete(effect);
+        if (this.effects.get(effect.id) === effect) {
+            this.effects.delete(effect.id);
+        }
+        // Last effect in a popout gone: release its document
+        const doc = effect.doc;
+        if (this.popoutDocs.has(doc) && ![...this.effects.values(), ...this.fadingEffects].some(e => e.doc === doc)) {
+            doc.removeEventListener('visibilitychange', this._onVisibilityChange);
+            this.popoutDocs.delete(doc);
+        }
     }
 
     // Map user-friendly position to origin {x, y}
@@ -160,7 +540,7 @@ class ConfettiManager {
             });
             return shapes;
         } catch (error) {
-            console.log('Pixel Banner: Error creating emoji shapes:', error);
+            console.error('Pixel Banner: Error creating emoji shapes:', error);
             return null;
         }
     }
@@ -168,15 +548,24 @@ class ConfettiManager {
     // Build confetti options from preset + overrides
     buildOptions(presetName, overrides = {}) {
         const preset = getPresetCopy(presetName);
+        // An unknown preset runs nothing; the Target Position modal names it
         if (!preset) {
-            console.log(`Pixel Banner: Unknown confetti preset "${presetName}"`);
             return null;
         }
 
         // Merge preset with overrides, then clamp every value to valid ranges.
         // This guards against out-of-range or malformed numbers from
         // hand-edited frontmatter (the modal already constrains its inputs).
-        const config = sanitizeConfig({ ...preset, ...overrides });
+        // A singular size/speed/gravity/drift override without its range
+        // replaces the preset's range, so 'speed: 10' still changes the effect
+        const userOverrides = normalize(overrides);
+        const singularRanges = {};
+        for (const [key, rangeKey] of Object.entries(SINGULAR_RANGE_KEYS)) {
+            if (typeof userOverrides[key] === 'number' && !Array.isArray(userOverrides[rangeKey])) {
+                singularRanges[rangeKey] = [userOverrides[key], userOverrides[key]];
+            }
+        }
+        const config = sanitizeConfig({ ...preset, ...overrides, ...singularRanges });
 
         // Build canvas-confetti API options
         const options = {
@@ -188,11 +577,25 @@ class ConfettiManager {
             drift: config.drift,
             ticks: config.duration,
             origin: this.mapPosition(config.position),
-            disableForReducedMotion: true
+            disableForReducedMotion: config.respectReducedMotion !== false
         };
 
-        // Handle custom path shapes (highest priority)
-        if (config.customShapes && Array.isArray(config.customShapes) && config.customShapes.length > 0) {
+        // Emoji shapes (highest priority): a user emoji replaces the preset's
+        // custom or built-in shapes
+        let usedEmojiShapes = false;
+        if (config.emoji) {
+            const shapes = this.createEmojiShapes(config.emoji, config.size);
+            if (shapes && shapes.length > 0) {
+                options.shapes = shapes;
+                options.flat = true; // Emoji shapes should be flat
+                usedEmojiShapes = true;
+            }
+        }
+        // Custom path shapes (second priority). Built-in shapes the user picked
+        // (circle, square, star) replace the preset's own custom shapes.
+        const userPickedShapes = Array.isArray(userOverrides.shapes) && userOverrides.shapes.length > 0
+            && !userOverrides.customShapes;
+        if (!usedEmojiShapes && !userPickedShapes && config.customShapes && Array.isArray(config.customShapes) && config.customShapes.length > 0) {
             const pathShapes = config.customShapes
                 .map(name => getPathShape(name))
                 .filter(s => s !== null);
@@ -200,30 +603,25 @@ class ConfettiManager {
                 options.shapes = pathShapes;
             }
         }
-        // Handle emoji shapes (second priority)
-        else if (config.emoji) {
-            const shapes = this.createEmojiShapes(config.emoji, config.size);
-            if (shapes && shapes.length > 0) {
-                options.shapes = shapes;
-                options.flat = true; // Emoji shapes should be flat
-            }
-        }
-        // Handle explicit built-in shapes (circle, square, star)
-        else if (config.shapes && Array.isArray(config.shapes)) {
+        // Explicit built-in shapes (circle, square, star)
+        if (!usedEmojiShapes && !options.shapes && config.shapes && Array.isArray(config.shapes)) {
             options.shapes = config.shapes;
         }
 
-        // Handle colors (only if not using emoji)
-        if (!config.emoji && config.colors && Array.isArray(config.colors) && config.colors.length > 0) {
-            // Normalize colors to 6-character hex (strip alpha if present)
-            options.colors = config.colors.map(color => {
-                if (typeof color !== 'string') return '#ffffff';
-                // Strip alpha channel from 8-char hex colors
-                if (color.match(/^#[0-9a-fA-F]{8}$/)) {
-                    return color.substring(0, 7);
-                }
-                return color;
-            });
+        // Handle colors (only when emoji shapes were not applied)
+        if (!usedEmojiShapes) {
+            // Only valid hex reaches canvas-confetti: fall back to the preset's
+            // colours, then to the library defaults, when none are left
+            // In the light theme, presets drawn in white use their light
+            // palette, unless the note sets its own colours
+            const lightColors = !userOverrides.colors && isLightTheme() ? getLightThemeColors(presetName) : null;
+            let colors = sanitizeHexColors(lightColors || config.colors);
+            if (colors.length === 0) {
+                colors = sanitizeHexColors(preset.colors);
+            }
+            if (colors.length > 0) {
+                options.colors = colors;
+            }
         }
 
         // Handle flat/tumble option (default is tumble/false)
@@ -234,76 +632,28 @@ class ConfettiManager {
         return { options, config };
     }
 
-    // Start confetti effect on a note
-    start(noteId, noteElement, presetName, overrides = {}, isMobile = false) {
-        // Stop any existing effect on this note
-        this.stop(noteId, 0);
+    // Start an effect for effectId (a leaf id, or PREVIEW_EFFECT_ID) inside
+    // containerEl, replacing any effect already running under that id.
+    start(effectId, containerEl, presetName, overrides = {}, opts = {}) {
+        const { isPreview = false, filePath = null } = (opts && typeof opts === 'object') ? opts : {};
+
+        this.stop(effectId, 0);
+        if (!containerEl) return null;
 
         const result = this.buildOptions(presetName, overrides);
-        if (!result) return;
+        if (!result) return null;
 
-        const { options, config } = result;
-
-        // Create canvas
-        const { canvas, confettiInstance } = this.createCanvas(noteElement);
-
-        // Store canvas reference
-        this.activeCanvases.set(noteId, { canvas, confettiInstance });
-
-        // Apply fadeIn opacity transition
-        if (config.fadeIn > 0) {
-            canvas.style.transition = `opacity ${config.fadeIn}ms ease-in`;
-        }
-
-        // Set target opacity
-        setTimeout(() => {
-            canvas.style.opacity = String(config.opacity);
-        }, 10);
-
-        // Create animation state
-        const animationState = {
-            intervalId: null,
-            timeoutId: null,
-            config: config,
-            fireBurst: () => this.fireBurst(confettiInstance, config, options),
-            isContinuous: false,
-            onScreen: true,
-            observer: null
-        };
-
-        // Store animation state up front so _reconcileAnimation can find it
-        this.activeAnimations.set(noteId, animationState);
-
-        // Handle delay before starting
-        const startAnimation = () => {
-            if (config.continuous && config.interval > 0) {
-                // Continuous effect: let _reconcileAnimation manage the interval
-                // so it can pause/resume on visibility and on-screen changes.
-                animationState.isContinuous = true;
-                this._reconcileAnimation(noteId);
-            } else {
-                // Single burst
-                animationState.fireBurst();
-            }
-        };
-
-        if (config.delay > 0) {
-            animationState.timeoutId = setTimeout(startAnimation, config.delay);
-        } else {
-            startAnimation();
-        }
-
-        // Pause continuous effects while the canvas is scrolled out of view
-        if (config.continuous && config.interval > 0 && typeof IntersectionObserver !== 'undefined') {
-            const observer = new IntersectionObserver((entries) => {
-                for (const entry of entries) {
-                    animationState.onScreen = entry.isIntersecting;
-                }
-                this._reconcileAnimation(noteId);
-            }, { threshold: 0 });
-            observer.observe(canvas);
-            animationState.observer = observer;
-        }
+        const effect = new ConfettiEffect(this, effectId, containerEl, {
+            presetName,
+            overrides,
+            options: result.options,
+            config: result.config,
+            isPreview,
+            filePath
+        });
+        this.effects.set(effectId, effect);
+        effect.start();
+        return effect;
     }
 
     // Fire single burst
@@ -321,32 +671,8 @@ class ConfettiManager {
                 options.particleCount = particlesPerBurst;
                 options.origin = this.getEdgePosition(config.position, i, numBursts, yOffset);
 
-                // Apply randomization ranges if specified
-                if (config.sizeRange && Array.isArray(config.sizeRange)) {
-                    const [min, max] = config.sizeRange;
-                    options.scalar = min + Math.random() * (max - min);
-                }
-                if (config.gravityRange && Array.isArray(config.gravityRange)) {
-                    const [min, max] = config.gravityRange;
-                    options.gravity = min + Math.random() * (max - min);
-                }
-                if (config.driftRange && Array.isArray(config.driftRange)) {
-                    const [min, max] = config.driftRange;
-                    options.drift = min + Math.random() * (max - min);
-                } else if (config.drift !== undefined) {
-                    // Fallback: add slight randomization for natural variation
-                    options.drift = config.drift + (Math.random() - 0.5) * 0.5;
-                }
-                if (config.speedRange && Array.isArray(config.speedRange)) {
-                    const [min, max] = config.speedRange;
-                    options.startVelocity = min + Math.random() * (max - min);
-                }
-
-                // If using emoji shapes, randomly select one for variety
-                if (config.emoji && options.shapes && options.shapes.length > 1) {
-                    const randomShape = options.shapes[Math.floor(Math.random() * options.shapes.length)];
-                    options.shapes = [randomShape];
-                }
+                applyRanges(options, config);
+                pickBurstEmoji(options, config);
 
                 // For low particle counts per burst, randomly pick one color for variety
                 if (options.colors && options.colors.length > 1 && particlesPerBurst <= 3) {
@@ -357,7 +683,7 @@ class ConfettiManager {
                 try {
                     confettiInstance(options);
                 } catch (error) {
-                    console.log('Pixel Banner: Error firing confetti burst:', error);
+                    console.error('Pixel Banner: Error firing confetti burst:', error);
                 }
             }
         } else if (originSpread === 'random') {
@@ -369,32 +695,8 @@ class ConfettiManager {
             const yOffset = config.startY || 0;
             options.origin = { x: baseOrigin.x, y: baseOrigin.y + yOffset };
 
-            // Apply randomization ranges if specified
-            if (config.sizeRange && Array.isArray(config.sizeRange)) {
-                const [min, max] = config.sizeRange;
-                options.scalar = min + Math.random() * (max - min);
-            }
-            if (config.gravityRange && Array.isArray(config.gravityRange)) {
-                const [min, max] = config.gravityRange;
-                options.gravity = min + Math.random() * (max - min);
-            }
-            if (config.driftRange && Array.isArray(config.driftRange)) {
-                const [min, max] = config.driftRange;
-                options.drift = min + Math.random() * (max - min);
-            } else if (config.drift !== undefined) {
-                // Fallback: add slight randomization for natural variation
-                options.drift = config.drift + (Math.random() - 0.5) * 0.5;
-            }
-            if (config.speedRange && Array.isArray(config.speedRange)) {
-                const [min, max] = config.speedRange;
-                options.startVelocity = min + Math.random() * (max - min);
-            }
-
-            // If using emoji shapes, randomly select one for variety
-            if (config.emoji && options.shapes && options.shapes.length > 1) {
-                const randomShape = options.shapes[Math.floor(Math.random() * options.shapes.length)];
-                options.shapes = [randomShape];
-            }
+            applyRanges(options, config);
+            pickBurstEmoji(options, config);
 
             // For low particle counts, randomly pick one color to ensure variety across bursts
             if (options.colors && options.colors.length > 1 && config.count <= 3) {
@@ -405,7 +707,7 @@ class ConfettiManager {
             try {
                 confettiInstance(options);
             } catch (error) {
-                console.log('Pixel Banner: Error firing confetti burst:', error);
+                console.error('Pixel Banner: Error firing confetti burst:', error);
             }
         } else {
             // Fixed position (original behavior)
@@ -416,117 +718,91 @@ class ConfettiManager {
                 options.origin = { x: Math.random(), y: Math.random() };
             }
 
-            // If using emoji shapes, randomly select one for variety
-            if (config.emoji && options.shapes && options.shapes.length > 1) {
-                const randomShape = options.shapes[Math.floor(Math.random() * options.shapes.length)];
-                options.shapes = [randomShape];
-            }
+            applyRanges(options, config);
+            pickBurstEmoji(options, config);
 
             try {
                 confettiInstance(options);
             } catch (error) {
-                console.log('Pixel Banner: Error firing confetti burst:', error);
+                console.error('Pixel Banner: Error firing confetti burst:', error);
             }
         }
     }
 
-    // Stop confetti effect on a note with fade out
-    stop(noteId, fadeOutDuration = 500) {
-        const canvasData = this.activeCanvases.get(noteId);
-        const animationData = this.activeAnimations.get(noteId);
-
-        if (!canvasData) return;
-
-        const { canvas, confettiInstance } = canvasData;
-
-        // Clear any running animations
-        if (animationData) {
-            if (animationData.intervalId) {
-                clearInterval(animationData.intervalId);
-            }
-            if (animationData.timeoutId) {
-                clearTimeout(animationData.timeoutId);
-            }
-            if (animationData.observer) {
-                animationData.observer.disconnect();
-            }
-            this.activeAnimations.delete(noteId);
-        }
-
-        // Cancel any pending fade-out timeout for this note
-        const pendingFadeOut = this.pendingFadeOuts.get(noteId);
-        if (pendingFadeOut) {
-            clearTimeout(pendingFadeOut);
-            this.pendingFadeOuts.delete(noteId);
-        }
-
-        // Reset the confetti instance (clears particles)
-        try {
-            confettiInstance.reset();
-        } catch (error) {
-            console.log('Pixel Banner: Error resetting confetti instance:', error);
-        }
-
-        // Fade out and remove canvas
+    // Stop one effect, fading it out over fadeOutDuration ms
+    stop(effectId, fadeOutDuration = 500) {
+        const effect = this.effects.get(effectId);
+        if (!effect) return;
+        this.effects.delete(effectId);
         if (fadeOutDuration > 0) {
-            canvas.style.transition = `opacity ${fadeOutDuration}ms ease-out`;
-            canvas.style.opacity = '0';
-
-            const fadeOutTimeout = setTimeout(() => {
-                this.pendingFadeOuts.delete(noteId);
-                this.removeCanvas(noteId);
-            }, fadeOutDuration);
-            this.pendingFadeOuts.set(noteId, fadeOutTimeout);
-        } else {
-            this.removeCanvas(noteId);
+            this.fadingEffects.add(effect);
         }
-    }
-
-    // Remove canvas from DOM and clean up
-    removeCanvas(noteId) {
-        const canvasData = this.activeCanvases.get(noteId);
-        if (!canvasData) return;
-
-        const { canvas } = canvasData;
-
-        if (canvas && canvas.parentNode) {
-            canvas.parentNode.removeChild(canvas);
-        }
-
-        // Nullify references to aid garbage collection
-        canvasData.canvas = null;
-        canvasData.confettiInstance = null;
-
-        this.activeCanvases.delete(noteId);
+        effect.stop(fadeOutDuration);
     }
 
     // Stop all active effects
     stopAll(immediate = false) {
-        const noteIds = Array.from(this.activeCanvases.keys());
-        for (const noteId of noteIds) {
-            this.stop(noteId, immediate ? 0 : 500);
+        for (const effectId of Array.from(this.effects.keys())) {
+            this.stop(effectId, immediate ? 0 : 500);
+        }
+        if (immediate) {
+            for (const effect of Array.from(this.fadingEffects)) {
+                effect.dispose();
+            }
         }
     }
 
-    // Check if a note has an active confetti effect
-    hasActiveEffect(noteId) {
-        return this.activeCanvases.has(noteId);
+    pause(effectId) {
+        const effect = this.effects.get(effectId);
+        if (effect) effect.pause();
     }
 
-    // Get all active note IDs
-    getActiveNoteIds() {
-        return Array.from(this.activeCanvases.keys());
+    resume(effectId) {
+        const effect = this.effects.get(effectId);
+        if (effect) effect.resume();
     }
 
-    // Update an existing effect with new configuration
-    update(noteId, noteElement, presetName, overrides = {}, isMobile = false) {
-        // Simply restart with new configuration
-        this.start(noteId, noteElement, presetName, overrides, isMobile);
+    // Check if an effect id has a running effect
+    hasActiveEffect(effectId) {
+        return this.effects.has(effectId);
+    }
+
+    getEffect(effectId) {
+        return this.effects.get(effectId) || null;
+    }
+
+    // Ids of note effects (the modal preview excluded)
+    getNoteEffectIds() {
+        return Array.from(this.effects.values())
+            .filter(effect => !effect.isPreview)
+            .map(effect => effect.id);
+    }
+
+    // Re-resolve each effect's watched element (after layout or mode changes)
+    refreshVisibility() {
+        for (const effect of this.effects.values()) {
+            effect.refreshVisibilityTarget();
+        }
+    }
+
+    // Restart an effect only when its config or container really changed
+    update(effectId, containerEl, presetName, overrides = {}, opts = {}) {
+        const effect = this.effects.get(effectId);
+        if (effect && effect.containerEl === containerEl && effect.matches(presetName, overrides)) {
+            if (opts && typeof opts === 'object' && opts.filePath) {
+                effect.filePath = opts.filePath;
+            }
+            // The banner may have rendered since the effect started (a new
+            // split): watch it from now on so scrolling it away pauses
+            effect.refreshVisibilityTarget();
+            return effect;
+        }
+        return this.start(effectId, containerEl, presetName, overrides, opts);
     }
 }
 
 // Export singleton instance
 export const confettiManager = new ConfettiManager();
 
-// Also export the class for testing purposes
-export { ConfettiManager };
+// Also export the classes for testing purposes
+export { ConfettiManager, ConfettiEffect };

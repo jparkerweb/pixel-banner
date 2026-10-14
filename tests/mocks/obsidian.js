@@ -36,6 +36,10 @@ export class Plugin {
     return { el, event, callback };
   }
 
+  register(callback) {
+    (this._registered = this._registered || []).push(callback);
+  }
+
   registerInterval(callback, delay) {
     const id = setInterval(callback, delay);
     return id;
@@ -114,12 +118,15 @@ export class Modal {
         return child;
       };
       el.createDiv = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('div', className);
         return this.createEl('div', { cls: className, ...attrs });
       };
       el.createSpan = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('span', className);
         return this.createEl('span', { cls: className, ...attrs });
       };
       el.createButton = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('button', className);
         return this.createEl('button', { cls: className, ...attrs });
       };
       return el;
@@ -305,18 +312,23 @@ export class Setting {
               }
             });
           }
+          if (attrs.type) child.type = attrs.type;
+          if (attrs.value !== undefined) child.value = attrs.value;
         }
         this.appendChild(child);
         addObsidianMethods(child);
         return child;
       };
       el.createDiv = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('div', className);
         return this.createEl('div', { cls: className, ...attrs });
       };
       el.createSpan = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('span', className);
         return this.createEl('span', { cls: className, ...attrs });
       };
       el.createButton = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('button', className);
         return this.createEl('button', { cls: className, ...attrs });
       };
       return el;
@@ -423,6 +435,9 @@ class TextComponent {
   constructor(containerEl) {
     this.inputEl = document.createElement('input');
     this.inputEl.type = 'text';
+    this.inputEl.addClass = function(className) { this.classList.add(className); return this; };
+    this.inputEl.removeClass = function(className) { this.classList.remove(className); return this; };
+    this.inputEl.toggleClass = function(className, force) { this.classList.toggle(className, force); return this; };
     containerEl.appendChild(this.inputEl);
   }
 
@@ -599,6 +614,11 @@ class SliderComponent {
 
   onChange(callback) {
     this.sliderEl.addEventListener('input', (e) => callback(Number(e.target.value)));
+    return this;
+  }
+
+  setDisabled(disabled) {
+    this.sliderEl.disabled = disabled;
     return this;
   }
 }
@@ -780,6 +800,10 @@ export class Workspace {
   }
 
   off(event, callback) {}
+
+  onLayoutReady(callback) {
+    if (this.layoutReady) callback();
+  }
 
   iterateAllLeaves(callback) {
     if (this.activeLeaf) {

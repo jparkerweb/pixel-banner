@@ -296,12 +296,18 @@ export function createCustomFieldsSettings(containerEl, plugin) {
                 .setIcon('reset')
                 .setTooltip('Reset to default')
                 .onClick(async () => {
-                    plugin.settings[field.setting] = DEFAULT_SETTINGS[field.setting];
-                    await plugin.saveSettings();
-                    
+                    plugin.settings[field.setting] = [...DEFAULT_SETTINGS[field.setting]];
+
                     // Update only this specific setting via the component API
                     const textComponent = fieldSetting.components[0];
-                    if (textComponent) textComponent.setValue(arrayToString(DEFAULT_SETTINGS[field.setting]));
+                    if (textComponent) {
+                        textComponent.setValue(arrayToString(DEFAULT_SETTINGS[field.setting]));
+                        // Clear any stale validation state left by a previously invalid value
+                        textComponent.inputEl.removeClass('is-invalid');
+                        textComponent.inputEl.title = '';
+                    }
+
+                    await plugin.saveSettings();
                 }));
     });
 } 
