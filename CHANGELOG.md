@@ -39,6 +39,9 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - Folder-path "Browse" buttons now update their text fields via `TextComponent.setValue()` instead of writing to `inputEl.value`
   - Test mock (`tests/mocks/obsidian.js`) updated so `Setting.components` tracks text/textarea/dropdown/slider/color-picker components, matching the real Obsidian API
 
+#### 🐛 Fixed
+- **Settings pane width on Obsidian 1.13+** (`styles.css`): the 800px reading-width cap moved from `.pixel-banner-settings` (the settings tab's own `.vertical-tab-content`, which Obsidian 1.13+ centers with `padding-inline: max(32px, (100% - 700px) / 2)`) to the inner `.pixel-banner-main-content`, so wide settings windows no longer squeeze the settings into a narrow column (issue #337, PR #338 by @zx2021210538)
+
 ### v3.6.18 - 2026-03-08
 #### 🐛 Fixed
 - Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)

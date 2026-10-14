@@ -22,3 +22,6 @@
   - Automatically falls back to default filename if the note is named "Untitled" or has no name
   - Pre-fills the filename (still editable in the save dialog)
   - Located in Settings → General tab
+
+#### 🐛 Fixed
+- Pixel Banner settings no longer shrink to a narrow column in wide settings windows on Obsidian 1.13+ (issue #337, thanks @zx2021210538)
