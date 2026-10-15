@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Notice } from 'obsidian';
 import { ConfettiModal } from '../../../src/modal/modals/confettiModal.js';
-import { confettiManager, shouldRunConfetti } from '../../../src/core/confettiManager.js';
+import { confettiManager, shouldRunConfetti, getConfettiBlockReason } from '../../../src/core/confettiManager.js';
 import { getPresetDefaults, getPresetNames, parseConfettiConfig } from '../../../src/utils/confettiUtils.js';
 import { handleConfettiForNote } from '../../../src/core/eventHandler.js';
 import { createMockPlugin } from '../../mocks/obsidian.js';
@@ -17,6 +17,7 @@ vi.mock('obsidian', async (importOriginal) => ({
 vi.mock('../../../src/core/confettiManager.js', () => ({
     PREVIEW_EFFECT_ID: '<<confetti-modal-preview>>',
     shouldRunConfetti: vi.fn(() => true),
+    getConfettiBlockReason: vi.fn(() => null),
     isLightTheme: vi.fn(() => document.body.classList.contains('theme-light')),
     confettiManager: {
         start: vi.fn(),
@@ -38,6 +39,7 @@ describe('ConfettiModal live preview', () => {
         vi.clearAllMocks();
         confettiManager.hasActiveEffect.mockReturnValue(false);
         shouldRunConfetti.mockReturnValue(true);
+        getConfettiBlockReason.mockReturnValue(null);
 
         app = {
             workspace: {
@@ -638,6 +640,50 @@ describe('ConfettiModal live preview', () => {
             await modal.applySettings();
 
             expect(fm['banner-confetti']).toBe('type: snow');
+        });
+
+        it('a built-in shape picked over a preset custom shape shows in the Shape dropdown', async () => {
+            const modal = openModal({ presetName: 'leaves', overrides: { shapes: ['star'] } });
+
+            // buildOptions draws stars, not leaves, for this config
+            expect(modal.shapeDropdown.selectEl.value).toBe('star');
+            expect(modal.settings.customShapes).toBeNull();
+
+            // Going back to Leaf is a real change and writes it
+            modal.shapeDropdown.selectEl.value = 'leaf';
+            modal.shapeDropdown.selectEl.dispatchEvent(new Event('change'));
+            await modal.applySettings();
+
+            expect(fm['banner-confetti']).toBe('type: leaves');
+        });
+
+        it('a picked custom shape still wins over a built-in shape', () => {
+            const modal = openModal({ presetName: 'snow', overrides: { customShapes: ['leaf'] } });
+
+            expect(modal.shapeDropdown.selectEl.value).toBe('leaf');
+        });
+
+        it('says why the preview is hidden, and clears it once the preview can run', () => {
+            shouldRunConfetti.mockReturnValue(false);
+            getConfettiBlockReason.mockReturnValue('reduced-motion');
+            const modal = openModal({ presetName: 'confetti', overrides: {} });
+
+            expect(confettiManager.start).not.toHaveBeenCalled();
+            expect(modal.previewNotice.textContent).toBe('Preview hidden: your system asks for reduced motion');
+            expect(modal.previewNotice.classList.contains('is-hidden')).toBe(false);
+            expect(modal.contentEl.contains(modal.previewNotice)).toBe(true);
+
+            getConfettiBlockReason.mockReturnValue('mobile');
+            modal.updatePreview();
+            expect(modal.previewNotice.textContent).toBe('Preview hidden: confetti is turned off on mobile');
+
+            shouldRunConfetti.mockReturnValue(true);
+            getConfettiBlockReason.mockReturnValue(null);
+            modal.updatePreview();
+            expect(confettiManager.start).toHaveBeenCalledTimes(1);
+            expect(modal.previewNotice.classList.contains('is-hidden')).toBe(true);
+            expect(modal.previewNotice.textContent).toBe('');
+            modal.onClose();
         });
 
         it('float drags and key steps write rounded values', async () => {

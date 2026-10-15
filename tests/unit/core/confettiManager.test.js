@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import confetti from 'canvas-confetti';
 import { Platform } from 'obsidian';
-import { confettiManager, ConfettiManager, PREVIEW_EFFECT_ID, shouldRunConfetti } from '@/core/confettiManager.js';
+import { confettiManager, ConfettiManager, PREVIEW_EFFECT_ID, shouldRunConfetti, getConfettiBlockReason, budgetParticleCount, LIVE_PARTICLE_BUDGET } from '@/core/confettiManager.js';
 import { CONFETTI_PRESETS, getLightThemeColors } from '@/core/confettiPresets.js';
 import { clearShapeCache } from '@/core/confettiShapes.js';
 
@@ -329,6 +329,57 @@ describe('confettiManager', () => {
             expect(result.options.particleCount).toBe(50);
         });
 
+        describe('live particle budget', () => {
+            // Steady live count: particles fired per burst x bursts per particle lifetime (ticks at 60fps)
+            const liveCount = (config, perBurst) => {
+                const fired = config.originSpread === 'edge' ? 7 * Math.ceil(perBurst / 7) : perBurst;
+                return fired * Math.max(1, (config.duration * 1000 / 60) / config.interval);
+            };
+
+            it('caps the per-burst count of a high-load continuous effect', () => {
+                const { options, config } = confettiManager.buildOptions('confetti', { count: 150, interval: 50, duration: 1000 });
+                expect(config.count).toBe(150);
+                expect(options.particleCount).toBeGreaterThanOrEqual(1);
+                expect(options.particleCount).toBeLessThan(150);
+                expect(liveCount(config, options.particleCount)).toBeLessThanOrEqual(LIVE_PARTICLE_BUDGET);
+                // As close to the budget as whole particles allow
+                expect(liveCount(config, options.particleCount + 1)).toBeGreaterThan(LIVE_PARTICLE_BUDGET);
+            });
+
+            it('caps snow at the 150 count limit', () => {
+                const { options, config } = confettiManager.buildOptions('snow', { count: 150 });
+                expect(options.particleCount).toBe(12);
+                expect(liveCount(config, options.particleCount)).toBeLessThanOrEqual(LIVE_PARTICLE_BUDGET);
+            });
+
+            it('keeps edge bursts whole and under budget, and never goes below 1', () => {
+                const edge = budgetParticleCount({ count: 150, continuous: true, interval: 100, duration: 700, originSpread: 'edge' });
+                expect(edge % 7).toBe(0);
+                expect(liveCount({ interval: 100, duration: 700, originSpread: 'edge' }, edge)).toBeLessThanOrEqual(LIVE_PARTICLE_BUDGET);
+                expect(budgetParticleCount({ count: 150, continuous: true, interval: 50, duration: 1000, originSpread: 'edge' })).toBe(1);
+                expect(budgetParticleCount({ count: 150, continuous: true, interval: 1, duration: 100000 })).toBe(1);
+            });
+
+            it('leaves one-shot effects and configs under budget untouched', () => {
+                expect(confettiManager.buildOptions('confetti', { count: 150, interval: 50, duration: 1000, continuous: false }).options.particleCount).toBe(150);
+                expect(confettiManager.buildOptions('fireworks', { count: 150 }).options.particleCount).toBe(150);
+            });
+
+            it('leaves every built-in preset at its defaults unchanged', () => {
+                for (const [name, preset] of Object.entries(CONFETTI_PRESETS)) {
+                    const { options, config } = confettiManager.buildOptions(name, {});
+                    expect(options.particleCount, name).toBe(preset.count);
+                    expect(liveCount(config, options.particleCount), name).toBeLessThanOrEqual(LIVE_PARTICLE_BUDGET);
+                }
+            });
+
+            it('fires the budgeted count, not the config count, in edge bursts', () => {
+                const instance = vi.fn(() => Promise.resolve());
+                confettiManager.fireBurst(instance, { count: 150, position: 'top', originSpread: 'edge', emoji: null }, { particleCount: 14, origin: { x: 0.5, y: 0 } });
+                expect(instance.mock.calls.map(call => call[0].particleCount)).toEqual(Array(7).fill(2));
+            });
+        });
+
         it('should apply size override', () => {
             const result = confettiManager.buildOptions('confetti', { size: 2.0 });
             expect(result.options.scalar).toBe(2.0);
@@ -607,6 +658,75 @@ describe('confettiManager', () => {
             expect(effect.intervalId).toBeNull();
             vi.advanceTimersByTime(10000);
             expect(mockConfettiInstance).toHaveBeenCalledTimes(1);
+        });
+
+        // The instance call returns a promise that resolves when the last particle is gone
+        function deferredBurst() {
+            let resolve;
+            const promise = new Promise(r => { resolve = r; });
+            mockConfettiInstance.mockImplementationOnce(() => promise);
+            return async () => { resolve(); await promise; await Promise.resolve(); };
+        }
+
+        it('releases the observers and canvas buffer once a single burst finishes', async () => {
+            const finish = deferredBurst();
+            const el = sizedElement(640, 200);
+            const effect = manager.start('leaf-1', el, 'confetti', { continuous: false });
+            const resizeObserver = FakeResizeObserver.instances[0];
+            const intersectionObserver = FakeIntersectionObserver.instances[0];
+            expect([effect.canvas.width, effect.canvas.height]).toEqual([640, 200]);
+
+            await finish();
+
+            expect(effect.idle).toBe(true);
+            expect(resizeObserver.disconnected).toBe(true);
+            expect(intersectionObserver.disconnected).toBe(true);
+            expect(effect.resizeObserver).toBeNull();
+            expect(effect.intersectionObserver).toBeNull();
+            expect([effect.canvas.width, effect.canvas.height]).toEqual([0, 0]);
+            // The record stays, so an unchanged config is still skipped
+            expect(manager.getEffect('leaf-1')).toBe(effect);
+            expect(manager.update('leaf-1', el, 'confetti', { continuous: false })).toBe(effect);
+            manager.refreshVisibility();
+            expect(FakeIntersectionObserver.instances).toHaveLength(1);
+            expect([effect.canvas.width, effect.canvas.height]).toEqual([0, 0]);
+            expect(mockConfettiInstance).toHaveBeenCalledTimes(1);
+
+            // stop() still removes it
+            manager.stop('leaf-1', 0);
+            expect(effect.disposed).toBe(true);
+            expect(el.querySelector('canvas')).toBeNull();
+        });
+
+        it('leaves a single-burst effect alone when it was stopped or replaced before the burst finished', async () => {
+            const finishStopped = deferredBurst();
+            const stopped = manager.start('leaf-1', sizedElement(), 'confetti', { continuous: false });
+            const finishReplaced = deferredBurst();
+            const replaced = manager.start('leaf-2', sizedElement(), 'confetti', { continuous: false });
+            const replacement = manager.start('leaf-2', sizedElement(), 'confetti', { continuous: false, count: 5 });
+            manager.stop('leaf-1', 500);
+
+            await finishStopped();
+            await finishReplaced();
+
+            expect(stopped.idle).toBe(false);
+            expect(replaced.idle).toBe(false);
+            expect(replaced.disposed).toBe(true);
+            // Still fading: its canvas keeps its size until it is removed
+            expect(stopped.canvas.width).toBeGreaterThan(0);
+            vi.advanceTimersByTime(500);
+            expect(stopped.disposed).toBe(true);
+            expect(manager.getEffect('leaf-2')).toBe(replacement);
+        });
+
+        it('keeps the observers of a continuous effect after a burst finishes', async () => {
+            const effect = manager.start('leaf-1', sizedElement(), 'snow', {});
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(effect.idle).toBe(false);
+            expect(effect.resizeObserver).not.toBeNull();
+            expect(effect.intersectionObserver).not.toBeNull();
         });
 
         it('pauses while the document is hidden and resumes with an immediate burst', () => {
@@ -1051,6 +1171,17 @@ describe('confettiManager', () => {
             mockReducedMotion(true);
             expect(shouldRunConfetti({ settings: {} }, {})).toBe(false);
             expect(shouldRunConfetti({ settings: {} }, { respectReducedMotion: false })).toBe(true);
+        });
+
+        it('names why confetti is blocked', () => {
+            mockReducedMotion(false);
+            expect(getConfettiBlockReason({ settings: {} }, {})).toBeNull();
+            Platform.isMobile = true;
+            expect(getConfettiBlockReason({ settings: { confettiDisableOnMobile: true } }, {})).toBe('mobile');
+            Platform.isMobile = false;
+            mockReducedMotion(true);
+            expect(getConfettiBlockReason({ settings: {} }, {})).toBe('reduced-motion');
+            expect(getConfettiBlockReason({ settings: {} }, { respectReducedMotion: false })).toBeNull();
         });
 
         it('passes the reduced-motion opt-out to canvas-confetti', () => {

@@ -1,5 +1,5 @@
 import { Modal, Setting, MarkdownView, Notice } from 'obsidian';
-import { confettiManager, PREVIEW_EFFECT_ID, shouldRunConfetti, isLightTheme } from '../../core/confettiManager';
+import { confettiManager, PREVIEW_EFFECT_ID, shouldRunConfetti, getConfettiBlockReason, isLightTheme } from '../../core/confettiManager';
 import { getPresetNames, getPresetDefaults } from '../../utils/confettiUtils';
 import { writeConfettiField, diffFromPreset, serialize, resolvePresetName } from '../../utils/confettiConfig';
 import { getCustomShapeNames } from '../../core/confettiShapes';
@@ -72,10 +72,18 @@ export class ConfettiModal extends Modal {
         if (this.currentConfig && this.currentConfig.presetName && this.currentConfig.presetName !== 'none') {
             const defaults = getPresetDefaults(this.currentConfig.presetName);
             if (defaults) {
+                const overrides = this.currentConfig.overrides || {};
                 const settings = {
                     ...defaults,
-                    ...(this.currentConfig.overrides || {})
+                    ...overrides
                 };
+                // A built-in shape the note picked replaces the preset's own
+                // custom shape when drawn (buildOptions), so show it that way,
+                // as the Shape dropdown's onChange does
+                if (Array.isArray(overrides.shapes) && overrides.shapes.length > 0
+                    && !(Array.isArray(overrides.customShapes) && overrides.customShapes.length > 0)) {
+                    settings.customShapes = null;
+                }
                 this.normalizeColors(settings);
                 return settings;
             }
@@ -170,6 +178,9 @@ export class ConfettiModal extends Modal {
             text: '(modified)'
         });
         this.modifiedIndicator.addClass('is-hidden');
+
+        // Says why the live preview is not shown (reduced motion, mobile)
+        this.previewNotice = contentEl.createDiv({ cls: 'confetti-preview-notice is-hidden' });
 
         // Effect Selection
         const effectContainer = contentEl.createDiv({ cls: 'confetti-section' });
@@ -912,6 +923,7 @@ export class ConfettiModal extends Modal {
 
     updatePreview() {
         if (this.selectedPreset === 'none') {
+            this.setPreviewNotice(null);
             this.cleanupPreview();
             return;
         }
@@ -921,10 +933,31 @@ export class ConfettiModal extends Modal {
         // a preview that honors a long start delay would just look broken.
         const overrides = { ...this.getOverridesFromDefaults(), delay: 0 };
         if (!shouldRunConfetti(this.plugin, overrides)) {
+            this.setPreviewNotice(getConfettiBlockReason(this.plugin, overrides) || 'unknown');
             this.cleanupPreview();
             return;
         }
+        this.setPreviewNotice(null);
         confettiManager.start(PREVIEW_NOTE_ID, this.ensurePreviewLayer(), this.selectedPreset, overrides, { isPreview: true });
+    }
+
+    // Show why the preview is blocked ('reduced-motion', 'mobile', or any
+    // other truthy reason), or hide the line when blocked is null
+    setPreviewNotice(blocked) {
+        if (!this.previewNotice) return;
+        if (blocked === null || blocked === undefined) {
+            this.previewNotice.setText('');
+            this.previewNotice.addClass('is-hidden');
+            return;
+        }
+        let text = 'Preview hidden: confetti is turned off here';
+        if (blocked === 'reduced-motion') {
+            text = 'Preview hidden: your system asks for reduced motion';
+        } else if (blocked === 'mobile') {
+            text = 'Preview hidden: confetti is turned off on mobile';
+        }
+        this.previewNotice.setText(text);
+        this.previewNotice.removeClass('is-hidden');
     }
 
     // The preview draws on a fixed layer over the modal, outside modalEl

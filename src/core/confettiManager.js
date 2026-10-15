@@ -11,19 +11,51 @@ export const PREVIEW_EFFECT_ID = '<<confetti-modal-preview>>';
 // Class that gives a pane's container position: relative while an effect runs in it
 export const CONFETTI_HOST_CLASS = 'pixel-banner-confetti-host';
 
-// Whether confetti may run at all: the mobile setting and the OS reduced-motion
-// preference (unless the effect opts out with respectReducedMotion: false).
-// Every start path (note open, metadata change, startup, Apply, preview) asks this.
-export function shouldRunConfetti(plugin, overrides = {}) {
+// Why confetti may not run: 'mobile' (Disable Confetti on Mobile on a mobile
+// device), 'reduced-motion' (the OS asks for reduced motion and the effect
+// does not opt out with respectReducedMotion: false), or null when it may run.
+export function getConfettiBlockReason(plugin, overrides = {}) {
     if (plugin && plugin.settings && plugin.settings.confettiDisableOnMobile && Platform.isMobile) {
-        return false;
+        return 'mobile';
     }
     const prefersReducedMotion = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
         && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion && (!overrides || overrides.respectReducedMotion !== false)) {
-        return false;
+        return 'reduced-motion';
     }
-    return true;
+    return null;
+}
+
+// Whether confetti may run at all (see getConfettiBlockReason).
+// Every start path (note open, metadata change, startup, Apply, preview) asks this.
+export function shouldRunConfetti(plugin, overrides = {}) {
+    return getConfettiBlockReason(plugin, overrides) === null;
+}
+
+// Most particles a continuous effect may keep alive at once. canvas-confetti
+// keeps every particle until its ticks run out, so a short interval with a
+// long duration piles up thousands and stalls the main thread.
+export const LIVE_PARTICLE_BUDGET = 1500;
+
+// canvas-confetti advances one tick per frame, throttled to 60 frames a second
+const CONFETTI_FRAME_MS = 1000 / 60;
+
+// An 'edge' burst is split into this many smaller bursts along the edge
+const EDGE_BURSTS = 7;
+
+// Particles per burst for a config, scaled down for a continuous effect whose
+// steady live count (particles fired per burst x bursts per particle
+// lifetime, lifetime = ticks frames) would exceed LIVE_PARTICLE_BUDGET.
+// Never below 1; one-shot effects and configs under budget keep their count.
+export function budgetParticleCount(config) {
+    const count = config.count;
+    if (!config.continuous || !(config.interval > 0) || !(config.duration > 0)) return count;
+    const isEdge = config.originSpread === 'edge';
+    const firedPerBurst = (n) => isEdge ? EDGE_BURSTS * Math.ceil(n / EDGE_BURSTS) : n;
+    const burstsPerLifetime = Math.max(1, (config.duration * CONFETTI_FRAME_MS) / config.interval);
+    if (firedPerBurst(count) * burstsPerLifetime <= LIVE_PARTICLE_BUDGET) return count;
+    const maxFired = Math.floor(LIVE_PARTICLE_BUDGET / burstsPerLifetime);
+    return Math.max(1, isEdge ? Math.floor(maxFired / EDGE_BURSTS) * EDGE_BURSTS : maxFired);
 }
 
 // Stable string for comparing two configs (key order independent)
@@ -114,6 +146,9 @@ class ConfettiEffect {
         this.onScreen = true;
         this.paused = false;
         this.firedOnce = false;
+        // A one-shot effect whose burst has finished: observers released and
+        // canvas shrunk, but the record stays so update() can match it
+        this.idle = false;
         this.stopped = false;
         this.disposed = false;
     }
@@ -186,7 +221,7 @@ class ConfettiEffect {
     // Keep the canvas buffer at the container's size. A size change clears the
     // particles in flight, since the library keeps drawing at the old size.
     handleResize() {
-        if (this.stopped || !this.canvas) return;
+        if (this.stopped || this.idle || !this.canvas) return;
         const width = this.containerEl.clientWidth || 0;
         const height = this.containerEl.clientHeight || 0;
         this.hasSize = width > 0 && height > 0;
@@ -252,7 +287,7 @@ class ConfettiEffect {
 
     // Re-resolve the watched element (after a mode switch or banner re-render)
     refreshVisibilityTarget() {
-        if (this.stopped) return;
+        if (this.stopped || this.idle) return;
         this.observeVisibility();
         this.handleResize();
     }
@@ -296,7 +331,34 @@ class ConfettiEffect {
             this.observeVisibility();
         }
         this.firedOnce = true;
-        this.manager.fireBurst(this.confettiInstance, this.config, this.options);
+        const animation = this.manager.fireBurst(this.confettiInstance, this.config, this.options);
+        if (!this.isContinuous && animation && typeof animation.then === 'function') {
+            const release = () => this.releaseAfterBurst();
+            animation.then(release, release);
+        }
+    }
+
+    // A one-shot burst has finished: nothing will draw again, so drop the
+    // observers and the pane-sized canvas buffer. Skipped when the effect
+    // was stopped or replaced while the burst was still animating.
+    releaseAfterBurst() {
+        if (this.stopped || this.disposed || this.idle || this.isContinuous) return;
+        if (this.manager.effects.get(this.id) !== this) return;
+        this.idle = true;
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+        if (this.intersectionObserver) {
+            this.intersectionObserver.disconnect();
+            this.intersectionObserver = null;
+        }
+        this.observedEl = null;
+        this.observedRoot = null;
+        if (this.canvas) {
+            this.canvas.width = 0;
+            this.canvas.height = 0;
+        }
     }
 
     pause() {
@@ -569,7 +631,7 @@ class ConfettiManager {
 
         // Build canvas-confetti API options
         const options = {
-            particleCount: config.count,
+            particleCount: budgetParticleCount(config),
             scalar: config.size,
             startVelocity: config.speed,
             gravity: config.gravity,
@@ -656,14 +718,18 @@ class ConfettiManager {
         return effect;
     }
 
-    // Fire single burst
+    // Fire single burst. Returns the instance's promise for the animation
+    // (resolved when its last particle is gone), or undefined.
     fireBurst(confettiInstance, config, baseOptions) {
         const originSpread = config.originSpread || 'fixed';
+        // The budgeted count from buildOptions, which may be below config.count
+        const totalCount = Number.isFinite(baseOptions.particleCount) ? baseOptions.particleCount : config.count;
+        let animation;
 
         if (originSpread === 'edge') {
             // Fire multiple smaller bursts distributed across the edge
-            const numBursts = 7; // More bursts = better coverage
-            const particlesPerBurst = Math.ceil(config.count / numBursts);
+            const numBursts = EDGE_BURSTS; // More bursts = better coverage
+            const particlesPerBurst = Math.ceil(totalCount / numBursts);
             const yOffset = config.startY || 0; // Allow starting off-screen
 
             for (let i = 0; i < numBursts; i++) {
@@ -681,7 +747,7 @@ class ConfettiManager {
                 }
 
                 try {
-                    confettiInstance(options);
+                    animation = confettiInstance(options);
                 } catch (error) {
                     console.error('Pixel Banner: Error firing confetti burst:', error);
                 }
@@ -699,13 +765,13 @@ class ConfettiManager {
             pickBurstEmoji(options, config);
 
             // For low particle counts, randomly pick one color to ensure variety across bursts
-            if (options.colors && options.colors.length > 1 && config.count <= 3) {
+            if (options.colors && options.colors.length > 1 && totalCount <= 3) {
                 const randomColor = options.colors[Math.floor(Math.random() * options.colors.length)];
                 options.colors = [randomColor];
             }
 
             try {
-                confettiInstance(options);
+                animation = confettiInstance(options);
             } catch (error) {
                 console.error('Pixel Banner: Error firing confetti burst:', error);
             }
@@ -722,11 +788,12 @@ class ConfettiManager {
             pickBurstEmoji(options, config);
 
             try {
-                confettiInstance(options);
+                animation = confettiInstance(options);
             } catch (error) {
                 console.error('Pixel Banner: Error firing confetti burst:', error);
             }
         }
+        return animation;
     }
 
     // Stop one effect, fading it out over fadeOutDuration ms
