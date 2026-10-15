@@ -1,4 +1,5 @@
 import { MarkdownView } from 'obsidian';
+import { isVaultImageBlobUrl } from './bannerUtils.js';
 
 // Helper method to generate cache key
 export function generateCacheKey(filePath, leafId, isShuffled = false) {
@@ -44,7 +45,7 @@ export function cleanupCache(force = false) {
             }
 
             // Clean up blob URLs
-            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:') && !isVaultImageBlobUrl(entry.state.imageUrl)) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);
@@ -76,7 +77,7 @@ export function cleanupCache(force = false) {
             }
 
             // Clean up blob URLs
-            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:') && !isVaultImageBlobUrl(entry.state.imageUrl)) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);
@@ -102,7 +103,7 @@ export function invalidateLeafCache(leafId) {
             }
 
             // Clean up blob URLs
-            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:') && !isVaultImageBlobUrl(entry.state.imageUrl)) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);

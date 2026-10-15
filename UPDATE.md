@@ -1,143 +1,46 @@
 <a href="https://www.youtube.com/watch?v=tfNqEAQuhXs">
-  <img src="https://pixel-banner.online/img/pixel-banner-v3.6.jpg" alt="Pixel Banner" style="max-width: 400px;">
+  <img src="https://pixel-banner.online/img/pixel-banner-v3.7.jpg" alt="Pixel Banner" style="max-width: 400px;">
 </a>
 
 ## 🎉 What's New
 
-### v3.6.0
+### v3.7.0
 #### ✨ Added
-- Support for 🎬 Video Banners!
-  - Upload and choose Video files as banners from your vault
-  - Downloadable 🎬 Video Banners from the `Pixel Banner Plus Collection`
-- Added paging controls to the `Pixel Banner Plus Collection`
-- New global `Banner Max Width` setting to control the default max width for all banners
-
-#### 📦 Updated
-- Moved `Default Saved Banners Folder` setting to the `General` tab
-- Renamed `Pixel Banner Plus Store` to `Pixel Banner Plus Collection` as many items are free
-
-### v3.6.1
-#### 🐛 Fixed
-- Resolved issue with Icon Image selection modal not setting the selected icon image
-
-### v3.6.2
-#### 📦 Updated
-- Improved debounce logic to prevent multiple banner reloads when opening a note
-
-### v3.6.3
-#### ✨ Added
-- Added `filesize` display to the store modal
-
-### v3.6.4
-#### ✨ Added
-- Banner images now support local `file` protocol for images outside of your vault (e.g. `file:///C:\path\banner.jpg`)
-
-#### 📦 Updated
-- Allow commas in banner filenames
+- **Confetti/Particle Effects**: Add animated effects to your notes!
+  - Use `banner-confetti: "type: snow"` (or any preset) in frontmatter
+  - 14 presets available: snow, snowflakes, leaves, rain_light, rain_heavy, fireworks, confetti, hearts, sparkles, and more
+  - Customize colors, speed, size, and other properties
+  - Live preview right in the settings modal: see your effect as you tweak it, before applying
+  - Access via the 🎊 button in the Target Position modal
+  - Respects reduced motion preferences for accessibility
+  - Split panes each get their own effect, and effects pause while a tab is in the background or the banner is scrolled away
+  - The confetti settings modal saves exactly what you see and only when something changed
+  - Presets are easier to see, in both light and dark themes: snow, snowflakes, space and aliens switch to darker colours in light themes (unless you pick your own; after a theme change, from the next time the effect starts)
+- **Use Note Filename for Banner Images**: New setting that automatically uses the current note's filename as the default filename when saving banner images
+  - When enabled, saved banners will be named after the note they belong to (e.g., `My Project Note.jpg` instead of `pixel-banner-image.jpg`)
+  - Works with all save methods: pin icon, AI generation, and Plus Collection downloads
+  - Automatically falls back to default filename if the note is named "Untitled" or has no name
+  - Pre-fills the filename (still editable in the save dialog)
+  - Located in Settings → General tab
 
 #### 🐛 Fixed
-- Ensure pinned banner is the currently displayed image when saving API banners
-- Ensure banner icons are only rendered when a main banner image is present
-- Banner Icon Image not always rendered until the note was clicked/focused
-
-### v3.6.5
-#### 🐛 Fixed
-- Fix refresh button to use original comma-separated keywords from frontmatter instead of the cached single keyword
-- Resolved issue with the default x/y frontmatter fields not being hidden when the "Hide Pixel Banner Fields" option is enabled
-- Updated API call for `Pexels` to conform to spec changes on their side
-
-### v3.6.6
-#### 🐛 Fixed
-- New folder group entries now inherit the user's default Content Start Position setting instead of being hardcoded to 150px
-
-### v3.6.8
-#### ✨ Added
-- **Pin Choice Modal**: When pinning API images, users can now choose between saving locally or pinning the URL directly to frontmatter
-  - New choice modal presents "Save Image Locally" vs "Pin Image URL" options
-  - URL pinning saves no storage space in vault but requires internet connection
-  - Local saving remains available for offline access and permanence
-  - Choice only appears for user-initiated pin actions (pin icon, command palette)
-  - AI generation and Pixel Banner Plus continue to save locally automatically
-- **Auto-Focus Enhancement**: Folder selection modal now automatically focuses and selects the text input for improved workflow
-
-### v3.6.7
-#### 🐛 Fixed
-- Fixed ImageViewModal to properly display banner images and videos when clicking the "Show View Image Icon"
-  - Added support for MP4 and MOV video files in the ImageViewModal with proper video player controls
-  - Correctly display actual image URLs instead of keywords for 3rd party API banners in the ImageViewModal
-  - Local images, videos, and file:/// paths maintain original display behavior
-
-### v3.6.8
-#### ✨ Added
-- **Pin Choice Modal**: When pinning API images, users can now choose between saving locally or pinning the URL directly to frontmatter
-  - New choice modal presents "Save Image Locally" vs "Pin Image URL" options
-  - URL pinning saves no storage space in vault but requires internet connection
-  - Local saving remains available for offline access and permanence
-  - Choice only appears for user-initiated pin actions (pin icon, command palette)
-  - AI generation and Pixel Banner Plus continue to save locally automatically
-- **Auto-Focus Enhancement**: Folder selection modal now automatically focuses and selects the text input for improved workflow
-- `Enter` button support for submitting the save image form in the `Save Image Modal`
-- New `Pin Image URL` option to save API images directly as URL references in frontmatter without downloading to vault
-
-#### 📦 Updated
-- Replaced manual frontmatter string manipulation with Obsidian's native processFrontMatter API for more reliable metadata updates
-
-### v3.6.9
-#### ✨ Added
-- New `Icon Image Size Multiplier` setting to the `General` settings tab to control the global size of banner icon images
-- Check for version updates when opening `General` settings and show update button if available
-
-#### 📦 Updated
-- Moved `AI Model` selection from radio buttons to a dropdown for better organization
-- Changed default banner fade value from `-70` to `-40`
-
-### v3.6.10
-#### 🐛 Fixed
-- Icon images and emojis not being displayed properly
-
-### v3.6.11
-#### ✨ Added
-- New toggle to turn on/off `Pixel Banner Plus` in the main Pixel Banner select modal
-- **Plain image format support**: Added `image` option to Image Property Format setting (without brackets), improving compatibility with Make.md and other plugins
-
-#### 📦 Updated
-- Added unquoted wiki-link support for Image Icons paths (e.g. `[[path/icon.png]]`)
-- Misc code cleanup
-
-### v3.6.12
-#### 🐛 Fixed
-- Resolved incorrect `Pixel Banner Plus Server` URL
-
-### v3.6.13
-#### ✨ Added
-- Support for Multiple Image Reference for new AI Image Generation models
-  - `Nano Banana`
-  - `Seedream 4`
-
-### v3.6.14
-#### 🐛 Fixed
-- Resolved issue with `.webp` images not being displayed
-
-### v3.6.15
-#### 🐛 Fixed
-- Resolved issue with plain paths not working for video files (`.mp4`, `.mov`)
-
-### v3.6.16
-#### 🐛 Fixed
-- Fixed an occasional error that could prevent banners from displaying correctly
-
-### v3.6.18 - 2026-03-08
-#### 🐛 Fixed
-- Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
-
-### v3.6.17 - 2026-03-08
-#### 🐛 Fixed
-- Fixed content start position not applying correctly when changed in settings (issue #297)
-
-### v3.6.18 - 2026-03-08
-#### 🐛 Fixed
-- Fixed banner flickering on every keystroke when a note contains frontmatter and uses folder group banners (issue #318)
-
-<a href="https://www.youtube.com/watch?v=pJFsMfrWak4">
-  <img src="https://pixel-banner.online/img/pixel-banner-transparent-bg.png" alt="Pixel Banner" style="max-width: 400px;">
-</a>
+- Collapsing and expanding headings in Reading view works again in long notes with a banner: headings no longer swallow the ones below or stay hidden after expanding (issue #315, thanks @Amvtxrvsu)
+- Pixel Banner settings no longer shrink to a narrow column in wide settings windows on Obsidian 1.13+ (issue #337, thanks @zx2021210538)
+- Linked tabs ("Link with tab...") now show the banner of the note they follow, and a split pane opened without focus gets its banner right away (issue #207)
+- If a banner link is typed without quotes (like `banner: [[image.jpg]]`), Pixel Banner now tells you once per note and shows the corrected line, `banner: "[[image.jpg]]"`. Unquoted links get mangled into `- - image.jpg` when properties are saved (issue #289)
+- Banners set with Markdown links, such as `[](image.jpg)` (what Obsidian writes when "Use [[Wikilinks]]" is turned off), `[title](image.jpg)` or `![alt](image.jpg)`, now show their image (issue #310)
+- Banners are visible again in themes that hid them, such as Mocha and RetroNotes (issue #311)
+- Banners in hover previews and Hover Editor windows follow your Image Display and Image Repeat settings instead of repeating (issue #312)
+- Banners no longer flicker when switching between notes, especially with large banner images (issue #327)
+- The full-size image view (the 🖼️ View Image icon on a banner) opens centered on screen again, including with themes that previously pushed it to the bottom right (issue #328)
+- Embedded blocks and headings (`![[note#^block]]`, `![[note#heading]]`) no longer show a large empty space below them in notes with a banner (issue #331)
+- Notes opened automatically at startup, such as a homepage set by the Homepage plugin, now show their banner and banner icon correctly on launch, instead of no banner or a banner with default styling (issue #333)
+- On phones, the banner no longer hides under the top toolbar, and `content-start` places your note where it does on tablet and desktop (issue #335)
+- Banners in hover previews now use your banner height, fade and corner radius settings
+- Linked tabs showing the same note now show the same keyword banner image after you edit its properties
+- The "Refresh current banner image" command now tells you when the refresh failed
+- Banners set with a Markdown link to a file outside the vault, such as `[photo](file:///C:/Pictures/photo.jpg)`, now show their image on desktop
+- Switching notes while a banner is still loading no longer puts the previous note's banner icon on the new note
+- With "Use Note Filename for Banner Images", notes with non-Latin or accented names (like "日記" or "Café") keep their name when saving a banner
+- The confetti settings show the shape you picked when you reopen them, and say why the preview is hidden when reduced motion or the mobile setting turns it off
+- Confetti with very high particle counts stays smooth: each pane keeps at most 1,500 particles on screen (the built-in presets are unchanged)

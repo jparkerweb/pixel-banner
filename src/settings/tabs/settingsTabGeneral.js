@@ -162,9 +162,8 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.selectImageIconOpacity = DEFAULT_SETTINGS.selectImageIconOpacity;
                     await plugin.saveSettings();
                     
-                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                    sliderEl.value = DEFAULT_SETTINGS.selectImageIconOpacity;
-                    sliderEl.dispatchEvent(new Event('input'));
+                    const sliderComponent = selectImageIconOpacitySetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.selectImageIconOpacity);
                     
                     plugin.updateAllBanners();
                 } catch (error) {
@@ -334,6 +333,37 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
+    // Add the useNoteFilenameForBanner setting
+    const useNoteFilenameForBannerSetting = new Setting(SelectImageSettingsGroup)
+        .setName('Use Note Filename for Banner Images')
+        .setDesc('When saving banner images, automatically use the note\'s filename as the default image filename')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.useNoteFilenameForBanner)
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.useNoteFilenameForBanner = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.useNoteFilenameForBanner = DEFAULT_SETTINGS.useNoteFilenameForBanner;
+                    await plugin.saveSettings();
+
+                    const toggleComponent = useNoteFilenameForBannerSetting.components[0];
+                    if (toggleComponent) {
+                        toggleComponent.setValue(DEFAULT_SETTINGS.useNoteFilenameForBanner);
+                    }
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
     // Add the defaultSelectImagePath setting
     const defaultSelectImagePathSetting = new Setting(SelectImageSettingsGroup)
         .setName('Default Select Image Path')
@@ -460,7 +490,7 @@ export function createGeneralSettings(containerEl, plugin) {
             }));
 
     // Banner Max Width
-    new Setting(containerEl)
+    const bannerMaxWidthSetting = new Setting(containerEl)
         .setName('Banner Max Width')
         .setDesc('Set the maximum width for banner images (100-2560 pixels)')
         .addSlider(slider => slider
@@ -483,10 +513,8 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerMaxWidth = DEFAULT_SETTINGS.bannerMaxWidth;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerMaxWidth;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerMaxWidthSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerMaxWidth);
                     plugin.updateAllBanners();
                 } catch (error) {
                     console.error('Failed to save settings:', error);
@@ -494,7 +522,7 @@ export function createGeneralSettings(containerEl, plugin) {
             }));
 
     // Image Horizontal Position setting
-    new Setting(containerEl)
+    const imageHorizontalPositionSetting = new Setting(containerEl)
         .setName('Image Horizontal Position')
         .setDesc('Set the horizontal position of the image (0-100)')
         .addSlider(slider => slider
@@ -519,17 +547,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.xPosition = DEFAULT_SETTINGS.xPosition;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the slider value
-                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                    sliderEl.value = DEFAULT_SETTINGS.xPosition;
-                    sliderEl.dispatchEvent(new Event('input'));
+                    // Update the slider value via the component API
+                    const sliderComponent = imageHorizontalPositionSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.xPosition);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Image Vertical Position setting
-    new Setting(containerEl)
+    const imageVerticalPositionSetting = new Setting(containerEl)
         .setName('Image Vertical Position')
         .setDesc('Set the vertical position of the image (0-100)')
         .addSlider(slider => slider
@@ -554,17 +581,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.yPosition = DEFAULT_SETTINGS.yPosition;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the slider value
-                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                    sliderEl.value = DEFAULT_SETTINGS.yPosition;
-                    sliderEl.dispatchEvent(new Event('input'));
+                    // Update the slider value via the component API
+                    const sliderComponent = imageVerticalPositionSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.yPosition);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
     
     // Content Start Position setting
-    new Setting(containerEl)
+    const contentStartPositionSetting = new Setting(containerEl)
         .setName('Content Start Position')
         .setDesc('Set the default vertical position where the content starts (in pixels)')
         .addText(text => text
@@ -596,17 +622,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.contentStartPosition = DEFAULT_SETTINGS.contentStartPosition;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the input value
-                    const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
-                    inputEl.value = DEFAULT_SETTINGS.contentStartPosition;
-                    inputEl.dispatchEvent(new Event('input'));
+                    // Update the input value via the component API
+                    const textComponent = contentStartPositionSetting.components[0];
+                    if (textComponent) textComponent.setValue(String(DEFAULT_SETTINGS.contentStartPosition));
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Image Display setting
-    new Setting(containerEl)
+    const imageDisplaySetting = new Setting(containerEl)
         .setName('Image Display')
         .setDesc('Set how the banner image should be displayed')
         .addDropdown(dropdown => {
@@ -633,16 +658,16 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.imageDisplay = DEFAULT_SETTINGS.imageDisplay;
                     await plugin.saveSettings();
-                    const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
-                    dropdownEl.value = DEFAULT_SETTINGS.imageDisplay;
-                    dropdownEl.dispatchEvent(new Event('change'));
+                    const dropdownComponent = imageDisplaySetting.components[0];
+                    if (dropdownComponent) dropdownComponent.setValue(DEFAULT_SETTINGS.imageDisplay);
+                    plugin.updateAllBanners();
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Image Repeat setting
-    new Setting(containerEl)
+    const imageRepeatSetting = new Setting(containerEl)
         .setName('Image Repeat')
         .setDesc('Enable image repetition when "Contain" is selected')
         .addToggle(toggle => {
@@ -668,21 +693,15 @@ export function createGeneralSettings(containerEl, plugin) {
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
 
-                    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
-                    const toggleEl = checkboxContainer.querySelector('input');
-                    if (toggleEl) {
-                        toggleEl.checked = DEFAULT_SETTINGS.imageRepeat;
-                        checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.imageRepeat);
-                        const event = new Event('change', { bubbles: true });
-                        toggleEl.dispatchEvent(event);
-                    }
+                    const toggleComponent = imageRepeatSetting.components[0];
+                    if (toggleComponent) toggleComponent.setValue(DEFAULT_SETTINGS.imageRepeat);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Height setting
-    new Setting(containerEl)
+    const bannerHeightSetting = new Setting(containerEl)
         .setName('Banner Height')
         .setDesc('Set the default height of the banner image (0-1280 pixels)')
         .addText(text => {
@@ -732,17 +751,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.bannerHeight = DEFAULT_SETTINGS.bannerHeight;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the input value
-                    const inputEl = button.extraSettingsEl.parentElement.querySelector('input');
-                    inputEl.value = DEFAULT_SETTINGS.bannerHeight;
-                    inputEl.dispatchEvent(new Event('input'));
+                    // Update the input value via the component API
+                    const textComponent = bannerHeightSetting.components[0];
+                    if (textComponent) textComponent.setValue(String(DEFAULT_SETTINGS.bannerHeight));
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Fade setting
-    new Setting(containerEl)
+    const bannerFadeSetting = new Setting(containerEl)
         .setName('Banner Fade')
         .setDesc('Set the default fade effect for the banner image (-300 to 100)')
         .addSlider(slider => slider
@@ -767,17 +785,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.fade = DEFAULT_SETTINGS.fade;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the slider value
-                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                    sliderEl.value = DEFAULT_SETTINGS.fade;
-                    sliderEl.dispatchEvent(new Event('input'));
+                    // Update the slider value via the component API
+                    const sliderComponent = bannerFadeSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.fade);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Fade In Animation Duration setting
-    new Setting(containerEl)
+    const bannerFadeInAnimationDurationSetting = new Setting(containerEl)
         .setName('Banner Fade In Animation Duration')
         .setDesc('Set the default fade in animation duration for the banner image (0-1000 milliseconds)')
         .addSlider(slider => slider
@@ -802,17 +819,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.bannerFadeInAnimationDuration = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the slider value
-                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                    sliderEl.value = DEFAULT_SETTINGS.bannerFadeInAnimationDuration;
-                    sliderEl.dispatchEvent(new Event('input'));
+                    // Update the slider value via the component API
+                    const sliderComponent = bannerFadeInAnimationDurationSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerFadeInAnimationDuration);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Border Radius setting
-    new Setting(containerEl)
+    const borderRadiusSetting = new Setting(containerEl)
         .setName('Border Radius')
         .setDesc('Set the default border radius of the banner image (0-50 pixels)')
         .addSlider(slider => slider
@@ -836,17 +852,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.borderRadius = DEFAULT_SETTINGS.borderRadius;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the slider value
-                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                    sliderEl.value = DEFAULT_SETTINGS.borderRadius;
-                    sliderEl.dispatchEvent(new Event('input'));
+                    // Update the slider value via the component API
+                    const sliderComponent = borderRadiusSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.borderRadius);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Gap setting
-    new Setting(containerEl)
+    const bannerGapSetting = new Setting(containerEl)
         .setName('Banner Gap')
         .setDesc('Set the gap between the banner and the window edges (0-50 pixels)')
         .addSlider(slider => slider
@@ -871,17 +886,16 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.bannerGap = DEFAULT_SETTINGS.bannerGap;
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
-                    // Update the slider value
-                    const sliderEl = button.extraSettingsEl.parentElement.querySelector('.slider');
-                    sliderEl.value = DEFAULT_SETTINGS.bannerGap;
-                    sliderEl.dispatchEvent(new Event('input'));
+                    // Update the slider value via the component API
+                    const sliderComponent = bannerGapSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerGap);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Inline Title Color setting
-    new Setting(containerEl)
+    const inlineTitleColorSetting = new Setting(containerEl)
         .setName('Inline Title Color')
         .setDesc('Set the default inline title color for all banners')
         .addColorPicker(color => color
@@ -925,23 +939,23 @@ export function createGeneralSettings(containerEl, plugin) {
                     plugin.settings.titleColor = DEFAULT_SETTINGS.titleColor;
                     await plugin.saveSettings();
                 
-                // Update color picker to show computed value
-                const colorPickerEl = button.extraSettingsEl.parentElement.querySelector('input[type="color"]');
-                if (colorPickerEl) {
+                // Update color picker to show computed value via the component API
+                const colorComponent = inlineTitleColorSetting.components[0];
+                if (colorComponent) {
                     const temp = document.createElement('div');
                     temp.style.color = DEFAULT_SETTINGS.titleColor;
                     document.body.appendChild(temp);
                     const computedColor = getComputedStyle(temp).color;
                     document.body.removeChild(temp);
-                    
+
                     const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
                     if (rgbMatch) {
                         const [_, r, g, b] = rgbMatch;
-                        const hexColor = '#' + 
+                        const hexColor = '#' +
                             parseInt(r).toString(16).padStart(2, '0') +
                             parseInt(g).toString(16).padStart(2, '0') +
                             parseInt(b).toString(16).padStart(2, '0');
-                        colorPickerEl.value = hexColor;
+                        colorComponent.setValue(hexColor);
                     }
                 }
                 } catch (error) {
@@ -1018,7 +1032,7 @@ export function createGeneralSettings(containerEl, plugin) {
             }));
 
     // Show Banner in Popover Previews setting
-    new Setting(containerEl)
+    const showBannerInPopoverPreviewsSetting = new Setting(containerEl)
         .setName('Show Banner in Popover Previews')
         .setDesc('Show banners in popover note previews')
         .addToggle(toggle => toggle
@@ -1041,12 +1055,37 @@ export function createGeneralSettings(containerEl, plugin) {
                     await plugin.saveSettings();
                     plugin.updateAllBanners();
                     
-                    const checkboxContainer = button.extraSettingsEl.parentElement.querySelector('.checkbox-container');
-                    const toggleEl = checkboxContainer.querySelector('input');
-                    if (toggleEl) {
-                        toggleEl.checked = DEFAULT_SETTINGS.showBannerInPopoverPreviews;
-                        checkboxContainer.classList.toggle('is-enabled', DEFAULT_SETTINGS.showBannerInPopoverPreviews);
-                    }
+                    const toggleComponent = showBannerInPopoverPreviewsSetting.components[0];
+                    if (toggleComponent) toggleComponent.setValue(DEFAULT_SETTINGS.showBannerInPopoverPreviews);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
+    // Disable Confetti on Mobile setting
+    const confettiDisableOnMobileSetting = new Setting(containerEl)
+        .setName('Disable Confetti on Mobile')
+        .setDesc('Turn off confetti effects on mobile devices for better performance')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.confettiDisableOnMobile)
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.confettiDisableOnMobile = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.confettiDisableOnMobile = DEFAULT_SETTINGS.confettiDisableOnMobile;
+                    await plugin.saveSettings();
+
+                    const toggleComponent = confettiDisableOnMobileSetting.components[0];
+                    if (toggleComponent) toggleComponent.setValue(DEFAULT_SETTINGS.confettiDisableOnMobile);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
@@ -1087,7 +1126,7 @@ export function createGeneralSettings(containerEl, plugin) {
             }));
 
     // Pinned Image Property Format
-    new Setting(containerEl)
+    const imagePropertyFormatSetting = new Setting(containerEl)
         .setName('Image Property Format')
         .setDesc('Set the format for the banner property value.')
         .addDropdown(dropdown => dropdown
@@ -1110,8 +1149,8 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.imagePropertyFormat = DEFAULT_SETTINGS.imagePropertyFormat;
                     await plugin.saveSettings();
-                    const dropdown = button.extraSettingsEl.parentElement.querySelector('select');
-                    dropdown.value = DEFAULT_SETTINGS.imagePropertyFormat;
+                    const dropdownComponent = imagePropertyFormatSetting.components[0];
+                    if (dropdownComponent) dropdownComponent.setValue(DEFAULT_SETTINGS.imagePropertyFormat);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
@@ -1238,7 +1277,7 @@ export function createGeneralSettings(containerEl, plugin) {
     }
 
     // Banner Icon settings
-    new Setting(containerEl)
+    const bannerIconSizeSetting = new Setting(containerEl)
         .setName('Default Banner Icon Size')
         .setDesc('Set the default size for the banner icon')
         .addSlider(slider => slider
@@ -1260,17 +1299,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconSize = DEFAULT_SETTINGS.bannerIconSize;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconSize;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconSizeSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconSize);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Image Size Multiplier
-    new Setting(containerEl)
+    const bannerIconImageSizeMultiplierSetting = new Setting(containerEl)
         .setName('Default Banner Icon Image Size Multiplier')
         .setDesc('Set the default size multiplier for banner icon images (0.1-5)')
         .addSlider(slider => slider
@@ -1293,10 +1330,8 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconImageSizeMultiplier = DEFAULT_SETTINGS.bannerIconImageSizeMultiplier;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconImageSizeMultiplier;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconImageSizeMultiplierSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconImageSizeMultiplier);
                     plugin.updateAllBanners();
                 } catch (error) {
                     console.error('Failed to save settings:', error);
@@ -1304,7 +1339,7 @@ export function createGeneralSettings(containerEl, plugin) {
             }));
 
     // Banner Icon X Position
-    new Setting(containerEl)
+    const bannerIconXPositionSetting = new Setting(containerEl)
         .setName('Default Banner Icon X Position')
         .setDesc('Set the default X position for the banner icon (0-100)')
         .addSlider(slider => slider
@@ -1326,17 +1361,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconXPosition = DEFAULT_SETTINGS.bannerIconXPosition;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconXPosition;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconXPositionSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconXPosition);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Opacity
-    new Setting(containerEl)
+    const bannerIconOpacitySetting = new Setting(containerEl)
         .setName('Default Banner Icon Opacity')
         .setDesc('Set the default opacity for the banner icon (0-100)')
         .addSlider(slider => slider
@@ -1358,17 +1391,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconOpacity = DEFAULT_SETTINGS.bannerIconOpacity;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconOpacity;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconOpacitySetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconOpacity);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Text Color
-    new Setting(containerEl)
+    const bannerIconColorSetting = new Setting(containerEl)
         .setName('Default Banner Icon Text Color')
         .setDesc('Set the default text color for the banner icon')
         .addText(text => text
@@ -1389,17 +1420,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconColor = DEFAULT_SETTINGS.bannerIconColor;
                     await plugin.saveSettings();
-                    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
-                    textInput.value = DEFAULT_SETTINGS.bannerIconColor;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    textInput.dispatchEvent(event);
+                    const textComponent = bannerIconColorSetting.components[0];
+                    if (textComponent) textComponent.setValue(DEFAULT_SETTINGS.bannerIconColor);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Font Weight
-    new Setting(containerEl)
+    const bannerIconFontWeightSetting = new Setting(containerEl)
         .setName('Default Banner Icon Font Weight')
         .setDesc('Set the default font weight for the banner icon')
         .addDropdown(dropdown => {
@@ -1425,16 +1454,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconFontWeight = DEFAULT_SETTINGS.bannerIconFontWeight;
                     await plugin.saveSettings();
-                    const dropdownEl = button.extraSettingsEl.parentElement.querySelector('select');
-                    dropdownEl.value = DEFAULT_SETTINGS.bannerIconFontWeight;
-                    dropdownEl.dispatchEvent(new Event('change'));
+                    const dropdownComponent = bannerIconFontWeightSetting.components[0];
+                    if (dropdownComponent) dropdownComponent.setValue(DEFAULT_SETTINGS.bannerIconFontWeight);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Background Color
-    new Setting(containerEl)
+    const bannerIconBackgroundColorSetting = new Setting(containerEl)
         .setName('Default Banner Icon Background Color')
         .setDesc('Set the default background color for the banner icon')
         .addText(text => text
@@ -1455,17 +1483,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconBackgroundColor = DEFAULT_SETTINGS.bannerIconBackgroundColor;
                     await plugin.saveSettings();
-                    const textInput = button.extraSettingsEl.parentElement.querySelector('input[type="text"]');
-                    textInput.value = DEFAULT_SETTINGS.bannerIconBackgroundColor;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    textInput.dispatchEvent(event);
+                    const textComponent = bannerIconBackgroundColorSetting.components[0];
+                    if (textComponent) textComponent.setValue(DEFAULT_SETTINGS.bannerIconBackgroundColor);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Padding X
-    new Setting(containerEl)
+    const bannerIconPaddingXSetting = new Setting(containerEl)
         .setName('Default Banner Icon Padding X')
         .setDesc('Set the default padding X for the banner icon')
         .addSlider(slider => slider
@@ -1487,17 +1513,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconPaddingX = DEFAULT_SETTINGS.bannerIconPaddingX;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingX;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconPaddingXSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconPaddingX);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Padding Y
-    new Setting(containerEl)
+    const bannerIconPaddingYSetting = new Setting(containerEl)
         .setName('Default Banner Icon Padding Y')
         .setDesc('Set the default padding Y for the banner icon')
         .addSlider(slider => slider
@@ -1519,17 +1543,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconPaddingY = DEFAULT_SETTINGS.bannerIconPaddingY;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconPaddingY;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconPaddingYSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconPaddingY);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Border Radius
-    new Setting(containerEl)
+    const bannerIconBorderRadiusSetting = new Setting(containerEl)
         .setName('Default Banner Icon Border Radius')
         .setDesc('Set the default border radius for the banner icon')
         .addSlider(slider => slider
@@ -1551,17 +1573,15 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconBorderRadius = DEFAULT_SETTINGS.bannerIconBorderRadius;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconBorderRadius;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconBorderRadiusSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconBorderRadius);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
             }));
 
     // Banner Icon Vertical Offset
-    new Setting(containerEl)
+    const bannerIconVerticalOffsetSetting = new Setting(containerEl)
         .setName('Default Banner Icon Vertical Offset')
         .setDesc('Set the default vertical offset for the banner icon')
         .addSlider(slider => slider
@@ -1583,10 +1603,8 @@ export function createGeneralSettings(containerEl, plugin) {
                 try {
                     plugin.settings.bannerIconVerticalOffset = DEFAULT_SETTINGS.bannerIconVerticalOffset;
                     await plugin.saveSettings();
-                    const sliderInput = button.extraSettingsEl.parentElement.querySelector('input[type="range"]');
-                    sliderInput.value = DEFAULT_SETTINGS.bannerIconVerticalOffset;
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    sliderInput.dispatchEvent(event);
+                    const sliderComponent = bannerIconVerticalOffsetSetting.components[0];
+                    if (sliderComponent) sliderComponent.setValue(DEFAULT_SETTINGS.bannerIconVerticalOffset);
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }

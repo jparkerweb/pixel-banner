@@ -316,7 +316,7 @@ export function createAPISettings(containerEl, plugin) {
             }));
 
     // Pinned Image Filename
-    new Setting(containerEl)
+    const pinnedImageFilenameSetting = new Setting(containerEl)
         .setName('Pinned Image Filename')
         .setDesc('Set the default filename for pinned images.')
         .addText(text => text
@@ -332,8 +332,8 @@ export function createAPISettings(containerEl, plugin) {
             .onClick(async () => {
                 plugin.settings.pinnedImageFilename = DEFAULT_SETTINGS.pinnedImageFilename;
                 await plugin.saveSettings();
-                const textInput = button.extraSettingsEl.parentElement.querySelector('input');
-                textInput.value = DEFAULT_SETTINGS.pinnedImageFilename;
+                const textComponent = pinnedImageFilenameSetting.components[0];
+                if (textComponent) textComponent.setValue(DEFAULT_SETTINGS.pinnedImageFilename);
             }));
 
     // Show Refresh Icon setting

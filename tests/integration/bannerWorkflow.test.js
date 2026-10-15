@@ -1,7 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PixelBannerPlugin } from '@/core/pixelBannerPlugin.js';
-import { createMockApp, createMockManifest, MarkdownView, TFile, MetadataCache } from 'obsidian';
+import { createMockApp, createMockManifest, MarkdownView, TFile, MetadataCache, Notice } from 'obsidian';
 import { DEFAULT_SETTINGS } from '@/settings/settings.js';
+
+// Record notices while keeping the mock Notice's behaviour
+vi.mock('obsidian', async () => {
+    const actual = await vi.importActual('obsidian');
+    return {
+        ...actual,
+        Notice: vi.fn(function (message, timeout) {
+            return new actual.Notice(message, timeout);
+        })
+    };
+});
 
 // DOM globals are automatically provided by happy-dom environment
 
@@ -13,6 +24,7 @@ describe('Banner Workflow Integration Tests', () => {
     let mockFile;
     let mockLeaf;
     let currentTime;
+    const realAdvanceTimersByTimeAsync = vi.advanceTimersByTimeAsync;
 
     // Helper function to create banner DOM structure
     function createBannerContainer() {
@@ -47,6 +59,21 @@ describe('Banner Workflow Integration Tests', () => {
         return { testFile, testView };
     }
 
+    // getImageUrl calls for one note. Banner updates are debounced per pane, so
+    // the startup update of the active pane (mockView) runs too and is not
+    // cancelled by the test's own update (issue #207)
+    function callsFor(spy, file) {
+        return spy.mock.calls.filter(call => call[2] === file.path);
+    }
+
+    // Run one debounced update to the end (50 ms debounce, then updateBanner's own
+    // 50 ms wait for a non-content change), staying inside the 250 ms repeat window
+    async function runUpdate(view, ...args) {
+        const done = plugin.updateBanner(view, ...args);
+        await vi.advanceTimersByTimeAsync(100);
+        return done;
+    }
+
     beforeEach(() => {
         // Use fake timers to prevent async operations from continuing after tests
         vi.useFakeTimers();
@@ -60,18 +87,13 @@ describe('Banner Workflow Integration Tests', () => {
             now: mockDateNow
         });
         
-        // Store original function for cleanup
-        if (!vi.advanceTimersByTimeAsync.originalFn) {
-            vi.advanceTimersByTimeAsync.originalFn = vi.advanceTimersByTimeAsync;
-        }
-        
-        // Make Date.now advance with fake timers
-        const originalAdvanceTimers = vi.advanceTimersByTimeAsync.originalFn;
+        // Make Date.now advance with fake timers. Wrap the real function, saved once
+        // above: wrapping whatever was there stacked a wrapper per test (the old one was
+        // never restored), so Date.now ran N times faster than the timers by test N
         vi.advanceTimersByTimeAsync = async (ms) => {
-            const prevTime = currentTime;
             currentTime += ms;
             mockDateNow.mockReturnValue(currentTime);
-            return originalAdvanceTimers(ms);
+            return realAdvanceTimersByTimeAsync(ms);
         };
         
         mockApp = createMockApp();
@@ -141,9 +163,7 @@ describe('Banner Workflow Integration Tests', () => {
 
     afterEach(async () => {
         // Restore original advanceTimers function
-        if (vi.advanceTimersByTimeAsync.originalFn) {
-            vi.advanceTimersByTimeAsync = vi.advanceTimersByTimeAsync.originalFn;
-        }
+        vi.advanceTimersByTimeAsync = realAdvanceTimersByTimeAsync;
         
         // Clear all pending timers before restoring real timers
         vi.clearAllTimers();
@@ -361,7 +381,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise2;
             
             // Should only call getImageUrl once for the first request
-            expect(getImageUrlSpy).toHaveBeenCalledTimes(1);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(1);
         });
     });
 
@@ -490,6 +510,138 @@ describe('Banner Workflow Integration Tests', () => {
     });
 
     describe('Banner Update Modes', () => {
+        // Issue #207: updates are debounced per pane, so two panes showing the
+        // same note (linked tabs) both get their banner
+        it('updates two panes showing the same note within the debounce window', async () => {
+            const { testFile, testView } = createTestView('two-panes-test');
+            const secondView = new MarkdownView();
+            secondView.file = testFile;
+            secondView.contentEl = createBannerContainer();
+            secondView.getMode = vi.fn(() => 'source');
+
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const getImageUrlSpy = vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+
+            plugin.updateBanner(testView, false, plugin.UPDATE_MODE.FULL_UPDATE);
+            plugin.updateBanner(secondView, false, plugin.UPDATE_MODE.FULL_UPDATE);
+            await vi.advanceTimersByTimeAsync(300);
+
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(2);
+            expect(testView.contentEl._pixelBannerFilePath).toBe(testFile.path);
+            expect(secondView.contentEl._pixelBannerFilePath).toBe(testFile.path);
+        });
+
+        it('returns a promise that resolves once the debounced update has run', async () => {
+            const { testFile, testView } = createTestView('promise-test');
+
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+
+            const done = plugin.updateBanner(testView, false, plugin.UPDATE_MODE.FULL_UPDATE);
+            expect(done).toBeInstanceOf(Promise);
+            expect(testView.contentEl._pixelBannerFilePath).toBeUndefined();
+
+            await vi.advanceTimersByTimeAsync(300);
+            await expect(done).resolves.toBe(true);
+            expect(testView.contentEl._pixelBannerFilePath).toBe(testFile.path);
+        });
+
+        it('lets a pane whose update failed be retried', async () => {
+            const { testView } = createTestView('failed-update-test');
+
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            vi.spyOn(plugin, 'getImageUrl').mockRejectedValue(new Error('Image load failed'));
+
+            const done = plugin.updateBanner(testView, false, plugin.UPDATE_MODE.FULL_UPDATE);
+            await vi.advanceTimersByTimeAsync(300);
+            // Resolves false rather than rejecting, so the refresh command can report it
+            await expect(done).resolves.toBe(false);
+
+            // The rendered-note marker is cleared, so handleLayoutChange tries again
+            expect(testView.contentEl._pixelBannerFilePath).toBeUndefined();
+        });
+
+        it('keeps a pending FULL_UPDATE when an ENSURE_VISIBILITY call for the same pane follows', async () => {
+            const { testFile, testView } = createTestView('merge-modes-test');
+
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            // With an image already loaded, ENSURE_VISIBILITY alone would not fetch
+            plugin.loadedImages.set(testFile.path, 'https://example.com/old-banner.jpg');
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const getImageUrlSpy = vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+
+            plugin.updateBanner(testView, false, plugin.UPDATE_MODE.FULL_UPDATE);
+            plugin.updateBanner(testView, false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+            await vi.advanceTimersByTimeAsync(300);
+
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(1);
+        });
+
+        it('keeps a content change when a later call for the same pane has none', async () => {
+            const { testFile, testView } = createTestView('merge-content-change-test');
+
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            // A content change drops the cached image, so ENSURE_VISIBILITY has to fetch;
+            // without the merge the second call would reuse the cached one
+            plugin.loadedImages.set(testFile.path, 'https://example.com/old-banner.jpg');
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const getImageUrlSpy = vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+
+            plugin.updateBanner(testView, true, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+            plugin.updateBanner(testView, false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+            await vi.advanceTimersByTimeAsync(300);
+
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(1);
+        });
+
+        // The reading-view post-processor's ENSURE_VISIBILITY run can draw the old cached
+        // image just before the metadata "changed" update for the same pane arrives
+        it('runs a banner change that follows an ENSURE_VISIBILITY run in the same pane', async () => {
+            const { testFile, testView } = createTestView('ensure-then-change-test');
+
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            plugin.loadedImages.set(testFile.path, 'https://example.com/old-banner.jpg');
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const getImageUrlSpy = vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+
+            await expect(runUpdate(testView, false, plugin.UPDATE_MODE.ENSURE_VISIBILITY)).resolves.toBe(true);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(0);
+
+            // Well inside the 250 ms repeat window
+            plugin.loadedImages.delete(testFile.path);
+            await expect(runUpdate(testView, true)).resolves.toBe(true);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(1);
+        });
+
+        it('resolves false when a repeat update for the same pane is skipped', async () => {
+            const { testFile, testView } = createTestView('repeat-skip-test');
+
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const getImageUrlSpy = vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+
+            await expect(runUpdate(testView, false, plugin.UPDATE_MODE.FULL_UPDATE)).resolves.toBe(true);
+            await expect(runUpdate(testView, false, plugin.UPDATE_MODE.FULL_UPDATE)).resolves.toBe(false);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(1);
+        });
+
         it('should handle FULL_UPDATE mode', async () => {
             const { testFile, testView } = createTestView('full-update-test');
             
@@ -537,7 +689,7 @@ describe('Banner Workflow Integration Tests', () => {
             await updatePromise;
             
             // Should use cached image, not fetch new one
-            expect(getImageUrlSpy).not.toHaveBeenCalled();
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(0);
             // Check that applyBannerSettings was called (called by addPixelBanner)
             expect(plugin.applyBannerSettings).toHaveBeenCalled();
         });
@@ -746,7 +898,7 @@ describe('Banner Workflow Integration Tests', () => {
             
             // Verify that banners were created in both updates
             expect(getImageUrlSpy).toHaveBeenCalledWith('url', 'https://example.com/banner.jpg', expect.stringContaining('.md'));
-            expect(getImageUrlSpy).toHaveBeenCalledTimes(2);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(2);
             
             // Verify the banner exists
             const container2 = testView.contentEl;
@@ -832,75 +984,156 @@ describe('Banner Workflow Integration Tests', () => {
         });
     });
 
-    describe('Preview Mode Integration', () => {
-        it('should handle markdown post processor in preview mode', async () => {
-            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+    describe('Banner refresh and hiding', () => {
+        function refreshCommand(addCommandSpy) {
+            return addCommandSpy.mock.calls.map(([command]) => command).find(command => command.id === 'refresh-banner-image');
+        }
+
+        it('reports the outcome of the refresh banner command', async () => {
+            const { testFile, testView } = createTestView('refresh-command-test');
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({ ...DEFAULT_SETTINGS, showPinIcon: true, showRefreshIcon: true });
+            const addCommandSpy = vi.spyOn(plugin, 'addCommand');
             await plugin.onload();
-            
-            // Create preview context
-            const el = document.createElement('div');
-            el.classList.add('markdown-preview-view');
-            
-            const ctx = {
-                containerEl: el,
-                sourcePath: 'test.md',
-                frontmatter: {
-                    banner: 'https://example.com/banner.jpg'
-                }
-            };
-            
-            // Mock file
-            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
-            
-            const addPixelBannerSpy = vi.spyOn(plugin, 'addPixelBanner').mockResolvedValue();
-            
-            // Get the registered post processor
-            const postProcessorCall = plugin.registerMarkdownPostProcessor.mock?.calls?.[0];
-            if (postProcessorCall) {
-                const [postProcessor] = postProcessorCall;
-                await postProcessor(el, ctx);
-                
-                expect(addPixelBannerSpy).toHaveBeenCalled();
-            }
+
+            mockApp.workspace.getActiveViewOfType = vi.fn(() => testView);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'nature' } }));
+            const getImageUrlSpy = vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/nature.jpg');
+            Notice.mockClear();
+
+            const command = refreshCommand(addCommandSpy);
+            expect(command.checkCallback(false)).toBe(true);
+            await vi.advanceTimersByTimeAsync(300);
+            expect(callsFor(getImageUrlSpy, testFile)).toHaveLength(1);
+            expect(Notice).toHaveBeenLastCalledWith('🔄 Refreshed banner image');
+
+            getImageUrlSpy.mockRejectedValue(new Error('API down'));
+            command.checkCallback(false);
+            await vi.advanceTimersByTimeAsync(300);
+            expect(Notice).toHaveBeenLastCalledWith('😭 Failed to refresh image');
         });
 
-        it('should handle hover popover banners', async () => {
-            const settings = {
-                ...DEFAULT_SETTINGS,
-                showBannerInPopoverPreviews: true
-            };
-            
-            vi.spyOn(plugin, 'loadData').mockResolvedValue(settings);
+        // Issue #327: a hidden banner must not keep the old image, or it flashes while
+        // the next note's image decodes
+        it('drops the image of a banner it hides', async () => {
+            const { testView } = createTestView('hide-banner-test');
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
             await plugin.onload();
-            
-            // Create hover popover context
+
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const getImageUrlSpy = vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+            plugin.updateBanner(testView, true);
+            await vi.advanceTimersByTimeAsync(300);
+            const banner = testView.contentEl.querySelector('.pixel-banner-image');
+            expect(banner.style.backgroundImage).toContain('banner.jpg');
+
+            getImageUrlSpy.mockResolvedValue(null);
+            plugin.updateBanner(testView, true);
+            await vi.advanceTimersByTimeAsync(300);
+            expect(banner.style.display).toBe('none');
+            expect(banner.style.backgroundImage).toBe('');
+        });
+
+        it('resolves a Markdown link banner icon image relative to its note', async () => {
+            const { testFile, testView } = createTestView('icon-markdown-link-test');
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: {
+                banner: 'https://example.com/banner.jpg',
+                'icon-image': '[icon](icon.png)'
+            } }));
+            vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+            const getPathSpy = vi.spyOn(plugin, 'getPathFromMarkdownImage').mockReturnValue(null);
+
+            plugin.updateBanner(testView, true);
+            await vi.advanceTimersByTimeAsync(300);
+            expect(getPathSpy).toHaveBeenCalledWith('[icon](icon.png)', testFile.path);
+        });
+    });
+
+    describe('Preview Mode Integration', () => {
+        // The plugin's own post-processor is registered first. Spy before onload:
+        // the mock Plugin's registerMarkdownPostProcessor records nothing
+        function spyOnPostProcessors() {
+            return vi.spyOn(plugin, 'registerMarkdownPostProcessor');
+        }
+        let registerSpy;
+        function getPostProcessor() {
+            const call = registerSpy.mock.calls[0];
+            expect(call).toBeDefined();
+            return call[0];
+        }
+
+        it('updates the pane that owns a reading view with its own view', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
+            mockView.containerEl = document.createElement('div');
+            const el = document.createElement('div');
+            el.classList.add('markdown-preview-view');
+            mockView.containerEl.appendChild(el);
+            mockApp.workspace.getLeavesOfType = vi.fn(() => [mockLeaf]);
+            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+            await getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+            // Same debounce key as the pane's own updates, so no second pass runs on its sizer
+            expect(updateBannerSpy).toHaveBeenCalledWith(mockView, false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+        });
+
+        it('keeps a stand-in view for a note embedded in another pane', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
+            mockView.containerEl = document.createElement('div');
+            const embed = document.createElement('div');
+            embed.classList.add('internal-embed', 'markdown-embed');
+            const el = document.createElement('div');
+            el.classList.add('markdown-preview-view');
+            embed.appendChild(el);
+            mockView.containerEl.appendChild(embed);
+            mockApp.workspace.getLeavesOfType = vi.fn(() => [mockLeaf]);
+            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+            await getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+            const [view] = updateBannerSpy.mock.calls[0];
+            expect(view).not.toBe(mockView);
+            expect(view.contentEl).toBe(el);
+        });
+
+        // Issue #312: hover popovers honor Image Display and Image Repeat
+        it('passes Image Display and Image Repeat to hover popover banners', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({ ...DEFAULT_SETTINGS, showBannerInPopoverPreviews: true, imageRepeat: true });
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
             const popover = document.createElement('div');
             popover.classList.add('hover-popover');
             const el = document.createElement('div');
             popover.appendChild(el);
             document.body.appendChild(popover);
-            
-            const ctx = {
-                containerEl: el,
-                sourcePath: 'test.md',
-                frontmatter: {
-                    banner: 'https://example.com/banner.jpg'
-                }
-            };
-            
             mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
-            
             const addPixelBannerSpy = vi.spyOn(plugin, 'addPixelBanner').mockResolvedValue();
-            
-            // Simulate post processor for hover popover
-            const postProcessorCall = plugin.registerMarkdownPostProcessor.mock?.calls?.[0];
-            if (postProcessorCall) {
-                const [postProcessor] = postProcessorCall;
-                await postProcessor(el, ctx);
-                
-                expect(addPixelBannerSpy).toHaveBeenCalled();
-            }
-            
+
+            // Frontmatter wins, and a false repeat is kept rather than falling through
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: {
+                banner: 'https://example.com/banner.jpg', 'banner-display': 'contain', 'banner-repeat': false
+            } }));
+            await getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+            expect(addPixelBannerSpy).toHaveBeenLastCalledWith(el, expect.objectContaining({ imageDisplay: 'contain', imageRepeat: false }));
+
+            // Without frontmatter values, the global settings apply
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            await getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+            expect(addPixelBannerSpy).toHaveBeenLastCalledWith(el, expect.objectContaining({ imageDisplay: DEFAULT_SETTINGS.imageDisplay, imageRepeat: true }));
+
             document.body.removeChild(popover);
         });
     });
@@ -930,15 +1163,53 @@ describe('Banner Workflow Integration Tests', () => {
                 call => call[0] === 'changed'
             )?.[1];
 
-            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue();
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
 
-            if (changeHandler) {
-                await changeHandler(mockFile);
+            expect(changeHandler).toBeDefined();
+            await changeHandler(mockFile);
 
-                // Both views should be updated
-                expect(updateBannerSpy).toHaveBeenCalledWith(mockView, true);
-                expect(updateBannerSpy).toHaveBeenCalledWith(mockView2, true);
-            }
+            // The first view loads the new image; the second reuses it, so a keyword
+            // banner is not fetched (and picked at random) once per pane
+            expect(updateBannerSpy).toHaveBeenCalledTimes(2);
+            expect(updateBannerSpy).toHaveBeenNthCalledWith(1, mockView, true);
+            expect(updateBannerSpy).toHaveBeenNthCalledWith(2, mockView2, false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+        });
+
+        it('lets the next view load the image when the first update failed', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            const mockView2 = new MarkdownView();
+            mockView2.file = mockFile;
+            mockView2.contentEl = createBannerContainer();
+            mockApp.workspace.getLeavesOfType = vi.fn(() => [mockLeaf, { id: 'test-leaf-id-2', view: mockView2 }]);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'mountains' } }));
+            const changeHandler = mockApp.metadataCache.on.mock.calls.find(call => call[0] === 'changed')?.[1];
+
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner')
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(true);
+
+            await changeHandler(mockFile);
+
+            expect(updateBannerSpy).toHaveBeenNthCalledWith(1, mockView, true);
+            expect(updateBannerSpy).toHaveBeenNthCalledWith(2, mockView2, true);
+        });
+
+        it('drops the cached image of a changed banner even when no view shows the note', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            mockApp.workspace.getLeavesOfType = vi.fn(() => []);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/new.jpg' } }));
+            plugin.loadedImages.set(mockFile.path, 'https://example.com/old.jpg');
+            plugin.lastKeywords.set(mockFile.path, 'https://example.com/old.jpg');
+            const changeHandler = mockApp.metadataCache.on.mock.calls.find(call => call[0] === 'changed')?.[1];
+
+            await changeHandler(mockFile);
+
+            expect(plugin.loadedImages.has(mockFile.path)).toBe(false);
+            expect(plugin.lastKeywords.has(mockFile.path)).toBe(false);
         });
     });
 
@@ -1049,6 +1320,98 @@ describe('Banner Workflow Integration Tests', () => {
                 await vi.advanceTimersByTimeAsync(300);
                 await updatePromise;
             }).not.toThrow();
+        });
+    });
+
+    describe('Stale and duplicate banner renders', () => {
+        function deferred() {
+            let resolve;
+            const promise = new Promise(r => { resolve = r; });
+            return { promise, resolve };
+        }
+
+        it('registers a single markdown post-processor', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            const registerSpy = vi.spyOn(plugin, 'registerMarkdownPostProcessor');
+            await plugin.onload();
+
+            // A second one ran a FULL_UPDATE on the pane's own sizer on every render,
+            // outside the pane's debounce (a second fetch for a keyword banner)
+            expect(registerSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not paint a slow image for a note the pane has left', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+
+            const { testView } = createTestView('stale-render');
+            const fileA = new TFile('stale-a.md');
+            const fileB = new TFile('stale-b.md');
+            mockApp.metadataCache.getFileCache = vi.fn(file => ({
+                frontmatter: file.path === fileA.path ? { banner: 'mountains' } : {}
+            }));
+            const slowImage = deferred();
+            vi.spyOn(plugin, 'getImageUrl').mockReturnValue(slowImage.promise);
+
+            // Note A starts loading its keyword image
+            testView.file = fileA;
+            const first = plugin.updateBanner(testView, false);
+            await vi.advanceTimersByTimeAsync(100);
+
+            // The pane moves to note B (no banner) before A's image arrives
+            testView.file = fileB;
+            await runUpdate(testView, false);
+
+            slowImage.resolve('https://example.com/a.jpg');
+            await first;
+            await vi.advanceTimersByTimeAsync(0);
+
+            const banner = testView.contentEl.querySelector('.pixel-banner-image');
+            expect(banner.style.backgroundImage).toBe('');
+            expect(banner.style.display).toBe('none');
+        });
+
+        it('swaps a refreshed keyword image in only once it is decoded', async () => {
+            const decodes = [];
+            const RealImage = globalThis.Image;
+            globalThis.Image = class {
+                constructor() {
+                    this.src = '';
+                    this.decode = () => new Promise(resolve => decodes.push({ src: this.src, resolve }));
+                }
+            };
+            try {
+                vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+                await plugin.onload();
+                plugin.settings.showPinIcon = true;
+                plugin.settings.showRefreshIcon = true;
+
+                const { testView } = createTestView('refresh-decode');
+                mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'mountains' } }));
+                // The startup update of the active pane fetches too, so pick the
+                // image by phase rather than by call order
+                let nextImage = 'https://example.com/first.jpg';
+                vi.spyOn(plugin, 'getImageUrl').mockImplementation(async () => nextImage);
+
+                await runUpdate(testView, false);
+                nextImage = 'https://example.com/second.jpg';
+                const banner = testView.contentEl.querySelector('.pixel-banner-image');
+                expect(banner.style.backgroundImage).toContain('first.jpg');
+
+                const refreshIcon = testView.contentEl.querySelector('.refresh-icon');
+                expect(refreshIcon).not.toBeNull();
+                await refreshIcon.onclick();
+
+                // The old image stays until the new one has decoded (issue #327)
+                expect(banner.style.backgroundImage).toContain('first.jpg');
+                const pending = decodes.find(d => d.src.includes('second.jpg'));
+                expect(pending).toBeDefined();
+                pending.resolve();
+                await vi.advanceTimersByTimeAsync(0);
+                expect(banner.style.backgroundImage).toContain('second.jpg');
+            } finally {
+                globalThis.Image = RealImage;
+            }
         });
     });
 });

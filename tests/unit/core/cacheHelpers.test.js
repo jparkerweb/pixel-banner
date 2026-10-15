@@ -5,7 +5,8 @@ import {
     cleanupCache, 
     invalidateLeafCache 
 } from '@/core/cacheHelpers.js';
-import { createMockApp, MarkdownView } from 'obsidian';
+import { createMockApp, MarkdownView, TFile } from 'obsidian';
+import { getVaultImageUrl, releaseAllVaultImageUrls } from '@/core/bannerUtils.js';
 
 // Mock URL.revokeObjectURL
 global.URL.revokeObjectURL = vi.fn();
@@ -400,6 +401,67 @@ describe('cacheHelpers', () => {
 
             expect(() => invalidateLeafCache.call(testContext, 'leaf-123')).not.toThrow();
             expect(testContext.bannerStateCache.size).toBe(0);
+        });
+    });
+    // A vault image's blob URL is shared by every pane showing that image; only the
+    // vault image cache may revoke it, so dropping one pane's cache entry keeps it
+    describe('shared vault image blob URLs', () => {
+        let sharedUrl;
+
+        beforeEach(async () => {
+            releaseAllVaultImageUrls();
+            global.URL.createObjectURL = vi.fn(() => 'blob:shared-vault-image');
+            const imageFile = new TFile('shared.png');
+            imageFile.extension = 'png';
+            const vaultContext = { app: createMockApp() };
+            vaultContext.app.vault.getAbstractFileByPath = vi.fn(() => imageFile);
+            vaultContext.app.vault.readBinary = vi.fn().mockResolvedValue(new ArrayBuffer(4));
+            sharedUrl = (await getVaultImageUrl.call(vaultContext, 'shared.png')).url;
+            global.URL.revokeObjectURL.mockClear();
+        });
+
+        afterEach(() => {
+            releaseAllVaultImageUrls();
+        });
+
+        function cacheEntries(...urls) {
+            urls.forEach((imageUrl, i) => {
+                testContext.bannerStateCache.set(`note${i}.md-leaf-123`, {
+                    timestamp: Date.now() - i,
+                    state: { imageUrl }
+                });
+            });
+        }
+
+        it('cleanupCache revokes a pane-only blob URL but keeps the shared one', () => {
+            cacheEntries(sharedUrl, 'blob:pane-only');
+
+            cleanupCache.call(testContext, true);
+
+            expect(testContext.bannerStateCache.size).toBe(0);
+            expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:pane-only');
+            expect(global.URL.revokeObjectURL).not.toHaveBeenCalledWith(sharedUrl);
+        });
+
+        it('cleanupCache keeps the shared URL when trimming the cache by size', () => {
+            testContext.MAX_CACHE_ENTRIES = 1;
+            cacheEntries('blob:newest', sharedUrl, 'blob:pane-only');
+
+            cleanupCache.call(testContext);
+
+            expect(testContext.bannerStateCache.size).toBe(1);
+            expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:pane-only');
+            expect(global.URL.revokeObjectURL).not.toHaveBeenCalledWith(sharedUrl);
+        });
+
+        it('invalidateLeafCache revokes a pane-only blob URL but keeps the shared one', () => {
+            cacheEntries(sharedUrl, 'blob:pane-only');
+
+            invalidateLeafCache.call(testContext, 'leaf-123');
+
+            expect(testContext.bannerStateCache.size).toBe(0);
+            expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:pane-only');
+            expect(global.URL.revokeObjectURL).not.toHaveBeenCalledWith(sharedUrl);
         });
     });
 });

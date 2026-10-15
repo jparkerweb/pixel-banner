@@ -46,6 +46,7 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - **Image Shuffling**: Automatically rotate through images in specified folders.
 - **Direct Children Option**: Apply settings only to immediate folder contents.
 - **Default Saved Banners Folder**: Configurable default location for saving downloaded banners from the collection or pinned from APIs.
+- **Use Note Filename for Banner Images**: Automatically name saved banner images after the note they belong to for better organization.
 - **File Extension Preservation**: Automatically saves banners with correct file extensions (.jpg, .png, .gif, .svg, .mp4, .mov).
 
 ### 🎬 Video Banner Features
@@ -115,13 +116,12 @@ You can now reference images stored outside your vault using the `file:///` prot
 
 You can manually configure banners by editing the frontmatter (properties) of your notes. Pixel Banner supports multiple formats for maximum flexibility:
 
+> **Put link values in quotes.** When you type frontmatter by hand (in source mode, a template, or another tool), always wrap `[[...]]`, `![[...]]` and Markdown link values in double quotes, as in the examples below. Without quotes, YAML does not read them as text (see [Important Notes](#important-notes)). Values entered through Obsidian's Properties panel or Pixel Banner's own pickers are quoted for you.
+
 ### Supported Banner Formats
 
 #### Wiki Link Formats
 ```yaml
-banner: [[folder/subfolder/image.jpg]]
-banner: [[subfolder/image.jpg]]
-banner: [[image.jpg]]
 banner: "[[folder/subfolder/image.jpg]]"
 banner: "[[subfolder/image.jpg]]"
 banner: "[[image.jpg]]"
@@ -130,12 +130,16 @@ banner: "![[subfolder/image.jpg]]"
 banner: "![[image.jpg]]"
 ```
 
-#### Markdown Image Formats
+#### Markdown Image and Link Formats
 ```yaml
 banner: "![](folder/subfolder/image.jpg)"
 banner: "![](subfolder/image.jpg)"
 banner: "![](image.jpg)"
+banner: "![alt text](image.jpg)"
+banner: "[title](folder/subfolder/image.jpg)"
+banner: "[](My%20Image.jpg)"
 ```
+The last form is what Obsidian writes when **Use [[Wikilinks]]** is turned off (Settings → Files and links); URL-encoded paths like `My%20Image.jpg` are supported.
 
 #### Plain Path Formats
 ```yaml
@@ -163,7 +167,10 @@ banner: nature, landscape, mountains
 ### Important Notes
 
 - **Partial Path Resolution**: Paths like `image.jpg` or `subfolder/image.jpg` are resolved relative to your note's location
-- **YAML Limitation**: Unquoted values starting with `!` (like `banner: ![[image.jpg]]`) don't work due to YAML parsing rules. Always quote them: `banner: "![[image.jpg]]"`
+- **Quote link values**: YAML gives `[` and `!` special meaning at the start of a value, so unquoted links are not read as text:
+  - `banner: [[image.jpg]]` is read as a list inside a list. The banner still shows, but the next time the properties are saved (by Obsidian or a plugin) the value is rewritten as `- - image.jpg` and its property type shows as `?`.
+  - `banner: ![[image.jpg]]` can stop Obsidian from reading the note's properties at all, so no banner and no properties appear.
+  - Write them as `banner: "[[image.jpg]]"` and `banner: "![[image.jpg]]"`. Pixel Banner shows a one-time notice when it finds an unquoted banner link in a note.
 - **Video Support**: All formats work with video files (.mp4, .mov) as well as images
 
 ### 🎯 Image Property Format Setting
@@ -175,8 +182,8 @@ To configure this:
 2. Find the **Image Property Format** dropdown
 3. Choose your preferred format:
    - `image` - Plain path format (e.g., `banner: image.jpg`) - **Compatible with Make.md and other plugins that prefer the plain path format**
-   - `[[image]]` - Wiki link format (e.g., `banner: [[image.jpg]]`)
-   - `![[image]]` - Embedded wiki link format (e.g., `banner: ![[image.jpg]]`)
+   - `[[image]]` - Wiki link format (e.g., `banner: "[[image.jpg]]"`)
+   - `![[image]]` - Embedded wiki link format (e.g., `banner: "![[image.jpg]]"`)
 
 **Note**: The plugin can **read** all three formats regardless of this setting. This setting only affects how new banner paths are **saved** to frontmatter when inserted through the GUI.
 
@@ -191,6 +198,16 @@ To configure this:
 - **Smart Badges**: Video banners display with "VIDEO" badges for easy identification
 - **Seamless Experience**: All existing banner features work with videos (icons, positioning, etc.)
 - **Flexible Saving**: Choose where to save downloaded videos and customize filenames
+
+## 🎊 Confetti & Particle Effects
+
+Bring a note to life with animated effects that play over it while it is open.
+
+- **Quick start**: add `banner-confetti: "type: snow"` to a note's frontmatter (the field name can be changed in settings)
+- **Presets**: 14 to choose from, including snow, leaves, light and heavy rain, fireworks, confetti, hearts, sparkles and bubbles
+- **Works everywhere you look**: each split pane runs its own effect, and the white presets switch to darker colours in light themes
+- **Customize**: tweak colors, speed, size and other properties with a live preview, from the 🎊 button in the Target Position modal
+- **Considerate by default**: respects your system's reduced-motion preference, and can be turned off on mobile
 
 ### 🎉 Happy Pixel Bannering 🤣
 

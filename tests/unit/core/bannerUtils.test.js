@@ -4,8 +4,12 @@ import {
     getIconImageInputType,
     getPathFromObsidianLink, 
     getPathFromMarkdownImage, 
-    getVaultImageUrl, 
-    preloadImage, 
+    getMarkdownLinkTarget,
+    getVaultImageUrl,
+    isVaultImageBlobUrl,
+    releaseVaultImageBlobUrl,
+    releaseAllVaultImageUrls,
+    preloadImage,
     getFolderPath, 
     getFolderSpecificImage, 
     getFolderSpecificSetting, 
@@ -127,6 +131,27 @@ describe('bannerUtils', () => {
         it('should detect URL input type', () => {
             const result = getInputType.call(testContext, 'https://example.com/image.jpg');
             expect(result).toBe('url');
+        });
+
+        // Issue #310: Obsidian writes Markdown links when "Use [[Wikilinks]]" is off
+        it('should detect Markdown images with alt text and plain Markdown links', () => {
+            expect(getInputType.call(testContext, '![](test-image.jpg)')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '![photo](test-image.jpg)')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '[title](test-image.jpg)')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '"[title](images/image1.png)"')).toBe('markdownImage');
+            expect(getIconImageInputType.call(testContext, '[icon](test-image.jpg)')).toBe('markdownImage');
+        });
+
+        it('should treat an empty Markdown link as a link, not a keyword search', () => {
+            expect(getInputType.call(testContext, '![]()')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '[x]()')).toBe('markdownImage');
+            expect(getIconImageInputType.call(testContext, '![]()')).toBe('markdownImage');
+            expect(getPathFromMarkdownImage.call(testContext, '![]()')).toBeNull();
+        });
+
+        it('should detect Markdown links whose alt text holds nested brackets', () => {
+            expect(getInputType.call(testContext, '[My [v2] banner.jpg](My%20%5Bv2%5D%20banner.jpg)')).toBe('markdownImage');
+            expect(getInputType.call(testContext, '![a [b]](x.jpg)')).toBe('markdownImage');
         });
 
         it('should detect obsidian link input type', () => {
@@ -363,8 +388,27 @@ describe('bannerUtils', () => {
         });
 
         it('should extract vault path from markdown image syntax', () => {
-            getPathFromMarkdownImage.call(testContext, '![](test-image.jpg)');
-            expect(testContext.app.metadataCache.getFirstLinkpathDest).toHaveBeenCalledWith('test-image.jpg', '');
+            const result = getPathFromMarkdownImage.call(testContext, '![](test-image.jpg)');
+            expect(result?.path).toBe('test-image.jpg');
+        });
+
+        it('should resolve plain Markdown links and alt text the same way', () => {
+            expect(getPathFromMarkdownImage.call(testContext, '[title](images/image1.png)')?.path).toBe('images/image1.png');
+            expect(getPathFromMarkdownImage.call(testContext, '![photo](images/image1.png)')?.path).toBe('images/image1.png');
+        });
+
+        it('should not stop at a folder that has the same path', () => {
+            // 'images' is a folder in the mock vault; link resolution finds a file named images
+            const imagesFile = new TFile('notes/images');
+            testContext.app.metadataCache.getFirstLinkpathDest = vi.fn(() => imagesFile);
+            const result = getPathFromMarkdownImage.call(testContext, '[title](images)', 'notes/note.md');
+            expect(testContext.app.metadataCache.getFirstLinkpathDest).toHaveBeenCalledWith('images', 'notes/note.md');
+            expect(result).toBe(imagesFile);
+        });
+
+        it('should fall back to link resolution relative to the note', () => {
+            getPathFromMarkdownImage.call(testContext, '[title](image1.png)', 'notes/note.md');
+            expect(testContext.app.metadataCache.getFirstLinkpathDest).toHaveBeenCalledWith('image1.png', 'notes/note.md');
         });
 
         it('should handle quoted markdown images', () => {
@@ -375,6 +419,51 @@ describe('bannerUtils', () => {
         it('should return null for invalid format', () => {
             const result = getPathFromMarkdownImage.call(testContext, 'invalid-format');
             expect(result).toBeNull();
+        });
+    });
+
+    describe('getMarkdownLinkTarget', () => {
+        it('should read the target of Markdown images and links', () => {
+            expect(getMarkdownLinkTarget('![](a.png)')).toBe('a.png');
+            expect(getMarkdownLinkTarget('![alt text](a.png)')).toBe('a.png');
+            expect(getMarkdownLinkTarget('[title](folder/a.png)')).toBe('folder/a.png');
+        });
+
+        it('should decode URL-encoded vault paths', () => {
+            expect(getMarkdownLinkTarget('[My Image](Banners/My%20Image.png)')).toBe('Banners/My Image.png');
+        });
+
+        it('should keep URLs as written', () => {
+            expect(getMarkdownLinkTarget('[x](https://example.com/a%20b.png)')).toBe('https://example.com/a%20b.png');
+        });
+
+        it('should handle angle brackets and a link title', () => {
+            expect(getMarkdownLinkTarget('[x](<Banners/My Image.png>)')).toBe('Banners/My Image.png');
+            expect(getMarkdownLinkTarget('[x](a.png "A title")')).toBe('a.png');
+        });
+
+        it('should strip a title after an angle bracket target', () => {
+            expect(getMarkdownLinkTarget('![](<My Pic.jpg> "t")')).toBe('My Pic.jpg');
+            expect(getMarkdownLinkTarget("![](<My Pic.jpg> 't')")).toBe('My Pic.jpg');
+            expect(getMarkdownLinkTarget('![](<My Pic.jpg> (t))')).toBe('My Pic.jpg');
+        });
+
+        it('should strip single-quoted and parenthesized titles', () => {
+            expect(getMarkdownLinkTarget("![a](x.jpg 'title')")).toBe('x.jpg');
+            expect(getMarkdownLinkTarget('![a](x.jpg (title))')).toBe('x.jpg');
+        });
+
+        it('should allow nested brackets in the alt text', () => {
+            expect(getMarkdownLinkTarget('[My [v2] banner.jpg](My%20%5Bv2%5D%20banner.jpg)')).toBe('My [v2] banner.jpg');
+            expect(getMarkdownLinkTarget('![a [b]](x.jpg)')).toBe('x.jpg');
+        });
+
+        it('should return null for anything else', () => {
+            expect(getMarkdownLinkTarget('[[a.png]]')).toBeNull();
+            expect(getMarkdownLinkTarget('a.png')).toBeNull();
+            expect(getMarkdownLinkTarget('nature')).toBeNull();
+            expect(getMarkdownLinkTarget('[x]()')).toBeNull();
+            expect(getMarkdownLinkTarget(null)).toBeNull();
         });
     });
 
@@ -439,6 +528,76 @@ describe('bannerUtils', () => {
             
             const result = await getVaultImageUrl.call(testContext, 'error-image.jpg');
             expect(result).toBeNull();
+        });
+
+        describe('shared blob URL per vault image', () => {
+            let imageFile;
+            let nextUrl;
+
+            beforeEach(() => {
+                releaseAllVaultImageUrls();
+                nextUrl = 0;
+                global.URL.createObjectURL = vi.fn(() => `blob:shared-${++nextUrl}`);
+                global.URL.revokeObjectURL = vi.fn();
+                imageFile = new TFile('shared.png');
+                imageFile.extension = 'png';
+                imageFile.stat.mtime = 1000;
+                testContext.app.vault.getAbstractFileByPath = vi.fn(() => imageFile);
+                testContext.app.vault.readBinary = vi.fn().mockResolvedValue(new ArrayBuffer(4));
+            });
+
+            afterEach(() => {
+                releaseAllVaultImageUrls();
+                global.URL.createObjectURL = vi.fn(() => 'blob:test-url');
+                global.URL.revokeObjectURL = vi.fn();
+            });
+
+            it('reuses the URL while the file is unchanged', async () => {
+                const first = await getVaultImageUrl.call(testContext, 'shared.png');
+                const second = await getVaultImageUrl.call(testContext, 'shared.png');
+
+                expect(second.url).toBe(first.url);
+                expect(testContext.app.vault.readBinary).toHaveBeenCalledTimes(1);
+                expect(isVaultImageBlobUrl(first.url)).toBe(true);
+            });
+
+            it('creates one URL for concurrent requests', async () => {
+                const [a, b] = await Promise.all([
+                    getVaultImageUrl.call(testContext, 'shared.png'),
+                    getVaultImageUrl.call(testContext, 'shared.png')
+                ]);
+
+                expect(a.url).toBe(b.url);
+                expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+            });
+
+            it('replaces and revokes the URL once the file changes', async () => {
+                const first = await getVaultImageUrl.call(testContext, 'shared.png');
+                imageFile.stat.mtime = 2000;
+                const second = await getVaultImageUrl.call(testContext, 'shared.png');
+
+                expect(second.url).not.toBe(first.url);
+                expect(URL.revokeObjectURL).toHaveBeenCalledWith(first.url);
+                expect(isVaultImageBlobUrl(first.url)).toBe(false);
+            });
+
+            it('reads the file again after its URL is released', async () => {
+                const first = await getVaultImageUrl.call(testContext, 'shared.png');
+                releaseVaultImageBlobUrl(first.url);
+                const second = await getVaultImageUrl.call(testContext, 'shared.png');
+
+                expect(URL.revokeObjectURL).toHaveBeenCalledWith(first.url);
+                expect(second.url).not.toBe(first.url);
+                expect(testContext.app.vault.readBinary).toHaveBeenCalledTimes(2);
+            });
+
+            it('revokes every URL on release all', async () => {
+                const first = await getVaultImageUrl.call(testContext, 'shared.png');
+                releaseAllVaultImageUrls();
+
+                expect(URL.revokeObjectURL).toHaveBeenCalledWith(first.url);
+                expect(isVaultImageBlobUrl(first.url)).toBe(false);
+            });
         });
     });
 
@@ -600,6 +759,18 @@ describe('bannerUtils', () => {
             
             const result = getRandomImageFromFolder.call(testContext, 'images');
             expect(['images/image1.png', 'images/image2.gif']).toContain(result);
+        });
+
+        it('should return null without a lookup for a value that is not a folder path', () => {
+            const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            testContext.app.vault.getAbstractFileByPath = vi.fn();
+
+            expect(getRandomImageFromFolder.call(testContext, true)).toBeNull();
+            expect(getRandomImageFromFolder.call(testContext, '')).toBeNull();
+            expect(getRandomImageFromFolder.call(testContext, undefined)).toBeNull();
+            expect(testContext.app.vault.getAbstractFileByPath).not.toHaveBeenCalled();
+            expect(errorSpy).not.toHaveBeenCalled();
+            errorSpy.mockRestore();
         });
 
         it('should return null for non-existent folder', () => {

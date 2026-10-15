@@ -1,6 +1,6 @@
 import { Modal, Notice } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
-import { handlePinIconClick } from '../../utils/handlePinIconClick';
+import { handlePinIconClick, sanitizeImageFileName } from '../../utils/handlePinIconClick';
 import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { TargetPositionModal } from '../modals';
 import { flags } from '../../resources/flags.js';
@@ -100,12 +100,14 @@ export class PixelBannerStoreModal extends Modal {
     // Download and save banner (handles both images and videos)
     async downloadAndSaveBanner(data, filename) {
         try {
+            // Get the active file for note context
+            const activeFile = this.plugin.app.workspace.getActiveFile();
             if (data.fileType === 'video') {
                 // Handle video file with user folder/filename selection
                 await this.saveVideoFileWithPrompts(data.base64Image, filename);
             } else {
                 // Handle image file (existing behavior)
-                await handlePinIconClick(data.base64Image, this.plugin, null, filename.replace(/\.[^/.]+$/, ''), false);
+                await handlePinIconClick(data.base64Image, this.plugin, null, filename.replace(/\.[^/.]+$/, ''), false, activeFile);
             }
         } catch (error) {
             console.error('Error saving banner:', error);
@@ -191,8 +193,7 @@ export class PixelBannerStoreModal extends Modal {
             throw new Error('No filename provided');
         }
 
-        let finalBaseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
-        if (!finalBaseName) finalBaseName = 'banner';
+        let finalBaseName = sanitizeImageFileName(userInput.name);
         
         // Ensure proper extension
         if (!finalBaseName.toLowerCase().endsWith(`.${extension}`)) {

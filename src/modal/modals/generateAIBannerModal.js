@@ -933,12 +933,13 @@ export class GenerateAIBannerModal extends Modal {
                     const imageUrl = `data:image/jpeg;base64,${response.json.image}`;
                     let filename = this.prompt?.toLowerCase().replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'banner';
                     filename = filename.replace(/\s+/g, '-').substring(0, 47);
-                    const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename, false);
+                    // Get the active file before saving
+                    const activeFile = this.plugin.app.workspace.getActiveFile();
+                    const savedPath = await handlePinIconClick(imageUrl, this.plugin, null, filename, false, activeFile);
                     this.downloadHistory.addImage(response.json.imageId);
                     this.close();
-                    
-                    // Get the active file
-                    const activeFile = this.plugin.app.workspace.getActiveFile();
+
+                    // Use the already retrieved active file
                     if (!activeFile || !savedPath) return;
                     
                     // Open the target position modal after setting the banner
@@ -1944,14 +1945,15 @@ export class GenerateAIBannerModal extends Modal {
         imgWrapper.addEventListener('click', async () => {
             const shouldDownload = await this.checkDownloadHistory(img);
             if (!shouldDownload) return;
-            
+
             const filename = img.getAttribute('filename');
-            const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename, false);
+            // Get the active file before saving
+            const activeFile = this.plugin.app.workspace.getActiveFile();
+            const savedPath = await handlePinIconClick(imageData.base64Image, this.plugin, null, filename, false, activeFile);
             this.downloadHistory.addImage(img.getAttribute('imageid'));
             this.close();
-            
-            // Get the active file
-            const activeFile = this.plugin.app.workspace.getActiveFile();
+
+            // Use the already retrieved active file
             if (!activeFile || !savedPath) return;
             
             // Open the target position modal after setting the banner

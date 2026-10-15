@@ -253,11 +253,18 @@ export function createCustomFieldsSettings(containerEl, plugin) {
             desc: 'Set custom field names for the banner icon image alignment in frontmatter',
             values: 'left, right',
             placeholder: 'banner-icon-image-alignment, icon-image-alignment'
+        },
+        {
+            setting: 'customBannerConfettiField',
+            name: 'Banner Confetti Field Names',
+            desc: 'Set custom field names for the banner confetti effect in frontmatter',
+            values: 'type:snow, type:leaves, type:fireworks',
+            placeholder: 'banner-confetti, confetti, banner-effect'
         }
     ];
 
     customFields.forEach(field => {
-        new Setting(containerEl)
+        const fieldSetting = new Setting(containerEl)
             .setName(field.name)
             .setDesc(createFragment(el => {
                 el.createEl('div', { text: field.desc });
@@ -289,17 +296,18 @@ export function createCustomFieldsSettings(containerEl, plugin) {
                 .setIcon('reset')
                 .setTooltip('Reset to default')
                 .onClick(async () => {
-                    plugin.settings[field.setting] = DEFAULT_SETTINGS[field.setting];
+                    plugin.settings[field.setting] = [...DEFAULT_SETTINGS[field.setting]];
+
+                    // Update only this specific setting via the component API
+                    const textComponent = fieldSetting.components[0];
+                    if (textComponent) {
+                        textComponent.setValue(arrayToString(DEFAULT_SETTINGS[field.setting]));
+                        // Clear any stale validation state left by a previously invalid value
+                        textComponent.inputEl.removeClass('is-invalid');
+                        textComponent.inputEl.title = '';
+                    }
+
                     await plugin.saveSettings();
-                    
-                    // Update only this specific setting
-                    const settingEl = button.extraSettingsEl.parentElement;
-                    const textInput = settingEl.querySelector('input[type="text"]');
-                    textInput.value = arrayToString(DEFAULT_SETTINGS[field.setting]);
-                    
-                    // Trigger the change event to update the plugin's state
-                    const event = new Event('input', { bubbles: true, cancelable: true });
-                    textInput.dispatchEvent(event);
                 }));
     });
 } 

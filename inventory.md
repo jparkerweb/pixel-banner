@@ -1,6 +1,6 @@
 # Pixel Banner Plugin Inventory
 
-**Last Updated:** January 21, 2025
+**Last Updated:** June 10, 2026
 
 Below is a comprehensive overview of all files and their primary functions or methods. This document helps developers quickly locate and understand the key components in the codebase.
 
@@ -10,7 +10,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 
 **Target Obsidian Version:** 1.6.0+
 **Language:** JavaScript (no TypeScript)
-**Total Source Files:** ~45 JavaScript files
+**Total Source Files:** ~50 JavaScript files
 
 ---
 
@@ -19,7 +19,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 ### `manifest.json`
 **Description**:  
 - Plugin manifest containing metadata like ID, name, version, minimum app version, description, author info, and funding URL.
-- Current Version: 3.6.7
+- Current Version: 3.7.0
 
 ### `package.json`
 **Description**:  
@@ -35,6 +35,12 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 ### `styles.css`
 **Description**:  
 - Global styles for the plugin, including banner appearance, controls, modals, and UI components.
+- Settings tab: `.pixel-banner-settings` lays out the pane, and the 800px reading-width cap sits on the inner `.pixel-banner-main-content` (centered), never on the pane itself, which Obsidian 1.13+ pads to center its settings column.
+- Theme compatibility: in banner notes the wrapper layers between `.view-content` and the banner (`.markdown-source-view` > `.cm-editor` > `.cm-scroller`, `.markdown-reading-view` > `.markdown-preview-view`) are forced transparent, because the banner sits at `z-index: -1` under them and some themes paint them opaque (issue #311). `.view-content` keeps the note background.
+- Image View Modal: `.modal.pixel-banner-image-viewer` (size only from Obsidian's `--dialog-max-width` / `--dialog-max-height`, never position) and `.pixel-banner-image-view-modal` (image, path, Copy Path and Close layout).
+- Embed min-height: `--pixel-banner-embed-min-height` applies only to `.internal-embed.pixel-banner > .markdown-embed-content > .markdown-preview-view` (embeds that show a banner); the variable also sits on the host note's view and inherits into every embed, so an unscoped rule padded block and heading embeds (issue #331).
+- Phone layout: banner pieces that are direct children of a root pane's sizer (`.pixel-banner-image`, `.banner-icon-overlay` and the top-left icon buttons) get `translate: 0 var(--view-top-spacing-markdown)` under `.is-phone .mod-root`, matching the top padding Obsidian gives the scroller to clear its floating header (issue #335).
+- Confetti: the overlay canvas (`.pixel-banner-confetti-canvas`), the pane host class (`.pixel-banner-confetti-host`), the confetti modal (scoped under `.confetti-modal`, dynamic values read from CSS variables such as `--confetti-swatch-color`), its fixed preview layer, and the Target Position modal's confetti row (`.confetti-effect-section`, `.confetti-status-active` / `-none` / `-unknown`).
 
 ### `README.md`
 **Description**:  
@@ -109,7 +115,21 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
    Retrieves or returns release notes content for the given version.
 6. **debouncedEnsureBanner()**  
    Debounced function that re-checks and updates the banner display if needed.
-7. Plus many "bound" methods that delegate to helpers (e.g. `updateBanner()`, `cleanupCache()`, etc.) after binding them to `this`.
+7. Plus many "bound" methods that delegate to helpers (e.g. `updateBanner()`, `cleanupCache()`, etc.) after binding them to `this`, including `handleConfettiForNote(leaf, frontmatter)` and `runConfettiPass()` from `eventHandler.js`.
+
+**Confetti wiring**:
+- `onload()` calls `confettiManager.init(this)`, so the effects' document listener and intervals are registered through the plugin and released on unload.
+- `onload()` runs `runConfettiPass()` from `app.workspace.onLayoutReady()`, so notes already open when the plugin loads get their effect.
+- `onload()` registers a `change` listener (via `registerDomEvent`) on the `(prefers-reduced-motion: reduce)` media query, when `window.matchMedia` is available, that re-runs `runConfettiPass()`.
+- The `metadataCache` `changed` handler calls `handleConfettiMetadataChange()` for every frontmatter change, including frontmatter removal.
+- `onunload()` calls `confettiManager.destroy()` (every effect disposed immediately, no fade) and `clearShapeCache()`.
+
+**Banner wiring**:
+- The `metadataCache` `changed` handler calls `scheduleUnquotedBannerLinkCheck()` for every change (issue #289). On a banner field change it drops the note's cached image even when no pane shows it, then updates the first pane showing the note with a content change and any other panes (linked tabs) with `ENSURE_VISIBILITY`, so they reuse that image; a pane whose update failed lets the next one load it (issue #207).
+- Its markdown post-processor, the only one registered, resolves Image Display and Image Repeat for hover popovers like `updateBanner` does (issue #312). For a reading view it passes the owning pane's `MarkdownView` to `updateBanner`, so the call shares that pane's debounce; embeds get a stand-in view.
+- `onunload()` revokes the shared vault image blob URLs (`releaseAllVaultImageUrls()`).
+- `getImageUrl()` passes the note path to `getPathFromMarkdownImage()` so relative Markdown links resolve (issue #310), and its `fileUrl` branch reads a Markdown link's target, `[a.jpg](file:///C:/a.jpg)`. Tests in `tests/unit/core/pixelBannerPlugin.fileUrl.test.js`.
+- The "refresh banner image" command reports a failed or skipped refresh (the debounced `updateBanner` resolves `false`); tested in `tests/integration/bannerWorkflow.test.js`.
 
 ---
 
@@ -141,21 +161,25 @@ Handles adding and updating "pixel banners" (the large images at the top of note
 
 **Methods**:
 1. **addPixelBanner(plugin, el, ctx)**  
-   Creates or updates a banner `<div>` in the specified element, adds icons (e.g. view, pin, refresh, set icon).
+   Creates or updates a banner `<div>` in the specified element, adds icons (e.g. view, pin, refresh, set icon). Claims the banner for each render (`bannerDiv._pixelBannerRender`) and stops after each `await` once a newer render or a cleanup has taken it over, so a slow image for a note the pane has left is never painted; the refresh icon claims it the same way, and hiding a banner sets it to `null`.
 2. **updateBanner(plugin, view, isContentChange, updateMode)**  
-   Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates.
+   Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates. Exported with a trailing 50 ms debounce per pane (keyed by `view.contentEl`; calls within the window merge, and ENSURE_VISIBILITY never replaces a stronger pending mode; returns a promise that resolves once the merged update has run, to `false` when it threw or was skipped as a repeat and `true` otherwise (it never rejects), and a failed update clears the pane's marker so `handleLayoutChange` retries it), and skips a repeat for the same pane and file within 250 ms unless the new call is stronger (a content change after a run without one, or a full update after an `ENSURE_VISIBILITY` run, such as the reading-view post-processor's); both used to be global or per file path, which dropped the update of a second pane showing the same note (issue #207). Records the rendered note on `contentEl._pixelBannerFilePath`.
 3. **applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded)**  
-   Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`.
+   Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`. Exported without a throttle: a shared one dropped the call for a second banner rendered within 350ms (issue #333). A `ctx` without `bannerHeight`, `fade` or `borderRadius` (the markdown post-processors pass none) gets them from frontmatter, folder and global settings instead of writing `undefinedpx`. Tests in `tests/unit/core/bannerManager.applyBannerSettings.test.js`.
 4. **applyContentStartPosition(plugin, el, contentStartPosition)**  
    Sets the vertical offset at which the note content begins below the banner.
 5. **applyBannerWidth(plugin, el)**  
    Ensures the banner matches the width of the note's container.
 6. **updateAllBanners(plugin)**  
-   Iterates through all workspace leaves and updates banners in each markdown view.
+   Iterates through all workspace leaves and updates banners in each markdown view, through the per-pane debounced `updateBanner` (merges with a pending update, never rejects).
 7. **updateBannerPosition(plugin, file, position)**  
    Updates the note's frontmatter for custom X/Y positions (used by "Target Position" modals).
-8. **registerMarkdownPostProcessor(plugin)**
-   Markdown post process to add banners to "hover preview" note views
+8. **insertPersistentElement(container, el)**
+   Inserts one of our elements (icons) after our other front elements and before Obsidian's own children. Our elements must never trail the note's sections, or heading fold in reading view breaks (issue #315).
+9. **installPersistentChildrenOverride(container)**
+   Installs the `setChildrenInPlace` override (feature-detected, once per container, fail-safe) that keeps the banner, icon overlay and icons in front of the children Obsidian passes in.
+10. **setBannerBackground(bannerDiv, fileUrl)**
+   Sets the banner's `background-image`, waiting for the new image to decode when one is already showing, so switching notes never paints the banner empty (issue #327). The latest call wins; a banner cleared meanwhile stays cleared. Also used by the refresh icon for vault images, and `addPixelBanner` clears `background-image` when it hides a banner that has no image, so the old one cannot flash back. Tests in `tests/unit/core/bannerManager.setBannerBackground.test.js` and `tests/integration/bannerWorkflow.test.js`.
 
 ---
 
@@ -164,27 +188,33 @@ General-purpose utilities for processing banner-related inputs and folder-based 
 
 **Methods**:
 1. **getInputType(input)**  
-   Figures out if the banner input is a local vault path, an Obsidian link, a direct URL, or a keyword for API usage.
+   Figures out if the banner input is a local vault path, an Obsidian link, a Markdown image or link (`markdownImage`), a direct URL, or a keyword for API usage.
 2. **getPathFromObsidianLink(link)**  
    Resolves an internal link `[[...]]` to the corresponding file in the vault.
-3. **getVaultImageUrl(path)**  
-   Reads an image from the vault, returns a `blob:` URL to display in the banner.
-4. **preloadImage(url)**  
+3. **getMarkdownLinkTarget(input)**  
+   Returns the target of `![alt](target)` or `[text](target)` (the form Obsidian writes when "Use [[Wikilinks]]" is off), handling `<angle brackets>`, a trailing `"title"`, `'title'` or `(title)` (also after angle brackets), one level of brackets in the alt text, and URL-encoded vault paths; `null` for anything else (issue #310). Used by `getPathFromMarkdownImage` and by the `fileUrl` branch of `getImageUrl` in `pixelBannerPlugin.js`; `getInputType` and `getIconImageInputType` only need the shape test, `isMarkdownLink`.
+4. **getPathFromMarkdownImage(link, sourcePath)**  
+   Resolves a Markdown image or link to a URL or a vault file (an exact-path file first, then link resolution relative to the note). Both the banner (`getImageUrl`) and banner icon callers pass the note path.
+5. **getVaultImageUrl(path)**  
+   Reads an image from the vault, returns a `blob:` URL to display in the banner. One URL per image file is shared by every note and pane (keyed by vault path and `stat.mtime`), replaced and revoked when the file changes; concurrent requests get the same URL. Videos use the resource path. **isVaultImageBlobUrl(url)** tells the revoke sites (`cacheHelpers.js`, `domManager.js`, `eventHandler.js`) to leave a shared URL alone, **releaseVaultImageBlobUrl(url)** drops one that failed to load, and **releaseAllVaultImageUrls()** revokes them all on unload. Tests in `tests/unit/core/bannerUtils.test.js`.
+6. **preloadImage(url)**  
    Preloads or "fetches" an image so it can be cached or validated.
-5. **getFolderPath(filePath)**  
+7. **getFolderPath(filePath)**  
    Returns just the folder portion (directory path) from a file path.
-6. **getFolderSpecificImage(filePath)**  
+8. **getFolderSpecificImage(filePath)**  
    Checks the plugin's folder-based overrides for a matching path and merges any configured image settings.
-7. **getFolderSpecificSetting(filePath, settingName)**  
+9. **getFolderSpecificSetting(filePath, settingName)**  
    Returns a specific override setting if defined for the folder in question.
-8. **getRandomImageFromFolder(folderPath)**  
-   Picks a random image from the specified vault folder.
-9. **getActiveApiProvider()**  
+10. **getRandomImageFromFolder(folderPath)**  
+   Picks a random image from the specified vault folder; null for a missing or empty folder, or a value that is not a folder path (`updateBanner` passes the `banner-shuffle` folder or a folder group's `shuffleFolder`).
+11. **getActiveApiProvider()**  
    Chooses an image-hosting provider, or picks one randomly if the user has selected "all".
-10. **hasBannerFrontmatter(file)**  
+12. **hasBannerFrontmatter(file)**  
    Checks the file's frontmatter for the presence of a banner field.
-11. **createFolderImageSettings(folderImage)**  
+13. **createFolderImageSettings(folderImage)**  
    Creates or merges the folder-specific image settings, optionally randomizing if shuffle is enabled.
+14. **isMarkdownLink(input)**  
+   Whether the value has the `![alt](target)` / `[text](target)` shape, even with an empty target; `getInputType` and `getIconImageInputType` classify it as `markdownImage` (an empty link shows no banner instead of running a keyword search).
 
 ---
 
@@ -201,6 +231,8 @@ Implements caching logic to speed up banner loads and reduce repeated API calls.
 4. **invalidateLeafCache(leafId)**  
    Finds and removes any cache entries related to the specified leaf.
 
+None of them revokes a shared vault image blob URL (`isVaultImageBlobUrl`), which other panes may still show.
+
 ---
 
 ## `/src/core/domManager.js`
@@ -208,7 +240,7 @@ Manages DOM observers and watchers to keep banners in sync when Obsidian reflows
 
 **Methods**:
 1. **setupMutationObserver()**  
-   Watches for large-scale DOM changes (like banner removal) and triggers re-check if needed.
+   Watches `document.body` for banner removal (safety net to re-ensure the banner) and editor mode switches (a new `.cm-sizer`). Intentionally ignores `.markdown-preview-section` adds (scroll churn), since the `setChildrenInPlace` override keeps the banner in place during reconciliation.
 2. **setupResizeObserver(viewContent)**  
    Attaches a `ResizeObserver` to adjust banner width dynamically when the container changes size.
 3. **updateFieldVisibility(view)**  
@@ -216,9 +248,9 @@ Manages DOM observers and watchers to keep banners in sync when Obsidian reflows
 4. **updateEmbeddedTitlesVisibility()**  
    Toggles whether embedded note titles are displayed or hidden in embeds.
 5. **updateEmbeddedBannersVisibility()**  
-   Toggles whether embedded banners are displayed in embedded notes.
+   Toggles whether embedded banners are displayed in embedded notes. The rule that hides an embed's pusher uses `.pixel-banner-image ~ .markdown-preview-pusher`, so it still matches with the icon overlay between them (issue #315).
 6. **cleanupPreviousLeaf(previousLeaf)**  
-   Removes pixel banner elements, pinned overlays, and blob URLs from a leaf that the user navigated away from.
+   Removes pixel banner elements, pinned overlays, and blob URLs from a leaf that the user navigated away from. It leaves shared vault image blob URLs alone and releases the banner's render claim (`_pixelBannerRender = null`), so a fetch still running for that leaf cannot paint it.
 
 ---
 
@@ -227,15 +259,21 @@ Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode
 
 **Methods**:
 1. **handleActiveLeafChange(leaf)**  
-   Cleans up the previous leaf's banner resources, updates or shuffles the new leaf's banner, and caches state.
+   Cleans up the previous leaf's banner resources, updates or shuffles the new leaf's banner, and caches state. Skips a repeat within 300ms only for the same view and file (a `WeakMap` keyed by view), so a note re-opened in a new view, as the Homepage plugin does on startup, still gets its banner (issue #333).
 2. **handleLayoutChange()**  
-   Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed.
+   Called when Obsidian's layout is reorganized; cleans up orphaned cache, re-updates any banners if needed, and drops confetti effects of closed or re-targeted panes. Also updates visible non-active panes whose banner was rendered for a different note (`contentEl._pixelBannerFilePath`), such as linked tabs, which change note without an `active-leaf-change` (issue #207). Once that update resolves and the pane still shows the note, it starts the note's confetti effect (`handleConfettiForNote`).
 3. **handleModeChange(leaf)**  
    Re-renders or hides frontmatter fields if the user toggles between preview/edit modes.
 4. **handleSelectImage()**  
    Opens a modal to select or upload a new banner image from the vault, then modifies frontmatter.
 5. **handleBannerIconClick()**  
    Opens the Select Pixel Banner modal for choosing between different banner selection methods.
+6. **handleConfettiForNote(leaf, frontmatter)**  
+   Starts, updates or stops the confetti effect of one pane (keyed by `leaf.id`), after the mobile and reduced-motion gates.
+7. **handleConfettiCleanup(previousLeaf)** / **handleConfettiMetadataChange(file, cache)**  
+   Stop a pane's effect when it leaves its note; route a frontmatter change to every pane showing the file.
+8. **runConfettiPass()** / **reconcileConfettiEffects()**  
+   Apply confetti to every open markdown pane (startup, settings save, reduced-motion change); drop effects whose pane is gone.
 
 ---
 
@@ -243,10 +281,66 @@ Defines major event callbacks for Obsidian's workspace (e.g., leaf changes, mode
 Functions for loading and saving plugin settings to disk.
 
 **Functions**:
-1. **loadSettings(plugin)**  
-   Reads the plugin's data, merges with defaults, ensures array-based fields.  
-2. **saveSettings(plugin)**  
-   Persists setting changes, then triggers a re-check of banners to apply updates.
+1. **loadSettings(plugin)**
+   Reads the plugin's data, merges with defaults, ensures array-based fields.
+2. **saveSettings(plugin)**
+   Persists setting changes, then triggers a re-check of banners to apply updates and re-runs the confetti pass.
+
+---
+
+## `/src/core/confettiManager.js`
+Manages the lifecycle and rendering of confetti/particle effects, one effect per pane (keyed by leaf id) plus the modal preview.
+
+**Exports**: `confettiManager` (singleton), `ConfettiManager`, `ConfettiEffect`, `PREVIEW_EFFECT_ID`, `CONFETTI_HOST_CLASS`, `isLightTheme()`, `getConfettiBlockReason(plugin, overrides)` (`'mobile'`, `'reduced-motion'` or null), `shouldRunConfetti(plugin, overrides)` (true when there is no block reason), `LIVE_PARTICLE_BUDGET` (1500) and `budgetParticleCount(config)` (lowers a continuous effect's per-burst count so particles alive at once, count x `ticks` frames / interval, stay under the budget; one-shot effects and configs under budget keep their count)
+
+**Class**: `ConfettiEffect` - one pane's canvas, main-thread canvas-confetti instance (`useWorker: false`), timers and observers. Runs only while the document is visible, the pane has a size and its banner is on screen (it watches the banner inside the shown scroller, otherwise the pane container against the viewport, re-targeting the banner once the pane is shown, at each burst while it still watches the container, and on a matching `update()`); adds `pixel-banner-confetti-host` to a static container and removes it when the last effect there is disposed. A one-shot effect calls `releaseAfterBurst()` when its burst's animation promise resolves: it disconnects both observers and shrinks the canvas to 0x0 but keeps the effect, so `update()` still skips an unchanged config. Methods: `start()`, `handleResize()`, `observeVisibility()`, `reconcile()`, `releaseAfterBurst()`, `pause()` / `resume()`, `stop(fadeMs)`, `dispose()`, `removeHostClass()`.
+
+**Class**: `ConfettiManager` (singleton)
+
+**Key Methods**:
+1. **init(plugin)** / **destroy()** - Registers the visibility listener and an unload cleanup through the plugin; disposes every effect
+2. **mapPosition(position)** - Maps position strings ('top', 'center', etc.) to canvas coordinates
+3. **getEdgePosition(position, index, total, yOffset)** / **getRandomEdgePosition(position)** - Positions along edges
+4. **createEmojiShapes(emojiString, scalar)** - Converts emoji strings to canvas-confetti shapes
+5. **buildOptions(presetName, overrides)** - Merges preset config with user overrides; in the light theme, presets with a light palette use it unless the note sets colours
+6. **start(effectId, containerEl, presetName, overrides, opts)** - Starts an effect in a container
+7. **update(effectId, containerEl, presetName, overrides, opts)** - Starts, or restarts only when the config really changed
+8. **fireBurst(confettiInstance, config, baseOptions)** - Executes particle bursts with different spread modes, using the budgeted `particleCount` from `buildOptions`; returns the canvas-confetti animation promise
+9. **stop(effectId, fadeOutDuration)** / **stopAll(immediate)** - Stops effects with a fade-out
+10. **pause(effectId)** / **resume(effectId)** - Pause or resume one effect by id; nothing in `src/` calls them outside `confettiManager.js` (the modal stops the note's effect while it is open and restarts it on Cancel)
+11. **hasActiveEffect(effectId)** / **getEffect(effectId)** / **getNoteEffectIds()** / **refreshVisibility()**
+
+---
+
+## `/src/core/confettiPresets.js`
+Defines preset configurations for different confetti visual effects.
+
+**Exports**:
+- **REQUIRED_PRESET_KEYS** - Keys every preset must define, so the modal, `diffFromPreset` and the renderer see the same baseline
+- **CONFETTI_PRESETS** - Object containing 14 preset configurations:
+  - snow, snowflakes, leaves, rain_light, rain_heavy, space, aliens
+  - fireworks, confetti, hearts, sparkles, pop_rocks, crystals, bubbles
+
+**Functions**:
+1. **getPresetNames()** - Returns array of available preset names
+2. **getPreset(name)** - Gets a preset by name
+3. **getPresetCopy(name)** - Gets a deep clone of a preset
+4. **getLightThemeColors(name)** - The light-theme palette for presets drawn mostly in white (snow, snowflakes, space, aliens), or null
+
+---
+
+## `/src/core/confettiShapes.js`
+Defines custom SVG path shapes for confetti particles.
+
+**Constants**:
+- **SHAPE_PATHS** - Object with 13 SVG path definitions: diamond, snowflake, alien, ufo, raindrop, triangle, heart, leaf, gem, gem2, gem3, gem4, gem5
+- **SHAPE_MATRICES** - Precomputed `shapeFromPath` transform matrix for each `SHAPE_PATHS` entry, so compiling a shape does not sample the path on the main thread
+
+**Functions**:
+1. **getPathShape(shapeName)** - Compiles and caches SVG paths into canvas-confetti shapes (null for an unknown name, which falls back to the default shapes)
+2. **isCustomPathShape(shapeName)** - Checks if a shape name is a custom path
+3. **getCustomShapeNames()** - Returns all available custom shape names
+4. **clearShapeCache()** - Clears the compiled shape cache
 
 ---
 
@@ -312,25 +406,33 @@ Lists user's images from the vault to pick from, or to upload a new one.
 5. **onClose()**  
    Clears UI.
 
+Its injected `.pixel-banner-image-modal` rules were removed with the image view modal's move into `styles.css` (issue #328).
+
 ---
 
 ## `/src/modal/modals/iconImageSelectionModal.js`
 **Class**: `IconImageSelectionModal` (extends `Modal`)  
-**Description**:
-- Provides an interface for selecting icon images from various sources (local vault, collections, etc.)
-- Manages pagination, searching, and categorization of icon images
+Picks an image for the banner icon from two tabs: **💾 Local Image** (vault images with search, sorting, paging and delete) and **📑 Collections** (Pixel Banner Plus icon categories, paged and searchable, shown only when the API is reachable).
 
 **Key Methods**:
 1. **onOpen()**  
-   Initializes the modal UI with tabs for vault files, collections, and other sources.
-2. **loadIconCategories()**  
-   Fetches icon categories from the Pixel Banner Plus API.
-3. **loadIconsByCategory()**  
-   Loads icons for a specific category with pagination support.
-4. **searchIcons()**  
-   Searches for icons based on a query term.
-5. **setSelectedIcon()**  
-   Sets the selected icon and passes it to the callback function.
+   Builds both tabs, the local image grid and the tab switching.
+2. **checkServerStatus()**  
+   Pings the Pixel Banner Plus API to decide whether the Collections tab is offered.
+3. **fetchIconCategories()** / **fetchIconsByCategory()**  
+   Load icon categories and one page of a category's icons.
+4. **initializeCollectionsTab(contentEl)** / **renderIcons(icons, totalPages, totalCount)**  
+   Build the Collections UI and draw a page of icons.
+5. **searchIcons()**  
+   Searches Collections icons by keyword.
+6. **onChooseIcon(icon)**  
+   Downloads a chosen Collections icon into the vault and hands its path to the callback.
+7. **updateImageGrid()**, **sortFiles(files)**, **getShortPath(path)**, **confirmDelete(file)** / **deleteImage(file)**  
+   Local tab grid, ordering, path display and deletion.
+8. **onClose()**  
+   Empties the modal.
+
+Its injected `.pixel-banner-image-modal` rules were removed with the image view modal's move into `styles.css` (issue #328).
 
 ---
 
@@ -408,7 +510,7 @@ The modal handles validation of image URLs, provides user feedback for errors, a
 
 ## `/src/modal/modals/imageViewModal.js`
 **Class**: `ImageViewModal`  
-Shows banners at larger size in a centered modal, now supporting both images and videos.
+Shows banners at larger size in a centered modal, now supporting both images and videos. The modal gets the `pixel-banner-image-viewer` class and is styled from `styles.css` (no injected `<style>`, no inline positioning); Obsidian's `.modal-container` centers it (issue #328).
 
 **Key Methods**:
 - **onOpen()**: Embeds images or videos in the modal with appropriate controls. Automatically detects video files (MP4, MOV) and displays with video player controls.
@@ -443,38 +545,47 @@ Presents user with choice to either save API image locally or pin the URL direct
 ---
 
 ## `/src/modal/modals/targetPositionModal.js`
-**Class**: `TargetPositionModal`  
-Helps visually set or tweak the X/Y offsets for the banner and icon.
+**Class**: `TargetPositionModal` (extends `Modal`)  
+Interactive editor for a note's banner: a draggable or clickable target box for X/Y, plus controls for display mode and zoom, height, max width, content start, alignment, fade, repeat, border radius, title colour, and the banner icon (size, image size, rotation, colours, font weight, padding, border radius, offsets, alignment). `onOpen()` catches a failure of its async `setupUI()`, so it cannot become an unhandled rejection.
 
 **Key Methods**:
-1. **updateDisplayMode(mode, zoom?)**  
-   Updates frontmatter for display type (cover, contain, or custom zoom).  
-2. **updateBannerHeight(height)**, **updateBannerContentStartPosition(pos)**, **updateBannerIconXPosition(pos)**, **updateRepeatMode(repeat)**  
-   Tweaks frontmatter for banner dimensions, display and icon offset.  
-3. **onOpen()**  
-   Draws a draggable or clickable target box to set X/Y.  
-4. **addStyle()**  
-   Injects styles for crosshair lines, etc.  
-5. **onClose()**  
-   Removes the style element.
+1. **onOpen()** / **setupUI()**  
+   Read the current frontmatter and build the target box and every control.
+2. **updateDisplayMode(mode, zoom?)**  
+   Writes the display type (cover, contain, auto or a custom zoom).
+3. **updateBanner...()** setters (`updateBannerHeight`, `updateBannerMaxWidth`, `updateBannerContentStartPosition`, `updateBannerAlignment`, `updateBannerFade`, `updateBannerBorderRadius`, `updateRepeatMode`, `updateTitleColor`)  
+   Write one banner frontmatter field each.
+4. **updateBannerIcon...()** setters (`XPosition`, `Size`, `ImageSizeMultiplier`, `Rotate`, `Color`, `FontWeight`, `BgColor`, `PaddingX`/`PaddingY`, `BorderRadius`, `VerticalOffset`, `TextVerticalOffset`, `ImageAlignment`)  
+   Write one banner icon frontmatter field each.
+5. **addStyle()** / **onClose()**  
+   Inject the crosshair styles and remove them on close.
+- Confetti row (`.confetti-effect-section`): shows the note's effect as active, none or unknown preset (status classes in `styles.css`) and opens `ConfettiModal`.
 
 ---
 
-## `/src/modal/modals/iconImageSelectionModal.js`
-**Class**: `IconImageSelectionModal` (extends `Modal`)  
-Provides image selection for banner icons, allowing users to choose from local images, web URLs, or online collections.
+## `/src/modal/modals/confettiModal.js`
+**Class**: `ConfettiModal` (extends `Modal`)
+Provides a comprehensive UI for configuring confetti particle effects per note.
 
 **Key Methods**:
-1. **onOpen()**  
-   Builds the modal interface with tabs for different icon image sources.
-2. **renderCollectionsTab()**  
-   Creates the interface for browsing and selecting from online icon collections.
-3. **renderLocalTab()**  
-   Displays local vault images that can be used as banner icons.
-4. **renderWebTab()**  
-   Provides an interface for entering web URLs for icon images.
-5. **handleImageSelection(imagePath)**  
-   Processes the selected image and updates the banner icon.
+1. **onOpen()** - Builds the modal interface with sections for particles, appearance, timing; starts the live preview
+2. **buildParticleSection()** - Creates controls for count, size, speed, gravity, drift, duration
+3. **buildAppearanceSection()** - Creates controls for position, colors, shapes, emoji, 3D wobble
+4. **buildTimingSection()** - Creates controls for continuous effects and burst intervals
+5. **buildAccessibilitySection()** - Creates controls for reduced motion preference
+6. **createSliderWithInput()** - Creates paired slider + text input for numeric values
+7. **createRangeSlider()** - Creates dual-thumb range sliders with visual feedback
+8. **renderColorSwatches()** - Renders interactive color picker interface
+   - **updateColorHint()** - In the light theme, notes on the Colours row that a white preset draws in darker colours until a colour is changed
+9. **updatePreview()** / **setPreviewNotice(reason)** - When `getConfettiBlockReason` blocks the preview, shows why on the `.confetti-preview-notice` line (reduced motion, mobile) instead of nothing; otherwise renders the live preview over the modal via `confettiManager` under `PREVIEW_EFFECT_ID` (same render path as the on-note effect), on a fixed layer positioned through CSS variables
+10. **schedulePreviewUpdate()** - Debounced (100ms) preview refresh; hooked into `checkIfModified()` so every control change refreshes the preview
+11. **cleanupPreview()** - Stops the preview effect and cancels pending debounced refreshes (called from `onClose()`)
+12. **suppressNoteEffect()** / **restoreNoteEffect()** - Pauses the note's own active effect while the modal previews (so the two don't compete visually); restores it on Cancel, no-op on Apply
+13. **applySettings()** - Saves confetti configuration to note frontmatter
+14. **resetToDefaults()** - Resets settings to preset defaults
+- **initializeSettings()** merges the preset defaults with the note's overrides; a built-in shape the note picked (`shapes` without `customShapes`) clears the preset's custom shape so the Shape dropdown shows what is drawn
+15. **triggerConfettiOnNote()** - Fires the real effect on the active note after Apply
+- Styles live in `styles.css` under `.confetti-modal`; the modal sets classes (`is-hidden`, `confetti-setting-disabled`, `confetti-number-input`) and CSS variables (`setCssProps`) instead of inline styles
 
 ---
 
@@ -487,24 +598,6 @@ Allows selection of a folder containing images to use as banner icons.
    Returns a list of folders from the vault.
 2. **onChooseItem(folder)**  
    Sets the selected folder as the source for banner icons.
-
----
-
-## `/src/modal/modals/targetPositionModal.js`
-**Class**: `TargetPositionModal` (extends `Modal`)  
-Provides an interactive UI for adjusting banner position, size, and appearance with enhanced controls for icon styling.
-
-**Key Methods**:
-1. **onOpen()**  
-   Builds the UI with controls for banner position, size, alignment, and icon settings.
-2. **createBannerControls()**  
-   Creates sliders and inputs for banner position, size, and display settings.
-3. **createBorderRadiusControl()**  
-   Creates the new border radius slider control for adjusting banner corner rounding.
-4. **createIconControls()**  
-   Creates controls for banner icon styling, including size, position, opacity, and rotation.
-5. **onClose()**  
-   Cleans up the modal and saves any changes to banner settings.
 
 ---
 
@@ -611,7 +704,7 @@ Contains multiple small modules for organizing plugin settings sub-UI, mostly us
 - **settingsTabAPISettings.js**  
   Creates or loads API-related fields (API keys, test buttons).  
 - **settingsTabCustomFieldNames.js**  
-  Lets users define custom frontmatter field names for banners, X/Y positions, and more.  
+  Lets users define custom frontmatter field names for banners, X/Y positions, and more. Each reset button stores a copy of the defaults and clears the invalid state and tooltip.  
 - **settingsTabFolderImages.js**  
   Manages settings for folder-specific banner overrides.  
 - **settingsTabGeneral.js**  
@@ -638,6 +731,8 @@ Handles the process of "pinning" a banner image by downloading and saving it to 
    Detects image format (JPEG, PNG, GIF, WebP) from binary data headers.
 5. **waitForFileRename(file, plugin)**  
    Waits for potential file rename operations to complete before returning final path.
+6. **sanitizeImageFileName(name)** (exported)  
+   Strips only what a file name or an Obsidian link cannot hold (`\ / : * ? " < > | # ^ [ ]` and control characters), so non-Latin and accented note names survive; falls back to `banner`. Also used by the Plus store's save flow (`pixelBannerStoreModal.js`).
 
 ## `/src/utils/downloadHistory.js`
 **Class**: `DownloadHistory`  
@@ -655,6 +750,18 @@ Manages history of downloaded AI-generated images to prevent duplicates.
 5. **hasImage(imageId)**  
    Checks if an image ID already exists in download history.
 
+## `/src/utils/unquotedBannerLink.js`
+Warns when a banner link was typed into frontmatter without quotes (issue #289). YAML reads an unquoted `[[image.jpg]]` as a list inside a list (`[["image.jpg"]]`, which the next properties save writes back as `- - image.jpg` with type `?`), and an unquoted `![[image.jpg]]` can stop Obsidian parsing the properties at all.
+
+**Functions**:
+- **findUnquotedBannerLink(frontmatter, fieldNames)**: a banner field parsed as `[["x"]]`; returns `{ field, value }` with the quoted value to suggest.
+- **findUnquotedBannerLinkInText(text, fieldNames)**: an unquoted `[[...]]` / `![[...]]` banner line in the raw frontmatter block, for notes Obsidian could not parse.
+- **checkUnquotedBannerLink(plugin, file)**: shows a 12 s `Notice` with the corrected line, once per note per session (`plugin.unquotedBannerLinkWarned`). Called from `handleActiveLeafChange`; reads the note only when its first section is a `yaml` block Obsidian could not parse, and claims the note before that read so overlapping checks show one notice.
+- **scheduleUnquotedBannerLinkCheck(plugin, file)**: called from the metadata `changed` handler; runs the check once the note has not changed for 3 s (`UNQUOTED_BANNER_LINK_SETTLE_MS`), so a half-typed value is never reported, and only for notes open in a markdown pane (sync or a re-index fires `changed` for many notes). Timers are keyed by the path at schedule time (a rename changes `file.path`) and cleared on plugin unload. A note already warned is still scheduled: a check that is reading the note claims it in `unquotedBannerLinkWarned`, and an edit made during that read must keep its own check.
+- Tests in `tests/unit/utils/unquotedBannerLink.test.js`.
+
+---
+
 ## `/src/utils/frontmatterUtils.js`
 Utilities for working with note frontmatter in Obsidian.
 
@@ -665,8 +772,38 @@ Utilities for working with note frontmatter in Obsidian.
    Gets the first valid value from an array of values, properly handling zero values that shouldn't be treated as falsy.
 3. **updateNoteFrontmatter(imagePath, plugin, usedField)**  
    Updates the active note's frontmatter with a banner image reference, handling existing frontmatter and custom field names.
-4. **updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField)**  
+4. **updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField)**
    Updates the active note's frontmatter with a direct image URL reference, used when pinning API images without saving locally.
+
+## `/src/utils/confettiConfig.js`
+Single codec for the `banner-confetti` frontmatter value: field schema, parsing, normalizing, comparing and writing.
+
+**Exports**:
+1. **CONFETTI_SCHEMA** - Every override key with its type, bounds, step and allowed values; `RANGE_KEYS` and `ARRAY_KEYS` list the range and array keys
+2. **sanitizeHexColors(colors)** - Keeps only hex colours canvas-confetti can draw: `#rgb` expanded to `#rrggbb`, `#rrggbbaa` loses its alpha, lowercased, anything else dropped
+3. **resolvePresetName(name)** - Case-insensitive, own-property preset lookup (rejects `toString`, `__proto__`)
+4. **parseValue(key, raw)** - Parses one value to its schema type (numbers, ranges, colour/shape arrays, booleans, enums, emoji)
+5. **readPresetName(value)** - The preset name as written in a `banner-confetti` value (string, legacy array or YAML object), whether or not it resolves, so callers can name an unknown preset; null when there is none
+6. **parse(value)** - Parses the string form (spaced, unspaced, bare preset), YAML objects and the legacy array form to `{ presetName, overrides }` or null
+7. **normalize(config)** - Coerces, clamps and rounds every known key; drops invalid values; never throws
+8. **roundForKey(key, value)** - Rounds a number to its key's precision (removes float noise)
+9. **diffFromPreset(presetName, config)** - Returns only the keys that really differ from the preset
+10. **serialize(presetName, overrides)** - Writes `type: preset, key: value` (pipes for arrays, never `null`)
+11. **writeConfettiField(frontmatter, settings, value)** - Writes to the alias the note already uses and removes the others; null removes all
+
+## `/src/utils/confettiUtils.js`
+Utility functions for confetti configurations. The parse, build and sanitize exports are thin wrappers over `confettiConfig.js`.
+
+**Methods**:
+1. **parseConfettiConfig(value)** - Parses frontmatter confetti values (wraps `parse`)
+2. **buildConfettiFrontmatter(presetName, overrides)** - Serializes config to frontmatter string (wraps `serialize`)
+3. **parseEmojiString(str)** - Sophisticated emoji parsing handling multi-codepoint sequences
+4. **isValidPreset(presetName)** - Validates preset names (case-insensitive, own-property)
+5. **getPresetDefaults(presetName)** - Retrieves default config for a preset
+6. **getFullConfig(presetName, overrides)** - Merges preset defaults with overrides
+7. **sanitizeConfig(config)** - Coerces and clamps values to valid ranges (wraps `normalize`)
+8. **hasOverrides(presetName, config)** - Checks if config differs from preset defaults (uses `diffFromPreset`)
+9. **getPresetNames()** - Re-exports preset names for convenience
 
 ## `/src/utils/debounce.js`
 Provides utility functions for debouncing function calls.
@@ -704,6 +841,52 @@ Provides semantic versioning utilities for the plugin.
    Parses a version string (e.g., "3.5.2") into an object with major, minor, and patch numbers.
 2. **semver.gt(v1, v2)**  
    Compares two version strings and returns true if v1 is greater than v2.
+
+---
+
+## `/tests` Directory
+Vitest with happy-dom (`vitest.config.js`); `obsidian` and `virtual:release-notes` are aliased to the mocks below. Run with `npx vitest run`.
+
+**Support files**:
+- `tests/setup.js`: global setup (happy-dom extras, `setCssProps` polyfill)
+- `tests/mocks/obsidian.js`: the `obsidian` module mock (App, Vault, Workspace, Modal, Setting with `components`, Notice, Platform, ...)
+- `tests/mocks/virtual-release-notes.js`: stands in for the build-time release notes module
+- `tests/fixtures/mockData.js`, `tests/helpers/testHelpers.js`: shared fixtures and helpers
+- `tests/unit/services/apiService.slow.test.js.backup`: an old slow API suite, not run (the extension keeps it out of the test glob)
+
+**Integration** (`tests/integration/`):
+- `apiIntegration.test.js`: image provider APIs end to end against mocked `fetch`
+- `bannerWorkflow.test.js`: banner loading, updates, post-processors, embeds, hover popovers and linked panes through the plugin
+- `cacheIntegration.test.js`: banner cache behaviour across notes and leaves
+- `confettiWorkflow.test.js`: confetti from frontmatter through the per-pane engine, gates and pane lifecycle
+- `modalWorkflows.test.js`: opening and driving the plugin modals
+- `pluginLifecycle.test.js`: plugin load, settings and unload
+
+**Unit** (`tests/unit/`):
+- `core/bannerIconHelpers.simple.test.js`: banner icon helpers
+- `core/bannerManager.applyBannerSettings.test.js`: `applyBannerSettings` resolving height, fade and radius
+- `core/bannerManager.persistentChildren.test.js`: the `setChildrenInPlace` override and element order (issue #315)
+- `core/bannerManager.setBannerBackground.test.js`: decode-before-swap backgrounds (issue #327)
+- `core/bannerManager.updateBanner.test.js`: `updateBanner` when the pane moves to another note mid-load, banner shuffle sources (a named folder, `banner-shuffle: true`, a folder group), and the invalid-blob release
+- `core/bannerUtils.test.js`: `getInputType`, Markdown links, vault blob URLs and folder helpers
+- `core/cacheHelpers.test.js`: cache keys, cleanup, leaf invalidation and the shared blob URL guards
+- `core/confettiManager.test.js`: the per-pane engine, gates, block reasons, particle budget and one-shot release
+- `core/confettiPresets.test.js`, `core/confettiShapes.test.js`: preset completeness and custom shapes
+- `core/domManager.test.js`: observers, field visibility and `cleanupPreviousLeaf`
+- `core/eventHandler.test.js`: leaf, layout and metadata handlers, including linked panes (#207) and startup (#333)
+- `core/pixelBannerPlugin.fileUrl.test.js`: `getImageUrl` with a local `file://` link
+- `core/settings.simple.test.js`: default settings
+- `modal/confettiModal.test.js`: the confetti modal, live preview, Apply round trips and the Shape dropdown
+- `modal/emojiSelectionModal.simple.test.js`, `modal/selectPixelBannerModal.test.js`: those modals
+- `modal/targetPositionModal.test.js`: the Target Position confetti status row (fake timers)
+- `services/apiPixelBannerPlus.test.js`, `services/apiService.test.js`: Pixel Banner Plus and image provider services
+- `settings/settingsTabGeneral.test.js`: the General settings tab
+- `utils/confettiConfig.test.js`, `utils/confettiUtils.test.js`, `utils/readPresetName.test.js`: the confetti config codec and helpers
+- `utils/handlePinIconClick.test.js`: saving a banner, note file names and `sanitizeImageFileName`
+- `utils/unquotedBannerLink.test.js`: unquoted banner link detection (issue #289)
+- `utils/imagePropertyFormat.test.js`: Image Property Format output
+- `utils/constants.test.js`, `utils/emojis.test.js`, `utils/flags.test.js`: resource modules
+- `utils/debounce.test.js`, `utils/downloadHistory.test.js`, `utils/fractionTextDisplay.test.js`, `utils/frontmatterUtils.test.js`, `utils/getCurrentTheme.test.js`, `utils/semver.test.js`: small utilities
 
 ---
 

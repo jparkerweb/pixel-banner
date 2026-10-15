@@ -2,8 +2,11 @@ import { Modal, MarkdownView } from 'obsidian';
 import getCurrentTheme from '../../utils/getCurrentTheme';
 import { EmojiSelectionModal, IconImageSelectionModal } from '../modals';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
+import { ConfettiModal } from './confettiModal';
 import { flags } from '../../resources/flags.js';
 import { getFrontmatterValue, getValueWithZeroCheck } from '../../utils/frontmatterUtils.js';
+import { parseConfettiConfig } from '../../utils/confettiUtils.js';
+import { readPresetName } from '../../utils/confettiConfig.js';
 
 
 // ---------------------------
@@ -450,7 +453,11 @@ export class TargetPositionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
-        this.setupUI(contentEl);
+        // setupUI awaits before building most of the modal; a failure there (or the
+        // modal closing meanwhile) must not become an unhandled rejection
+        this.setupUI(contentEl).catch(error => {
+            console.error('Pixel Banner: failed to build the target position modal', error);
+        });
     }
 
     async setupUI(contentEl) {
@@ -2615,6 +2622,55 @@ export class TargetPositionModal extends Modal {
             this.updateBannerIconBorderRadius(this.currentBannerIconBorderRadius);
         });
 
+        // Confetti Effect Section
+        const confettiSection = contentEl.createDiv({
+            cls: 'confetti-effect-section'
+        });
+
+        // Confetti Section Title
+        confettiSection.createEl('span', {
+            text: '🎊 Confetti Effect',
+            cls: 'confetti-effect-title'
+        });
+
+        // Get current confetti config from frontmatter
+        const currentConfettiValue = getFrontmatterValue(frontmatter || {}, this.plugin.settings.customBannerConfettiField);
+        const currentConfettiConfig = currentConfettiValue ? parseConfettiConfig(currentConfettiValue) : null;
+        // A value whose preset doesn't resolve is shown as unknown, not as no effect
+        const unknownConfettiPreset = currentConfettiValue && !currentConfettiConfig
+            ? (readPresetName(currentConfettiValue)
+                || (typeof currentConfettiValue === 'string' ? currentConfettiValue.trim() : '') || 'no type')
+            : null;
+
+        // Display current confetti status
+        let confettiStatusText = 'No effect';
+        let confettiStatusClass = 'confetti-status-none';
+        if (currentConfettiConfig) {
+            confettiStatusText = `Active: ${currentConfettiConfig.presetName}`;
+            confettiStatusClass = 'confetti-status-active';
+        } else if (unknownConfettiPreset) {
+            confettiStatusText = `Unknown preset: ${unknownConfettiPreset}`;
+            confettiStatusClass = 'confetti-status-unknown';
+        }
+        const confettiStatus = confettiSection.createEl('span', {
+            text: confettiStatusText,
+            cls: `confetti-status ${confettiStatusClass}`
+        });
+
+        // Confetti settings button
+        const confettiButton = confettiSection.createEl('button', {
+            text: currentConfettiConfig || unknownConfettiPreset ? '✏️ Edit Confetti' : '🎊 Add Confetti',
+            cls: 'confetti-settings-button cursor-pointer'
+        });
+
+        confettiButton.addEventListener('click', () => {
+            this.close();
+            // An unknown preset is passed by name so the modal can say so
+            const modalConfig = currentConfettiConfig
+                || (unknownConfettiPreset ? { presetName: unknownConfettiPreset, overrides: {} } : null);
+            new ConfettiModal(this.app, this.plugin, modalConfig).open();
+        });
+
         // Flag Color Selection Section
         const flagColorSection = contentEl.createDiv({
             cls: 'flag-color-section',
@@ -2622,12 +2678,13 @@ export class TargetPositionModal extends Modal {
                 style: `
                     display: flex;
                     flex-direction: row;
+                    justify-content: space-between;
                     gap: 5px;
                     margin-top: 20px;
                     padding: 15px;
                     border-radius: 5px;
                     background-color: var(--background-secondary);
-                    max-width: 600px;
+                    // max-width: 600px;
                 `
             }
         });

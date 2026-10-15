@@ -8,11 +8,14 @@ import { getIconOverlay, returnIconOverlay, shouldUpdateIconOverlay, handleSetBa
 import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafCache } from './cacheHelpers.js';
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
-import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition, registerMarkdownPostProcessor } from './bannerManager.js';
-import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getVaultImageUrl, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
-import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick } from './eventHandler.js';
+import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition } from './bannerManager.js';
+import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getMarkdownLinkTarget, getVaultImageUrl, releaseAllVaultImageUrls, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
+import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange, handleConfettiForNote, runConfettiPass } from './eventHandler.js';
+import { scheduleUnquotedBannerLinkCheck } from '../utils/unquotedBannerLink.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
+import { confettiManager } from './confettiManager.js';
+import { clearShapeCache } from './confettiShapes.js';
 
 
 // -----------------------
@@ -34,7 +37,6 @@ export class PixelBannerPlugin extends Plugin {
         lastRequestTime: 0,
         minInterval: 1000 // 1 second between requests
     };
-    lastYPositions = new Map();
     lastFrontmatter = new Map();
     
     // Enhanced cache management properties
@@ -76,7 +78,7 @@ export class PixelBannerPlugin extends Plugin {
     getInputType(input, sourcePath = '') { return getInputType.call(this, input, sourcePath); }
     getIconImageInputType(input, sourcePath = '') { return getIconImageInputType.call(this, input, sourcePath); }
     getPathFromObsidianLink(link) { return getPathFromObsidianLink.call(this, link); }
-    getPathFromMarkdownImage(link) { return getPathFromMarkdownImage.call(this, link); }
+    getPathFromMarkdownImage(link, sourcePath = '') { return getPathFromMarkdownImage.call(this, link, sourcePath); }
     getVaultImageUrl(path) { return getVaultImageUrl.call(this, path); }
     preloadImage(url) { return preloadImage.call(this, url); }
     getFolderPath(filePath) { return getFolderPath.call(this, filePath); }
@@ -95,6 +97,8 @@ export class PixelBannerPlugin extends Plugin {
     handleModeChange(leaf) { return handleModeChange.call(this, leaf); }
     handleSelectImage() { return handleSelectImage.call(this); }
     handleBannerIconClick() { return handleBannerIconClick.call(this); }
+    handleConfettiForNote(leaf, frontmatter) { return handleConfettiForNote.call(this, leaf, frontmatter); }
+    runConfettiPass() { return runConfettiPass.call(this); }
 
     // -------------------------------------
     // -- add bindings for DOM management --
@@ -147,6 +151,22 @@ export class PixelBannerPlugin extends Plugin {
             }
         });
 
+        // Confetti effects register their document listener and intervals
+        // through the plugin, so unload releases them
+        confettiManager.init(this);
+
+        // Notes already open when the plugin loads get their confetti too
+        // (runs at once when the layout is already ready)
+        this.app.workspace.onLayoutReady(() => this.runConfettiPass());
+
+        // Re-check the reduced-motion gate when the OS setting changes
+        if (typeof window.matchMedia === 'function') {
+            const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            if (reducedMotionQuery && typeof reducedMotionQuery.addEventListener === 'function') {
+                this.registerDomEvent(reducedMotionQuery, 'change', () => this.runConfettiPass());
+            }
+        }
+
         // Register event handlers
         this.registerEvent(
             this.app.workspace.on('active-leaf-change', this.handleActiveLeafChange.bind(this))
@@ -160,10 +180,23 @@ export class PixelBannerPlugin extends Plugin {
 
         // Add metadata cache event listener for frontmatter changes
         this.registerEvent(
-            this.app.metadataCache.on('changed', async (file) => {
+            this.app.metadataCache.on('changed', async (file, data, cache) => {
+                // Tell the user once when a banner link was typed without quotes (issue #289),
+                // after the note settles, so a half-typed value is never reported
+                scheduleUnquotedBannerLinkCheck(this, file);
+
                 // Get the frontmatter
                 const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
                 if (!frontmatter) {
+                    // Forget it, so restoring the frontmatter (undo, paste) counts as a change
+                    this.lastFrontmatter.delete(file.path);
+
+                    // Still check for confetti removal when frontmatter is removed
+                    try {
+                        handleConfettiMetadataChange.call(this, file, cache || { frontmatter: {} });
+                    } catch (error) {
+                        console.error('Pixel Banner: Confetti metadata change error:', error);
+                    }
                     return;
                 }
 
@@ -178,6 +211,16 @@ export class PixelBannerPlugin extends Plugin {
 
                 // Always store the latest frontmatter so subsequent comparisons work correctly
                 this.lastFrontmatter.set(file.path, JSON.parse(currentFrontmatterStr));
+
+                // Confetti: each pane showing this file compares the parsed
+                // config with the one it is running and restarts only on a
+                // real change, so an unseeded note (or a lastFrontmatter
+                // cleared by saveSettings) never restarts a running effect.
+                try {
+                    handleConfettiMetadataChange.call(this, file, cache || { frontmatter });
+                } catch (error) {
+                    console.error('Pixel Banner: Confetti metadata change error:', error);
+                }
 
                 // Check if any relevant fields exist and changed in the frontmatter
                 const relevantFields = [
@@ -218,13 +261,25 @@ export class PixelBannerPlugin extends Plugin {
                     return;
                 }
 
-                // Only update banner when banner-related fields actually changed
+                // Drop the cached image even when no pane shows this note, so a pane
+                // that opens it later (a linked tab refreshed with ENSURE_VISIBILITY)
+                // cannot reuse the old banner image
+                this.loadedImages.delete(file.path);
+                this.lastKeywords.delete(file.path);
+
+                // Only update banner when banner-related fields actually changed.
+                // The first pane showing the note loads the new image; the others (linked
+                // tabs) reuse it with ENSURE_VISIBILITY, so a keyword banner is not fetched
+                // once per pane and every pane shows the same image
                 const leaves = this.app.workspace.getLeavesOfType("markdown");
+                let imageLoaded = false;
                 for (const leaf of leaves) {
                     if (leaf.view instanceof MarkdownView && leaf.view.file === file) {
-                        this.loadedImages.delete(file.path);
-                        this.lastKeywords.delete(file.path);
-                        await this.updateBanner(leaf.view, true);
+                        if (imageLoaded) {
+                            await this.updateBanner(leaf.view, false, this.UPDATE_MODE.ENSURE_VISIBILITY);
+                        } else {
+                            imageLoaded = await this.updateBanner(leaf.view, true);
+                        }
                     }
                 }
             })
@@ -283,6 +338,13 @@ export class PixelBannerPlugin extends Plugin {
             
             // For hover popovers, directly add the banner
             if (isHoverPopover) {
+                // Same resolution as updateBanner, so popovers honor Image Display and Image Repeat (issue #312)
+                const imageDisplay = getFrontmatterValue(frontmatter, this.settings.customImageDisplayField) ||
+                    folderSpecific?.imageDisplay ||
+                    this.settings.imageDisplay;
+                const imageRepeat = getFrontmatterValue(frontmatter, this.settings.customImageRepeatField) ??
+                    folderSpecific?.imageRepeat ??
+                    this.settings.imageRepeat;
                 this.addPixelBanner(ctx.containerEl, {
                     frontmatter,
                     file,
@@ -291,11 +353,21 @@ export class PixelBannerPlugin extends Plugin {
                     xPosition,
                     contentStartPosition,
                     bannerImage,
+                    imageDisplay,
+                    imageRepeat,
                     isReadingView: true
                 });
             } else {
-                // For regular preview, call updateBanner
-                this.updateBanner({
+                // For regular preview, call updateBanner. Pass the pane's own view when the
+                // preview belongs to one, so this call shares that pane's debounce and repeat
+                // skip (keyed by view.contentEl) instead of running a second pass on the same
+                // sizer; embeds keep a stand-in so they never merge with their host pane
+                const isEmbed = !!ctx.containerEl.closest('.markdown-embed');
+                const ownerLeaf = isEmbed ? null : this.app.workspace.getLeavesOfType('markdown')
+                    .find(leaf => leaf.view instanceof MarkdownView &&
+                        leaf.view.file === file &&
+                        leaf.view.containerEl?.contains?.(ctx.containerEl));
+                this.updateBanner(ownerLeaf ? ownerLeaf.view : {
                     file: file,
                     contentEl: ctx.containerEl,
                     getMode: () => 'preview'
@@ -329,11 +401,11 @@ export class PixelBannerPlugin extends Plugin {
 
                 const inputType = this.getInputType(bannerImage);
                 const canPin = imageUrl && (inputType === 'keyword' || inputType === 'url') && this.settings.showPinIcon;
-                
+
                 if (checking) return canPin;
 
                 if (canPin) {
-                    setTimeout(() => handlePinIconClick(imageUrl, this, usedField), 0);
+                    setTimeout(() => handlePinIconClick(imageUrl, this, usedField, null, true, activeView.file), 0);
                 }
                 return true;
             }
@@ -367,11 +439,10 @@ export class PixelBannerPlugin extends Plugin {
                 if (canRefresh) {
                     this.loadedImages.delete(activeView.file.path);
                     this.lastKeywords.delete(activeView.file.path);
-                    this.updateBanner(activeView, true).then(() => {
-                        new Notice('🔄 Refreshed banner image');
-                    }).catch(error => {
-                        console.error('Error refreshing image:', error);
-                        new Notice('😭 Failed to refresh image');
+                    // The debounced updateBanner never rejects; it resolves false when the update
+                    // threw, was skipped as a repeat or the pane moved to another note
+                    this.updateBanner(activeView, true).then(ok => {
+                        new Notice(ok ? '🔄 Refreshed banner image' : '😭 Failed to refresh image');
                     });
                 }
                 return true;
@@ -555,8 +626,6 @@ export class PixelBannerPlugin extends Plugin {
         this.addRibbonIcon('flag', '🚩 Pixel Banner Menu', () => {
             this.handleBannerIconClick();
         });
-
-        registerMarkdownPostProcessor(this);
     }
 
 
@@ -592,8 +661,10 @@ export class PixelBannerPlugin extends Plugin {
             try {
                 const fs = require('fs');
                 const path = require('path');
+                // A Markdown link to a local file, [a.jpg](file:///C:/a.jpg), keeps only its target
+                const fileUrl = getMarkdownLinkTarget(input) ?? input;
                 // Decode URI component and remove the leading slash on Windows
-                let filePath = decodeURIComponent(input.substring(process.platform === 'win32' ? 8 : 7));
+                let filePath = decodeURIComponent(fileUrl.substring(process.platform === 'win32' ? 8 : 7));
                 filePath = filePath.replace('"', '').replace('![[', '').replace('[[', '').replace(']]', '').replace('//', '');
 
                 if (process.platform === 'win32' && /^[a-zA-Z]:/.test(filePath)) {
@@ -628,7 +699,7 @@ export class PixelBannerPlugin extends Plugin {
         }
 
         if (type === 'markdownImage') {
-            const path = this.getPathFromMarkdownImage(input);
+            const path = this.getPathFromMarkdownImage(input, sourcePath);
             if (typeof path === 'string') {
                 // If path is a URL, return it directly
                 try {
@@ -859,7 +930,7 @@ export class PixelBannerPlugin extends Plugin {
         if (this.observer && typeof this.observer.disconnect === 'function') {
             this.observer.disconnect();
         }
-        
+
         // Clean up resize observers
         this.app.workspace.iterateAllLeaves(leaf => {
             if (leaf.view instanceof MarkdownView) {
@@ -870,10 +941,27 @@ export class PixelBannerPlugin extends Plugin {
                 }
             }
         });
-        
+
         // Clear the icon overlay pool
         this.iconOverlayPool = [];
-        
+
+        // Revoke the shared vault image blob URLs
+        releaseAllVaultImageUrls();
+
+        // Dispose every confetti effect immediately (no fade during unload)
+        try {
+            confettiManager.destroy();
+        } catch (error) {
+            console.error('Pixel Banner: Error stopping confetti effects:', error);
+        }
+
+        // Clear cached shape objects
+        try {
+            clearShapeCache();
+        } catch (error) {
+            // Shape cache cleanup is optional
+        }
+
         const styleElTitle = document.getElementById('pixel-banner-embedded-titles');
         if (styleElTitle) styleElTitle.remove();
         const styleElBanner = document.getElementById('pixel-banner-embedded-banners');

@@ -20,6 +20,15 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
+// Obsidian adds setCssProps to every element; it sets CSS variables
+if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.setCssProps) {
+  HTMLElement.prototype.setCssProps = function(props) {
+    for (const [key, value] of Object.entries(props)) {
+      this.style.setProperty(key, value);
+    }
+  };
+}
+
 // Mock requestAnimationFrame
 global.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 0));
 global.cancelAnimationFrame = vi.fn((id) => clearTimeout(id));

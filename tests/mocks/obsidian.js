@@ -36,6 +36,10 @@ export class Plugin {
     return { el, event, callback };
   }
 
+  register(callback) {
+    (this._registered = this._registered || []).push(callback);
+  }
+
   registerInterval(callback, delay) {
     const id = setInterval(callback, delay);
     return id;
@@ -114,12 +118,15 @@ export class Modal {
         return child;
       };
       el.createDiv = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('div', className);
         return this.createEl('div', { cls: className, ...attrs });
       };
       el.createSpan = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('span', className);
         return this.createEl('span', { cls: className, ...attrs });
       };
       el.createButton = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('button', className);
         return this.createEl('button', { cls: className, ...attrs });
       };
       return el;
@@ -305,18 +312,23 @@ export class Setting {
               }
             });
           }
+          if (attrs.type) child.type = attrs.type;
+          if (attrs.value !== undefined) child.value = attrs.value;
         }
         this.appendChild(child);
         addObsidianMethods(child);
         return child;
       };
       el.createDiv = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('div', className);
         return this.createEl('div', { cls: className, ...attrs });
       };
       el.createSpan = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('span', className);
         return this.createEl('span', { cls: className, ...attrs });
       };
       el.createButton = function(className, attrs) {
+        if (className && typeof className === 'object') return this.createEl('button', className);
         return this.createEl('button', { cls: className, ...attrs });
       };
       return el;
@@ -353,12 +365,14 @@ export class Setting {
   addText(cb) {
     const text = new TextComponent(this.controlEl);
     if (cb) cb(text);
+    this.components.push(text);
     return this._createChainableObject();
   }
 
   addTextArea(cb) {
     const textArea = new TextAreaComponent(this.controlEl);
     if (cb) cb(textArea);
+    this.components.push(textArea);
     return this._createChainableObject();
   }
 
@@ -372,6 +386,7 @@ export class Setting {
   addDropdown(cb) {
     const dropdown = new DropdownComponent(this.controlEl);
     if (cb) cb(dropdown);
+    this.components.push(dropdown);
     return this._createChainableObject();
   }
 
@@ -384,6 +399,7 @@ export class Setting {
   addSlider(cb) {
     const slider = new SliderComponent(this.controlEl);
     if (cb) cb(slider);
+    this.components.push(slider);
     return this._createChainableObject();
   }
 
@@ -398,6 +414,7 @@ export class Setting {
   addColorPicker(cb) {
     const colorPicker = new ColorPickerComponent(this.controlEl);
     if (cb) cb(colorPicker);
+    this.components.push(colorPicker);
     return this._createChainableObject();
   }
 
@@ -418,6 +435,9 @@ class TextComponent {
   constructor(containerEl) {
     this.inputEl = document.createElement('input');
     this.inputEl.type = 'text';
+    this.inputEl.addClass = function(className) { this.classList.add(className); return this; };
+    this.inputEl.removeClass = function(className) { this.classList.remove(className); return this; };
+    this.inputEl.toggleClass = function(className, force) { this.classList.toggle(className, force); return this; };
     containerEl.appendChild(this.inputEl);
   }
 
@@ -594,6 +614,11 @@ class SliderComponent {
 
   onChange(callback) {
     this.sliderEl.addEventListener('input', (e) => callback(Number(e.target.value)));
+    return this;
+  }
+
+  setDisabled(disabled) {
+    this.sliderEl.disabled = disabled;
     return this;
   }
 }
@@ -775,6 +800,10 @@ export class Workspace {
   }
 
   off(event, callback) {}
+
+  onLayoutReady(callback) {
+    if (this.layoutReady) callback();
+  }
 
   iterateAllLeaves(callback) {
     if (this.activeLeaf) {

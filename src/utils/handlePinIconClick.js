@@ -1,6 +1,7 @@
 // -------------
 // -- imports --
 // -------------
+import { Notice } from 'obsidian';
 import { FolderSelectionModal } from '../modal/modals/folderSelectionModal';
 import { SaveImageModal } from '../modal/modals/saveImageModal';
 import { PinChoiceModal } from '../modal/modals/pinChoiceModal';
@@ -10,9 +11,9 @@ import { updateNoteFrontmatter, updateNoteFrontmatterWithUrl } from './frontmatt
 // ----------------------------------------------------------------------------
 // -- helper for pinning an image once chosen from UI or loaded from keyword --
 // ----------------------------------------------------------------------------
-export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null, showChoiceModal = true) {
+export async function handlePinIconClick(imageUrl, plugin, usedField = null, suggestedFilename = null, showChoiceModal = true, noteFile = null) {
     let choice = 'local'; // Default to local save behavior
-    
+
     // Only show choice modal if explicitly requested (e.g., from pin icon or command palette)
     if (showChoiceModal) {
         choice = await new Promise((resolve) => {
@@ -35,7 +36,21 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
     } else {
         // Original behavior: save locally
         const imageBlob = await fetchImage(imageUrl);
-        const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, suggestedFilename);
+
+        // Determine suggested filename based on settings and note context
+        let finalSuggestedFilename = suggestedFilename;
+        // When useNoteFilenameForBanner is enabled, it overrides any suggested filename
+        if (plugin.settings.useNoteFilenameForBanner && noteFile) {
+            // Get the note's basename without extension
+            const noteBasename = noteFile.basename;
+            // Obsidian's default names ("Untitled", "Untitled 2") fall back to
+            // suggestedFilename or the default; "Untitled Project Ideas" is kept
+            if (!/^Untitled( \d+)?$/.test(noteBasename)) {
+                finalSuggestedFilename = noteBasename;
+            }
+        }
+
+        const { file, useAsBanner } = await saveImageLocally(imageBlob, plugin, finalSuggestedFilename);
         const finalPath = await waitForFileRename(file, plugin);
 
         if (!finalPath) {
@@ -56,6 +71,14 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
 // -----------------
 // -- fetch image --
 // -----------------
+// Strip only what a file name or an Obsidian link cannot hold (path separators,
+// characters Windows forbids, link syntax, control characters), so a note name
+// like "日記" or "Café" survives. Falls back to "banner" when nothing is left
+export function sanitizeImageFileName(name) {
+    const cleaned = String(name ?? '').replace(/[\\/:*?"<>|#^[\]\x00-\x1f]/g, '').trim();
+    return cleaned || 'banner';
+}
+
 async function fetchImage(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Image download failed');
@@ -100,8 +123,7 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
         throw new Error('No filename provided');
     }
 
-    let baseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
-    if (!baseName) baseName = 'banner';
+    let baseName = sanitizeImageFileName(userInput.name);
     if (!baseName.toLowerCase().endsWith(`.${format}`)) baseName += `.${format}`;
 
     let fileName = baseName;

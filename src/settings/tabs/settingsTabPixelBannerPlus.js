@@ -32,7 +32,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
     }
 
     // Pixel Banner Plus Enabled Toggle
-    new Setting(pixelBannerPlusSettingsGroup)
+    const pixelBannerPlusEnabledSetting = new Setting(pixelBannerPlusSettingsGroup)
         .setName('Pixel Banner Plus Enabled')
         .setDesc('Enable or disable Pixel Banner Plus features')
         .addToggle(toggle => toggle
@@ -51,12 +51,8 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                 plugin.pixelBannerPlusEnabled = plugin.settings.pixelBannerPlusEnabled;
                 await plugin.saveSettings();
                 
-                const toggleComponent = button.extraSettingsEl.parentElement.querySelector('.checkbox-container input');
-                if (toggleComponent) {
-                    toggleComponent.checked = plugin.settings.pixelBannerPlusEnabled;
-                    toggleComponent.parentElement.classList.toggle('is-enabled', plugin.settings.pixelBannerPlusEnabled);
-                    toggleComponent.dispatchEvent(new Event('change'));
-                }
+                const toggleComponent = pixelBannerPlusEnabledSetting.components[0];
+                if (toggleComponent) toggleComponent.setValue(plugin.settings.pixelBannerPlusEnabled);
                 updatePlusDependentSettingsVisibility(plugin.settings.pixelBannerPlusEnabled);
             }))
         .then(setting => {
@@ -196,7 +192,7 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
         });
 
     // Add the enableDailyGame setting
-    new Setting(accountSettingsGroup)
+    const enableDailyGameSetting = new Setting(accountSettingsGroup)
         .setName('Show Daily Game')
         .setDesc('Enable the daily game feature in the banner selection modal for a chance to win the daily jackpot\'s Tokens')
         .addToggle(toggle => toggle
@@ -212,12 +208,8 @@ export function createPixelBannerPlusSettings(containerEl, plugin) {
                 plugin.settings.enableDailyGame = DEFAULT_SETTINGS.enableDailyGame;
                 await plugin.saveSettings();
                 
-                const toggleComponent = button.extraSettingsEl.parentElement.querySelector('.checkbox-container input');
-                if (toggleComponent) {
-                    toggleComponent.checked = DEFAULT_SETTINGS.enableDailyGame;
-                    toggleComponent.parentElement.classList.toggle('is-enabled', DEFAULT_SETTINGS.enableDailyGame);
-                    toggleComponent.dispatchEvent(new Event('change'));
-                }
+                const toggleComponent = enableDailyGameSetting.components[0];
+                if (toggleComponent) toggleComponent.setValue(DEFAULT_SETTINGS.enableDailyGame);
             }))
         .then(setting => {
             // Set the HTML content for the name element

@@ -9,6 +9,8 @@ import {
     handleOpenStore
 } from '@/core/eventHandler.js';
 import { createMockApp, MarkdownView, TFile, Notice } from 'obsidian';
+import { confettiManager } from '@/core/confettiManager.js';
+import { getVaultImageUrl, releaseAllVaultImageUrls } from '@/core/bannerUtils.js';
 import { ImageSelectionModal, SelectPixelBannerModal, PixelBannerStoreModal } from '@/modal/modals.js';
 
 // Mock Notice constructor properly
@@ -205,6 +207,151 @@ describe('eventHandler', () => {
     });
 
     describe('handleActiveLeafChange', () => {
+        // F45: a slow banner load must not start confetti on a pane that no
+        // longer shows the note. Effects are per leaf, so a note left visible
+        // in a split keeps its confetti when focus moves to another pane.
+        // Both await paths (full update, ensure visibility).
+        describe('slow banner race', () => {
+            let update;
+            let otherLeaf;
+
+            beforeEach(() => {
+                update = vi.spyOn(confettiManager, 'update').mockImplementation(() => null);
+                mockPlugin.settings.customBannerConfettiField = ['banner-confetti'];
+                mockPlugin.settings.confettiDisableOnMobile = false;
+                mockApp.metadataCache.getFileCache = vi.fn(() => ({
+                    frontmatter: { banner: 'test-banner.jpg', 'banner-confetti': 'type: snow' }
+                }));
+                otherLeaf = { id: 'other-leaf', view: new MarkdownView() };
+                otherLeaf.view.file = new TFile('other.md');
+                // A leaf in the workspace is attached to the document
+                document.body.appendChild(mockView.containerEl);
+            });
+
+            // Make the second path run: a cached state and a loaded image
+            function useCachedBanner() {
+                const path = mockLeaf.view.file.path;
+                mockPlugin.loadedImages.set(path, 'blob:image');
+                mockPlugin.bannerStateCache.get.mockReturnValue({
+                    timestamp: Date.now(),
+                    frontmatter: { banner: 'test-banner.jpg', 'banner-confetti': 'type: snow' }
+                });
+            }
+
+            it('starts confetti when the pane is still active after the banner load', async () => {
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'full');
+                expect(update).toHaveBeenCalledWith(mockLeaf.id, mockContentEl, 'snow', {}, { filePath: mockFile.path });
+            });
+
+            it('starts confetti on a split pane when focus moved to another pane during a full update', async () => {
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    mockApp.workspace.activeLeaf = otherLeaf;
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'full');
+                expect(update).toHaveBeenCalledWith(mockLeaf.id, mockContentEl, 'snow', {}, { filePath: mockFile.path });
+            });
+
+            it('skips confetti when the pane switched file during a full update', async () => {
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    mockView.file = new TFile('switched.md');
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'full');
+                expect(update).not.toHaveBeenCalled();
+            });
+
+            it('skips confetti when the leaf was closed during a full update', async () => {
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    mockView.containerEl.remove();
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'full');
+                expect(update).not.toHaveBeenCalled();
+            });
+
+            it('uses the frontmatter read after the banner load, not the one read before', async () => {
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    // The note was edited while the banner loaded
+                    mockApp.metadataCache.getFileCache = vi.fn(() => ({
+                        frontmatter: { banner: 'test-banner.jpg', 'banner-confetti': 'type: hearts' }
+                    }));
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(update).toHaveBeenCalledTimes(1);
+                expect(update).toHaveBeenCalledWith(mockLeaf.id, mockContentEl, 'hearts', {}, { filePath: mockFile.path });
+            });
+
+            it('honours confetti removed from the note during the banner load', async () => {
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    mockApp.metadataCache.getFileCache = vi.fn(() => ({
+                        frontmatter: { banner: 'test-banner.jpg' }
+                    }));
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'full');
+                expect(update).not.toHaveBeenCalled();
+            });
+
+            it('starts confetti on the visibility-only path when nothing changed', async () => {
+                useCachedBanner();
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'visibility');
+                expect(update).toHaveBeenCalled();
+            });
+
+            it('starts confetti on a split pane when focus moved to another pane on the visibility-only path', async () => {
+                useCachedBanner();
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    mockApp.workspace.activeLeaf = otherLeaf;
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'visibility');
+                expect(update).toHaveBeenCalledWith(mockLeaf.id, mockContentEl, 'snow', {}, { filePath: mockFile.path });
+            });
+
+            it('skips confetti when the pane switched file on the visibility-only path', async () => {
+                useCachedBanner();
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    mockView.file = new TFile('switched.md');
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'visibility');
+                expect(update).not.toHaveBeenCalled();
+            });
+
+            it('uses fresh frontmatter on the visibility-only path', async () => {
+                useCachedBanner();
+                mockPlugin.updateBanner.mockImplementation(async () => {
+                    mockApp.metadataCache.getFileCache = vi.fn(() => ({
+                        frontmatter: { banner: 'test-banner.jpg', 'banner-confetti': 'type: hearts' }
+                    }));
+                });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(update).toHaveBeenCalledWith(mockLeaf.id, mockContentEl, 'hearts', {}, { filePath: mockFile.path });
+            });
+        });
+
         it('should return early for non-markdown views', async () => {
             const nonMarkdownLeaf = {
                 view: { constructor: { name: 'FileView' } }
@@ -248,6 +395,27 @@ describe('eventHandler', () => {
 
             // Only first call should trigger banner update
             expect(mockPlugin.updateBanner).toHaveBeenCalledTimes(1);
+        });
+
+        // Issue #333: a plugin that re-opens the note on startup (e.g. Homepage)
+        // gives the same leaf and file a new view within the debounce window
+        it('does not skip a new view of the same file within the debounce window', async () => {
+            const filePath = 'homepage.md';
+            mockLeaf.view.file.path = filePath;
+
+            await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+            const reopenedView = new MarkdownView();
+            reopenedView.file = new TFile(filePath);
+            reopenedView.contentEl = mockContentEl;
+            reopenedView.containerEl = mockView.containerEl;
+            mockLeaf.view = reopenedView;
+            currentTime += 100;
+
+            await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+            expect(mockPlugin.updateBanner).toHaveBeenCalledTimes(2);
+            expect(mockPlugin.updateBanner).toHaveBeenLastCalledWith(reopenedView, false, 'full');
         });
 
         it('should clean up previous leaf when switching', async () => {
@@ -439,6 +607,111 @@ describe('eventHandler', () => {
     });
 
     describe('handleLayoutChange', () => {
+        // Issue #207: a linked tab changes note without focus, so it gets no
+        // active-leaf-change; layout-change refreshes it instead
+        describe('panes that changed note without focus', () => {
+            function makePane(path, { marker, shown = true } = {}) {
+                const view = new MarkdownView();
+                view.file = new TFile(path);
+                view.contentEl = document.createElement('div');
+                if (marker) view.contentEl._pixelBannerFilePath = marker;
+                view.containerEl = document.createElement('div');
+                view.containerEl.isShown = () => shown;
+                return { id: `leaf-${path}`, view };
+            }
+
+            beforeEach(() => {
+                mockApp.workspace.activeLeaf = mockLeaf;
+            });
+
+            it('updates a visible pane whose banner was rendered for another note', () => {
+                const linked = makePane('b.md', { marker: 'a.md' });
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, linked]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(linked.view, false, mockPlugin.UPDATE_MODE.ENSURE_VISIBILITY);
+            });
+
+            it('updates a visible pane that never had a banner update', () => {
+                const pane = makePane('b.md');
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, pane]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(pane.view, false, mockPlugin.UPDATE_MODE.ENSURE_VISIBILITY);
+            });
+
+            it('leaves a pane alone when its banner matches its note', () => {
+                const pane = makePane('b.md', { marker: 'b.md' });
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, pane]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                // Not updated with any arguments, not just not with ENSURE_VISIBILITY
+                expect(mockPlugin.updateBanner.mock.calls.some(([view]) => view === pane.view)).toBe(false);
+            });
+
+            it('leaves hidden panes (background tabs) for when they are shown', () => {
+                const pane = makePane('b.md', { marker: 'a.md', shown: false });
+                mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, pane]);
+
+                handleLayoutChange.call(mockPlugin);
+
+                // Not updated with any arguments, not just not with ENSURE_VISIBILITY
+                expect(mockPlugin.updateBanner.mock.calls.some(([view]) => view === pane.view)).toBe(false);
+            });
+
+            // Such a pane gets no active-leaf-change either, so confetti for the
+            // note it moved to starts after its banner update
+            describe('confetti', () => {
+                let update;
+
+                // Let the banner update promise chain settle
+                async function flushPromises() {
+                    for (let i = 0; i < 5; i++) await Promise.resolve();
+                }
+
+                beforeEach(() => {
+                    update = vi.spyOn(confettiManager, 'update').mockImplementation(() => null);
+                    mockPlugin.settings.customBannerConfettiField = ['banner-confetti'];
+                    mockPlugin.settings.confettiDisableOnMobile = false;
+                    mockApp.metadataCache.getFileCache = vi.fn(() => ({
+                        frontmatter: { banner: 'test-banner.jpg', 'banner-confetti': 'type: snow' }
+                    }));
+                });
+
+                it('starts confetti on a linked pane that moved to a note with confetti', async () => {
+                    const linked = makePane('b.md', { marker: 'a.md' });
+                    // A leaf in the workspace is attached to the document
+                    document.body.appendChild(linked.view.containerEl);
+                    mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, linked]);
+
+                    handleLayoutChange.call(mockPlugin);
+                    await flushPromises();
+
+                    expect(update).toHaveBeenCalledWith(linked.id, linked.view.contentEl, 'snow', {}, { filePath: 'b.md' });
+                });
+
+                it('skips confetti when the pane moved to another note before its banner update finished', async () => {
+                    const linked = makePane('b.md', { marker: 'a.md' });
+                    document.body.appendChild(linked.view.containerEl);
+                    mockApp.workspace.getLeavesOfType.mockReturnValue([mockLeaf, linked]);
+                    mockPlugin.updateBanner.mockImplementation(async (view) => {
+                        if (view === linked.view) {
+                            linked.view.file = new TFile('c.md');
+                        }
+                    });
+
+                    handleLayoutChange.call(mockPlugin);
+                    await flushPromises();
+
+                    expect(mockPlugin.updateBanner).toHaveBeenCalledWith(linked.view, false, mockPlugin.UPDATE_MODE.ENSURE_VISIBILITY);
+                    expect(update.mock.calls.some(([effectId]) => effectId === linked.id)).toBe(false);
+                });
+            });
+        });
+
         it('should clean up cache for closed leaves', () => {
             const closedLeafId = 'closed-leaf-id';
             const activeLeafId = 'active-leaf-id';
@@ -463,6 +736,35 @@ describe('eventHandler', () => {
             expect(mockPlugin.bannerStateCache.has(`cache-${closedLeafId}`)).toBe(false);
             expect(mockPlugin.bannerStateCache.has(`cache-${activeLeafId}`)).toBe(true);
             expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+        });
+
+        // A closed pane's shared vault image may still show in other panes
+        it('keeps a shared vault image blob URL when a closed leaf\'s cache is dropped', async () => {
+            global.URL = {
+                createObjectURL: vi.fn(() => 'blob:shared-vault-image'),
+                revokeObjectURL: vi.fn()
+            };
+            releaseAllVaultImageUrls();
+            const imageFile = new TFile('shared.png');
+            imageFile.extension = 'png';
+            const vaultContext = { app: createMockApp() };
+            vaultContext.app.vault.getAbstractFileByPath = vi.fn(() => imageFile);
+            vaultContext.app.vault.readBinary = vi.fn().mockResolvedValue(new ArrayBuffer(4));
+            const { url: sharedUrl } = await getVaultImageUrl.call(vaultContext, 'shared.png');
+
+            mockPlugin.bannerStateCache.set('cache-shared', { leafId: 'closed-1', state: { imageUrl: sharedUrl } });
+            mockPlugin.bannerStateCache.set('cache-own', { leafId: 'closed-2', state: { imageUrl: 'blob:pane-only' } });
+            mockApp.workspace.getLeavesOfType.mockReturnValue([]);
+
+            try {
+                handleLayoutChange.call(mockPlugin);
+
+                expect(mockPlugin.bannerStateCache.size).toBe(0);
+                expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:pane-only');
+                expect(global.URL.revokeObjectURL).not.toHaveBeenCalledWith(sharedUrl);
+            } finally {
+                releaseAllVaultImageUrls();
+            }
         });
 
         it('should update banner for active leaf when no cache entry exists', () => {
