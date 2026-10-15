@@ -105,11 +105,6 @@ export class IconImageSelectionModal extends Modal {
         // Add styles for pagination
         const style = document.createElement('style');
         style.textContent = `
-            .pixel-banner-image-modal {
-                width: var(--dialog-max-width);
-                top: unset !important;
-            }
-
             .pixel-banner-image-select-modal {
                 top: unset !important;
                 width: var(--dialog-max-width);

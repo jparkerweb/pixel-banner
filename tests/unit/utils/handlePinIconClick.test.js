@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { handlePinIconClick } from '@/utils/handlePinIconClick.js';
+import { handlePinIconClick, sanitizeImageFileName } from '@/utils/handlePinIconClick.js';
 import { createMockApp } from 'obsidian';
 
 // The folder and filename prompts answer straight away; the filename prompt
@@ -83,5 +83,37 @@ describe('handlePinIconClick', () => {
         ['Garden Plan', 'garden plan']
     ])('offers the note name for a real note called "%s"', async (basename, expected) => {
         expect(await pinFor(basename)).toBe(expected);
+    });
+
+    function savedPath() {
+        return plugin.app.vault.createBinary.mock.calls[0][0];
+    }
+
+    it.each([
+        ['日記', 'Images/日記.png'],
+        ['Café', 'Images/café.png']
+    ])('keeps non-ASCII characters of the note name "%s" in the saved file', async (basename, expected) => {
+        await pinFor(basename);
+        expect(savedPath()).toBe(expected);
+    });
+
+    it('strips characters a file name or link cannot hold from the saved file', async () => {
+        await pinFor('a/b\\c:d*e?f"g<h>i|j#k^l[m]n');
+        expect(savedPath()).toBe('Images/abcdefghijklmn.png');
+    });
+});
+
+describe('sanitizeImageFileName', () => {
+    it('keeps letters from any script, spaces, dots and dashes', () => {
+        expect(sanitizeImageFileName('日記 Café-notes_v1.2')).toBe('日記 Café-notes_v1.2');
+    });
+
+    it('strips path separators, Windows-forbidden and link characters and control characters', () => {
+        expect(sanitizeImageFileName(' a/b\\c:d*e?f"g<h>i|j#k^l[m]n\u0000\u001f ')).toBe('abcdefghijklmn');
+    });
+
+    it('falls back to "banner" when nothing is left', () => {
+        expect(sanitizeImageFileName('  #^[]  ')).toBe('banner');
+        expect(sanitizeImageFileName('')).toBe('banner');
     });
 });

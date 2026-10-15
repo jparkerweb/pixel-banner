@@ -71,6 +71,14 @@ export async function handlePinIconClick(imageUrl, plugin, usedField = null, sug
 // -----------------
 // -- fetch image --
 // -----------------
+// Strip only what a file name or an Obsidian link cannot hold (path separators,
+// characters Windows forbids, link syntax, control characters), so a note name
+// like "日記" or "Café" survives. Falls back to "banner" when nothing is left
+export function sanitizeImageFileName(name) {
+    const cleaned = String(name ?? '').replace(/[\\/:*?"<>|#^[\]\x00-\x1f]/g, '').trim();
+    return cleaned || 'banner';
+}
+
 async function fetchImage(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Image download failed');
@@ -115,8 +123,7 @@ async function saveImageLocally(arrayBuffer, plugin, suggestedFilename = null) {
         throw new Error('No filename provided');
     }
 
-    let baseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
-    if (!baseName) baseName = 'banner';
+    let baseName = sanitizeImageFileName(userInput.name);
     if (!baseName.toLowerCase().endsWith(`.${format}`)) baseName += `.${format}`;
 
     let fileName = baseName;

@@ -3,14 +3,12 @@ import { ImageViewModal, TargetPositionModal } from '../modal/modals.js';
 import { getFrontmatterValue, getValueWithZeroCheck } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { flags } from '../resources/flags.js';
-import { debounceFunction, debounceImmediate, debounceAndSwallow } from '../utils/debounce.js';
-
-// Global debouncing map for markdown post processor
-const markdownPostProcessorDebounceMap = new Map();
-const MARKDOWN_PROCESSOR_DEBOUNCE_DELAY = 200; // 200ms debounce window
+import { debounceAndSwallow } from '../utils/debounce.js';
+import { releaseVaultImageBlobUrl } from './bannerUtils.js';
 
 // Debouncing map for updateBanner to prevent concurrent updates, keyed by the
-// view's content element (holding { filePath, time }), not the file path alone:
+// view's content element (holding { filePath, time, isContentChange,
+// isEnsureVisibility }), not the file path alone:
 // linked tabs show the same file in two panes and both need their banner (issue #207)
 const updateBannerDebounceMap = new WeakMap();
 const UPDATE_BANNER_DEBOUNCE_DELAY = 250; // 250ms debounce window
@@ -365,6 +363,14 @@ async function addPixelBanner(plugin, el, ctx) {
         bannerDiv._isPersistentBanner = true;
     }
 
+    // Claim the banner for this render. The image is fetched asynchronously, and a
+    // pane can move to another note meanwhile (whose update may already have run, or
+    // hidden the banner), so stop at each await once a newer render or a cleanup
+    // (which sets _pixelBannerRender to null) has taken the banner over
+    const renderToken = {};
+    bannerDiv._pixelBannerRender = renderToken;
+    const isStaleRender = () => bannerDiv._pixelBannerRender !== renderToken;
+
     // 2) Remove existing icons (to avoid stacking or flicker)
     const oldViewIcons = container.querySelectorAll('.view-image-icon');
     const oldPinIcons = container.querySelectorAll('.pin-icon');
@@ -482,6 +488,7 @@ async function addPixelBanner(plugin, el, ctx) {
                 plugin.loadedImages.set(file.path, imageUrl);
                 plugin.lastKeywords.set(file.path, bannerImage);
             }
+            if (isStaleRender()) return;
         }
 
         if (imageUrl) {
@@ -528,8 +535,11 @@ async function addPixelBanner(plugin, el, ctx) {
                     console.log('Blob URL invalid, refreshing file:', error);
                     // Clear the invalid blob URL from cache
                     plugin.loadedImages.delete(file.path);
+                    // A shared vault image URL is dropped from its cache too, so the
+                    // fresh request below reads the file again
+                    releaseVaultImageBlobUrl(fileUrl);
                     URL.revokeObjectURL(fileUrl);
-                    
+
                     // Get a fresh URL
                     const inputType = plugin.getInputType(bannerImage, file.path);
                     const freshResult = await plugin.getImageUrl(inputType, bannerImage, file.path);
@@ -543,6 +553,7 @@ async function addPixelBanner(plugin, el, ctx) {
                         plugin.loadedImages.set(file.path, fileUrl);
                     }
                 }
+                if (isStaleRender()) return;
             }
             
             // Handle video files (MP4)
@@ -703,6 +714,8 @@ async function addPixelBanner(plugin, el, ctx) {
                     refreshIcon._isPersistentRefresh = true;
                     
                     refreshIcon.onclick = async () => {
+                        const refreshToken = {};
+                        bannerDiv._pixelBannerRender = refreshToken;
                         try {
                             plugin.loadedImages.delete(file.path);
                             plugin.lastKeywords.delete(file.path);
@@ -726,7 +739,10 @@ async function addPixelBanner(plugin, el, ctx) {
                                 // Store the URL string in cache, not the full object
                                 plugin.loadedImages.set(file.path, fileUrl);
                                 plugin.lastKeywords.set(file.path, bannerImage);
-                                
+
+                                // The pane moved on (or re-rendered) while the image loaded
+                                if (bannerDiv._pixelBannerRender !== refreshToken) return;
+
                                 // Update the banner display based on file type
                                 if (isVideoFile) {
                                     // Clear background image
@@ -754,8 +770,9 @@ async function addPixelBanner(plugin, el, ctx) {
                                     videoEl.style.left = '0';
                                     bannerDiv.appendChild(videoEl);
                                 } else {
-                                    // It's an image, handle as before
-                                    bannerDiv.style.backgroundImage = `url('${fileUrl}')`;
+                                    // It's an image; go through setBannerBackground so a decode
+                                    // still pending for the old image cannot put it back
+                                    setBannerBackground(bannerDiv, fileUrl);
                                     
                                     // Remove any existing videos
                                     const existingVideo = bannerDiv.querySelector('video');
@@ -794,8 +811,10 @@ async function addPixelBanner(plugin, el, ctx) {
                 }
             }
         } else {
-            // No final imageUrl => hide banner
+            // No final imageUrl => hide banner, and drop its image so it cannot
+            // flash while the next note's image decodes (setBannerBackground)
             bannerDiv.style.display = 'none';
+            bannerDiv.style.backgroundImage = '';
             plugin.loadedImages.delete(file.path);
             plugin.lastKeywords.delete(file.path);
 
@@ -811,39 +830,70 @@ async function addPixelBanner(plugin, el, ctx) {
 // -- updateBanner function --
 // ---------------------------
 // Trailing debounce per pane (content element): a shared one let an update for one
-// pane cancel a pending update for another (issue #207)
-const updateBannerTimers = new WeakMap();
-function debouncedUpdateBanner(plugin, view, ...args) {
+// pane cancel a pending update for another (issue #207). Calls for the same pane
+// within the window merge: a content change is kept, and an ENSURE_VISIBILITY
+// request never replaces a stronger pending mode (FULL_UPDATE, SHUFFLE_UPDATE).
+// Returns a promise that resolves once the merged update has run, so callers can
+// await it: false when it threw or was skipped as a repeat (or the view had no
+// file, or moved to another note before the update finished), otherwise true. True does not promise an image: a banner value that
+// resolves to nothing hides the banner without an error. It never rejects, a
+// failed update is logged here instead.
+const updateBannerPending = new WeakMap();
+function debouncedUpdateBanner(plugin, view, isContentChange = false, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
     const key = view?.contentEl || view;
     if (!key || typeof key !== 'object') {
-        return;
+        return Promise.resolve(false);
     }
-    clearTimeout(updateBannerTimers.get(key));
-    updateBannerTimers.set(key, setTimeout(() => {
-        updateBannerTimers.delete(key);
-        // Nobody awaits a debounced call, so report a failed update (image or API error) here
-        updateBanner(plugin, view, ...args).catch(error => {
-            console.error('Pixel Banner: banner update failed', error);
-        });
-    }, 50));
+    const pending = updateBannerPending.get(key);
+    const resolvers = pending ? pending.resolvers : [];
+    if (pending) {
+        clearTimeout(pending.timer);
+        isContentChange = isContentChange || pending.isContentChange;
+        if (updateMode === plugin.UPDATE_MODE.ENSURE_VISIBILITY) {
+            updateMode = pending.updateMode;
+        }
+    }
+    const done = new Promise(resolve => resolvers.push(resolve));
+    const timer = setTimeout(() => {
+        updateBannerPending.delete(key);
+        updateBanner(plugin, view, isContentChange, updateMode)
+            .then(result => result !== false, error => {
+                console.error('Pixel Banner: banner update failed', error);
+                // Let handleLayoutChange try this pane again
+                if (view.contentEl && view.contentEl._pixelBannerFilePath === view.file?.path) {
+                    delete view.contentEl._pixelBannerFilePath;
+                }
+                return false;
+            })
+            .then(ok => resolvers.forEach(resolve => resolve(ok)));
+    }, 50);
+    updateBannerPending.set(key, { timer, isContentChange, updateMode, resolvers });
+    return done;
 }
 async function updateBanner(plugin, view, isContentChange, updateMode = plugin.UPDATE_MODE.FULL_UPDATE) {
     if (!view || !view.file) {
-        return;
+        return false;
     }
-    
+
     const filePath = view.file.path;
     const currentTime = Date.now();
     const debounceKey = view.contentEl || view;
-    
-    // Check if we recently updated this file's banner in this pane
+    const isEnsureVisibility = updateMode === plugin.UPDATE_MODE.ENSURE_VISIBILITY;
+
+    // Check if we recently updated this file's banner in this pane. A stronger request
+    // still runs: a content change after a run without one, or a full update after an
+    // ENSURE_VISIBILITY run (the reading-view post-processor's ENSURE run can draw the
+    // old cached image just before the metadata "changed" update arrives)
     const lastUpdate = updateBannerDebounceMap.get(debounceKey);
-    if (lastUpdate && lastUpdate.filePath === filePath && (currentTime - lastUpdate.time) < UPDATE_BANNER_DEBOUNCE_DELAY) {
-        return;
+    const isStronger = !!lastUpdate &&
+        ((isContentChange && !lastUpdate.isContentChange) ||
+            (!isEnsureVisibility && lastUpdate.isEnsureVisibility));
+    if (lastUpdate && !isStronger && lastUpdate.filePath === filePath && (currentTime - lastUpdate.time) < UPDATE_BANNER_DEBOUNCE_DELAY) {
+        return false;
     }
-    
+
     // Update the debounce timestamp
-    updateBannerDebounceMap.set(debounceKey, { filePath, time: currentTime });
+    updateBannerDebounceMap.set(debounceKey, { filePath, time: currentTime, isContentChange: !!isContentChange, isEnsureVisibility });
 
     // Remember which note this pane's banner was rendered for (see handleLayoutChange)
     if (view.contentEl) {
@@ -890,8 +940,12 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     const folderSpecific = plugin.getFolderSpecificImage(view.file.path);
     let bannerImage = null;
 
-    // Check for banner shuffle path in frontmatter first
-    const shufflePath = getFrontmatterValue(frontmatter, plugin.settings.customBannerShuffleField) || folderSpecific?.enableImageShuffle;
+    // Check for banner shuffle path in frontmatter first. Only a folder path can be
+    // shuffled: `banner-shuffle: true` names no folder, and a folder group's shuffle is
+    // its shuffleFolder, not its enableImageShuffle flag
+    const frontmatterShuffle = getFrontmatterValue(frontmatter, plugin.settings.customBannerShuffleField);
+    const shufflePath = (typeof frontmatterShuffle === 'string' && frontmatterShuffle.trim()) ||
+        (folderSpecific?.enableImageShuffle && folderSpecific.shuffleFolder) || null;
     if (shufflePath && updateMode !== plugin.UPDATE_MODE.ENSURE_VISIBILITY) {
         // If shuffle path exists in frontmatter and we're not just ensuring visibility,
         // get a new random image
@@ -935,6 +989,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
         
         if (existingBanner) {
+            // A fetch still running for the previous note must not show its image here
+            existingBanner._pixelBannerRender = null;
             existingBanner.style.backgroundImage = '';
             existingBanner.style.display = 'none';
         }
@@ -1040,8 +1096,14 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             isReadingView: view.getMode && view.getMode() === 'preview',
             updateMode: updateMode
         });
-        plugin.lastYPositions.set(view.file.path, yPosition);
+        // The pane may have moved to another note while the image loaded (addPixelBanner
+        // then stops early). Stop too, so this note's icon is not drawn on the note
+        // the pane now shows; its own update draws that one
+        if (view.file?.path !== filePath) {
+            return false;
+        }
     } else if (existingBanner) {
+        existingBanner._pixelBannerRender = null;
         existingBanner.style.display = 'none';
     }
 
@@ -1295,7 +1357,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                             }
                             break;
                         case 'markdownImage':
-                            const mdPath = plugin.getPathFromMarkdownImage(bannerIconImage);
+                            const mdPath = plugin.getPathFromMarkdownImage(bannerIconImage, view.file.path);
                             if (typeof mdPath === 'string') {
                                 // If path is a URL, use it directly
                                 try {
@@ -1437,8 +1499,24 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 // another, leaving it with default fade and icon position (issue #333)
 function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     // console.log('🔍 Applying banner settings');
-    const { frontmatter, imageDisplay, imageRepeat, bannerHeight, fade, borderRadius, maxWidth } = ctx;
+    const { frontmatter, imageDisplay, imageRepeat, maxWidth } = ctx;
     const folderSpecific = plugin.getFolderSpecificImage(ctx.file.path);
+
+    // The markdown post-processors (reading view, hover popovers) pass no height, fade
+    // or radius; resolve them like updateBanner does instead of writing "undefinedpx",
+    // which is invalid at computed-value time and drops the CSS fallbacks
+    const bannerHeight = ctx.bannerHeight ??
+        getFrontmatterValue(frontmatter, plugin.settings.customBannerHeightField) ??
+        folderSpecific?.bannerHeight ??
+        plugin.settings.bannerHeight;
+    const fade = ctx.fade ??
+        getFrontmatterValue(frontmatter, plugin.settings.customFadeField) ??
+        folderSpecific?.fade ??
+        plugin.settings.fade;
+    const borderRadius = ctx.borderRadius ??
+        getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField) ??
+        folderSpecific?.borderRadius ??
+        plugin.settings.borderRadius;
     
     // Get pixel banner y position
     let pixelBannerYPosition = getValueWithZeroCheck([
@@ -1691,7 +1769,9 @@ const debouncedUpdateAllBanners = debounceAndSwallow(updateAllBanners, 350);
 function updateAllBanners(plugin) {
     plugin.app.workspace.iterateAllLeaves(leaf => {
         if (leaf.view.getViewType() === "markdown") {
-            updateBanner(plugin, leaf.view, true);
+            // The per-pane debounced entry point: it merges with an update already
+            // pending for the pane and never rejects
+            debouncedUpdateBanner(plugin, leaf.view, true);
         }
     });
 }
@@ -1714,98 +1794,6 @@ async function updateBannerPosition(plugin, file, position) {
 }
 
 
-// --------------------------------------------
-// -- registerMarkdownPostProcessor function --
-// --------------------------------------------
-function registerMarkdownPostProcessor(plugin) {
-  plugin.registerMarkdownPostProcessor((el, ctx) => {
-    // Check if in preview view or hover preview
-    const isPreview = ctx.containerEl.classList.contains('markdown-preview-view');
-    const isHoverPopover = ctx.containerEl.closest('.hover-popover');
-    
-
-    
-    // Get file path for debouncing
-    const debounceFile = ctx.sourcePath ? plugin.app.vault.getAbstractFileByPath(ctx.sourcePath) : null;
-    if (debounceFile) {
-        const currentTime = Date.now();
-        const lastProcessTime = markdownPostProcessorDebounceMap.get(debounceFile.path);
-        
-        // Skip if we recently processed this file
-        if (lastProcessTime && (currentTime - lastProcessTime) < MARKDOWN_PROCESSOR_DEBOUNCE_DELAY) {
-            return;
-        }
-        
-        // Update the debounce timestamp
-        markdownPostProcessorDebounceMap.set(debounceFile.path, currentTime);
-    }
-
-    // console.log('🔎 isPreview:', isPreview);
-    // console.log('🔎 isHoverPopover:', isHoverPopover);
-    
-    if (!isPreview && !isHoverPopover) return;
-    
-    const file = ctx.sourcePath ? plugin.app.vault.getAbstractFileByPath(ctx.sourcePath) : null;
-    if (!file) return;
-    
-    // Get banner data from frontmatter
-    const frontmatter = plugin.app.metadataCache.getFileCache(file)?.frontmatter;
-    
-    // Check all custom banner fields
-    let bannerImage = null;
-    for (const field of plugin.settings.customBannerField) {
-      if (frontmatter?.[field]) {
-        bannerImage = frontmatter[field];
-        break;
-      }
-    }
-    
-    // Try folder-specific image if no frontmatter banner
-    if (!bannerImage) {
-      const folderSpecific = plugin.getFolderSpecificImage(file.path);
-      if (folderSpecific?.image) {
-        bannerImage = folderSpecific.image;
-      }
-    }
-    
-    if (!bannerImage) return;
-    
-    // Get proper banner settings
-    const folderSpecific = plugin.getFolderSpecificImage(file.path);
-    const yPosition = getFrontmatterValue(frontmatter, plugin.settings.customYPositionField) || 
-                      folderSpecific?.yPosition || 
-                      plugin.settings.yPosition;
-    const xPosition = getFrontmatterValue(frontmatter, plugin.settings.customXPositionField) || 
-                      folderSpecific?.xPosition || 
-                      plugin.settings.xPosition;
-    const contentStartPosition = getFrontmatterValue(frontmatter, plugin.settings.customContentStartField) || 
-                                folderSpecific?.contentStartPosition || 
-                                plugin.settings.contentStartPosition;
-    // Same resolution as updateBanner, so hover previews honor Image Display and Image Repeat (issue #312)
-    const imageDisplay = getFrontmatterValue(frontmatter, plugin.settings.customImageDisplayField) || 
-                         folderSpecific?.imageDisplay || 
-                         plugin.settings.imageDisplay;
-    const imageRepeat = getFrontmatterValue(frontmatter, plugin.settings.customImageRepeatField) ?? 
-                        folderSpecific?.imageRepeat ?? 
-                        plugin.settings.imageRepeat;
-    
-    // Add the banner to the preview view
-    addPixelBanner(plugin, ctx.containerEl, {
-      frontmatter,
-      file,
-      isContentChange: false,
-      yPosition,
-      xPosition,
-      contentStartPosition,
-      bannerImage,
-      imageDisplay,
-      imageRepeat,
-      isReadingView: true,
-      updateMode: plugin.UPDATE_MODE.FULL_UPDATE
-    });
-  });
-}
-
 export {
     debouncedAddPixelBanner as addPixelBanner,
     debouncedUpdateBanner as updateBanner,
@@ -1814,7 +1802,6 @@ export {
     debouncedApplyBannerWidth as applyBannerWidth,
     debouncedUpdateAllBanners as updateAllBanners,
     debouncedUpdateBannerPosition as updateBannerPosition,
-    registerMarkdownPostProcessor,
     insertPersistentElement,
     setBannerBackground,
     installPersistentChildrenOverride

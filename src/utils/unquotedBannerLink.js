@@ -62,10 +62,9 @@ export function findUnquotedBannerLinkInText(text, fieldNames) {
 // -------------------------------------------------------------
 // -- warn once per note when a banner link is not quoted --
 // -------------------------------------------------------------
-// `text` is the note content when the caller already has it (metadata
-// "changed" event); otherwise it is read only for notes with an unparsed
-// frontmatter block.
-export async function checkUnquotedBannerLink(plugin, file, text = null) {
+// The note text is read only when Obsidian found a properties block it could
+// not parse: such a note has no frontmatter but still starts with a yaml section.
+export async function checkUnquotedBannerLink(plugin, file) {
     if (!file || file.extension !== 'md') return;
     if (!plugin.unquotedBannerLinkWarned) {
         plugin.unquotedBannerLinkWarned = new Set();
@@ -73,13 +72,20 @@ export async function checkUnquotedBannerLink(plugin, file, text = null) {
     if (plugin.unquotedBannerLinkWarned.has(file.path)) return;
 
     const fieldNames = plugin.settings.customBannerField;
-    const frontmatter = plugin.app.metadataCache.getFileCache(file)?.frontmatter;
+    const cache = plugin.app.metadataCache.getFileCache(file);
+    const frontmatter = cache?.frontmatter;
 
     let found = findUnquotedBannerLink(frontmatter, fieldNames);
-    if (!found && !frontmatter) {
-        const content = typeof text === 'string' ? text : await plugin.app.vault.cachedRead(file);
-        if (content.startsWith('---')) {
+    if (!found && !frontmatter && cache?.sections?.[0]?.type === 'yaml') {
+        // Claim the note before reading it: a second check that starts during the read
+        // (a note re-opened at startup, issue #333) must not show the notice again
+        const path = file.path;
+        plugin.unquotedBannerLinkWarned.add(path);
+        try {
+            const content = await plugin.app.vault.cachedRead(file);
             found = findUnquotedBannerLinkInText(content, fieldNames);
+        } finally {
+            if (!found) plugin.unquotedBannerLinkWarned.delete(path);
         }
     }
     if (!found) return;
@@ -90,4 +96,42 @@ export async function checkUnquotedBannerLink(plugin, file, text = null) {
         `so it can't be read correctly. Write it as ${found.field}: "${found.value}" (with the quotes).`,
         12000
     );
+}
+
+// ---------------------------------------------------------------
+// -- check a note once it has settled after an edit --
+// ---------------------------------------------------------------
+// Metadata "changed" fires while a value is still being typed, so checking at
+// once could report a half-typed link (and then never the real one). Wait for
+// the note to stop changing, then check it against fresh metadata.
+export const UNQUOTED_BANNER_LINK_SETTLE_MS = 3000;
+export function scheduleUnquotedBannerLinkCheck(plugin, file) {
+    // No early return for a note already in unquotedBannerLinkWarned: a check that is
+    // still reading the note claims it there, and an edit made during that read must
+    // still get its own check (checkUnquotedBannerLink skips a warned note itself)
+    if (!file || file.extension !== 'md') return;
+    if (!plugin.unquotedBannerLinkTimers) {
+        plugin.unquotedBannerLinkTimers = new Map();
+        // Clear pending checks when the plugin unloads
+        plugin.register?.(() => {
+            plugin.unquotedBannerLinkTimers.forEach(timer => clearTimeout(timer));
+            plugin.unquotedBannerLinkTimers.clear();
+        });
+    }
+    const timers = plugin.unquotedBannerLinkTimers;
+    // Key by the path at schedule time: a rename changes file.path on the same TFile
+    const path = file.path;
+    clearTimeout(timers.get(path));
+    const timer = setTimeout(() => {
+        if (timers.get(path) === timer) {
+            timers.delete(path);
+        }
+        // Only notes the person is looking at: sync or a re-index fires "changed" for
+        // many notes at once, and a closed note is checked when it is opened
+        const isOpen = plugin.app.workspace.getLeavesOfType('markdown')
+            .some(leaf => leaf.view?.file === file);
+        if (!isOpen) return;
+        checkUnquotedBannerLink(plugin, file).catch(() => {});
+    }, UNQUOTED_BANNER_LINK_SETTLE_MS);
+    timers.set(path, timer);
 }

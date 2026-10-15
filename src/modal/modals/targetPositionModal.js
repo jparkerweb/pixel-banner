@@ -453,7 +453,11 @@ export class TargetPositionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
-        this.setupUI(contentEl);
+        // setupUI awaits before building most of the modal; a failure there (or the
+        // modal closing meanwhile) must not become an unhandled rejection
+        this.setupUI(contentEl).catch(error => {
+            console.error('Pixel Banner: failed to build the target position modal', error);
+        });
     }
 
     async setupUI(contentEl) {

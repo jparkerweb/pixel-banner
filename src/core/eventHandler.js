@@ -4,6 +4,7 @@ import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { confettiManager, shouldRunConfetti } from './confettiManager.js';
 import { parse } from '../utils/confettiConfig.js';
 import { checkUnquotedBannerLink } from '../utils/unquotedBannerLink.js';
+import { isVaultImageBlobUrl } from './bannerUtils.js';
 
 // Debouncing map to prevent multiple rapid banner updates for the same file in
 // the same view. Keyed by the view (holding { filePath, time }), not the file path
@@ -237,7 +238,7 @@ function handleLayoutChange() {
     for (const [key, entry] of this.bannerStateCache) {
         if (entry.leafId && !currentLeafIds.has(entry.leafId)) {
             // This leaf no longer exists, clean up its cache
-            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:')) {
+            if (entry.state?.imageUrl && typeof entry.state.imageUrl === 'string' && entry.state.imageUrl.startsWith('blob:') && !isVaultImageBlobUrl(entry.state.imageUrl)) {
                 URL.revokeObjectURL(entry.state.imageUrl);
             }
             this.bannerStateCache.delete(key);
@@ -281,7 +282,22 @@ function handleLayoutChange() {
             if (!contentEl || contentEl._pixelBannerFilePath === leaf.view.file.path) return;
             const isShown = typeof containerEl?.isShown === 'function' ? containerEl.isShown() : !!containerEl?.offsetParent;
             if (!isShown) return;
-            this.updateBanner(leaf.view, false);
+            // ENSURE_VISIBILITY reuses the image already loaded for this note, so a
+            // keyword banner is not fetched again (and picked at random again)
+            const leafPath = leaf.view.file.path;
+            Promise.resolve(this.updateBanner(leaf.view, false, this.UPDATE_MODE.ENSURE_VISIBILITY))
+                .then(() => {
+                    // The pane may have moved on during the banner load
+                    if (!isLeafStillShowing(leaf, leafPath)) {
+                        return;
+                    }
+                    // reconcileConfettiEffects only restarts effects a pane already
+                    // had, so a pane that reached a confetti note starts it here
+                    handleConfettiForNote.call(this, leaf, readLeafFrontmatter.call(this, leaf));
+                })
+                .catch(error => {
+                    console.error('Pixel Banner: Confetti error:', error);
+                });
         });
     }, 100);
 }

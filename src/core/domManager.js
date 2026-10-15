@@ -1,5 +1,6 @@
 import { MarkdownView } from 'obsidian';
 import { debounce } from '../settings/settings.js';
+import { isVaultImageBlobUrl } from './bannerUtils.js';
 
 function setupMutationObserver() {
     // console.log('📝 Setting up mutation observer');
@@ -214,13 +215,15 @@ function cleanupPreviousLeaf(previousLeaf) {
                 // Clean up any existing blob URLs first
                 if (previousLeaf.view.file) {
                     const existingUrl = this.loadedImages.get(previousLeaf.view.file.path);
-                    if (existingUrl && typeof existingUrl === 'string' && existingUrl.startsWith('blob:')) {
+                    if (existingUrl && typeof existingUrl === 'string' && existingUrl.startsWith('blob:') && !isVaultImageBlobUrl(existingUrl)) {
                         URL.revokeObjectURL(existingUrl);
                     }
                     this.loadedImages.delete(previousLeaf.view.file.path);
                 }
                 
-                // Then clear the banner properties
+                // Then clear the banner properties, and drop any render still
+                // fetching for it (addPixelBanner checks _pixelBannerRender)
+                previousBanner._pixelBannerRender = null;
                 previousBanner.style.backgroundImage = '';
                 previousBanner.style.display = 'none';
             }

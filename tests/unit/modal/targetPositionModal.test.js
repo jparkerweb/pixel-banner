@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TargetPositionModal } from '@/modal/modals/targetPositionModal.js';
 import { DEFAULT_SETTINGS } from '@/settings/settings.js';
 import { createMockApp, createMockPlugin } from 'obsidian';
@@ -19,6 +19,11 @@ describe('TargetPositionModal confetti status row', () => {
         app.vault.config = { showInlineTitle: true };
         plugin = createMockPlugin(app);
         plugin.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     async function statusFor(value) {
@@ -26,7 +31,10 @@ describe('TargetPositionModal confetti status row', () => {
             frontmatter['banner-confetti'] = value;
         }
         const modal = new TargetPositionModal(app, plugin, vi.fn());
-        await modal.setupUI(modal.contentEl);
+        // setupUI looks for a banner icon again after 400 ms when the note has none
+        const setup = modal.setupUI(modal.contentEl);
+        await vi.advanceTimersByTimeAsync(400);
+        await setup;
         const status = modal.contentEl.querySelector('.confetti-status');
         const button = modal.contentEl.querySelector('.confetti-settings-button');
         return { text: status.textContent, cls: status.className, button: button.textContent };

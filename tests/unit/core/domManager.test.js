@@ -8,7 +8,8 @@ import {
     updateEmbeddedBannersVisibility,
     cleanupPreviousLeaf
 } from '@/core/domManager.js';
-import { createMockApp, MarkdownView } from 'obsidian';
+import { createMockApp, MarkdownView, TFile } from 'obsidian';
+import { getVaultImageUrl, releaseAllVaultImageUrls } from '@/core/bannerUtils.js';
 
 // Mock DOM globals
 global.MutationObserver = vi.fn(() => ({
@@ -652,6 +653,36 @@ describe('domManager', () => {
 
             expect(global.URL.revokeObjectURL).toHaveBeenCalledWith(mockBlobUrl);
             expect(mockPlugin.loadedImages.has('test.md')).toBe(false);
+        });
+
+        // Other panes may still show a shared vault image, so only its own cache revokes it
+        it('should not revoke a shared vault image blob URL', async () => {
+            const container = document.createElement('div');
+            container.className = 'cm-sizer';
+            container.appendChild(Object.assign(document.createElement('div'), { className: 'pixel-banner-image' }));
+            mockContentEl.appendChild(container);
+
+            global.URL = {
+                createObjectURL: vi.fn(() => 'blob:shared-vault-image'),
+                revokeObjectURL: vi.fn()
+            };
+            releaseAllVaultImageUrls();
+            const imageFile = new TFile('shared.png');
+            imageFile.extension = 'png';
+            const vaultContext = { app: createMockApp() };
+            vaultContext.app.vault.getAbstractFileByPath = vi.fn(() => imageFile);
+            vaultContext.app.vault.readBinary = vi.fn().mockResolvedValue(new ArrayBuffer(4));
+            const { url: sharedUrl } = await getVaultImageUrl.call(vaultContext, 'shared.png');
+            mockPlugin.loadedImages.set('test.md', sharedUrl);
+
+            try {
+                mockPlugin.cleanupPreviousLeaf(mockLeaf);
+
+                expect(global.URL.revokeObjectURL).not.toHaveBeenCalled();
+                expect(mockPlugin.loadedImages.has('test.md')).toBe(false);
+            } finally {
+                releaseAllVaultImageUrls();
+            }
         });
 
         it('should handle missing file gracefully', () => {

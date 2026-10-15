@@ -1,21 +1,33 @@
 import { MarkdownView } from 'obsidian';
 
+// Whether the value has the shape of a Markdown image or link, ![alt](target) or
+// [text](target), even with an empty target: an empty link shows no banner, it
+// must not fall through to a keyword image search. The alt text may hold one
+// level of nested brackets, as in [My [v2] banner.jpg](...)
+const MARKDOWN_LINK_PATTERN = /^!?\[(?:[^\[\]]|\[[^\[\]]*\])*\]\((.*)\)$/;
+
+function isMarkdownLink(input) {
+    if (typeof input !== 'string') return false;
+    return MARKDOWN_LINK_PATTERN.test(input.trim().replace(/^["'](.*)["']$/, '$1'));
+}
+
 // Target of a Markdown image or link: ![alt](target) or [text](target), the
 // form Obsidian writes when "Use [[Wikilinks]]" is off (issue #310). Handles
-// <angle bracket> targets, a trailing "title" and %20-style encoding of vault
-// paths. Returns null when the input is not a Markdown image or link.
+// <angle bracket> targets, a trailing "title", 'title' or (title) with or
+// without angle brackets, and %20-style encoding of vault paths. Returns null
+// when the input is not a Markdown image or link.
 function getMarkdownLinkTarget(input) {
     if (typeof input !== 'string') return null;
     const cleaned = input.trim().replace(/^["'](.*)["']$/, '$1');
-    const match = cleaned.match(/^!?\[[^\]]*\]\((.*)\)$/);
+    const match = cleaned.match(MARKDOWN_LINK_PATTERN);
     if (!match) return null;
 
     let target = match[1].trim();
-    const angled = target.match(/^<(.*)>$/);
+    const angled = target.match(/^<([^>]*)>(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?$/);
     if (angled) {
         target = angled[1];
     } else {
-        target = target.replace(/\s+"[^"]*"$/, '');
+        target = target.replace(/\s+(?:"[^"]*"|'[^']*'|\([^)]*\))$/, '');
     }
     if (!target) return null;
 
@@ -57,7 +69,7 @@ function getInputType(input, sourcePath = '') {
     }
 
     // Check if it's a Markdown image or link (![alt](path.jpg) or [text](path.jpg))
-    if (getMarkdownLinkTarget(input) !== null) {
+    if (isMarkdownLink(input)) {
         return 'markdownImage';
     }
 
@@ -115,13 +127,58 @@ function getPathFromMarkdownImage(link, sourcePath = '') {
             new URL(path);
             return path; // It's a URL, return as is
         } catch (_) {
-            // It's a vault path (full, shortest or relative to the note), resolve it
-            return this.app.vault.getAbstractFileByPath(path) ||
-                this.app.metadataCache.getFirstLinkpathDest(path, sourcePath);
+            // It's a vault path (full, shortest or relative to the note), resolve it.
+            // Only a file counts as an exact match: a folder at that path must not
+            // stop link resolution
+            const exact = this.app.vault.getAbstractFileByPath(path);
+            if (exact && 'extension' in exact) {
+                return exact;
+            }
+            return this.app.metadataCache.getFirstLinkpathDest(path, sourcePath);
         }
     }
     
     return null;
+}
+
+// One blob URL per vault image (keyed by vault path, with the file's mtime), shared by
+// every note and pane that shows it. A new blob per update was never revoked: the
+// banner cache holds the { url } object, which the string-only revoke sites skip.
+// Reusing the URL also spares a note that shows the same image a new decode (#327).
+// An entry is replaced (and its URL revoked) when the file changes, and all of
+// them are revoked when the plugin unloads (releaseAllVaultImageUrls).
+const vaultImageBlobUrls = new Map();
+
+function getCachedVaultImageUrl(file) {
+    const cached = vaultImageBlobUrls.get(file.path);
+    return cached && cached.mtime === file.stat?.mtime ? cached.url : null;
+}
+
+// Whether the URL is a shared vault image blob, which only this cache may revoke
+function isVaultImageBlobUrl(url) {
+    if (typeof url !== 'string') return false;
+    for (const entry of vaultImageBlobUrls.values()) {
+        if (entry.url === url) return true;
+    }
+    return false;
+}
+
+// Drop and revoke the cache entry holding this URL (it failed to load), so the
+// next request reads the file again
+function releaseVaultImageBlobUrl(url) {
+    for (const [path, entry] of vaultImageBlobUrls) {
+        if (entry.url === url) {
+            vaultImageBlobUrls.delete(path);
+            URL.revokeObjectURL(url);
+        }
+    }
+}
+
+function releaseAllVaultImageUrls() {
+    for (const entry of vaultImageBlobUrls.values()) {
+        URL.revokeObjectURL(entry.url);
+    }
+    vaultImageBlobUrls.clear();
 }
 
 async function getVaultImageUrl(path) {
@@ -144,15 +201,31 @@ async function getVaultImageUrl(path) {
                 };
             }
             
-            // Handle images as before with blob URLs
+            // Images use a blob URL, shared while the file is unchanged
+            const cachedUrl = getCachedVaultImageUrl(file);
+            if (cachedUrl) {
+                return { url: cachedUrl, isVideo: false, fileType: fileExt };
+            }
+
             const arrayBuffer = await this.app.vault.readBinary(file);
-            
+
+            // Another update for the same image may have created it while we read
+            const racedUrl = getCachedVaultImageUrl(file);
+            if (racedUrl) {
+                return { url: racedUrl, isVideo: false, fileType: fileExt };
+            }
+
             // Add special handling for SVG files
-            const mimeType = fileExt === 'svg' ? 
-                'image/svg+xml' : 
+            const mimeType = fileExt === 'svg' ?
+                'image/svg+xml' :
                 `image/${fileExt}`;
             const blob = new Blob([arrayBuffer], { type: mimeType });
             const url = URL.createObjectURL(blob);
+            const previous = vaultImageBlobUrls.get(file.path);
+            if (previous) {
+                URL.revokeObjectURL(previous.url);
+            }
+            vaultImageBlobUrls.set(file.path, { url, mtime: file.stat?.mtime });
             return {
                 url: url,
                 isVideo: false,
@@ -200,7 +273,7 @@ function getIconImageInputType(input, sourcePath = '') {
     }
 
     // Check if it's a Markdown image or link (![alt](path.jpg) or [text](path.jpg))
-    if (getMarkdownLinkTarget(input) !== null) {
+    if (isMarkdownLink(input)) {
         return 'markdownImage';
     }
 
@@ -303,6 +376,7 @@ function getFolderSpecificSetting(filePath, settingName) {
 
 
 function getRandomImageFromFolder(folderPath) {
+    if (typeof folderPath !== 'string' || !folderPath) return null;
     try {
         const folder = this.app.vault.getAbstractFileByPath(folderPath);
         if (!folder || !folder.children) return null;
@@ -390,8 +464,12 @@ export {
     getPathFromObsidianLink, 
     getPathFromMarkdownImage, 
     getMarkdownLinkTarget,
-    getVaultImageUrl, 
-    preloadImage, 
+    isMarkdownLink,
+    getVaultImageUrl,
+    isVaultImageBlobUrl,
+    releaseVaultImageBlobUrl,
+    releaseAllVaultImageUrls,
+    preloadImage,
     getFolderPath, 
     getFolderSpecificImage, 
     getFolderSpecificSetting, 

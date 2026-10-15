@@ -96,14 +96,14 @@ Docs:
 
 | # | Workaround (file:line) | Verdict | Why |
 |---|------------------------|---------|-----|
-| 1 | `setChildrenInPlace` override — `bannerManager.js:352–396` | **KEEP (harden)** | Load-bearing given "scrolls with content." No official replacement. Fragile because it monkey-patches a core method per container — guard it and fail safe (see §6). |
-| 2 | MutationObserver "resurrection" — `domManager.js:4–57` | **RECONSIDER (likely redundant)** | If #1 reliably re-injects, this duplicates that defense and fires storms during scroll. Test disabling it; most triggers are already covered by #1 + the post-processor re-run. |
-| 3 | ResizeObserver on `.view-content` — `domManager.js:61–78` | **KEEP (re-scope cleanup)** | Legitimate — Obsidian has no viewport-resize event. But register its disconnect via the component lifecycle instead of storing `el._resizeObserver` and disconnecting by hand (see §5). |
-| 4 | `setTimeout(…, 100)` in `handleLayoutChange` — `eventHandler.js:211–231` | **REPLACE** | Arbitrary delay to "let layout settle." Idempotent insertion (§6) removes the need; use `onLayoutReady` for first run. |
-| 5 | `setTimeout(…, 50)` in `applyBannerWidth` — `bannerManager.js:1598–1610` | **REPLACE (prefer rAF)** | Reading `clientWidth` after layout: prefer `requestAnimationFrame` over a magic 50ms, or let the ResizeObserver (#3) drive width updates so this becomes unnecessary. |
-| 6 | Debounce layers (350 / 50 / 200 ms) — `bannerManager.js:25, 764, 1656` | **KEEP (use `debounce()` util)** | Collapsing event storms is the correct pattern. Standardize on Obsidian's `debounce()` for consistency. The 200ms post-processor self-debounce can go once insertion is idempotent. |
-| 7 | `_isPersistent*` flags — `bannerManager.js:271, 307, …` | **KEEP** | Necessary companion to #1 so the override can tell our elements from Obsidian's. |
-| 8 | Manual observer/timer cleanup in `onunload` — `pixelBannerPlugin.js:880–917` | **REPLACE** | Move to `register*` / `Component` lifecycle so teardown happens when the *leaf* closes, not only on plugin unload — fewer leaks, no bookkeeping. |
+| 1 | `setChildrenInPlace` override: `installPersistentChildrenOverride` in `bannerManager.js` | **KEEP (harden)** | Load-bearing given "scrolls with content." No official replacement. Fragile because it monkey-patches a core method per container — guard it and fail safe (see §6). |
+| 2 | MutationObserver "resurrection": `setupMutationObserver` in `domManager.js` | **RECONSIDER (likely redundant)** | If #1 reliably re-injects, this duplicates that defense. It no longer reacts to `.markdown-preview-section` adds, so scroll storms are gone; test disabling the rest, since most triggers are already covered by #1 + the post-processor re-run. |
+| 3 | ResizeObserver on `.view-content`: `setupResizeObserver` in `domManager.js` | **KEEP (re-scope cleanup)** | Legitimate — Obsidian has no viewport-resize event. But register its disconnect via the component lifecycle instead of storing `el._resizeObserver` and disconnecting by hand (see §5). |
+| 4 | `setTimeout(…, 100)` in `handleLayoutChange` (`eventHandler.js`) | **REPLACE** | Arbitrary delay to "let layout settle." Idempotent insertion (§6) removes the need; use `onLayoutReady` for first run. |
+| 5 | `setTimeout(…, 50)` in `applyBannerWidth` (`bannerManager.js`) | **REPLACE (prefer rAF)** | Reading `clientWidth` after layout: prefer `requestAnimationFrame` over a magic 50ms, or let the ResizeObserver (#3) drive width updates so this becomes unnecessary. |
+| 6 | Debounce layers (350 / 250 / 50 ms) in `bannerManager.js`: the `debounceAndSwallow(…, 350)` wrappers, `UPDATE_BANNER_DEBOUNCE_DELAY` (250) and the 50ms frontmatter-change delay in `updateBanner` | **KEEP (use `debounce()` util)** | Collapsing event storms is the correct pattern. Standardize on Obsidian's `debounce()` for consistency. The 200ms post-processor self-debounce has been removed. |
+| 7 | `_isPersistent*` flags, set where `bannerManager.js` creates its elements | **KEEP** | Necessary companion to #1 so the override can tell our elements from Obsidian's. |
+| 8 | Manual observer/timer cleanup in `onunload` (`pixelBannerPlugin.js`) | **REPLACE** | Move to `register*` / `Component` lifecycle so teardown happens when the *leaf* closes, not only on plugin unload — fewer leaks, no bookkeeping. |
 
 ---
 
@@ -176,7 +176,7 @@ Principles:
 
 ## 6.5. Optimizing the persistence override (deep dive)
 
-The `setChildrenInPlace` override (`bannerManager.js:352`) is the **right primitive** for
+The `setChildrenInPlace` override (`installPersistentChildrenOverride` in `bannerManager.js`) is the **right primitive** for
 "scrolls with content, both views." It's *proactive* — it re-injects the banner *during*
 Obsidian's reconciliation, so the element never actually leaves the DOM (no flicker). The
 alternatives are all worse for this requirement:

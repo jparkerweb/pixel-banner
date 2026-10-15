@@ -1,6 +1,6 @@
 import { Modal, Notice } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
-import { handlePinIconClick } from '../../utils/handlePinIconClick';
+import { handlePinIconClick, sanitizeImageFileName } from '../../utils/handlePinIconClick';
 import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { TargetPositionModal } from '../modals';
 import { flags } from '../../resources/flags.js';
@@ -193,8 +193,7 @@ export class PixelBannerStoreModal extends Modal {
             throw new Error('No filename provided');
         }
 
-        let finalBaseName = userInput.name.replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
-        if (!finalBaseName) finalBaseName = 'banner';
+        let finalBaseName = sanitizeImageFileName(userInput.name);
         
         // Ensure proper extension
         if (!finalBaseName.toLowerCase().endsWith(`.${extension}`)) {
