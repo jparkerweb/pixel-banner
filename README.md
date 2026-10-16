@@ -221,6 +221,10 @@ __click a version below to view its features via a YouTube video 📺__
 <a href="https://www.youtube.com/watch?v=tfNqEAQuhXs">
   <img src="https://pixel-banner.online/img/pixel-banner-v3.6.jpg" alt="Pixel Banner" style="max-width: 400px;">
 </a>
+<a href="https://www.youtube.com/watch?v=GfuPHuOIbyo">
+  <img src="https://pixel-banner.online/img/pixel-banner-v3.7.jpg" alt="Pixel Banner" style="max-width: 400px;">
+</a>
+
 
 ---
 
