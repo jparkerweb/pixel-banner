@@ -2,7 +2,7 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
-### Unreleased
+### v3.7.1 - 2026-10-17
 #### ✨ Added
 - **Banner in Export to PDF** (issues #298, #323): Obsidian renders the export into a separate, short-lived print document and prints it about a second later, while the async `updateBanner()` path (50 ms timer, then `addPixelBanner()`) resolved at ~2 s, so PDFs came out without a banner or with one laid over the text
   - Print branch in the markdown post processor (`pixelBannerPlugin.js`): `isPrintRender()` (top level `.print > .markdown-preview-view`, not embeds) hands the render to `addPrintBanner()` synchronously and skips `updateBanner()`

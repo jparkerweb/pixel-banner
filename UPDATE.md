@@ -4,7 +4,7 @@
 
 ## 🎉 What's New
 
-### Unreleased
+### v3.7.1
 #### ✨ Added
 - **Banners in Export to PDF**: notes exported with Export to PDF now show their banner at the top of the first page, above the title, every time (issues #298, #323)
   - The PDF uses the same image the note shows, including keyword banners, with the same height, crop, rounded corners, fade and banner icon; very tall banners are capped at about 40% of the page
