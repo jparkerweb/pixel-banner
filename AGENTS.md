@@ -23,7 +23,7 @@ Details: [Essential Commands](./.agents-docs/AGENTS-essential-commands.md)
 
 ## Architecture
 
-Entry is `src/core/pixelBannerPlugin.js`, a thin class that binds module functions; `eventHandler.js` reacts to workspace events, `bannerManager.js` resolves banners (`addPixelBanner()`, `updateBanner()`), `domManager.js` runs the DOM observers, `bannerUtils.js:getInputType()` classifies frontmatter input (path, wiki link, markdown image, URL, file://, keyword), and `cacheHelpers.js` caches images. Covers the delegator pattern, input resolution order, DOM persistence, the confetti subsystem, the release notes pipeline, modals, services and a key-files table. Before changing banner insertion or cleanup, read `OBSIDIAN_DOM_LIFECYCLE.md`.
+Entry is `src/core/pixelBannerPlugin.js`, a thin class that binds module functions; `eventHandler.js` reacts to workspace events, `bannerManager.js` resolves banners (`addPixelBanner()`, `updateBanner()`), `domManager.js` runs the DOM observers, `bannerUtils.js:getInputType()` classifies frontmatter input (path, wiki link, markdown image, URL, file://, keyword), `cacheHelpers.js` caches images, and `printBanner.js` adds the banner to Export to PDF renders synchronously. Covers the delegator pattern, input resolution order, DOM persistence, Export to PDF, the confetti subsystem, the release notes pipeline, modals, services and a key-files table. Before changing banner insertion or cleanup, read `OBSIDIAN_DOM_LIFECYCLE.md`.
 
 Details: [Architecture](./.agents-docs/AGENTS-architecture.md)
 
@@ -69,7 +69,7 @@ Details: [Adding New Features](./.agents-docs/AGENTS-adding-new-features.md)
 
 ## Release Process
 
-1. Update version in `manifest.json` and `package.json`
+1. Update version in `manifest.json` and `package.json`. Any version bump, a CHANGELOG renumber included, sets the same number in `CHANGELOG.md`, the `UPDATE.md` heading, `package.json` and `manifest.json` together
 2. Update `CHANGELOG.md` (technical) and `UPDATE.md` (user-facing)
 3. Update `inventory.md` if files changed
 4. Run `npm run build`

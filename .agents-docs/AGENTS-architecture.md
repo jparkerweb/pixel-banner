@@ -38,6 +38,15 @@ Resolution order:
 
 Obsidian's child reconciliation (`setChildrenInPlace`) removes injected DOM, so `bannerManager.js` overrides it to keep the banner in place, and `domManager.js` observes only mode switches, not scroll. Read `OBSIDIAN_DOM_LIFECYCLE.md` (repo root) before changing banner insertion, observers or cleanup.
 
+## Export to PDF
+
+- Obsidian renders the export into a separate, short-lived print document (`.print > .markdown-preview-view`, its own `ownerDocument`) and prints it about 1.1 s later. Main-window timers are held back meanwhile, so anything async (the 50 ms `updateBanner()` path) lands after the print (issues #298, #323)
+- The markdown post processor in `pixelBannerPlugin.js` checks `isPrintRender(ctx.containerEl)` first; with `includeBannerInPdfExport` on it calls `addPrintBanner()` and never `updateBanner()`. Keep that branch synchronous: no fetch, no timers, no writes to `loadedImages` or `lastKeywords`
+- `src/core/printBanner.js` mirrors the open pane: the cached image (else a URL or vault resource path; keywords print only the pane's image), the pane's icon cloned, the pane video's current frame as a JPEG data URL, and `applyBannerSettings()` for every CSS variable. Elements are created from the print document
+- Video frames need an untainted canvas: vault videos (`app://<hash>/...`, another origin than `app://obsidian.md`) are loaded in CORS mode by `setBannerVideoSource()` in `bannerManager.js`. Create any new banner `<video>` through it
+- Print CSS is `.print`-scoped in `styles.css`. The title colour targets the bare `h1` that *Include file name as title* adds after the banner, the PDF's counterpart of the inline title
+- Live checks: stub the save dialog and capture the print DOM as the AGENTS.md failure log describes
+
 ## Confetti Subsystem
 
 - `src/utils/confettiConfig.js`: the one codec for the `banner-confetti` value (schema, `parse`, `normalize`, `diffFromPreset`, `serialize`, `writeConfettiField`). Read and write the value only through it, so the modal's writes read back the same and unchanged settings are not rewritten
@@ -77,6 +86,7 @@ class ExampleModal extends Modal {
 |------|---------|
 | `src/core/pixelBannerPlugin.js` | Main entry point; binds module functions onto the plugin |
 | `src/core/bannerManager.js` | Banner creation/updates |
+| `src/core/printBanner.js` | Synchronous banner for Export to PDF renders |
 | `src/core/bannerUtils.js` | Input type detection, path resolution, `getActiveApiProvider()` |
 | `src/core/domManager.js` | DOM observers, field/embed visibility, leaf cleanup |
 | `src/core/eventHandler.js` | Workspace event handlers |
