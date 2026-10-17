@@ -1136,6 +1136,111 @@ describe('Banner Workflow Integration Tests', () => {
 
             document.body.removeChild(popover);
         });
+
+        // Issue #323: Export to PDF renders into a short-lived .print container, so the
+        // banner has to be there before any timer runs
+        function createPrintContainer() {
+            const print = document.createElement('div');
+            print.classList.add('print');
+            const el = document.createElement('div');
+            el.classList.add('markdown-preview-view', 'markdown-rendered');
+            print.appendChild(el);
+            return el;
+        }
+
+        it('adds the print banner synchronously from the cached image', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
+            const el = createPrintContainer();
+            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            plugin.loadedImages.set(mockFile.path, 'blob:cached-banner');
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+            getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+            const img = el.querySelector(':scope > .pixel-banner-print img.pixel-banner-print-image');
+            expect(img).not.toBeNull();
+            expect(img.getAttribute('src')).toBe('blob:cached-banner');
+            expect(updateBannerSpy).not.toHaveBeenCalled();
+        });
+
+        it('leaves the print render alone when the setting is off', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({ includeBannerInPdfExport: false });
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
+            const el = createPrintContainer();
+            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            plugin.loadedImages.set(mockFile.path, 'blob:cached-banner');
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+            getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+            expect(el.querySelector('.pixel-banner-print')).toBeNull();
+            expect(updateBannerSpy).not.toHaveBeenCalled();
+        });
+
+        it('adds no print banner to a note without a banner', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
+            const el = createPrintContainer();
+            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { title: 'No banner' } }));
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+            getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+            expect(el.querySelector('.pixel-banner-print')).toBeNull();
+            expect(updateBannerSpy).not.toHaveBeenCalled();
+        });
+
+        it('adds no print banner to a note embedded in the printed note', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
+            const host = createPrintContainer();
+            const embed = document.createElement('div');
+            embed.classList.add('internal-embed', 'markdown-embed');
+            const el = document.createElement('div');
+            el.classList.add('markdown-preview-view');
+            embed.appendChild(el);
+            host.appendChild(embed);
+            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            plugin.loadedImages.set(mockFile.path, 'blob:cached-banner');
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+            getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+            expect(host.querySelector('.pixel-banner-print')).toBeNull();
+            // The embed keeps the path it had before
+            expect(updateBannerSpy).toHaveBeenCalledWith(expect.objectContaining({ contentEl: el }), false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+        });
+
+        it('still updates a normal reading view through updateBanner', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            registerSpy = spyOnPostProcessors();
+            await plugin.onload();
+
+            const el = document.createElement('div');
+            el.classList.add('markdown-preview-view', 'markdown-rendered');
+            mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { banner: 'https://example.com/banner.jpg' } }));
+            plugin.loadedImages.set(mockFile.path, 'blob:cached-banner');
+            const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+            getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+            expect(el.querySelector('.pixel-banner-print')).toBeNull();
+            expect(updateBannerSpy).toHaveBeenCalledWith(expect.objectContaining({ contentEl: el }), false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+        });
     });
 
     describe('Multi-view Banner Synchronization', () => {

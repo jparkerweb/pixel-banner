@@ -263,4 +263,12 @@ describe('settings (simplified)', () => {
             expect(mockPlugin.updateBanner).toHaveBeenCalledWith(view2, true);
         });
     });
+
+    // Issue #323: the real defaults, not the mock above
+    describe('DEFAULT_SETTINGS', () => {
+        it('includes the banner in PDF exports by default', async () => {
+            const { DEFAULT_SETTINGS: realDefaults } = await vi.importActual('@/settings/settings.js');
+            expect(realDefaults.includeBannerInPdfExport).toBe(true);
+        });
+    });
 });

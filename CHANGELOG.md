@@ -2,6 +2,19 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### Unreleased
+#### ✨ Added
+- **Banner in Export to PDF** (issues #298, #323): Obsidian renders the export into a separate, short-lived print document and prints it about a second later, while the async `updateBanner()` path (50 ms timer, then `addPixelBanner()`) resolved at ~2 s, so PDFs came out without a banner or with one laid over the text
+  - Print branch in the markdown post processor (`pixelBannerPlugin.js`): `isPrintRender()` (top level `.print > .markdown-preview-view`, not embeds) hands the render to `addPrintBanner()` synchronously and skips `updateBanner()`
+  - New `src/core/printBanner.js`: inserts `div.pixel-banner-print` with an `<img>` in normal flow as the container's first child, once per render, from the image the open pane cached (else a direct URL or the vault resource path; keywords print the pane's image only), with the pane's icon cloned and `applyBannerSettings()` for every CSS variable. No fetch, no timers, no writes to the pane's caches; errors are caught so the export always completes
+  - Video banners print the frame the pane's video is showing (`grabVideoFrame()`: canvas in the main document, JPEG data URL); no frame or a tainted canvas prints no banner
+  - `.print`-scoped rules in `styles.css`: height capped at 40% of the page, crop, radius, fade, icon placement, and the banner title color on the file name title that *Include file name as title* adds (a bare `h1` after the banner, confirmed against a real export)
+  - Setting `includeBannerInPdfExport` (default on) with a toggle in General settings
+  - Verified with real PDFs from the test vault: local, URL (three exports in a row), keyword, icon, title color, video, no-banner and setting-off notes; both `blob:` and `app://` sources resolve in the print document, and the pane's banner is untouched by an export
+
+#### 🔧 Changed
+- **Vault video banners load in CORS mode** (`bannerManager.js`, `setBannerVideoSource()`): a vault video plays from `app://<hash>/...`, another origin than `app://obsidian.md`, so drawing it on a canvas tainted it and the PDF export could not read its frame. Both video branches of `addPixelBanner()` now set `crossOrigin = 'anonymous'` before `src` for `app://` URLs; remote video URLs are unchanged
+
 ### v3.7.0 - 2026-06-10
 #### ✨ Added
 - **Confetti/Particle Effects**: Add animated particle effects to notes using the `banner-confetti` frontmatter field

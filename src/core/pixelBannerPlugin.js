@@ -13,6 +13,7 @@ import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFr
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange, handleConfettiForNote, runConfettiPass } from './eventHandler.js';
 import { scheduleUnquotedBannerLinkCheck } from '../utils/unquotedBannerLink.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
+import { isPrintRender, addPrintBanner } from './printBanner.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { confettiManager } from './confettiManager.js';
 import { clearShapeCache } from './confettiShapes.js';
@@ -324,6 +325,15 @@ export class PixelBannerPlugin extends Plugin {
             
             if (!bannerImage) return;
             
+            // Export to PDF prints its render before updateBanner() would finish, so the
+            // print render gets a synchronous banner of its own and never the async path (issue #323)
+            if (isPrintRender(ctx.containerEl)) {
+                if (this.settings.includeBannerInPdfExport) {
+                    addPrintBanner(this, ctx.containerEl, { file, frontmatter, bannerImage });
+                }
+                return;
+            }
+
             // Get proper banner settings
             const folderSpecific = this.getFolderSpecificImage(file.path);
             const yPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField) || 

@@ -82,6 +82,20 @@ function installPersistentChildrenOverride(container) {
 }
 
 
+// ------------------------------
+// -- set banner video source --
+// ------------------------------
+// A vault video plays from app://<hash>/..., another origin than the app
+// (app://obsidian.md), so it taints any canvas it is drawn on and Export to PDF
+// could not print its frame (issue #323). CORS mode keeps it readable. Remote
+// videos are left alone: a server without CORS headers would refuse them.
+function setBannerVideoSource(videoEl, fileUrl) {
+    if (typeof fileUrl === 'string' && fileUrl.startsWith('app://')) {
+        videoEl.crossOrigin = 'anonymous';
+    }
+    videoEl.src = fileUrl;
+}
+
 // ----------------------------
 // -- set banner background --
 // ----------------------------
@@ -570,7 +584,7 @@ async function addPixelBanner(plugin, el, ctx) {
                 // Create video element
                 const videoEl = document.createElement('video');
                 videoEl.className = 'pixel-banner-video';
-                videoEl.src = fileUrl;
+                setBannerVideoSource(videoEl, fileUrl);
                 videoEl.autoplay = true;
                 videoEl.loop = true;
                 videoEl.muted = true;
@@ -757,7 +771,7 @@ async function addPixelBanner(plugin, el, ctx) {
                                     // Create video element
                                     const videoEl = document.createElement('video');
                                     videoEl.className = 'pixel-banner-video';
-                                    videoEl.src = fileUrl;
+                                    setBannerVideoSource(videoEl, fileUrl);
                                     videoEl.autoplay = true;
                                     videoEl.loop = true;
                                     videoEl.muted = true;
@@ -1804,5 +1818,6 @@ export {
     debouncedUpdateBannerPosition as updateBannerPosition,
     insertPersistentElement,
     setBannerBackground,
+    setBannerVideoSource,
     installPersistentChildrenOverride
 };

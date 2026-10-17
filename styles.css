@@ -713,6 +713,48 @@
 }
 
 
+
+/* ----------------------- */
+/* -- PDF export banner -- */
+/* ----------------------- */
+/* Export to PDF renders into .print; printBanner.js puts an <img> there in normal
+   flow, styled from the same --pixel-banner-* variables as the pane (issue #323) */
+.print .pixel-banner-print {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin: 0 0 1em 0;
+    break-inside: avoid;
+}
+/* height is capped at about 40% of the page */
+.print .pixel-banner-print .pixel-banner-print-image {
+    display: block;
+    width: 100%;
+    height: min(var(--pixel-banner-height, 350px), 40vh);
+    object-fit: cover;
+    object-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%);
+    border-radius: var(--pixel-banner-radius, 17px);
+    mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
+}
+.print .pixel-banner-print .pixel-banner-print-image.pixel-banner-print-contain {
+    object-fit: contain;
+}
+/* the icon (cloned from the pane) straddles the bottom edge of the capped banner */
+.print .pixel-banner-print .banner-icon-overlay {
+    top: calc(min(var(--pixel-banner-height, 350px), 40vh) - (var(--pixel-banner-icon-size, 70px) / 2));
+}
+.print .pixel-banner-print.has-icon {
+    padding-bottom: calc(var(--pixel-banner-icon-size, 70px) / 2);
+}
+/* title color, only when the PDF has a banner: the file name title that "Include
+   file name as title" adds, the PDF's counterpart of the pane's inline title. It
+   is a bare h1 directly in the container, after the banner; body headings sit in
+   section divs, so they keep their color */
+.print .markdown-preview-view > .pixel-banner-print ~ h1 {
+    color: var(--pixel-banner-title-color, inherit);
+}
+
 /* ----------------------------------- */
 /* -- various plugin conflict fixes -- */
 /* ----------------------------------- */

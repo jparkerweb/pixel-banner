@@ -40,6 +40,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 - Image View Modal: `.modal.pixel-banner-image-viewer` (size only from Obsidian's `--dialog-max-width` / `--dialog-max-height`, never position) and `.pixel-banner-image-view-modal` (image, path, Copy Path and Close layout).
 - Embed min-height: `--pixel-banner-embed-min-height` applies only to `.internal-embed.pixel-banner > .markdown-embed-content > .markdown-preview-view` (embeds that show a banner); the variable also sits on the host note's view and inherits into every embed, so an unscoped rule padded block and heading embeds (issue #331).
 - Phone layout: banner pieces that are direct children of a root pane's sizer (`.pixel-banner-image`, `.banner-icon-overlay` and the top-left icon buttons) get `translate: 0 var(--view-top-spacing-markdown)` under `.is-phone .mod-root`, matching the top padding Obsidian gives the scroller to clear its floating header (issue #335).
+- PDF export banner: `.print`-scoped rules for `.pixel-banner-print` (normal flow, height capped at `min(banner height, 40vh)`, the pane's crop, radius and fade, `pixel-banner-print-contain`, the icon straddling the bottom edge with `has-icon` padding) and the title color for the file name title (*Include file name as title*, a bare `h1` after the print banner) (issue #323).
 - Confetti: the overlay canvas (`.pixel-banner-confetti-canvas`), the pane host class (`.pixel-banner-confetti-host`), the confetti modal (scoped under `.confetti-modal`, dynamic values read from CSS variables such as `--confetti-swatch-color`), its fixed preview layer, and the Target Position modal's confetti row (`.confetti-effect-section`, `.confetti-status-active` / `-none` / `-unknown`).
 
 ### `README.md`
@@ -180,6 +181,25 @@ Handles adding and updating "pixel banners" (the large images at the top of note
    Installs the `setChildrenInPlace` override (feature-detected, once per container, fail-safe) that keeps the banner, icon overlay and icons in front of the children Obsidian passes in.
 10. **setBannerBackground(bannerDiv, fileUrl)**
    Sets the banner's `background-image`, waiting for the new image to decode when one is already showing, so switching notes never paints the banner empty (issue #327). The latest call wins; a banner cleared meanwhile stays cleared. Also used by the refresh icon for vault images, and `addPixelBanner` clears `background-image` when it hides a banner that has no image, so the old one cannot flash back. Tests in `tests/unit/core/bannerManager.setBannerBackground.test.js` and `tests/integration/bannerWorkflow.test.js`.
+11. **setBannerVideoSource(videoEl, fileUrl)**  
+   Sets a banner video's `src`, first putting `app://` (vault) videos in CORS mode (`crossOrigin = 'anonymous'`): they come from another origin than `app://obsidian.md`, so otherwise they taint the canvas Export to PDF draws their frame on (issue #323). Remote videos are left alone. Used by both video branches of `addPixelBanner`. Tests in `tests/unit/core/bannerManager.setBannerVideoSource.test.js`.
+
+---
+
+## `/src/core/printBanner.js`
+Adds the banner to Obsidian's Export to PDF render (`.print > .markdown-preview-view`) synchronously from the markdown post processor, since the async `updateBanner()` path finishes after the print (issue #323). No fetch, no timers, no writes to the pane's caches.
+
+**Methods**:
+1. **isPrintRender(containerEl)**  
+   True for the top level preview of a print render; false for notes embedded in it, normal reading views and hover popovers.
+2. **resolvePrintImageSource(plugin, file, bannerImage)**  
+   Returns `{ src }` from the image the open pane cached, else a direct URL or a vault image's resource path, else `null` (keywords, `file://` and uncached `mp4`/`mov` files print nothing). A cached video (an `isVideo` entry or a `/media-attachment/` `.mp4`/`.mov` URL) prints the frame from `grabVideoFrame()`, or nothing without one.
+3. **addPrintBanner(plugin, containerEl, { file, frontmatter, bannerImage })**  
+   Inserts `div.pixel-banner-print` with an `<img>` (plus the pane's icon when it has one, with `has-icon` on the wrapper) as the container's first child, once per render, built from the print document, and applies the banner settings to it. Image Display `contain` adds `pixel-banner-print-contain`. Errors are caught and logged; the export always completes.
+4. **clonePaneIcon(plugin, file)**  
+   Returns a copy of the `.banner-icon-overlay` the open pane showing the note already rendered (without `data-persistent`, skipping icons of embedded notes), or `null`.
+5. **grabVideoFrame(plugin, file)**  
+   Draws the frame the pane's `video.pixel-banner-video` is showing on a canvas in the main document and returns it as a JPEG data URL; `null` when no frame is ready or a cross-origin video has tainted the canvas. Panes are found with `findPaneForFile()`, which skips leaves that are not a `MarkdownView` (deferred tabs).
 
 ---
 
@@ -867,6 +887,7 @@ Vitest with happy-dom (`vitest.config.js`); `obsidian` and `virtual:release-note
 - `core/bannerManager.applyBannerSettings.test.js`: `applyBannerSettings` resolving height, fade and radius
 - `core/bannerManager.persistentChildren.test.js`: the `setChildrenInPlace` override and element order (issue #315)
 - `core/bannerManager.setBannerBackground.test.js`: decode-before-swap backgrounds (issue #327)
+- `core/bannerManager.setBannerVideoSource.test.js`: CORS mode for vault banner videos (issue #323)
 - `core/bannerManager.updateBanner.test.js`: `updateBanner` when the pane moves to another note mid-load, banner shuffle sources (a named folder, `banner-shuffle: true`, a folder group), and the invalid-blob release
 - `core/bannerUtils.test.js`: `getInputType`, Markdown links, vault blob URLs and folder helpers
 - `core/cacheHelpers.test.js`: cache keys, cleanup, leaf invalidation and the shared blob URL guards
@@ -875,6 +896,7 @@ Vitest with happy-dom (`vitest.config.js`); `obsidian` and `virtual:release-note
 - `core/domManager.test.js`: observers, field visibility and `cleanupPreviousLeaf`
 - `core/eventHandler.test.js`: leaf, layout and metadata handlers, including linked panes (#207) and startup (#333)
 - `core/pixelBannerPlugin.fileUrl.test.js`: `getImageUrl` with a local `file://` link
+- `core/printBanner.test.js`: print render detection, the PDF image source, the print banner element, the pane icon copy, the video frame grab and the no-controls guard (issue #323)
 - `core/settings.simple.test.js`: default settings
 - `modal/confettiModal.test.js`: the confetti modal, live preview, Apply round trips and the Shape dropdown
 - `modal/emojiSelectionModal.simple.test.js`, `modal/selectPixelBannerModal.test.js`: those modals

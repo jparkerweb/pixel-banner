@@ -4,6 +4,15 @@
 
 ## 🎉 What's New
 
+### Unreleased
+#### ✨ Added
+- **Banners in Export to PDF**: notes exported with Export to PDF now show their banner at the top of the first page, above the title, every time (issues #298, #323)
+  - The PDF uses the same image the note shows, including keyword banners, with the same height, crop, rounded corners, fade and banner icon; very tall banners are capped at about 40% of the page
+  - Video banners print the frame the video is showing
+  - With *Include file name as title* turned on in the export dialog, that title uses your banner title color
+  - Notes without a banner, and notes embedded in the exported note, are exported as before
+  - Turn it off in Settings → General → **Include Banner in PDF Export**
+
 ### v3.7.0
 #### ✨ Added
 - **Confetti/Particle Effects**: Add animated effects to your notes!

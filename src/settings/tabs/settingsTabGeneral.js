@@ -1062,6 +1062,35 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
+    // Include Banner in PDF Export setting
+    const includeBannerInPdfExportSetting = new Setting(containerEl)
+        .setName('Include Banner in PDF Export')
+        .setDesc('Add the banner to the top of notes exported with Export to PDF')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.includeBannerInPdfExport)
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.includeBannerInPdfExport = value;
+                    await plugin.saveSettings();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.includeBannerInPdfExport = DEFAULT_SETTINGS.includeBannerInPdfExport;
+                    await plugin.saveSettings();
+
+                    const toggleComponent = includeBannerInPdfExportSetting.components[0];
+                    if (toggleComponent) toggleComponent.setValue(DEFAULT_SETTINGS.includeBannerInPdfExport);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
     // Disable Confetti on Mobile setting
     const confettiDisableOnMobileSetting = new Setting(containerEl)
         .setName('Disable Confetti on Mobile')
