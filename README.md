@@ -67,6 +67,20 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 
 Enhance your Obsidian experience with beautiful, intelligent banners that make your notes visually distinctive and organized. Whether you prefer AI-generated art, professional designs from the store, or your own images, Pixel Banner helps create a visually cohesive knowledge base.
 
+## Network use and privacy
+
+Pixel Banner makes no network request when it loads unless you have saved Pixel Banner Plus credentials, and it contacts the other services below only when you set them up. Opening some Plus screens makes the public requests described under Pixel Banner Plus. It collects no analytics and sends nothing about your notes. Your own API keys are stored in the plugin settings and are sent only to the service they belong to.
+
+- **Pexels** (`api.pexels.com`): searches for a photo when a note's banner uses a keyword (or the default keywords setting supplies a fallback keyword) and the Pexels source is selected, or when you use the picker's search or the *Test API key* button. Sends the keyword and your Pexels API key.
+- **Unsplash** (`api.unsplash.com`): the same, for the Unsplash source. Sends the keyword and your Unsplash access key.
+- **Pixabay** (`pixabay.com`): the same, for the Pixabay source. Sends the keyword and your Pixabay API key.
+- **Flickr** (`www.flickr.com`, images from `live.staticflickr.com`): the same, for the Flickr source. Sends the keyword and your Flickr API key.
+- **Image downloads**: the chosen photo is then loaded from the provider's image host. A banner set to a web address loads that address, and *Pin* downloads it into your vault.
+- **Pixel Banner Plus** (`pixel-banner.online`): used only for the optional Plus features (AI banner generation, the banner and icon collections, generation history, voting and the daily game). The daily game is a web page from `pixel-banner.online` shown inside Obsidian, and it is given your Plus email and API key. Requests send your Plus email, your Plus API key and the plugin version, plus what the feature needs, such as your prompt or a reference image you pick. If you have saved Plus credentials, the plugin also checks them when it loads and again whenever a Plus screen opens. With no Plus credentials saved, the only requests to this service are for public information, such as the plugin settings page asking for the current Plus version and the icon collection browser listing icons. Choosing an icon also sends your Plus email if one is saved.
+- **Release notes and settings screens** show a few images hosted in this plugin's GitHub repository (`raw.githubusercontent.com`).
+
+Local images from your vault never leave your machine.
+
 ## 🔧 Installation
 
 1. Open Obsidian and go to Settings
@@ -113,6 +127,8 @@ You can now reference images stored outside your vault using the `file:///` prot
 - **Linux**: `banner: file:///home/username/Pictures/banner.jpg` or `banner: file:///opt/images/banner.png`
 
 **Note**: The image file must exist at the specified path and be accessible to Obsidian.
+
+**Privacy and access**: reading an external file works on desktop only (not on mobile) and is read only. The plugin reads only the single file path you name, never writes to it or to any other file outside your vault, and nothing is sent anywhere.
 
 ## 📝 Manual Banner Configuration (Frontmatter)
 
