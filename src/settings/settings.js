@@ -76,6 +76,7 @@ const DEFAULT_SETTINGS = {
     hideEmbeddedNoteTitles: false,
     hideEmbeddedNoteBanners: false,
     showBannerInPopoverPreviews: true,
+    popoverBannerMaxHeight: 150,
     includeBannerInPdfExport: true,
     showSelectImageIcon: true,
     selectImageIconOpacity: 40,

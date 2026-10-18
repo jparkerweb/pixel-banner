@@ -87,4 +87,44 @@ describe('applyBannerSettings', () => {
 
         expect(prop('--pixel-banner-icon-color')).toBe('var(--text-normal)');
     });
+
+    // Popover Banner Max Height (issue #342): a cap on hover popovers only
+    describe('in a hover popover', () => {
+        let popover;
+
+        beforeEach(() => {
+            popover = document.createElement('div');
+            popover.className = 'popover hover-popover';
+            popover.appendChild(banner);
+        });
+
+        it('caps a taller banner at the popover max height', () => {
+            applyBannerSettings(plugin, banner, { frontmatter: {}, file: { path: 'a.md' } }, false);
+
+            expect(prop('--pixel-banner-height')).toBe(`${DEFAULT_SETTINGS.popoverBannerMaxHeight}px`);
+            expect(prop('--pixel-banner-icon-start')).not.toContain('NaN');
+        });
+
+        it('leaves a banner shorter than the cap alone', () => {
+            applyBannerSettings(plugin, banner, { frontmatter: { 'banner-height': 90 }, file: { path: 'a.md' } }, false);
+
+            expect(prop('--pixel-banner-height')).toBe('90px');
+        });
+
+        it('follows the setting, and a cap of 0 collapses the banner', () => {
+            plugin.settings.popoverBannerMaxHeight = 0;
+
+            applyBannerSettings(plugin, banner, { frontmatter: {}, file: { path: 'a.md' } }, false);
+
+            expect(prop('--pixel-banner-height')).toBe('0px');
+        });
+
+        it('does not cap a banner outside a popover', () => {
+            popover.removeChild(banner);
+
+            applyBannerSettings(plugin, banner, { frontmatter: {}, file: { path: 'a.md' } }, false);
+
+            expect(prop('--pixel-banner-height')).toBe(`${DEFAULT_SETTINGS.bannerHeight}px`);
+        });
+    });
 });
