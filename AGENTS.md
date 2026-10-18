@@ -72,8 +72,10 @@ Details: [Adding New Features](./.agents-docs/AGENTS-adding-new-features.md)
 1. Update version in `manifest.json` and `package.json`. Any version bump, a CHANGELOG renumber included, sets the same number in `CHANGELOG.md`, the `UPDATE.md` heading, `package.json` and `manifest.json` together
 2. Update `CHANGELOG.md` (technical) and `UPDATE.md` (user-facing)
 3. Update `inventory.md` if files changed
-4. Run `npm run build`
+4. Run `npm run build` (bundle only; `npm run build-vault` also copies to the test vault and zips it)
 5. Test in `.vault` environment
+6. Commit and push the version bump, then push the tag: `git tag <version> && git push origin <version>` (the tag equals the manifest version, no leading `v`). `.github/workflows/release.yml` builds, attests `main.js`, `manifest.json` and `styles.css`, and publishes the GitHub release; it fails when the tag differs from `manifest.json` or `package.json`
+7. Publish releases only through that workflow so the assets carry attestations. Do not run `/ai-assist-git-publish` for the same tag: it would create a second release without attestations. Check an asset with `gh attestation verify main.js --repo jparkerweb/pixel-banner`
 
 ## Keeping this file current
 
