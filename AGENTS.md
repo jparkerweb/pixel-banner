@@ -23,7 +23,7 @@ Details: [Essential Commands](./.agents-docs/AGENTS-essential-commands.md)
 
 ## Architecture
 
-Entry is `src/core/pixelBannerPlugin.js`, a thin class that binds module functions; `eventHandler.js` reacts to workspace events, `bannerManager.js` resolves banners (`addPixelBanner()`, `updateBanner()`), `domManager.js` runs the DOM observers, `bannerUtils.js:getInputType()` classifies frontmatter input (path, wiki link, markdown image, URL, file://, keyword), and `cacheHelpers.js` caches images. Covers the delegator pattern, input resolution order, DOM persistence, the confetti subsystem, the release notes pipeline, modals, services and a key-files table. Before changing banner insertion or cleanup, read `OBSIDIAN_DOM_LIFECYCLE.md`.
+Entry is `src/core/pixelBannerPlugin.js`, a thin class that binds module functions; `eventHandler.js` reacts to workspace events, `bannerManager.js` resolves banners (`addPixelBanner()`, `updateBanner()`), `domManager.js` runs the DOM observers, `bannerUtils.js:getInputType()` classifies frontmatter input (path, wiki link, markdown image, URL, file://, keyword), `cacheHelpers.js` caches images, `fieldRegistry.js` holds every frontmatter field's names, value chain and write rule, and `printBanner.js` adds the banner to Export to PDF renders synchronously. Covers the delegator pattern, input resolution order, DOM persistence, Export to PDF, the confetti subsystem, the release notes pipeline, modals, services and a key-files table. Before changing banner insertion or cleanup, read `OBSIDIAN_DOM_LIFECYCLE.md`.
 
 Details: [Architecture](./.agents-docs/AGENTS-architecture.md)
 
@@ -69,7 +69,7 @@ Details: [Adding New Features](./.agents-docs/AGENTS-adding-new-features.md)
 
 ## Release Process
 
-1. Update version in `manifest.json` and `package.json`
+1. Update version in `manifest.json` and `package.json`. Any version bump, a CHANGELOG renumber included, sets the same number in `CHANGELOG.md`, the `UPDATE.md` heading, `package.json` and `manifest.json` together
 2. Update `CHANGELOG.md` (technical) and `UPDATE.md` (user-facing)
 3. Update `inventory.md` if files changed
 4. Run `npm run build`
@@ -105,3 +105,10 @@ When you make a mistake, get corrected, or discover something about this codebas
 - Check the `Errors` line of a Vitest run, not just `Tests` passed: the pre-commit hook fails on unhandled rejections even when every test passes. Catch the promise of any async function you call from a timer or debounce wrapper (issue #207).
 - Edit CRLF files with the Edit tool or a Node script that keeps `\r\n`, never `sed -i` in Git Bash: it rewrote `tests/integration/bannerWorkflow.test.js` from CRLF to LF, a whole-file diff. Compare `git diff --stat` with `--ignore-all-space` after any scripted edit.
 - Read plugin errors in a live check with `dev:debug on` then `dev:console level=error`: a `console.error` hook installed through `eval` never sees the plugin's own calls, and `dev:errors` lists only uncaught exceptions. Never leave accessors defined on a banner element's `style` after a trace: `updateBanner` writes `style.backgroundImage` and fails on them.
+- Count line endings with Node (`(s.match(/\r\n/g)||[]).length`), not `grep -c $'\r$'` in Git Bash: it reported every line of the LF-only `src/core/printBanner.js` as CRLF.
+- Restore only the spies a nested `afterEach` created, never `vi.restoreAllMocks()`, when an outer `afterEach` asserts on another spy: `mockRestore()` clears its calls first, so the outer check passes vacuously (the NFR-2 cache-write guard in `tests/unit/core/printBanner.test.js`).
+- Stub the Export to PDF save dialog before every export and keep a reference on `window` (`window.__dlg=require('@electron/remote').dialog; __dlg.showSaveDialog=async()=>({canceled:false,filePath:'<%TEMP% path>'})`): the remote module caches that proxy weakly, a stub applied once is lost when it is collected, and the person at the machine gets real Save As dialogs. Click the **Export to PDF** button of the last `.modal-container`, and set `app.vault.setConfig('pdfExportSettings', …)` back if you toggled *Include file name as title*.
+- Capture the print render with a post processor registered on the plugin (`plugin.registerMarkdownPostProcessor((el,ctx)=>{const p=ctx.containerEl.closest('.print');if(p)window.__printRoot=p})`) and read `__printRoot` after the export: the print window is gone by then, so `ownerDocument.defaultView` is `null` (no `getComputedStyle`), and `require('obsidian')` is not available in `eval`. A plugin reload removes the processor.
+- Fake `Date` and step it past 350 ms between calls when a test calls the exported `addPixelBanner` more than once (`vi.useFakeTimers({ toFake: ['Date'] })`, then `vi.setSystemTime`): it is exported through `debounceAndSwallow`, a leading throttle on `Date.now()`, so a second call within 350 ms returns `undefined` without rendering (see `tests/unit/core/bannerManager.embed.test.js`).
+- Read the settings UI from `app.setting.win.document` in a live check: this Obsidian build opens settings in its own window, so `document.querySelector('.mod-settings')` finds nothing and `app.setting.containerEl.isConnected` is `false`.
+- Expect a vault video (`app://<hash>/...`) to taint any canvas it is drawn on unless it was loaded with `crossOrigin = 'anonymous'` (`setBannerVideoSource()`): the app itself is `app://obsidian.md`, another origin.

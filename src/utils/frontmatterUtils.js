@@ -1,4 +1,5 @@
 import { Notice } from 'obsidian';
+import { getFieldNames, writeField } from '../core/fieldRegistry.js';
 
 
 // ---------------------------
@@ -42,42 +43,21 @@ export function getFrontmatterValue(frontmatter, fieldNames) {
 // -----------------------------
 // -- update note frontmatter --
 // -----------------------------
-// ----------------------------
-// -- get value with zero check --
-// ----------------------------
-/**
- * Gets a value from multiple sources, properly handling zero values
- * @param {Array<any>} values - Array of values to check in order of priority
- * @returns {any} The first non-falsy value found, properly handling zero values
- * 
- * @example
- * // Returns the first valid value (handling zeros properly)
- * const result = getValueWithZeroCheck([
- *   getFrontmatterValue(frontmatter, customField),
- *   folderSpecific?.someProperty,
- *   settings.someProperty,
- *   defaultValue
- * ]);
- */
-export function getValueWithZeroCheck(values) {
-    if (!Array.isArray(values)) {
-        console.warn('getValueWithZeroCheck expects an array of values');
-        return null;
+// Writes the banner inside a processFrontMatter callback. An explicit usedField
+// is a name the caller already read from the note, so it wins; otherwise the
+// registry picks the name in use (else the primary name). Either way only that
+// one banner name remains.
+function writeBannerField(frontmatter, plugin, value, usedField) {
+    if (!usedField) {
+        writeField(frontmatter, plugin, 'banner', value);
+        return;
     }
-    
-    for (const value of values) {
-        // Explicitly check for zero to handle it properly
-        if (value === 0) return 0;
-        
-        // Return the first truthy value
-        if (value !== null && value !== undefined) return value;
-    }
-    
-    // If we get here, all values were falsy (null/undefined)
-    // Return the last value in the array (which would be the default)
-    return values[values.length - 1];
-}
 
+    for (const name of getFieldNames(plugin, 'banner')) {
+        if (name !== usedField) delete frontmatter[name];
+    }
+    frontmatter[usedField] = value;
+}
 
 export async function updateNoteFrontmatter(imagePath, plugin, usedField = null) {
     const activeFile = plugin.app.workspace.getActiveFile();
@@ -95,10 +75,6 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
         }
     }
 
-    const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
-        plugin.settings.customBannerField.length > 0 ? 
-        plugin.settings.customBannerField[0] : 'banner');
-
     const format = plugin.settings.imagePropertyFormat;
     // Apply the format based on the user's setting
     let bannerValue;
@@ -112,19 +88,7 @@ export async function updateNoteFrontmatter(imagePath, plugin, usedField = null)
 
     // Use Obsidian's processFrontMatter API to properly update frontmatter
     await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-        // Only remove old banner fields that are different from the one being set
-        // This prevents unintended property modifications on mobile devices
-        if (Array.isArray(plugin.settings.customBannerField)) {
-            for (const field of plugin.settings.customBannerField) {
-                // Only delete if it's a different field than the one we're setting
-                if (field !== bannerField && field in frontmatter) {
-                    delete frontmatter[field];
-                }
-            }
-        }
-        
-        // Set the new banner field
-        frontmatter[bannerField] = bannerValue;
+        writeBannerField(frontmatter, plugin, bannerValue, usedField);
     });
 
     if (plugin.settings.useShortPath && imageReference === imagePath) {
@@ -138,25 +102,9 @@ export async function updateNoteFrontmatterWithUrl(imageUrl, plugin, usedField =
     const activeFile = plugin.app.workspace.getActiveFile();
     if (!activeFile) return;
 
-    const bannerField = usedField || (Array.isArray(plugin.settings.customBannerField) && 
-        plugin.settings.customBannerField.length > 0 ? 
-        plugin.settings.customBannerField[0] : 'banner');
-
     // Use Obsidian's processFrontMatter API to properly update frontmatter
     await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-        // Only remove old banner fields that are different from the one being set
-        // This prevents unintended property modifications on mobile devices
-        if (Array.isArray(plugin.settings.customBannerField)) {
-            for (const field of plugin.settings.customBannerField) {
-                // Only delete if it's a different field than the one we're setting
-                if (field !== bannerField && field in frontmatter) {
-                    delete frontmatter[field];
-                }
-            }
-        }
-        
-        // Set the new banner field with the URL
-        frontmatter[bannerField] = imageUrl;
+        writeBannerField(frontmatter, plugin, imageUrl, usedField);
     });
 
     new Notice('Banner image URL pinned');

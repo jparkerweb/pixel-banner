@@ -5,6 +5,7 @@ import { confettiManager, shouldRunConfetti } from './confettiManager.js';
 import { parse } from '../utils/confettiConfig.js';
 import { checkUnquotedBannerLink } from '../utils/unquotedBannerLink.js';
 import { isVaultImageBlobUrl } from './bannerUtils.js';
+import { getAllFieldNames, resolveField, writeField } from './fieldRegistry.js';
 
 // Debouncing map to prevent multiple rapid banner updates for the same file in
 // the same view. Keyed by the view (holding { filePath, time }), not the file path
@@ -90,30 +91,7 @@ async function handleActiveLeafChange(leaf) {
                 // Update timestamp to keep entry fresh (only if not expired)
                 cachedState.timestamp = currentTime;
                 // Compare frontmatter for relevant changes
-                const relevantFields = [
-                    ...this.settings.customBannerField,
-                    ...this.settings.customYPositionField,
-                    ...this.settings.customXPositionField,
-                    ...this.settings.customContentStartField,
-                    ...this.settings.customImageDisplayField,
-                    ...this.settings.customImageRepeatField,
-                    ...this.settings.customBannerHeightField,
-                    ...this.settings.customFadeField,
-                    ...this.settings.customBorderRadiusField,
-                    ...this.settings.customTitleColorField,
-                    ...this.settings.customBannerShuffleField,
-                    ...this.settings.customBannerIconField,
-                    ...this.settings.customBannerIconSizeField,
-                    ...this.settings.customBannerIconXPositionField,
-                    ...this.settings.customBannerIconOpacityField,
-                    ...this.settings.customBannerIconColorField,
-                    ...this.settings.customBannerIconFontWeightField,
-                    ...this.settings.customBannerIconBackgroundColorField,
-                    ...this.settings.customBannerIconPaddingXField,
-                    ...this.settings.customBannerIconPaddingYField,
-                    ...this.settings.customBannerIconBorderRadiusField,
-                    ...this.settings.customBannerIconVerticalOffsetField
-                ];
+                const relevantFields = getAllFieldNames(this, { excludeGroups: ['confetti'] });
 
                 const hasRelevantChanges = relevantFields.some(field => 
                     frontmatter?.[field] !== cachedState.frontmatter?.[field]
@@ -143,16 +121,16 @@ async function handleActiveLeafChange(leaf) {
             const bannerIcon = getFrontmatterValue(frontmatter, this.settings.customBannerIconField);
             const iconState = bannerIcon ? {
                 icon: bannerIcon,
-                size: getFrontmatterValue(frontmatter, this.settings.customBannerIconSizeField) || this.settings.bannerIconSize,
-                xPosition: getFrontmatterValue(frontmatter, this.settings.customBannerIconXPositionField) || this.settings.bannerIconXPosition,
-                opacity: getFrontmatterValue(frontmatter, this.settings.customBannerIconOpacityField) || this.settings.bannerIconOpacity,
-                color: getFrontmatterValue(frontmatter, this.settings.customBannerIconColorField) || this.settings.bannerIconColor,
-                fontWeight: getFrontmatterValue(frontmatter, this.settings.customBannerIconFontWeightField) || this.settings.bannerIconFontWeight,
-                backgroundColor: getFrontmatterValue(frontmatter, this.settings.customBannerIconBackgroundColorField) || this.settings.bannerIconBackgroundColor,
-                paddingX: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingXField) || this.settings.bannerIconPaddingX,
-                paddingY: getFrontmatterValue(frontmatter, this.settings.customBannerIconPaddingYField) || this.settings.bannerIconPaddingY,
-                borderRadius: getFrontmatterValue(frontmatter, this.settings.customBannerIconBorderRadiusField) || this.settings.bannerIconBorderRadius,
-                verticalOffset: getFrontmatterValue(frontmatter, this.settings.customBannerIconVerticalOffsetField) || this.settings.bannerIconVerticalOffset
+                size: resolveField(this, 'iconSize', frontmatter),
+                xPosition: resolveField(this, 'iconXPosition', frontmatter),
+                opacity: resolveField(this, 'iconOpacity', frontmatter),
+                color: resolveField(this, 'iconColor', frontmatter),
+                fontWeight: resolveField(this, 'iconFontWeight', frontmatter),
+                backgroundColor: resolveField(this, 'iconBackgroundColor', frontmatter),
+                paddingX: resolveField(this, 'iconPaddingX', frontmatter),
+                paddingY: resolveField(this, 'iconPaddingY', frontmatter),
+                borderRadius: resolveField(this, 'iconBorderRadius', frontmatter),
+                verticalOffset: resolveField(this, 'iconVerticalOffset', frontmatter)
             } : null;
 
             // Cache the new state
@@ -338,47 +316,15 @@ async function handleSelectImage() {
                 selectedFile.path;
             }
 
-            let fileContent = await this.app.vault.read(activeFile);
-            const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
-            const hasFrontmatter = frontmatterRegex.test(fileContent);
-            
-            const bannerField = Array.isArray(this.settings.customBannerField) && 
-                this.settings.customBannerField.length > 0 ? 
-                this.settings.customBannerField[0] : 'banner';
+            const format = this.settings.imagePropertyFormat;
+            const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
 
-            fileContent = fileContent.replace(/^\s+/, '');
+            await this.app.fileManager.processFrontMatter(activeFile, fm => writeField(fm, this, 'banner', bannerValue));
 
-            let updatedContent;
-            if (hasFrontmatter) {
-                updatedContent = fileContent.replace(frontmatterRegex, (match, frontmatter) => {
-                    let cleanedFrontmatter = frontmatter.trim();
-                    
-                    this.settings.customBannerField.forEach(field => {
-                        const fieldRegex = new RegExp(`${field}:\\s*.+\\n?`, 'g');
-                        cleanedFrontmatter = cleanedFrontmatter.replace(fieldRegex, '');
-                    });
-
-                    const format = this.settings.imagePropertyFormat;
-                    const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
-                    const newFrontmatter = `${bannerField}: "${bannerValue}"${cleanedFrontmatter ? '\n' + cleanedFrontmatter : ''}`;
-                    return `---\n${newFrontmatter}\n---`;
-                });
+            if (this.settings.useShortPath && imageReference === selectedFile.path) {
+                new Notice('Banner image updated (full path used due to duplicate filenames)');
             } else {
-                const cleanContent = fileContent.replace(/^\s+/, '');
-                const format = this.settings.imagePropertyFormat;
-                const bannerValue = format === '[[image]]' ? `[[${imageReference}]]` : `![[${imageReference}]]`;
-                updatedContent = `---\n${bannerField}: "${bannerValue}"\n---\n\n${cleanContent}`;
-            }
-
-            updatedContent = updatedContent.replace(/^\s+/, '');
-            
-            if (updatedContent !== fileContent) {
-                await this.app.vault.modify(activeFile, updatedContent);
-                if (this.settings.useShortPath && imageReference === selectedFile.path) {
-                    new Notice('Banner image updated (full path used due to duplicate filenames)');
-                } else {
-                    new Notice('Banner image updated');
-                }
+                new Notice('Banner image updated');
             }
         },
         this.settings.defaultSelectImagePath

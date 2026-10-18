@@ -1,6 +1,7 @@
 import { Modal, Notice, requestUrl, MarkdownView } from 'obsidian';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants';
 import { handlePinIconClick } from '../../utils/handlePinIconClick';
+import { writeField } from '../../core/fieldRegistry';
 import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { DownloadHistory } from '../../utils/downloadHistory';
 import { TargetPositionModal, EmojiSelectionModal } from '../modals';
@@ -944,7 +945,6 @@ export class GenerateAIBannerModal extends Modal {
                     
                     // Open the target position modal after setting the banner
                     await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                        const bannerField = this.plugin.settings.customBannerField[0];
                         const format = this.plugin.settings.imagePropertyFormat;
                         // Apply the format based on the user's setting
                         let bannerValue;
@@ -955,7 +955,7 @@ export class GenerateAIBannerModal extends Modal {
                         } else {  // format === '![[image]]'
                             bannerValue = `![[${savedPath}]]`;  // Embedded image
                         }
-                        frontmatter[bannerField] = bannerValue;
+                        writeField(frontmatter, this.plugin, 'banner', bannerValue);
                     });
 
                     // Check if we should open the targeting modal
@@ -1958,7 +1958,6 @@ export class GenerateAIBannerModal extends Modal {
             
             // Open the target position modal after setting the banner
             await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                const bannerField = this.plugin.settings.customBannerField[0];
                 const format = this.plugin.settings.imagePropertyFormat;
                 // Apply the format based on the user's setting
                 let bannerValue;
@@ -1969,7 +1968,7 @@ export class GenerateAIBannerModal extends Modal {
                 } else {  // format === '![[image]]'
                     bannerValue = `![[${savedPath}]]`;  // Embedded image
                 }
-                frontmatter[bannerField] = bannerValue;
+                writeField(frontmatter, this.plugin, 'banner', bannerValue);
             });
 
             // Check if we should open the targeting modal

@@ -1,5 +1,6 @@
 import { MarkdownView, Notice } from 'obsidian';
 import { EmojiSelectionModal, IconImageSelectionModal } from '../modal/modals.js';
+import { getFieldNames, writeField, clearField } from './fieldRegistry.js';
 
 
 // Helper to normalize color values for comparison
@@ -90,12 +91,8 @@ export async function handleSetBannerIcon(plugin) {
             // If selectedEmoji is empty, use processFrontMatter to remove the field
             if (!selectedEmoji) {
                 await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                    const bannerIconField = Array.isArray(plugin.settings.customBannerIconField) && 
-                        plugin.settings.customBannerIconField.length > 0 ? 
-                        plugin.settings.customBannerIconField[0] : 'banner-icon';
-                    
-                    // Remove the field from frontmatter
-                    delete frontmatter[bannerIconField];
+                    // Remove the icon under every configured name
+                    clearField(frontmatter, plugin, 'icon');
                 });
                 
                 // Wait for metadata update
@@ -111,21 +108,14 @@ export async function handleSetBannerIcon(plugin) {
                 return;
             }
             
-            const bannerIconField = Array.isArray(plugin.settings.customBannerIconField) && 
-                plugin.settings.customBannerIconField.length > 0 ? 
-                plugin.settings.customBannerIconField[0] : 'banner-icon';
+            // The name the write lands on, read back by the metadata check below
+            let bannerIconField;
 
             // Use Obsidian's processFrontMatter API to properly update frontmatter
             await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                // Remove old banner icon fields if they exist
-                plugin.settings.customBannerIconField.forEach(field => {
-                    if (field in frontmatter) {
-                        delete frontmatter[field];
-                    }
-                });
-                
-                // Set the new banner icon field
-                frontmatter[bannerIconField] = selectedEmoji;
+                writeField(frontmatter, plugin, 'icon', selectedEmoji);
+                bannerIconField = getFieldNames(plugin, 'icon')
+                    .find(name => Object.prototype.hasOwnProperty.call(frontmatter, name));
             });
 
                 // Wait for metadata update
@@ -244,29 +234,14 @@ export async function handleSetBannerIconImage(plugin) {
             // IconImageSelectionModal passes a full file object, not just a path string
             const imagePath = selectedImage.path ? selectedImage.path : selectedImage;
             
-            // Get the correct field name from settings
-            const bannerIconImageField = Array.isArray(plugin.settings.customBannerIconImageField) && 
-                plugin.settings.customBannerIconImageField.length > 0 ? 
-                plugin.settings.customBannerIconImageField[0].split(',')[0].trim() : 'icon-image';
+            // The name and value the write lands on, read back by the metadata check below
+            let bannerIconImageField;
+            let iconValue;
 
             // Use Obsidian's processFrontMatter API to properly update frontmatter
             await plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                // Remove old banner icon image fields if they exist
-                if (Array.isArray(plugin.settings.customBannerIconImageField)) {
-                    plugin.settings.customBannerIconImageField.forEach(field => {
-                        // Handle comma-separated field names
-                        const fieldNames = field.split(',').map(f => f.trim());
-                        fieldNames.forEach(fieldName => {
-                            if (fieldName in frontmatter) {
-                                delete frontmatter[fieldName];
-                            }
-                        });
-                    });
-                }
-                
                 // Set the new banner icon image field with proper format
                 const format = plugin.settings.imagePropertyFormat;
-                let iconValue;
                 if (format === 'image') {
                     iconValue = imagePath;  // Plain path
                 } else if (format === '[[image]]') {
@@ -274,7 +249,9 @@ export async function handleSetBannerIconImage(plugin) {
                 } else {  // format === '![[image]]'
                     iconValue = `![[${imagePath}]]`;  // Embedded image
                 }
-                frontmatter[bannerIconImageField] = iconValue;
+                writeField(frontmatter, plugin, 'iconImage', iconValue);
+                bannerIconImageField = getFieldNames(plugin, 'iconImage')
+                    .find(name => Object.prototype.hasOwnProperty.call(frontmatter, name));
             });
 
                 // Wait for metadata update
@@ -319,7 +296,7 @@ export async function handleSetBannerIconImage(plugin) {
                     if (view) {
                         try {
                             const cache = plugin.app.metadataCache.getFileCache(activeFile);
-                            if (!cache || !cache.frontmatter || cache.frontmatter[bannerIconImageField] !== imagePath) {
+                            if (!cache || !cache.frontmatter || cache.frontmatter[bannerIconImageField] !== iconValue) {
                                 await new Promise(resolve => setTimeout(resolve, 100));
                                 continue;
                             }

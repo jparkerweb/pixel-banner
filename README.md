@@ -40,6 +40,7 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
     - **Refresh**: Get a new image from the same keyword or URL.
     - **View**: Open the full banner image in a modal.
 - **Custom Field Names**: Rename any banner property field to fit your workflow.
+- **Export to PDF**: Notes exported with Obsidian's Export to PDF keep their banner at the top of the first page, styled like the note. Turn it off with *Include Banner in PDF Export* in General settings.
 
 ### 📂 Smart Organization
 - **Folder-Specific Settings**: Configure default banner behavior per folder.
@@ -55,6 +56,7 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - **Smart UI Elements**: Video banners display with distinct badges and play icons for easy identification.
 - **Flexible Saving**: Choose custom save locations and filenames when downloading video banners.
 - **Seamless Integration**: Videos work with all existing banner features (positioning, sizing, icons, etc.).
+- **PDF Export**: A video banner prints the frame it is showing when the note is exported to PDF.
 
 ### 💎 Premium Features (Pixel Banner Plus)
 - **Token-Based System**: Generate AI banners with a flexible pay-as-you-go model.

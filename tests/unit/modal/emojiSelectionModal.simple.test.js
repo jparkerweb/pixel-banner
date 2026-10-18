@@ -228,4 +228,55 @@ describe('EmojiSelectionModal (simplified)', () => {
             }).not.toThrow();
         });
     });
+
+    describe('clearing the icon', () => {
+        it('removes an icon set under a second configured name', async () => {
+            mockPlugin.settings.customBannerIconField = ['banner-icon, icon'];
+            mockPlugin.settings.customBannerIconSizeField = ['banner-icon-size, icon-size'];
+            let written;
+            mockApp.fileManager.processFrontMatter = vi.fn(async (file, callback) => {
+                written = { icon: '📝', 'icon-size': 80, title: 'keep me' };
+                callback(written);
+            });
+
+            modal = new EmojiSelectionModal(mockApp, mockPlugin, onChooseSpy);
+            modal.onOpen();
+            modal.bannerIconInput.value = '';
+            modal.contentEl.querySelector('.remove-banner-icon-button').click();
+            await vi.waitFor(() => expect(mockPlugin.updateBanner).toHaveBeenCalled());
+
+            expect(written).toEqual({ title: 'keep me' });
+        });
+
+        it('keeps the image icon settings when the icon image is under a second configured name', async () => {
+            mockPlugin.settings.customBannerIconField = ['banner-icon'];
+            mockPlugin.settings.customBannerIconImageField = ['icon-image', 'banner-icon-image'];
+            mockPlugin.settings.customBannerIconSizeField = ['banner-icon-size'];
+            let written;
+            mockApp.fileManager.processFrontMatter = vi.fn(async (file, callback) => {
+                written = { 'banner-icon': '📝', 'banner-icon-image': '[[star.png]]', 'banner-icon-size': 80 };
+                callback(written);
+            });
+
+            modal = new EmojiSelectionModal(mockApp, mockPlugin, onChooseSpy);
+            modal.onOpen();
+            modal.bannerIconInput.value = '';
+            modal.contentEl.querySelector('.remove-banner-icon-button').click();
+            await vi.waitFor(() => expect(mockPlugin.updateBanner).toHaveBeenCalled());
+
+            expect(written).toEqual({ 'banner-icon-image': '[[star.png]]', 'banner-icon-size': 80 });
+        });
+    
+    describe('prefill', () => {
+        it('shows an icon stored under a second configured name', () => {
+            mockPlugin.settings.customBannerIconField = ['banner-icon, icon'];
+            mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { icon: '🚀' } }));
+
+            modal = new EmojiSelectionModal(mockApp, mockPlugin, onChooseSpy);
+            modal.onOpen();
+
+            expect(modal.currentBannerIconField).toBe('🚀');
+        });
+    });
+});
 });

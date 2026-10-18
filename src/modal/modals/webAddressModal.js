@@ -1,5 +1,6 @@
 import { Modal, MarkdownView } from 'obsidian';
 import { SelectPixelBannerModal, EmojiSelectionModal, TargetPositionModal } from '../modals';
+import { writeField } from '../../core/fieldRegistry.js';
 
 export class WebAddressModal extends Modal {
     constructor(app, plugin) {
@@ -208,10 +209,9 @@ export class WebAddressModal extends Modal {
                 
                 // Update frontmatter with URL
                 await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                    const bannerField = this.plugin.settings.customBannerField[0];
                     // Web URLs should not be formatted with wiki links, just use the raw URL
                     // The imagePropertyFormat setting only applies to vault images
-                    frontmatter[bannerField] = url;
+                    writeField(frontmatter, this.plugin, 'banner', url);
                 });
                 
                 // If not opening banner icon modal, check if we should open targeting modal

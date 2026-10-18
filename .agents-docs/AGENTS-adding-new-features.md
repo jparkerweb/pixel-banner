@@ -13,3 +13,10 @@
 2. Handle format in `src/utils/frontmatterUtils.js:updateNoteFrontmatter()`
 3. Add to `DEFAULT_SETTINGS` in `src/settings/settings.js` if needed
 4. Add tests in `tests/unit/utils/frontmatterUtils.test.js`
+
+## New Frontmatter Field
+1. Add its `custom*Field` default (and a value setting, if it has one) to `DEFAULT_SETTINGS` in `src/settings/settings.js`
+2. Add one entry to `FIELDS` in `src/core/fieldRegistry.js` (`id`, `namesKey`, `settingKey` / `folderKey` / `default` where they apply, `group`); `tests/unit/core/fieldRegistry.test.js` fails while a `custom*Field` has no entry
+3. Read its value with `resolveField(plugin, id, frontmatter, folderSpecific)`; write or remove it with `writeField` / `clearField` inside a `processFrontMatter` callback. Never index `custom*Field[0]` for a name
+4. Add its row to `src/settings/tabs/settingsTabCustomFieldNames.js`, plus any value control
+5. Nothing else in `src/core`: Properties hiding and the refresh checks read the registry (the `confetti` group is left out of the refresh checks)

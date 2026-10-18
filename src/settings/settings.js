@@ -76,6 +76,7 @@ const DEFAULT_SETTINGS = {
     hideEmbeddedNoteTitles: false,
     hideEmbeddedNoteBanners: false,
     showBannerInPopoverPreviews: true,
+    includeBannerInPdfExport: true,
     showSelectImageIcon: true,
     selectImageIconOpacity: 40,
     selectImageIconFlag: 'red',

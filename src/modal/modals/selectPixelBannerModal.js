@@ -8,6 +8,7 @@ import { flags } from '../../resources/flags.js';
 import { semver } from '../../utils/semver.js';
 import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
+import { writeField, clearField } from '../../core/fieldRegistry.js';
 
 export class SelectPixelBannerModal extends Modal {
     constructor(app, plugin) {
@@ -197,7 +198,6 @@ export class SelectPixelBannerModal extends Modal {
                     const activeFile = this.app.workspace.getActiveFile();
                     if (activeFile) {
                         await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                            const bannerField = this.plugin.settings.customBannerField[0];
                             const format = this.plugin.settings.imagePropertyFormat;
                             // Apply the format based on the user's setting
                             let bannerValue;
@@ -208,7 +208,7 @@ export class SelectPixelBannerModal extends Modal {
                             } else {  // format === '![[image]]'
                                 bannerValue = `![[${file.path}]]`;  // Embedded image
                             }
-                            frontmatter[bannerField] = bannerValue;
+                            writeField(frontmatter, this.plugin, 'banner', bannerValue);
                         });
                         
                         // If not opening the banner icon modal, check if we should open the targeting modal
@@ -383,13 +383,8 @@ export class SelectPixelBannerModal extends Modal {
                 if (typeof pathString === 'string' && (pathString.startsWith('http://') || pathString.startsWith('https://'))) {
                     // For web URLs, use the URL directly
                     this.app.fileManager.processFrontMatter(activeFile, (fm) => {
-                        // Get the correct field name
-                        const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
-                            ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
-                            : this.plugin.settings.customBannerIconImageField;
-                        
                         // Set the frontmatter value as direct URL
-                        fm[iconImageField] = pathString;
+                        writeField(fm, this.plugin, 'iconImage', pathString);
                     });
                     
                     // Open the targeting modal after selecting an icon image
@@ -418,11 +413,6 @@ export class SelectPixelBannerModal extends Modal {
                 
                 // Update frontmatter with the image path
                 this.app.fileManager.processFrontMatter(activeFile, (fm) => {
-                    // Get the correct field name
-                    const iconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
-                        ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconImageField;
-                    
                     // Apply the format based on the user's setting
                     const format = this.plugin.settings.imagePropertyFormat;
                     let iconValue;
@@ -435,7 +425,7 @@ export class SelectPixelBannerModal extends Modal {
                     }
                     
                     // Set the frontmatter value
-                    fm[iconImageField] = iconValue;
+                    writeField(fm, this.plugin, 'iconImage', iconValue);
                 });
                 
                 // Open the targeting modal after selecting an icon image
@@ -480,12 +470,11 @@ export class SelectPixelBannerModal extends Modal {
                     const activeFile = this.app.workspace.getActiveFile();
                     if (activeFile) {
                         await this.plugin.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                            const iconField = this.plugin.settings.customBannerIconField[0];
                             if (emoji) {
-                                frontmatter[iconField] = emoji;
+                                writeField(frontmatter, this.plugin, 'icon', emoji);
                             } else {
                                 // If emoji is empty, remove the field from frontmatter
-                                delete frontmatter[iconField];
+                                clearField(frontmatter, this.plugin, 'icon');
                             }
                         });
                     }

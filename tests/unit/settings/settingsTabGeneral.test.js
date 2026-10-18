@@ -40,6 +40,7 @@ const DEFAULT_SETTINGS = {
     hideEmbeddedNoteTitles: false,
     hideEmbeddedNoteBanners: false,
     showBannerInPopoverPreviews: true,
+    includeBannerInPdfExport: true,
     showViewImageIcon: true,
     imagePropertyFormat: '![[image]]',
     hidePixelBannerFields: false,
@@ -82,6 +83,7 @@ vi.mock('../../../src/settings/settings.js', () => ({
         hideEmbeddedNoteTitles: false,
         hideEmbeddedNoteBanners: false,
         showBannerInPopoverPreviews: true,
+        includeBannerInPdfExport: true,
         showViewImageIcon: true,
         imagePropertyFormat: '![[image]]',
         hidePixelBannerFields: false,
@@ -566,6 +568,33 @@ describe('settingsTabGeneral', () => {
             hideFieldsToggle.dispatchEvent(new Event('change'));
             
             expect(dependentSetting.classList.contains('is-disabled')).toBe(false);
+        });
+    });
+
+    describe('include banner in PDF export setting', () => {
+        it('should render the Include Banner in PDF Export toggle', () => {
+            createGeneralSettings(containerEl, mockPlugin);
+
+            const setting = containerEl.querySelector('[data-name="Include Banner in PDF Export"]');
+            expect(setting).toBeTruthy();
+            const toggleInput = setting.querySelector('input[type="checkbox"]');
+            expect(toggleInput).toBeTruthy();
+            expect(toggleInput.checked).toBe(true);
+        });
+
+        it('should save the new value when toggled', async () => {
+            createGeneralSettings(containerEl, mockPlugin);
+
+            const setting = containerEl.querySelector('[data-name="Include Banner in PDF Export"]');
+            const toggleInput = setting.querySelector('input[type="checkbox"]');
+
+            toggleInput.checked = false;
+            toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(mockPlugin.settings.includeBannerInPdfExport).toBe(false);
+            expect(mockPlugin.saveSettings).toHaveBeenCalled();
         });
     });
 

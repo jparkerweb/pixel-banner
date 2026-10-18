@@ -10,6 +10,7 @@
 5. **DOM**: `bannerManager.js:addPixelBanner()` creates the banner, `updateBanner()` refreshes it, `applyBannerSettings()` styles it
 6. **Observers**: `domManager.js` owns the mutation/resize observers, field and embed visibility, and `cleanupPreviousLeaf()`
 7. **Caching**: `cacheHelpers.js` manages image caching
+8. **Fields**: `fieldRegistry.js` lists every frontmatter field once and owns its names, value chain (`resolveField`) and write rule (`writeField` / `clearField`)
 
 ## Plugin Class Is a Thin Delegator
 
@@ -37,6 +38,15 @@ Resolution order:
 ## Banner Persistence in the DOM
 
 Obsidian's child reconciliation (`setChildrenInPlace`) removes injected DOM, so `bannerManager.js` overrides it to keep the banner in place, and `domManager.js` observes only mode switches, not scroll. Read `OBSIDIAN_DOM_LIFECYCLE.md` (repo root) before changing banner insertion, observers or cleanup.
+
+## Export to PDF
+
+- Obsidian renders the export into a separate, short-lived print document (`.print > .markdown-preview-view`, its own `ownerDocument`) and prints it about 1.1 s later. Main-window timers are held back meanwhile, so anything async (the 50 ms `updateBanner()` path) lands after the print (issues #298, #323)
+- The markdown post processor in `pixelBannerPlugin.js` checks `isPrintRender(ctx.containerEl)` first; with `includeBannerInPdfExport` on it calls `addPrintBanner()` and never `updateBanner()`. Keep that branch synchronous: no fetch, no timers, no writes to `loadedImages` or `lastKeywords`
+- `src/core/printBanner.js` mirrors the open pane: the cached image (else a URL or vault resource path; keywords print only the pane's image), the pane's icon cloned, the pane video's current frame as a JPEG data URL, and `applyBannerSettings()` for every CSS variable. Elements are created from the print document
+- Video frames need an untainted canvas: vault videos (`app://<hash>/...`, another origin than `app://obsidian.md`) are loaded in CORS mode by `setBannerVideoSource()` in `bannerManager.js`. Create any new banner `<video>` through it
+- Print CSS is `.print`-scoped in `styles.css`. The title colour targets the bare `h1` that *Include file name as title* adds after the banner, the PDF's counterpart of the inline title
+- Live checks: stub the save dialog and capture the print DOM as the AGENTS.md failure log describes
 
 ## Confetti Subsystem
 
@@ -77,9 +87,11 @@ class ExampleModal extends Modal {
 |------|---------|
 | `src/core/pixelBannerPlugin.js` | Main entry point; binds module functions onto the plugin |
 | `src/core/bannerManager.js` | Banner creation/updates |
+| `src/core/printBanner.js` | Synchronous banner for Export to PDF renders |
 | `src/core/bannerUtils.js` | Input type detection, path resolution, `getActiveApiProvider()` |
 | `src/core/domManager.js` | DOM observers, field/embed visibility, leaf cleanup |
 | `src/core/eventHandler.js` | Workspace event handlers |
+| `src/core/fieldRegistry.js` | Frontmatter field table, name lookup, value resolver, write and clear helpers |
 | `src/core/settings.js` | `loadSettings()` / `saveSettings()` only |
 | `src/settings/settings.js` | `DEFAULT_SETTINGS` and the settings tab |
 | `src/services/apiPIxelBannerPlus.js` | Pixel Banner Plus API. Note the capital `I` in the filename; import it with that exact casing |

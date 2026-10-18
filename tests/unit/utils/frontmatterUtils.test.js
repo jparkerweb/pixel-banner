@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { 
     getFrontmatterValue, 
-    getValueWithZeroCheck, 
     updateNoteFrontmatter, 
     updateNoteFrontmatterWithUrl 
 } from '@/utils/frontmatterUtils.js';
@@ -129,62 +128,6 @@ describe('frontmatterUtils', () => {
             const frontmatter = { image: 'test.jpg' };
             const result = getFrontmatterValue(frontmatter, 'banner,,image,');
             expect(result).toBe('test.jpg');
-        });
-    });
-
-    describe('getValueWithZeroCheck', () => {
-        it('should return first non-falsy value', () => {
-            const values = [null, undefined, 'first-value', 'second-value'];
-            const result = getValueWithZeroCheck(values);
-            expect(result).toBe('first-value');
-        });
-
-        it('should return 0 when it is the first value', () => {
-            const values = [0, 100, 200];
-            const result = getValueWithZeroCheck(values);
-            expect(result).toBe(0);
-        });
-
-        it('should return 0 when found later in array', () => {
-            const values = [null, undefined, 0, 100];
-            const result = getValueWithZeroCheck(values);
-            expect(result).toBe(0);
-        });
-
-        it('should return last value when all are falsy', () => {
-            const values = [null, undefined, null, 'default'];
-            const result = getValueWithZeroCheck(values);
-            expect(result).toBe('default');
-        });
-
-        it('should handle empty array', () => {
-            const result = getValueWithZeroCheck([]);
-            expect(result).toBeUndefined();
-        });
-
-        it('should warn and return null for non-array input', () => {
-            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-            const result = getValueWithZeroCheck('not-an-array');
-            expect(result).toBeNull();
-            expect(consoleSpy).toHaveBeenCalledWith('getValueWithZeroCheck expects an array of values');
-            consoleSpy.mockRestore();
-        });
-
-        it('should handle boolean values correctly', () => {
-            // false is falsy, so it should skip to true
-            const values = [false, true, 'fallback'];
-            const result = getValueWithZeroCheck(values);
-            // The function checks for null/undefined, not general falsiness for booleans
-            // So false is returned since it's not null/undefined
-            expect(result).toBe(false);
-        });
-
-        it('should handle empty string as falsy', () => {
-            const values = ['', 'non-empty', 'fallback'];
-            const result = getValueWithZeroCheck(values);
-            // The function checks for null/undefined, not general falsiness
-            // So empty string is returned since it's not null/undefined
-            expect(result).toBe('');
         });
     });
 
@@ -586,6 +529,60 @@ describe('frontmatterUtils', () => {
             expect(frontmatter.metadata).toEqual({
                 created: '2023-01-01',
                 updated: '2023-01-02'
+            });
+        });
+    });
+
+    describe('banner writers and configured names', () => {
+        const writers = [
+            ['updateNoteFrontmatter', (plugin, usedField) => updateNoteFrontmatter('images/banner.jpg', plugin, usedField), '![[images/banner.jpg]]'],
+            ['updateNoteFrontmatterWithUrl', (plugin, usedField) => updateNoteFrontmatterWithUrl('https://example.com/image.jpg', plugin, usedField), 'https://example.com/image.jpg']
+        ];
+
+        // Runs the writer against a plain frontmatter object and returns it
+        const runWriter = async (write, frontmatter, usedField = null) => {
+            mockApp.fileManager.processFrontMatter.mockImplementation(async (file, callback) => callback(frontmatter));
+            await write(mockPlugin, usedField);
+            return frontmatter;
+        };
+
+        beforeEach(() => {
+            mockApp.workspace.getActiveFile.mockReturnValue(new TFile('test.md'));
+        });
+
+        describe.each(writers)('%s', (name, write, expected) => {
+            it('writes to the first comma-separated name, never a key named "banner, image"', async () => {
+                mockPlugin.settings.customBannerField = ['banner, image'];
+
+                const frontmatter = await runWriter(write, { title: 'Test' });
+
+                expect(frontmatter.banner).toBe(expected);
+                expect(frontmatter).not.toHaveProperty('banner, image');
+                expect(frontmatter.title).toBe('Test');
+            });
+
+            it('writes under the name the note already uses and adds no primary name', async () => {
+                const frontmatter = await runWriter(write, { title: 'Test', image: 'old.jpg' });
+
+                expect(frontmatter.image).toBe(expected);
+                expect(frontmatter).not.toHaveProperty('banner');
+                expect(frontmatter.title).toBe('Test');
+            });
+
+            it('writes under the name in use when names are one comma-separated entry', async () => {
+                mockPlugin.settings.customBannerField = ['banner, image'];
+
+                const frontmatter = await runWriter(write, { image: 'old.jpg' });
+
+                expect(frontmatter.image).toBe(expected);
+                expect(frontmatter).not.toHaveProperty('banner');
+            });
+
+            it('lets an explicit usedField win and removes the other names present', async () => {
+                const frontmatter = await runWriter(write, { banner: 'old.jpg', image: 'older.jpg' }, 'image');
+
+                expect(frontmatter.image).toBe(expected);
+                expect(frontmatter).not.toHaveProperty('banner');
             });
         });
     });

@@ -9,11 +9,13 @@ import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafC
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition } from './bannerManager.js';
-import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getMarkdownLinkTarget, getVaultImageUrl, releaseAllVaultImageUrls, preloadImage, getFolderPath, getFolderSpecificImage, getFolderSpecificSetting, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
+import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getMarkdownLinkTarget, getVaultImageUrl, releaseAllVaultImageUrls, preloadImage, getFolderPath, getFolderSpecificImage, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange, handleConfettiForNote, runConfettiPass } from './eventHandler.js';
 import { scheduleUnquotedBannerLinkCheck } from '../utils/unquotedBannerLink.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
+import { isPrintRender, addPrintBanner } from './printBanner.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
+import { getAllFieldNames } from './fieldRegistry.js';
 import { confettiManager } from './confettiManager.js';
 import { clearShapeCache } from './confettiShapes.js';
 
@@ -83,7 +85,6 @@ export class PixelBannerPlugin extends Plugin {
     preloadImage(url) { return preloadImage.call(this, url); }
     getFolderPath(filePath) { return getFolderPath.call(this, filePath); }
     getFolderSpecificImage(filePath) { return getFolderSpecificImage.call(this, filePath); }
-    getFolderSpecificSetting(filePath, settingName) { return getFolderSpecificSetting.call(this, filePath, settingName); }
     getRandomImageFromFolder(folderPath) { return getRandomImageFromFolder.call(this, folderPath); }
     getActiveApiProvider() { return getActiveApiProvider.call(this); }
     hasBannerFrontmatter(file) { return hasBannerFrontmatter.call(this, file); }
@@ -223,35 +224,7 @@ export class PixelBannerPlugin extends Plugin {
                 }
 
                 // Check if any relevant fields exist and changed in the frontmatter
-                const relevantFields = [
-                    ...this.settings.customBannerField,
-                    ...this.settings.customYPositionField,
-                    ...this.settings.customXPositionField,
-                    ...this.settings.customContentStartField,
-                    ...this.settings.customImageDisplayField,
-                    ...this.settings.customImageRepeatField,
-                    ...this.settings.customBannerMaxWidthField,
-                    ...this.settings.customBannerHeightField,
-                    ...this.settings.customFadeField,
-                    ...this.settings.customBorderRadiusField,
-                    ...this.settings.customTitleColorField,
-                    ...this.settings.customBannerShuffleField,
-                    ...this.settings.customBannerIconField,
-                    ...this.settings.customBannerIconSizeField,
-                    ...this.settings.customBannerIconImageSizeMultiplierField,
-                    ...this.settings.customBannerIconTextVerticalOffsetField,
-                    ...this.settings.customBannerIconRotateField,
-                    ...this.settings.customBannerIconImageAlignmentField,
-                    ...this.settings.customBannerIconXPositionField,
-                    ...this.settings.customBannerIconOpacityField,
-                    ...this.settings.customBannerIconColorField,
-                    ...this.settings.customBannerIconFontWeightField,
-                    ...this.settings.customBannerIconBackgroundColorField,
-                    ...this.settings.customBannerIconPaddingXField,
-                    ...this.settings.customBannerIconPaddingYField,
-                    ...this.settings.customBannerIconBorderRadiusField,
-                    ...this.settings.customBannerIconVerticalOffsetField
-                ];
+                const relevantFields = getAllFieldNames(this, { excludeGroups: ['confetti'] });
 
                 const changedFields = relevantFields.filter(field =>
                     frontmatter[field] !== previousFrontmatter?.[field]
@@ -324,6 +297,15 @@ export class PixelBannerPlugin extends Plugin {
             
             if (!bannerImage) return;
             
+            // Export to PDF prints its render before updateBanner() would finish, so the
+            // print render gets a synchronous banner of its own and never the async path (issue #323)
+            if (isPrintRender(ctx.containerEl)) {
+                if (this.settings.includeBannerInPdfExport) {
+                    addPrintBanner(this, ctx.containerEl, { file, frontmatter, bannerImage });
+                }
+                return;
+            }
+
             // Get proper banner settings
             const folderSpecific = this.getFolderSpecificImage(file.path);
             const yPosition = getFrontmatterValue(frontmatter, this.settings.customYPositionField) || 
@@ -580,35 +562,7 @@ export class PixelBannerPlugin extends Plugin {
                             this.lastFrontmatter.set(file.path, JSON.parse(currentStr));
 
                             // Only update if banner-relevant fields actually changed
-                            const relevantFields = [
-                                ...this.settings.customBannerField,
-                                ...this.settings.customYPositionField,
-                                ...this.settings.customXPositionField,
-                                ...this.settings.customContentStartField,
-                                ...this.settings.customImageDisplayField,
-                                ...this.settings.customImageRepeatField,
-                                ...this.settings.customBannerMaxWidthField,
-                                ...this.settings.customBannerHeightField,
-                                ...this.settings.customFadeField,
-                                ...this.settings.customBorderRadiusField,
-                                ...this.settings.customTitleColorField,
-                                ...this.settings.customBannerShuffleField,
-                                ...this.settings.customBannerIconField,
-                                ...this.settings.customBannerIconSizeField,
-                                ...this.settings.customBannerIconImageSizeMultiplierField,
-                                ...this.settings.customBannerIconTextVerticalOffsetField,
-                                ...this.settings.customBannerIconRotateField,
-                                ...this.settings.customBannerIconImageAlignmentField,
-                                ...this.settings.customBannerIconXPositionField,
-                                ...this.settings.customBannerIconOpacityField,
-                                ...this.settings.customBannerIconColorField,
-                                ...this.settings.customBannerIconFontWeightField,
-                                ...this.settings.customBannerIconBackgroundColorField,
-                                ...this.settings.customBannerIconPaddingXField,
-                                ...this.settings.customBannerIconPaddingYField,
-                                ...this.settings.customBannerIconBorderRadiusField,
-                                ...this.settings.customBannerIconVerticalOffsetField
-                            ];
+                            const relevantFields = getAllFieldNames(this, { excludeGroups: ['confetti'] });
 
                             const hasRelevantChange = relevantFields.some(field =>
                                 frontmatter[field] !== previousFrontmatter?.[field]
@@ -838,88 +792,6 @@ export class PixelBannerPlugin extends Plugin {
             }
         }
         return null;
-    }
-
-
-    // --------------------
-    // -- post processor --
-    // --------------------
-    async postProcessor(el, ctx) {
-        const frontmatter = ctx.frontmatter;
-        let bannerImageValue = null;
-
-        if (frontmatter) {
-            for (const field of this.settings.customBannerField) {
-                if (frontmatter[field]) {
-                    bannerImageValue = frontmatter[field];
-                    break;
-                }
-            }
-        }
-
-        if (bannerImageValue) {
-            await this.addPixelBanner(el, {
-                frontmatter,
-                file: ctx.sourcePath,
-                isContentChange: false,
-                yPosition: getFrontmatterValue(frontmatter, this.settings.customYPositionField) || this.settings.yPosition,
-                contentStartPosition: getFrontmatterValue(frontmatter, this.settings.customContentStartField) || this.settings.contentStartPosition,
-                customBannerField: this.settings.customBannerField,
-                customYPositionField: this.settings.customYPositionField,
-                customXPositionField: this.settings.customXPositionField,
-                customContentStartField: this.settings.customContentStartField,
-                customImageDisplayField: this.settings.customImageDisplayField,
-                customImageRepeatField: this.settings.customImageRepeatField,
-                customBannerMaxWidthField: this.settings.customBannerMaxWidthField,
-                bannerImage: bannerImageValue
-            });
-
-            if (this.settings.hidePixelBannerFields) {
-                const frontmatterEl = el.querySelector('.frontmatter');
-                if (frontmatterEl) {
-                    // Get all custom fields that should be hidden
-                    const fieldsToHide = [
-                        ...this.settings.customBannerField,
-                        ...this.settings.customYPositionField,
-                        ...this.settings.customXPositionField,
-                        ...this.settings.customContentStartField,
-                        ...this.settings.customImageDisplayField,
-                        ...this.settings.customImageRepeatField,
-                        ...this.settings.customBannerMaxWidthField,
-                        ...this.settings.customBannerHeightField,
-                        ...this.settings.customBannerAlignmentField,
-                        ...this.settings.customFadeField,
-                        ...this.settings.customBorderRadiusField,
-                        ...this.settings.customTitleColorField,
-                        ...this.settings.customBannerShuffleField,
-                        ...this.settings.customBannerIconField,
-                        ...this.settings.customBannerIconSizeField,
-                        ...this.settings.customBannerIconImageSizeMultiplierField,
-                        ...this.settings.customBannerIconTextVerticalOffsetField,
-                        ...this.settings.customBannerIconRotateField,
-                        ...this.settings.customBannerIconImageAlignmentField,
-                        ...this.settings.customBannerIconXPositionField,
-                        ...this.settings.customBannerIconOpacityField,
-                        ...this.settings.customBannerIconColorField,
-                        ...this.settings.customBannerIconFontWeightField,
-                        ...this.settings.customBannerIconBackgroundColorField,
-                        ...this.settings.customBannerIconPaddingXField,
-                        ...this.settings.customBannerIconPaddingYField,
-                        ...this.settings.customBannerIconBorderRadiusField,
-                        ...this.settings.customBannerIconVerticalOffsetField
-                    ];
-
-                    // Add hide class to matching fields
-                    const rows = frontmatterEl.querySelectorAll('.frontmatter-container .frontmatter-section-label');
-                    rows.forEach(row => {
-                        const label = row.textContent.replace(':', '').trim();
-                        if (fieldsToHide.includes(label)) {
-                            row.closest('.frontmatter-section').classList.add('pixel-banner-hidden-field');
-                        }
-                    });
-                }
-            }
-        }
     }
 
 

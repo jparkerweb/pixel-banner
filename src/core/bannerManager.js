@@ -1,10 +1,11 @@
 import { MarkdownView, Notice } from 'obsidian';
 import { ImageViewModal, TargetPositionModal } from '../modal/modals.js';
-import { getFrontmatterValue, getValueWithZeroCheck } from '../utils/frontmatterUtils.js';
+import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
 import { handlePinIconClick } from '../utils/handlePinIconClick.js';
 import { flags } from '../resources/flags.js';
 import { debounceAndSwallow } from '../utils/debounce.js';
 import { releaseVaultImageBlobUrl } from './bannerUtils.js';
+import { resolveField } from './fieldRegistry.js';
 
 // Debouncing map for updateBanner to prevent concurrent updates, keyed by the
 // view's content element (holding { filePath, time, isContentChange,
@@ -81,6 +82,20 @@ function installPersistentChildrenOverride(container) {
     container._hasOverriddenSetChildrenInPlace = true;
 }
 
+
+// ------------------------------
+// -- set banner video source --
+// ------------------------------
+// A vault video plays from app://<hash>/..., another origin than the app
+// (app://obsidian.md), so it taints any canvas it is drawn on and Export to PDF
+// could not print its frame (issue #323). CORS mode keeps it readable. Remote
+// videos are left alone: a server without CORS headers would refuse them.
+function setBannerVideoSource(videoEl, fileUrl) {
+    if (typeof fileUrl === 'string' && fileUrl.startsWith('app://')) {
+        videoEl.crossOrigin = 'anonymous';
+    }
+    videoEl.src = fileUrl;
+}
 
 // ----------------------------
 // -- set banner background --
@@ -162,88 +177,31 @@ async function addPixelBanner(plugin, el, ctx) {
             if (previewViewEl) {
                 
                 const folderSpecific = plugin.getFolderSpecificImage(file.path);
-                const maxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
-                    folderSpecific?.bannerMaxWidth || plugin.settings.bannerMaxWidth || 'unset';
-                const maxWidthValue = maxWidth === 'unset' ? 'unset' : `${maxWidth}px`;
+                const maxWidth = resolveField(plugin, 'maxWidth', frontmatter, folderSpecific);
+                const maxWidthValue = (maxWidth === undefined || maxWidth === 'unset') ? 'unset' : `${maxWidth}px`;
 
-                const bannerYPosition = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customYPositionField),
-                    folderSpecific?.bannerYPosition,
-                    plugin.settings.bannerYPosition,
-                    0
-                ]);
-                const bannerXPosition = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customXPositionField),
-                    folderSpecific?.bannerXPosition,
-                    plugin.settings.bannerXPosition,
-                    0
-                ]);
-                const bannerTitleColor = getFrontmatterValue(frontmatter, plugin.settings.customTitleColorField) || 
-                    folderSpecific?.titleColor || plugin.settings.titleColor || 'var(--inline-title-color)';
+                const bannerYPosition = resolveField(plugin, 'yPosition', frontmatter, folderSpecific);
+                const bannerXPosition = resolveField(plugin, 'xPosition', frontmatter, folderSpecific);
+                const bannerTitleColor = resolveField(plugin, 'titleColor', frontmatter, folderSpecific);
                 
                 previewViewEl.style.setProperty('--pixel-banner-y-position', `${bannerYPosition}%`);
                 previewViewEl.style.setProperty('--pixel-banner-x-position', `${bannerXPosition}%`);
                 previewViewEl.style.setProperty('--pixel-banner-max-width', maxWidthValue);
                 previewViewEl.style.setProperty('--pixel-banner-title-color', bannerTitleColor);
                 
-                const bannerIconSize = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || 
-                    folderSpecific?.bannerIconSize || plugin.settings.bannerIconSize || 70;
-                const bannerIconXPosition = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
-                    folderSpecific?.bannerIconXPosition,
-                    plugin.settings.bannerIconXPosition,
-                    25
-                ]);
-                const bannerIconOpacity = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
-                    folderSpecific?.bannerIconOpacity,
-                    plugin.settings.bannerIconOpacity,
-                    100
-                ]);
-                const bannerIconColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || 
-                    folderSpecific?.bannerIconColor || plugin.settings.bannerIconColor || 'var(--text-normal)';
-                const bannerIconFontWeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || 
-                    folderSpecific?.bannerIconFontWeight || plugin.settings.bannerIconFontWeight || 'normal';
-                const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || 
-                    folderSpecific?.bannerIconBackgroundColor || plugin.settings.bannerIconBackgroundColor || 'transparent';
-                const bannerIconPaddingX = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
-                    folderSpecific?.bannerIconPaddingX,
-                    plugin.settings.bannerIconPaddingX,
-                    10
-                ]);
-                const bannerIconPaddingY = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
-                    folderSpecific?.bannerIconPaddingY,
-                    plugin.settings.bannerIconPaddingY,
-                    10
-                ]);
-                const bannerIconBorderRadius = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
-                    folderSpecific?.bannerIconBorderRadius,
-                    plugin.settings.bannerIconBorderRadius,
-                    17
-                ]);
-                const bannerIconVerticalOffset = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
-                    folderSpecific?.bannerIconVerticalOffset,
-                    plugin.settings.bannerIconVerticalOffset,
-                    0
-                ]);
-                const bannerIconRotate = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField),
-                    0
-                ]);
-                const bannerIconImageSizeMultiplier = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageSizeMultiplierField),
-                    plugin.settings.bannerIconImageSizeMultiplier,
-                    1
-                ]);
-                const bannerIconTextVerticalOffset = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconTextVerticalOffsetField),
-                    plugin.settings.bannerIconTextVerticalOffset,
-                    0
-                ]);
+                const bannerIconSize = resolveField(plugin, 'iconSize', frontmatter, folderSpecific);
+                const bannerIconXPosition = resolveField(plugin, 'iconXPosition', frontmatter, folderSpecific);
+                const bannerIconOpacity = resolveField(plugin, 'iconOpacity', frontmatter, folderSpecific);
+                const bannerIconColor = resolveField(plugin, 'iconColor', frontmatter, folderSpecific);
+                const bannerIconFontWeight = resolveField(plugin, 'iconFontWeight', frontmatter, folderSpecific);
+                const bannerIconBackgroundColor = resolveField(plugin, 'iconBackgroundColor', frontmatter, folderSpecific) ?? 'transparent';
+                const bannerIconPaddingX = resolveField(plugin, 'iconPaddingX', frontmatter, folderSpecific);
+                const bannerIconPaddingY = resolveField(plugin, 'iconPaddingY', frontmatter, folderSpecific);
+                const bannerIconBorderRadius = resolveField(plugin, 'iconBorderRadius', frontmatter, folderSpecific);
+                const bannerIconVerticalOffset = resolveField(plugin, 'iconVerticalOffset', frontmatter, folderSpecific);
+                const bannerIconRotate = resolveField(plugin, 'iconRotate', frontmatter, folderSpecific);
+                const bannerIconImageSizeMultiplier = resolveField(plugin, 'iconImageSizeMultiplier', frontmatter, folderSpecific);
+                const bannerIconTextVerticalOffset = resolveField(plugin, 'iconTextVerticalOffset', frontmatter, folderSpecific);
                 
                 previewViewEl.style.setProperty('--pixel-banner-icon-size', `${bannerIconSize}px`);
                 previewViewEl.style.setProperty('--pixel-banner-icon-x', `${bannerIconXPosition}%`);
@@ -260,32 +218,21 @@ async function addPixelBanner(plugin, el, ctx) {
                 previewViewEl.style.setProperty('--pixel-banner-icon-text-vertical-offset', `${bannerIconTextVerticalOffset}px`);
                 
                 // Set height for embedded notes with banners
-                const bannerHeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerHeightField) || 
-                    folderSpecific?.bannerHeight || plugin.settings.bannerHeight || 150;
+                const bannerHeight = resolveField(plugin, 'height', frontmatter, folderSpecific);
                 const embedMinHeight = `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2))}px`;
                 previewViewEl.style.setProperty('--pixel-banner-embed-min-height', embedMinHeight);
                 previewViewEl.style.setProperty('--pixel-banner-height', `${bannerHeight}px`);
 
                 // set pixel banner fade
-                const bannerFade = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerFadeField),
-                    folderSpecific?.bannerFade,
-                    plugin.settings.fade,
-                    -75
-                ]);
+                const bannerFade = resolveField(plugin, 'fade', frontmatter, folderSpecific);
                 previewViewEl.style.setProperty('--pixel-banner-fade', `${bannerFade}%`);
 
                 // set pixel banner border radius
-                const bannerRadius = getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField),
-                    folderSpecific?.borderRadius,
-                    plugin.settings.borderRadius,
-                    17
-                ]);
+                const bannerRadius = resolveField(plugin, 'borderRadius', frontmatter, folderSpecific);
                 previewViewEl.style.setProperty('--pixel-banner-radius', `${bannerRadius}px`);
 
                 // set pixel banner alignment
-                const bannerAlignment = getFrontmatterValue(frontmatter, plugin.settings.customBannerAlignmentField) || 'center';
+                const bannerAlignment = resolveField(plugin, 'alignment', frontmatter, folderSpecific);
                 let alignmentValue = '0 auto'; // Default for center
                 if (bannerAlignment === 'left') {
                     alignmentValue = '0 auto 0 0';
@@ -402,7 +349,7 @@ async function addPixelBanner(plugin, el, ctx) {
                     `   
                 }
             });
-            const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
+            const flagColor = resolveField(plugin, 'flagColor', frontmatter);
             selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
             selectImageIcon._isPersistentSelectImage = true;
 
@@ -451,6 +398,30 @@ async function addPixelBanner(plugin, el, ctx) {
     // 4) Keep our elements through Obsidian's child reconciliation (see installPersistentChildrenOverride)
     installPersistentChildrenOverride(container);
 
+    // Build the banner <video>, replacing any existing one; shared by the first render
+    // and the keyword refresh icon so both honour Image Display
+    const buildBannerVideo = (bannerDiv, fileUrl, imageDisplay) => {
+        const existingVideo = bannerDiv.querySelector('video');
+        if (existingVideo) {
+            existingVideo.remove();
+        }
+
+        const videoEl = document.createElement('video');
+        videoEl.className = 'pixel-banner-video';
+        setBannerVideoSource(videoEl, fileUrl);
+        videoEl.autoplay = true;
+        videoEl.loop = true;
+        videoEl.muted = true;
+        videoEl.playsInline = true;
+        videoEl.style.width = '100%';
+        videoEl.style.height = '100%';
+        videoEl.style.objectFit = imageDisplay || 'cover';
+        videoEl.style.position = 'absolute';
+        videoEl.style.top = '0';
+        videoEl.style.left = '0';
+        bannerDiv.appendChild(videoEl);
+    };
+
     // 5) If we have a bannerImage, fetch or reuse it
     if (bannerImage) {
         let imageUrl = plugin.loadedImages.get(file.path);
@@ -493,12 +464,8 @@ async function addPixelBanner(plugin, el, ctx) {
 
         if (imageUrl) {
             // Display banner
-            const imageDisplay = getFrontmatterValue(frontmatter, plugin.settings.customImageDisplayField) ||
-                folderSpecific?.imageDisplay ||
-                plugin.settings.imageDisplay;
-            const imageRepeat = getFrontmatterValue(frontmatter, plugin.settings.customImageRepeatField) ||
-                folderSpecific?.imageRepeat ||
-                plugin.settings.imageRepeat;
+            const imageDisplay = resolveField(plugin, 'imageDisplay', frontmatter, folderSpecific);
+            const imageRepeat = resolveField(plugin, 'imageRepeat', frontmatter, folderSpecific);
             
             let isVideoFile = false;
             let fileUrl = '';
@@ -561,27 +528,7 @@ async function addPixelBanner(plugin, el, ctx) {
                 // Clear any background image
                 bannerDiv.style.backgroundImage = '';
                 
-                // Remove any existing video element
-                const existingVideo = bannerDiv.querySelector('video');
-                if (existingVideo) {
-                    existingVideo.remove();
-                }
-                
-                // Create video element
-                const videoEl = document.createElement('video');
-                videoEl.className = 'pixel-banner-video';
-                videoEl.src = fileUrl;
-                videoEl.autoplay = true;
-                videoEl.loop = true;
-                videoEl.muted = true;
-                videoEl.playsInline = true;
-                videoEl.style.width = '100%';
-                videoEl.style.height = '100%';
-                videoEl.style.objectFit = imageDisplay || 'cover';
-                videoEl.style.position = 'absolute';
-                videoEl.style.top = '0';
-                videoEl.style.left = '0';
-                bannerDiv.appendChild(videoEl);
+                buildBannerVideo(bannerDiv, fileUrl, imageDisplay);
             } else {
                 // Handle as image
                 // Remove any existing video element
@@ -748,27 +695,7 @@ async function addPixelBanner(plugin, el, ctx) {
                                     // Clear background image
                                     bannerDiv.style.backgroundImage = '';
                                     
-                                    // Remove existing video
-                                    const existingVideo = bannerDiv.querySelector('video');
-                                    if (existingVideo) {
-                                        existingVideo.remove();
-                                    }
-                                    
-                                    // Create video element
-                                    const videoEl = document.createElement('video');
-                                    videoEl.className = 'pixel-banner-video';
-                                    videoEl.src = fileUrl;
-                                    videoEl.autoplay = true;
-                                    videoEl.loop = true;
-                                    videoEl.muted = true;
-                                    videoEl.playsInline = true;
-                                    videoEl.style.width = '100%';
-                                    videoEl.style.height = '100%';
-                                    videoEl.style.objectFit = 'cover';
-                                    videoEl.style.position = 'absolute';
-                                    videoEl.style.top = '0';
-                                    videoEl.style.left = '0';
-                                    bannerDiv.appendChild(videoEl);
+                                    buildBannerVideo(bannerDiv, fileUrl, resolveField(plugin, 'imageDisplay', frontmatter, folderSpecific));
                                 } else {
                                     // It's an image; go through setBannerBackground so a decode
                                     // still pending for the old image cannot put it back
@@ -1058,24 +985,12 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
     }
 
-    let imageDisplay = getFrontmatterValue(frontmatter, plugin.settings.customImageDisplayField) || 
-        folderSpecific?.imageDisplay || 
-        plugin.settings.imageDisplay;
-    let imageRepeat = getFrontmatterValue(frontmatter, plugin.settings.customImageRepeatField) ?? 
-        folderSpecific?.imageRepeat ?? 
-        plugin.settings.imageRepeat;
-    let bannerHeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerHeightField) ?? 
-        folderSpecific?.bannerHeight ?? 
-        plugin.settings.bannerHeight;
-    let fade = getFrontmatterValue(frontmatter, plugin.settings.customFadeField) ?? 
-        folderSpecific?.fade ?? 
-        plugin.settings.fade;
-    let borderRadius = getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField) ?? 
-        folderSpecific?.borderRadius ?? 
-        plugin.settings.borderRadius;
-    let maxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
-        folderSpecific?.bannerMaxWidth || 
-        'unset';
+    let imageDisplay = resolveField(plugin, 'imageDisplay', frontmatter, folderSpecific);
+    let imageRepeat = resolveField(plugin, 'imageRepeat', frontmatter, folderSpecific);
+    let bannerHeight = resolveField(plugin, 'height', frontmatter, folderSpecific);
+    let fade = resolveField(plugin, 'fade', frontmatter, folderSpecific);
+    let borderRadius = resolveField(plugin, 'borderRadius', frontmatter, folderSpecific);
+    let maxWidth = resolveField(plugin, 'maxWidth', frontmatter, folderSpecific) ?? 'unset';
 
     // Process this note's banner if it exists
     if (bannerImage) {
@@ -1164,7 +1079,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                         `   
                     }
                 });
-                const flagColor = getFrontmatterValue(frontmatter, plugin.settings.customFlagColorField) || plugin.settings.selectImageIconFlag;
+                const flagColor = resolveField(plugin, 'flagColor', frontmatter);
                 selectImageIcon.innerHTML = `<img src="${flags[flagColor] || flags['red']}" alt="Select Banner" style="width: 25px; height: 30px;">`;
                 selectImageIcon._isPersistentSelectImage = true;
                 selectImageIcon.onclick = () => plugin.handleBannerIconClick();
@@ -1271,35 +1186,17 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             // Get current icon state
             const currentIconState = {
                 icon: cleanIcon,
-                size: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || plugin.settings.bannerIconSize,
-                xPosition: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
-                    plugin.settings.bannerIconXPosition,
-                ]),
-                opacity: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
-                    plugin.settings.bannerIconOpacity,
-                ]),
-                color: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || plugin.settings.bannerIconColor,
-                fontWeight: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || plugin.settings.bannerIconFontWeight,
-                backgroundColor: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || plugin.settings.bannerIconBackgroundColor,
-                paddingX: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
-                    plugin.settings.bannerIconPaddingX,
-                ]),
-                paddingY: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
-                    plugin.settings.bannerIconPaddingY,
-                ]),
-                borderRadius: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
-                    plugin.settings.bannerIconBorderRadius,
-                ]),
-                verticalOffset: getValueWithZeroCheck([
-                    getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField),
-                    plugin.settings.bannerIconVerticalOffset,
-                ]),
-                imageAlignment: getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageAlignmentField) || plugin.settings.bannerIconImageAlignment,
+                size: resolveField(plugin, 'iconSize', frontmatter),
+                xPosition: resolveField(plugin, 'iconXPosition', frontmatter),
+                opacity: resolveField(plugin, 'iconOpacity', frontmatter),
+                color: resolveField(plugin, 'iconColor', frontmatter),
+                fontWeight: resolveField(plugin, 'iconFontWeight', frontmatter),
+                backgroundColor: resolveField(plugin, 'iconBackgroundColor', frontmatter) ?? 'transparent',
+                paddingX: resolveField(plugin, 'iconPaddingX', frontmatter),
+                paddingY: resolveField(plugin, 'iconPaddingY', frontmatter),
+                borderRadius: resolveField(plugin, 'iconBorderRadius', frontmatter),
+                verticalOffset: resolveField(plugin, 'iconVerticalOffset', frontmatter),
+                imageAlignment: resolveField(plugin, 'iconImageAlignment', frontmatter),
                 viewType
             };
 
@@ -1505,133 +1402,60 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     // The markdown post-processors (reading view, hover popovers) pass no height, fade
     // or radius; resolve them like updateBanner does instead of writing "undefinedpx",
     // which is invalid at computed-value time and drops the CSS fallbacks
-    const bannerHeight = ctx.bannerHeight ??
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerHeightField) ??
-        folderSpecific?.bannerHeight ??
-        plugin.settings.bannerHeight;
-    const fade = ctx.fade ??
-        getFrontmatterValue(frontmatter, plugin.settings.customFadeField) ??
-        folderSpecific?.fade ??
-        plugin.settings.fade;
-    const borderRadius = ctx.borderRadius ??
-        getFrontmatterValue(frontmatter, plugin.settings.customBorderRadiusField) ??
-        folderSpecific?.borderRadius ??
-        plugin.settings.borderRadius;
+    const bannerHeight = ctx.bannerHeight ?? resolveField(plugin, 'height', frontmatter, folderSpecific);
+    const fade = ctx.fade ?? resolveField(plugin, 'fade', frontmatter, folderSpecific);
+    const borderRadius = ctx.borderRadius ?? resolveField(plugin, 'borderRadius', frontmatter, folderSpecific);
     
     // Get pixel banner y position
-    let pixelBannerYPosition = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customYPositionField),
-        folderSpecific?.yPosition,
-        plugin.settings.yPosition,
-    ]);
+    let pixelBannerYPosition = resolveField(plugin, 'yPosition', frontmatter, folderSpecific);
     
     // Get pixel banner x position
-    let pixelBannerXPosition = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customXPositionField),
-        folderSpecific?.xPosition,
-        plugin.settings.xPosition,
-    ]);
+    let pixelBannerXPosition = resolveField(plugin, 'xPosition', frontmatter, folderSpecific);
 
     // Get pixel banner max width
-    const pixelBannerMaxWidth = getFrontmatterValue(frontmatter, plugin.settings.customBannerMaxWidthField) || 
-        folderSpecific?.bannerMaxWidth || 
-        plugin.settings.bannerMaxWidth || 
-        'unset';
+    const pixelBannerMaxWidth = resolveField(plugin, 'maxWidth', frontmatter, folderSpecific) ?? 'unset';
 
     // Get title color from frontmatter, folder settings, or default
-    const titleColor = getFrontmatterValue(frontmatter, plugin.settings.customTitleColorField) || 
-        folderSpecific?.titleColor || 
-        plugin.settings.titleColor;
+    const titleColor = resolveField(plugin, 'titleColor', frontmatter, folderSpecific);
 
     // Get banner-icon size from frontmatter, folder settings, or default
-    const bannerIconSize = 
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconSizeField) || 
-        folderSpecific?.bannerIconSize || 
-        plugin.settings.bannerIconSize || 
-        70;
+    const bannerIconSize = resolveField(plugin, 'iconSize', frontmatter, folderSpecific);
 
     // Get banner-icon x position
-    const bannerIconXPosition = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconXPositionField),
-        folderSpecific?.bannerIconXPosition,
-        plugin.settings.bannerIconXPosition,
-        25
-    ]);
+    const bannerIconXPosition = resolveField(plugin, 'iconXPosition', frontmatter, folderSpecific);
 
     // Get banner-icon opacity
-    const bannerIconOpacity = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconOpacityField),
-        folderSpecific?.bannerIconOpacity,
-        plugin.settings.bannerIconOpacity,
-        100
-    ]);
+    const bannerIconOpacity = resolveField(plugin, 'iconOpacity', frontmatter, folderSpecific);
 
     // Get banner-icon color
-    const bannerIconColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconColorField) || 
-        folderSpecific?.bannerIconColor || 
-        plugin.settings.bannerIconColor || 'var(--text-normal)';
+    const bannerIconColor = resolveField(plugin, 'iconColor', frontmatter, folderSpecific);
 
     // Get banner-icon font weight
-    const bannerIconFontWeight = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconFontWeightField) || 
-        folderSpecific?.bannerIconFontWeight || 
-        plugin.settings.bannerIconFontWeight || 'normal';
+    const bannerIconFontWeight = resolveField(plugin, 'iconFontWeight', frontmatter, folderSpecific);
 
     // Get banner-icon background color
-    const bannerIconBackgroundColor = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBackgroundColorField) || 
-        folderSpecific?.bannerIconBackgroundColor || 
-        plugin.settings.bannerIconBackgroundColor || 'transparent';
+    const bannerIconBackgroundColor = resolveField(plugin, 'iconBackgroundColor', frontmatter, folderSpecific) ?? 'transparent';
 
     // Get banner-icon padding X
-    const bannerIconPaddingX = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingXField),
-        folderSpecific?.bannerIconPaddingX,
-        plugin.settings.bannerIconPaddingX,
-        10
-    ]);
+    const bannerIconPaddingX = resolveField(plugin, 'iconPaddingX', frontmatter, folderSpecific);
 
     // Get banner-icon padding Y
-    const bannerIconPaddingY = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconPaddingYField),
-        folderSpecific?.bannerIconPaddingY,
-        plugin.settings.bannerIconPaddingY,
-        10
-    ]);
+    const bannerIconPaddingY = resolveField(plugin, 'iconPaddingY', frontmatter, folderSpecific);
 
     // Get banner-icon border radius
-    const bannerIconBorderRadius = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconBorderRadiusField),
-        folderSpecific?.bannerIconBorderRadius,
-        plugin.settings.bannerIconBorderRadius,
-        17
-    ]);
+    const bannerIconBorderRadius = resolveField(plugin, 'iconBorderRadius', frontmatter, folderSpecific);
 
     // Get banner-icon vertical offset
-    const bannerIconVerticalOffset = getValueWithZeroCheck([
-        Number(getFrontmatterValue(frontmatter, plugin.settings.customBannerIconVerticalOffsetField)),
-        folderSpecific?.bannerIconVerticalOffset,
-        plugin.settings.bannerIconVerticalOffset,
-        0
-    ]);
+    const bannerIconVerticalOffset = resolveField(plugin, 'iconVerticalOffset', frontmatter, folderSpecific);
 
     // Get banner-icon rotate
-    const bannerIconRotate = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconRotateField),
-        0
-    ]);
+    const bannerIconRotate = resolveField(plugin, 'iconRotate', frontmatter, folderSpecific);
 
     // Get banner-icon image size multiplier
-    const bannerIconImageSizeMultiplier = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageSizeMultiplierField),
-        plugin.settings.bannerIconImageSizeMultiplier,
-        1
-    ]);
+    const bannerIconImageSizeMultiplier = resolveField(plugin, 'iconImageSizeMultiplier', frontmatter, folderSpecific);
 
     // Get banner-icon text vertical offset
-    const bannerIconTextVerticalOffset = getValueWithZeroCheck([
-        getFrontmatterValue(frontmatter, plugin.settings.customBannerIconTextVerticalOffsetField),
-        plugin.settings.bannerIconTextVerticalOffset,
-        0
-    ]);
+    const bannerIconTextVerticalOffset = resolveField(plugin, 'iconTextVerticalOffset', frontmatter, folderSpecific);
 
     // Get hide embedded note banners setting
     const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 
@@ -1639,7 +1463,7 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         plugin.settings.hideEmbeddedNoteBanners || false;
 
     // Get banner alignment
-    const bannerAlignment = getFrontmatterValue(frontmatter, plugin.settings.customBannerAlignmentField) || 'center';
+    const bannerAlignment = resolveField(plugin, 'alignment', frontmatter, folderSpecific);
     
     // Set alignment CSS variable based on the alignment value
     let alignmentValue = '0 auto'; // Default for center
@@ -1804,5 +1628,6 @@ export {
     debouncedUpdateBannerPosition as updateBannerPosition,
     insertPersistentElement,
     setBannerBackground,
+    setBannerVideoSource,
     installPersistentChildrenOverride
 };

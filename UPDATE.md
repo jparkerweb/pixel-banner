@@ -4,6 +4,29 @@
 
 ## 🎉 What's New
 
+### v3.7.1
+#### ✨ Added
+- **Banners in Export to PDF**: notes exported with Export to PDF now show their banner at the top of the first page, above the title, every time (issues #298, #323)
+  - The PDF uses the same image the note shows, including keyword banners, with the same height, crop, rounded corners, fade and banner icon; very tall banners are capped at about 40% of the page
+  - Video banners print the frame the video is showing
+  - With *Include file name as title* turned on in the export dialog, that title uses your banner title color
+  - Notes without a banner, and notes embedded in the exported note, are exported as before
+  - Turn it off in Settings → General → **Include Banner in PDF Export**
+
+#### 🔧 Changed
+- **Property names you set up are respected everywhere**: if you gave a property more than one name in Settings → Custom Field Names, Pixel Banner now writes to the name a note already uses, and removes that property's other names so only one is left
+  - This covers picking an image, pasting a web address, AI and store banners, the banner icon, icon images and the Target Position modal
+  - Names entered as one comma-separated entry (like `banner, image`) now work when Pixel Banner writes a property, instead of creating a property literally named `banner, image`
+  - Removing an icon or an icon image now clears it under every name you set up, not just the first one
+
+#### 🐛 Fixed
+- Notes embedded in another note now use their own `banner-fade`, and the fade and position values from your folder and global settings
+- A value of `0`, such as `icon-opacity: 0` or an icon padding of `0`, now sticks instead of falling back to the default (an empty value still uses the default)
+- Editing banner alignment, the icon image, the flag color or any other banner property by hand now updates the banner right away, without reopening the note
+- New folder image settings without a saved fade now start at -40, the same as the global fade setting
+- Video banners from a keyword keep your Image Display setting (like `contain`) when you refresh them
+- The Select image command no longer reorders your properties, and works with property names that contain special characters
+
 ### v3.7.0
 #### ✨ Added
 - **Confetti/Particle Effects**: Add animated effects to your notes!
