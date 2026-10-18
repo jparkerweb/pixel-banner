@@ -25,7 +25,7 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 **Description**:  
 - Node.js package definition with build scripts and dependencies.
 - Key scripts: `test-build`, `build`, `clean`
-- Key development dependencies: esbuild, builtin-modules, fs-extra, marked, emojilib
+- Key development dependencies: esbuild, marked, emojilib
 
 ### `build.mjs`
 **Description**:  

@@ -690,7 +690,6 @@
     background: var(--pixel-banner-icon-background-color, unset);
     border-radius: var(--pixel-banner-icon-border-radius, 17px);
     white-space: nowrap;
-    text-wrap: pretty;
     word-break: break-word;
     width: max-content !important;
     max-width: var(--pixel-banner-width) !important;
