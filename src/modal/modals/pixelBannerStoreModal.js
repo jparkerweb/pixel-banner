@@ -5,6 +5,7 @@ import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { TargetPositionModal } from '../modals';
 import { flags } from '../../resources/flags.js';
 import { SelectPixelBannerModal } from './selectPixelBannerModal';
+import { openPluginSettings } from '../../utils/openSettings.js';
 
 
 // ------------------------------------
@@ -586,27 +587,7 @@ export class PixelBannerStoreModal extends Modal {
         // Open settings and navigate to Pixel Banner tab
         const openPlusSettings = async () => {
             this.close();
-            await this.app.setting.open();
-            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-            
-            // Find and click the Pixel Banner item in the settings sidebar
-            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-            for (const tab of settingsTabs) {
-                if (tab.textContent.includes('Pixel Banner')) {
-                    tab.click();
-                    break;
-                }
-            }
-            
-            // Find and click the Pixel Banner Plus item in the settings sidebar
-            const pixelBannerSettingsTabs = document.querySelectorAll('.pixel-banner-settings-tabs > button.pixel-banner-settings-tab');
-            for (const tab of pixelBannerSettingsTabs) {
-                if (tab.textContent.includes('Plus')) {
-                    tab.click();
-                    break;
-                }
-            }
-
+            await openPluginSettings(this.app, { plusTab: true });
         };
         // Plus Settings Listener for `accountTitle` and `statusContainer`
         connectionStatusEl.addEventListener('click', openPlusSettings);

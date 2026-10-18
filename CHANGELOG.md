@@ -2,6 +2,19 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.7.2 - 2026-10-18
+#### ✨ Added
+- **Popover Banner Max Height** (issue #342): new global setting `popoverBannerMaxHeight` (default 150, 0-1280) in General settings, after *Show Banner in Popover Previews*, with a reset button
+  - `capPopoverBannerHeight()` (`bannerManager.js`) caps the height `applyBannerSettings()` writes to `--pixel-banner-height` and `--pixel-banner-icon-start` for a banner inside `.hover-popover`; a banner already shorter is unchanged, other views are unaffected
+  - In the popover branch of `addPixelBanner()` the content start is reduced by the height the cap removed (floor 0), so the gap below the banner is kept
+  - Tests in `tests/unit/core/bannerManager.applyBannerSettings.test.js`
+
+#### 🐛 Fixed
+- **Plugin Settings button opened the generic Obsidian settings**: this Obsidian build shows settings in its own window, so the sidebar lookup on the main `document` found nothing
+  - New `src/utils/openSettings.js` (`openPluginSettings()`, `openCommunityPluginsSettings()`) opens the tab with `app.setting.openTabById()`, falling back to the sidebar entry in `app.setting.win.document`
+  - Used by the Pixel Banner modal (Plugin Settings button, Plus account links, update link), the store modal and the General settings update button
+  - Tests in `tests/unit/utils/openSettings.test.js`
+
 ### v3.7.1 - 2026-10-17
 #### ✨ Added
 - **Banner in Export to PDF** (issues #298, #323): Obsidian renders the export into a separate, short-lived print document and prints it about a second later, while the async `updateBanner()` path (50 ms timer, then `addPixelBanner()`) resolved at ~2 s, so PDFs came out without a banner or with one laid over the text

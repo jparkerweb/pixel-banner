@@ -182,7 +182,7 @@ Handles adding and updating "pixel banners" (the large images at the top of note
 2. **updateBanner(plugin, view, isContentChange, updateMode)**  
    Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates. Exported with a trailing 50 ms debounce per pane (keyed by `view.contentEl`; calls within the window merge, and ENSURE_VISIBILITY never replaces a stronger pending mode; returns a promise that resolves once the merged update has run, to `false` when it threw or was skipped as a repeat and `true` otherwise (it never rejects), and a failed update clears the pane's marker so `handleLayoutChange` retries it), and skips a repeat for the same pane and file within 250 ms unless the new call is stronger (a content change after a run without one, or a full update after an `ENSURE_VISIBILITY` run, such as the reading-view post-processor's); both used to be global or per file path, which dropped the update of a second pane showing the same note (issue #207). Records the rendered note on `contentEl._pixelBannerFilePath`. Reads every field value (image display and repeat, height, fade, radius, max width, the icon overlay state) through `resolveField`.
 3. **applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded)**  
-   Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`. Exported without a throttle: a shared one dropped the call for a second banner rendered within 350ms (issue #333). A `ctx` without `bannerHeight`, `fade` or `borderRadius` (the markdown post-processors pass none) gets them from frontmatter, folder and global settings instead of writing `undefinedpx`. Every field value comes from `resolveField` (`0` is a real value, `''` falls through to the next step). Tests in `tests/unit/core/bannerManager.applyBannerSettings.test.js`.
+   Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`. Exported without a throttle: a shared one dropped the call for a second banner rendered within 350ms (issue #333). A `ctx` without `bannerHeight`, `fade` or `borderRadius` (the markdown post-processors pass none) gets them from frontmatter, folder and global settings instead of writing `undefinedpx`. Every field value comes from `resolveField` (`0` is a real value, `''` falls through to the next step). A banner inside `.hover-popover` is capped at `popoverBannerMaxHeight` by `capPopoverBannerHeight` (issue #342). Tests in `tests/unit/core/bannerManager.applyBannerSettings.test.js`.
 4. **applyContentStartPosition(plugin, el, contentStartPosition)**  
    Sets the vertical offset at which the note content begins below the banner.
 5. **applyBannerWidth(plugin, el)**  
@@ -750,7 +750,7 @@ Contains multiple small modules for organizing plugin settings sub-UI, mostly us
 - **settingsTabFolderImages.js**  
   Manages settings for folder-specific banner overrides. A folder entry without a saved fade starts its fade slider at `DEFAULT_SETTINGS.fade` (-40).  
 - **settingsTabGeneral.js**  
-  Configures general plugin options.  
+  Configures general plugin options, including Popover Banner Max Height (`popoverBannerMaxHeight`, issue #342).  
 - **settingsTabPixelBannerPlus.js**  
   Contains settings for Pixel Banner Plus authentication and API connection.
 
@@ -856,6 +856,15 @@ Provides utility functions for debouncing function calls.
    Executes first call immediately, then debounces subsequent calls.
 3. **debounceAndSwallow(func, wait)**  
    Executes first call, ignores subsequent calls within wait time.
+
+## `/src/utils/openSettings.js`
+Opens Obsidian settings on a given tab, including when settings live in their own window.
+
+**Methods**:
+1. **openPluginSettings(app, { plusTab })**  
+   Opens the Pixel Banner settings tab (`openTabById`, with a sidebar-click fallback); `plusTab` also opens the Plus sub-tab.
+2. **openCommunityPluginsSettings(app, { checkForUpdates })**  
+   Opens Community plugins; `checkForUpdates` clicks the Check for updates button.
 
 ## `/src/utils/getCurrentTheme.js`
 Utility for detecting the current Obsidian theme.

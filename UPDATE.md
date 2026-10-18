@@ -4,6 +4,15 @@
 
 ## 🎉 What's New
 
+### v3.7.2
+#### ✨ Added
+- **Popover Banner Max Height**: a new setting limits how tall a banner can be in hover previews, so a tall banner no longer fills the whole preview and covers the text (issue #342)
+  - Find it in Settings → General → **Popover Banner Max Height** (default 150 pixels)
+  - Banners already shorter than the limit stay as they are, and notes outside hover previews are not affected
+
+#### 🐛 Fixed
+- **Plugin Settings button**: it opens the Pixel Banner settings again instead of the general Obsidian settings page, and the Plus and update shortcuts in the banner modal land on the right page too
+
 ### v3.7.1
 #### ✨ Added
 - **Banners in Export to PDF**: notes exported with Export to PDF now show their banner at the top of the first page, above the title, every time (issues #298, #323)

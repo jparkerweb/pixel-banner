@@ -2,6 +2,7 @@ import { Setting, MarkdownView } from 'obsidian';
 import { DEFAULT_SETTINGS, FolderSuggestModal } from '../settings';
 import { flags } from '../../resources/flags.js';
 import { semver } from '../../utils/semver.js';
+import { openCommunityPluginsSettings } from '../../utils/openSettings.js';
 
 // Helper function to add the update button
 function addUpdateButtonIfNeeded(containerEl, plugin, insertAfterCallout = false) {
@@ -54,28 +55,7 @@ function addUpdateButtonIfNeeded(containerEl, plugin, insertAfterCallout = false
         }
         
         updateButton.addEventListener('click', async () => {
-            await plugin.app.setting.open();
-            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-            
-            // Find and click the Community Plugins item in the settings sidebar
-            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-            for (const tab of settingsTabs) {
-                if (tab.textContent.includes('Community plugins')) {
-                    tab.click();
-                    break;
-                }
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
-            
-            // Find the "Check for updates" button
-            const allTheButtons = document.querySelectorAll('button.mod-cta');
-            for (const button of allTheButtons) {
-                if (button.textContent.includes('Check for updates')) {
-                    button.click();
-                    break;
-                }
-            }
+            await openCommunityPluginsSettings(plugin.app, { checkForUpdates: true });
         });
     }
 }
@@ -1057,6 +1037,51 @@ export function createGeneralSettings(containerEl, plugin) {
                     
                     const toggleComponent = showBannerInPopoverPreviewsSetting.components[0];
                     if (toggleComponent) toggleComponent.setValue(DEFAULT_SETTINGS.showBannerInPopoverPreviews);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
+    // Popover Banner Max Height setting
+    const popoverBannerMaxHeightSetting = new Setting(containerEl)
+        .setName('Popover Banner Max Height')
+        .setDesc('Limit the height of banners in popover note previews (0-1280 pixels). A banner already shorter than this is unchanged')
+        .addText(text => {
+            text.setPlaceholder('150')
+                .setValue(String(plugin.settings.popoverBannerMaxHeight));
+
+            text.inputEl.addEventListener('blur', async (event) => {
+                try {
+                    let numValue = Number(event.target.value);
+                    if (isNaN(numValue) || event.target.value === '') {
+                        numValue = DEFAULT_SETTINGS.popoverBannerMaxHeight;
+                    } else {
+                        numValue = Math.max(0, Math.min(1280, numValue));
+                    }
+                    plugin.settings.popoverBannerMaxHeight = numValue;
+                    text.setValue(String(numValue));
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            });
+
+            text.inputEl.type = 'number';
+            text.inputEl.min = '0';
+            text.inputEl.max = '1280';
+            text.inputEl.style.width = '50px';
+        })
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.popoverBannerMaxHeight = DEFAULT_SETTINGS.popoverBannerMaxHeight;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    const textComponent = popoverBannerMaxHeightSetting.components[0];
+                    if (textComponent) textComponent.setValue(String(DEFAULT_SETTINGS.popoverBannerMaxHeight));
                 } catch (error) {
                     console.error('Failed to save settings:', error);
                 }
