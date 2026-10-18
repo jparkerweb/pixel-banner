@@ -52,4 +52,39 @@ describe('applyBannerSettings', () => {
         expect(prop('--pixel-banner-fade')).toBe('0%');
         expect(prop('--pixel-banner-radius')).toBe('0px');
     });
+
+    // Field values come from resolveField: 0 is a real value, while null,
+    // undefined and '' fall through to the next step
+    it('keeps a frontmatter icon-opacity of 0 instead of the setting', () => {
+        plugin.settings.bannerIconOpacity = 80;
+
+        applyBannerSettings(plugin, banner, { frontmatter: { 'icon-opacity': 0 }, file: { path: 'a.md' } }, false);
+
+        expect(prop('--pixel-banner-icon-opacity')).toBe('0%');
+    });
+
+    it('falls through an empty banner-fade to the folder fade', () => {
+        folderSpecific = { fade: -15 };
+
+        applyBannerSettings(plugin, banner, { frontmatter: { 'banner-fade': '' }, file: { path: 'a.md' } }, false);
+
+        expect(prop('--pixel-banner-fade')).toBe('-15%');
+    });
+
+    it('applies a folder entry\'s icon settings', () => {
+        folderSpecific = { bannerIconPaddingX: 4, bannerIconSize: 40 };
+
+        applyBannerSettings(plugin, banner, { frontmatter: {}, file: { path: 'a.md' } }, false);
+
+        expect(prop('--pixel-banner-icon-padding-x')).toBe('4px');
+        expect(prop('--pixel-banner-icon-size')).toBe('40px');
+    });
+
+    it('uses the theme text colour when the icon colour setting is empty', () => {
+        plugin.settings.bannerIconColor = '';
+
+        applyBannerSettings(plugin, banner, { frontmatter: {}, file: { path: 'a.md' } }, false);
+
+        expect(prop('--pixel-banner-icon-color')).toBe('var(--text-normal)');
+    });
 });

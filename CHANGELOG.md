@@ -14,6 +14,25 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
 
 #### 🔧 Changed
 - **Vault video banners load in CORS mode** (`bannerManager.js`, `setBannerVideoSource()`): a vault video plays from `app://<hash>/...`, another origin than `app://obsidian.md`, so drawing it on a canvas tainted it and the PDF export could not read its frame. Both video branches of `addPixelBanner()` now set `crossOrigin = 'anonymous'` before `src` for `app://` URLs; remote video URLs are unchanged
+- **Banner field registry** (`src/core/fieldRegistry.js`, new): one frozen, hand-written table of the 31 frontmatter fields (`id`, `namesKey`, `settingKey`, `folderKey`, `default`, `group` of `banner` / `icon` / `confetti`), guarded by a test that fails when a `custom*Field` in `DEFAULT_SETTINGS` has no entry
+  - `getFieldNames` / `getPrimaryName` / `getAllFieldNames`: configured names read live from settings, comma-separated entries split and trimmed
+  - `resolveField`: frontmatter, folder override, setting, registry default; `null`, `undefined` and `''` fall through, `0` is a real value, `'true'` / `'false'` become booleans
+  - `writeField` / `clearField`: edit the object a `processFrontMatter` callback received; a write goes to the name the note already uses (else the primary name) and removes the field's other names, a clear removes every configured name
+- **The five hand-kept field lists replaced**: Properties hiding (`domManager.js`) uses every registry field; the `metadataCache` `changed` and `resolved` refresh checks (`pixelBannerPlugin.js`) and the leaf-change comparison (`eventHandler.js`) use every field outside the `confetti` group; the fifth lived in the dead `postProcessor`, removed with it (below)
+- **Value lookups and writers on the registry**: the embed branch, `updateBanner` and `applyBannerSettings` (`bannerManager.js`) and the icon state in `handleActiveLeafChange` read through `resolveField` (hard-coded tails such as `-75`, `150` and `'normal'` removed); the banner writers in `frontmatterUtils.js`, the icon writers in `bannerIconHelpers.js` and every modal (web address, target position, select banner, emoji, icon image selection, generate AI, store) write and clear through `writeField` / `clearField`, with the ~118 pasted `split(',')[0]` primary-name lookups gone
+- **`handleSelectImage()`** writes through `processFrontMatter` + `writeField` instead of a hand-rolled frontmatter regex, which mis-handled names containing regex characters and comma-separated names and moved the banner line to the top
+- **Shared video builder**: both `<video>` paths in `addPixelBanner()` (first render and the keyword refresh icon) go through one inner `buildBannerVideo()`
+- **Removed**: `getValueWithZeroCheck` (`frontmatterUtils.js`), the dead `postProcessor` method (`pixelBannerPlugin.js`) and `getFolderSpecificSetting` with its pass-through (`bannerUtils.js`)
+- **Pinning tests first** for the modals that had none (`iconImageSelectionModal`, `generateAIBannerModal`, `pixelBannerStoreModal`) and for `handleSelectImage()`, written against the old code before each moved and kept
+
+#### 🐛 Fixed
+- Embedded notes ignored `banner-fade` and the folder fade and positions (a nonexistent `customBannerFadeField` and a `-75` fallback); they now resolve like the note itself
+- Hand edits of alignment, icon image, flag color and other fields missing from the refresh lists did not refresh the banner
+- The keyword refresh path hard-coded `objectFit = 'cover'` for video banners, ignoring Image Display
+- `targetPositionModal.js` removed `style:last-child` on close, which could be another component's style element; it now keeps and removes its own (`this.styleEl`)
+- A `0` value no longer falls back to the default in the value chains, and the folder fade slider starts at `DEFAULT_SETTINGS.fade` (`-40`) instead of `-75`
+- The Target Position and Emoji modals start from the value a note has under any configured property name, and keep a `0`, so a value saved under a second name shows again when the modal reopens; both read through `resolveField` / `getFieldNames` instead of the primary name only
+- Each of the four X-ray bugs and the `0` fallback has a test that failed before its fix
 
 ### v3.7.0 - 2026-06-10
 #### ✨ Added

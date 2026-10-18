@@ -12,7 +12,6 @@ import {
     preloadImage,
     getFolderPath, 
     getFolderSpecificImage, 
-    getFolderSpecificSetting, 
     getRandomImageFromFolder, 
     getActiveApiProvider, 
     hasBannerFrontmatter, 
@@ -710,35 +709,6 @@ describe('bannerUtils', () => {
             const result = getFolderSpecificImage.call(testContext, 'personal/file.md');
             expect(result.image).toBe('banners/random-image.jpg');
             expect(testContext.createFolderImageSettings).toHaveBeenCalled();
-        });
-    });
-
-    describe('getFolderSpecificSetting', () => {
-        beforeEach(() => {
-            testContext.settings.folderImages = [
-                { folder: 'projects', opacity: 0.8, height: 300 },
-                { folder: 'personal', opacity: 0.6, height: 0 } // Test zero value
-            ];
-        });
-
-        it('should return folder-specific setting value', () => {
-            const opacity = getFolderSpecificSetting.call(testContext, 'projects/file.md', 'opacity');
-            expect(opacity).toBe(0.8);
-        });
-
-        it('should handle zero values correctly', () => {
-            const height = getFolderSpecificSetting.call(testContext, 'personal/file.md', 'height');
-            expect(height).toBe(0);
-        });
-
-        it('should return undefined for non-existent setting', () => {
-            const result = getFolderSpecificSetting.call(testContext, 'projects/file.md', 'nonExistent');
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined for no matching folder', () => {
-            const result = getFolderSpecificSetting.call(testContext, 'other/file.md', 'opacity');
-            expect(result).toBeUndefined();
         });
     });
 

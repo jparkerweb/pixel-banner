@@ -1,6 +1,7 @@
 import { MarkdownView } from 'obsidian';
 import { debounce } from '../settings/settings.js';
 import { isVaultImageBlobUrl } from './bannerUtils.js';
+import { getAllFieldNames } from './fieldRegistry.js';
 
 function setupMutationObserver() {
     // console.log('📝 Setting up mutation observer');
@@ -85,39 +86,7 @@ function setupResizeObserver(viewContent) {
 function updateFieldVisibility(view) {
     if (!view || view.getMode() !== 'preview') return;
 
-    const fieldsToHide = [
-        ...this.settings.customBannerField,
-        ...this.settings.customYPositionField,
-        ...this.settings.customXPositionField,
-        ...this.settings.customContentStartField,
-        ...this.settings.customImageDisplayField,
-        ...this.settings.customImageRepeatField,
-        ...this.settings.customBannerMaxWidthField,
-        ...this.settings.customBannerHeightField,
-        ...this.settings.customBannerAlignmentField,
-        ...this.settings.customFadeField,
-        ...this.settings.customBorderRadiusField,
-        ...this.settings.customTitleColorField,
-        ...this.settings.customBannerShuffleField,
-        ...this.settings.customBannerIconField,
-        ...this.settings.customBannerIconImageField,
-        ...this.settings.customBannerIconImageAlignmentField,
-        ...this.settings.customBannerIconSizeField,
-        ...this.settings.customBannerIconImageSizeMultiplierField,
-        ...this.settings.customBannerIconTextVerticalOffsetField,
-        ...this.settings.customBannerIconRotateField,
-        ...this.settings.customBannerIconXPositionField,
-        ...this.settings.customBannerIconOpacityField,
-        ...this.settings.customBannerIconColorField,
-        ...this.settings.customBannerIconFontWeightField,
-        ...this.settings.customBannerIconBackgroundColorField,
-        ...this.settings.customBannerIconPaddingXField,
-        ...this.settings.customBannerIconPaddingYField,
-        ...this.settings.customBannerIconBorderRadiusField,
-        ...this.settings.customBannerIconVerticalOffsetField,
-        ...this.settings.customFlagColorField,
-        ...this.settings.customBannerConfettiField
-    ];
+    const fieldsToHide = getAllFieldNames(this);
 
     const propertiesContainer = view.contentEl.querySelector('.metadata-container');
     if (!propertiesContainer) {

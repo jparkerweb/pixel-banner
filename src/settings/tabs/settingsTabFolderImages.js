@@ -1,5 +1,5 @@
 import { Setting } from 'obsidian';
-import { FolderSuggestModal } from '../settings';
+import { DEFAULT_SETTINGS, FolderSuggestModal } from '../settings';
 
 export function createFolderSettings(containerEl, plugin) {
     // section callout
@@ -374,7 +374,7 @@ class FolderImageSetting extends Setting {
                 step: '5'
             }
         });
-        slider.value = this.folderImage.fade !== undefined ? this.folderImage.fade : "-75";
+        slider.value = this.folderImage.fade !== undefined ? this.folderImage.fade : String(DEFAULT_SETTINGS.fade);
         slider.style.width = '100px';
         slider.style.marginLeft = '10px';
         

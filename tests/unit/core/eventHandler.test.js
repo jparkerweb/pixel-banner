@@ -207,6 +207,74 @@ describe('eventHandler', () => {
     });
 
     describe('handleActiveLeafChange', () => {
+        // The cached-state comparison reads every registry field but confetti,
+        // so hand edits of fields the old hand-kept list missed refresh too
+        describe('relevant field changes', () => {
+            const cachedFrontmatter = {
+                banner: 'test-banner.jpg',
+                'banner-align': 'left',
+                'icon-image': 'a.png',
+                'pixel-banner-flag-color': 'red',
+                'banner-confetti': 'type: snow'
+            };
+
+            beforeEach(() => {
+                Object.assign(mockPlugin.settings, {
+                    customBannerAlignmentField: ['banner-align'],
+                    customBannerIconImageField: ['icon-image'],
+                    customFlagColorField: ['pixel-banner-flag-color'],
+                    customBannerConfettiField: ['banner-confetti']
+                });
+                vi.spyOn(confettiManager, 'update').mockImplementation(() => null);
+                mockPlugin.loadedImages.set(mockLeaf.view.file.path, 'blob:image');
+                mockPlugin.bannerStateCache.get.mockReturnValue({
+                    timestamp: Date.now(),
+                    frontmatter: { ...cachedFrontmatter }
+                });
+            });
+
+            const withChange = (change) => {
+                mockApp.metadataCache.getFileCache = vi.fn(() => ({
+                    frontmatter: { ...cachedFrontmatter, ...change }
+                }));
+            };
+
+            it.each([
+                ['alignment', { 'banner-align': 'right' }],
+                ['icon image', { 'icon-image': 'b.png' }],
+                ['flag color', { 'pixel-banner-flag-color': 'blue' }]
+            ])('refreshes the banner when only %s changed', async (name, change) => {
+                withChange(change);
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'full');
+            });
+
+            it('does not refresh the banner when only confetti changed', async () => {
+                withChange({ 'banner-confetti': 'type: hearts' });
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                expect(mockPlugin.updateBanner).toHaveBeenCalledWith(mockView, false, 'visibility');
+                expect(mockPlugin.updateBanner).not.toHaveBeenCalledWith(mockView, false, 'full');
+            });
+        });
+
+        describe('icon state', () => {
+            it('keeps icon-opacity: 0 instead of falling back to the setting', async () => {
+                mockPlugin.settings.bannerIconOpacity = 100;
+                mockApp.metadataCache.getFileCache = vi.fn(() => ({
+                    frontmatter: { banner: 'test-banner.jpg', 'banner-icon': '🌟', 'icon-opacity': 0 }
+                }));
+
+                await handleActiveLeafChange.call(mockPlugin, mockLeaf);
+
+                const cached = mockPlugin.bannerStateCache.set.mock.calls.at(-1)[1];
+                expect(cached.state.iconState.opacity).toBe(0);
+            });
+        });
+
         // F45: a slow banner load must not start confetti on a pane that no
         // longer shows the note. Effects are per leaf, so a note left visible
         // in a split keeps its confetti when focus moves to another pane.
@@ -852,18 +920,36 @@ describe('eventHandler', () => {
             );
         });
 
+        // The frontmatter object the command's processFrontMatter callback edits.
+        // selectedFile, when given, is the file the modal hands to onChoose
+        const chooseImage = async (frontmatter = {}, selectedFile = null) => {
+            if (selectedFile) {
+                ImageSelectionModal.mockImplementationOnce(function(app, plugin, callback) {
+                    this.open = () => {
+                        callback(selectedFile);
+                        return this;
+                    };
+                    return this;
+                });
+            }
+            mockApp.fileManager.processFrontMatter = vi.fn(async (file, callback) => callback(frontmatter));
+            await handleSelectImage.call(mockPlugin);
+            for (let i = 0; i < 20; i++) await Promise.resolve();
+            return frontmatter;
+        };
+
         it('should use short path when filename is unique', async () => {
             mockPlugin.settings.useShortPath = true;
             mockApp.vault.getFiles.mockReturnValue([
                 { name: 'test-image.jpg', path: 'Images/test-image.jpg' }
             ]);
 
-            await handleSelectImage.call(mockPlugin);
+            const frontmatter = await chooseImage({}, { path: 'Images/test-image.jpg', name: 'test-image.jpg' });
 
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                mockFile,
-                expect.stringContaining('banner: "![[test-image.jpg]]"')
-            );
+            expect(mockApp.fileManager.processFrontMatter).toHaveBeenCalledWith(mockFile, expect.any(Function));
+            expect(frontmatter.banner).toBe('![[test-image.jpg]]');
+            expect(Notice).toHaveBeenCalledWith('Banner image updated');
+            expect(Notice).not.toHaveBeenCalledWith('Banner image updated (full path used due to duplicate filenames)');
         });
 
         it('should use full path when filename is not unique', async () => {
@@ -873,54 +959,114 @@ describe('eventHandler', () => {
                 { name: 'test-image.jpg', path: 'Other/test-image.jpg' }
             ]);
 
-            await handleSelectImage.call(mockPlugin);
+            const frontmatter = await chooseImage({}, { path: 'Images/test-image.jpg', name: 'test-image.jpg' });
 
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                mockFile,
-                expect.stringContaining('banner: "![[test-image.jpg]]"')
-            );
+            expect(frontmatter.banner).toBe('![[Images/test-image.jpg]]');
+            expect(Notice).toHaveBeenCalledWith('Banner image updated (full path used due to duplicate filenames)');
         });
 
         it('should update existing frontmatter', async () => {
-            mockApp.vault.read.mockResolvedValue(`---
-banner: "old-banner.jpg"
-other: "value"
----
+            const frontmatter = await chooseImage({ banner: 'old-banner.jpg', other: 'value' });
 
-# Content`);
-
-            await handleSelectImage.call(mockPlugin);
-
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                mockFile,
-                expect.stringContaining('banner: "![[test-image.jpg]]"')
-            );
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                mockFile,
-                expect.stringContaining('other: "value"')
-            );
+            expect(frontmatter).toEqual({ banner: '![[test-image.jpg]]', other: 'value' });
         });
 
         it('should create frontmatter when none exists', async () => {
-            mockApp.vault.read.mockResolvedValue('# Content without frontmatter');
+            const frontmatter = await chooseImage({});
 
-            await handleSelectImage.call(mockPlugin);
-
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                mockFile,
-                expect.stringMatching(/^---\nbanner: "!\[\[test-image\.jpg\]\]"\n---/)
-            );
+            expect(frontmatter).toEqual({ banner: '![[test-image.jpg]]' });
         });
 
         it('should use different image property format', async () => {
             mockPlugin.settings.imagePropertyFormat = '[[image]]';
 
-            await handleSelectImage.call(mockPlugin);
+            const frontmatter = await chooseImage();
 
-            expect(mockApp.vault.modify).toHaveBeenCalledWith(
-                mockFile,
-                expect.stringContaining('banner: "[[test-image.jpg]]"')
-            );
+            expect(frontmatter.banner).toBe('[[test-image.jpg]]');
+        });
+
+        // The note is kept as frontmatter plus body and is readable both ways:
+        // vault.read and vault.modify see text, processFrontMatter sees the
+        // object, so these hold whichever way the command writes the note
+        describe('frontmatter it writes', () => {
+            let note;
+
+            const toText = () => {
+                if (!note.frontmatter) return note.body;
+                const lines = Object.entries(note.frontmatter).map(([key, value]) => `${key}: ${JSON.stringify(value)}`);
+                return `---\n${lines.join('\n')}\n---\n\n${note.body}`;
+            };
+
+            const fromText = (text) => {
+                const match = text.match(/^---\n([\s\S]*?)\n---\n*([\s\S]*)$/);
+                if (!match) return { frontmatter: null, body: text };
+                const frontmatter = {};
+                for (const line of match[1].split('\n')) {
+                    const at = line.indexOf(':');
+                    if (at === -1) continue;
+                    frontmatter[line.slice(0, at).trim()] = line.slice(at + 1).trim().replace(/^"(.*)"$/, '$1');
+                }
+                return { frontmatter, body: match[2] };
+            };
+
+            // The modal mock calls onChoose without awaiting it
+            const settle = async () => {
+                for (let i = 0; i < 20; i++) await Promise.resolve();
+            };
+
+            beforeEach(() => {
+                mockPlugin.settings.customBannerField = ['banner', 'image'];
+                mockApp.vault.read = vi.fn(() => Promise.resolve(toText()));
+                mockApp.vault.modify = vi.fn((file, text) => {
+                    note = fromText(text);
+                    return Promise.resolve();
+                });
+                mockApp.fileManager.processFrontMatter = vi.fn(async (file, callback) => {
+                    note.frontmatter = note.frontmatter || {};
+                    callback(note.frontmatter);
+                });
+            });
+
+            it('writes the primary banner name and keeps the other properties', async () => {
+                note = { frontmatter: { banner: 'old-banner.jpg', other: 'value' }, body: '# Content' };
+
+                await handleSelectImage.call(mockPlugin);
+                await settle();
+
+                expect(note.frontmatter).toEqual({ banner: '![[test-image.jpg]]', other: 'value' });
+                expect(note.body).toBe('# Content');
+                expect(Notice).toHaveBeenCalledWith('Banner image updated');
+            });
+
+            it('removes the other configured banner names', async () => {
+                note = { frontmatter: { banner: 'old-banner.jpg', image: 'older.jpg', other: 'value' }, body: '# Content' };
+
+                await handleSelectImage.call(mockPlugin);
+                await settle();
+
+                expect(note.frontmatter).toEqual({ banner: '![[test-image.jpg]]', other: 'value' });
+            });
+
+            // The regex rewrite moved this banner to the primary name; writeField
+            // keeps the name the note already uses
+            it('replaces a banner set under the second configured name in place', async () => {
+                note = { frontmatter: { image: 'older.jpg', other: 'value' }, body: '# Content' };
+
+                await handleSelectImage.call(mockPlugin);
+                await settle();
+
+                expect(note.frontmatter).toEqual({ image: '![[test-image.jpg]]', other: 'value' });
+            });
+
+            it('adds frontmatter to a note without any', async () => {
+                note = { frontmatter: null, body: '# Content without frontmatter' };
+
+                await handleSelectImage.call(mockPlugin);
+                await settle();
+
+                expect(note.frontmatter).toEqual({ banner: '![[test-image.jpg]]' });
+                expect(note.body).toBe('# Content without frontmatter');
+            });
         });
     });
 

@@ -10,6 +10,7 @@
 5. **DOM**: `bannerManager.js:addPixelBanner()` creates the banner, `updateBanner()` refreshes it, `applyBannerSettings()` styles it
 6. **Observers**: `domManager.js` owns the mutation/resize observers, field and embed visibility, and `cleanupPreviousLeaf()`
 7. **Caching**: `cacheHelpers.js` manages image caching
+8. **Fields**: `fieldRegistry.js` lists every frontmatter field once and owns its names, value chain (`resolveField`) and write rule (`writeField` / `clearField`)
 
 ## Plugin Class Is a Thin Delegator
 
@@ -90,6 +91,7 @@ class ExampleModal extends Modal {
 | `src/core/bannerUtils.js` | Input type detection, path resolution, `getActiveApiProvider()` |
 | `src/core/domManager.js` | DOM observers, field/embed visibility, leaf cleanup |
 | `src/core/eventHandler.js` | Workspace event handlers |
+| `src/core/fieldRegistry.js` | Frontmatter field table, name lookup, value resolver, write and clear helpers |
 | `src/core/settings.js` | `loadSettings()` / `saveSettings()` only |
 | `src/settings/settings.js` | `DEFAULT_SETTINGS` and the settings tab |
 | `src/services/apiPIxelBannerPlus.js` | Pixel Banner Plus API. Note the capital `I` in the filename; import it with that exact casing |

@@ -2,6 +2,20 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SelectPixelBannerModal } from '../../../src/modal/modals/selectPixelBannerModal.js';
 import { mockApp, createMockPlugin } from '../../mocks/obsidian.js';
 
+// Capture the onChoose callbacks the modal hands to the modals it opens
+const opened = vi.hoisted(() => ({ imageSelection: null, emojiSelection: null }));
+vi.mock('../../../src/modal/modals.js', async (importOriginal) => ({
+    ...(await importOriginal()),
+    ImageSelectionModal: class {
+        constructor(app, plugin, onChoose) { opened.imageSelection = onChoose; }
+        open() {}
+    },
+    EmojiSelectionModal: class {
+        constructor(app, plugin, onChoose) { opened.emojiSelection = onChoose; }
+        open() {}
+    }
+}));
+
 describe('SelectPixelBannerModal', () => {
     let modal;
     let plugin;
@@ -183,5 +197,46 @@ describe('SelectPixelBannerModal', () => {
         expect(toggleInput).toBeTruthy();
         expect(toggleInput.checked).toBe(true);
         expect(toggleContainer.classList.contains('is-enabled')).toBe(true);
+    });
+
+    describe('frontmatter writes and clears', () => {
+        let frontmatter;
+
+        beforeEach(() => {
+            frontmatter = {};
+            opened.imageSelection = null;
+            opened.emojiSelection = null;
+            modal.close = vi.fn();
+            modal.app.fileManager.processFrontMatter.mockImplementation(async (file, fn) => fn(frontmatter));
+        });
+
+        const clickButton = (text) => {
+            const button = [...modal.contentEl.querySelectorAll('button')]
+                .find(el => el.textContent.includes(text));
+            button.click();
+        };
+
+        it('writes a vault pick to the primary banner name when banner names are comma-separated', async () => {
+            plugin.settings.customBannerField = ['banner, image'];
+            await modal.onOpen();
+
+            clickButton('Your Vault');
+            await opened.imageSelection({ path: 'images/pic.png' });
+
+            expect(frontmatter).toEqual({ banner: '[[images/pic.png]]' });
+            expect(frontmatter).not.toHaveProperty('banner, image');
+        });
+
+        it('removes the icon under a second configured name when the emoji is cleared', async () => {
+            plugin.settings.customBannerIconField = ['banner-icon', 'icon'];
+            plugin.hasBannerFrontmatter.mockReturnValue(true);
+            frontmatter = { banner: '[[images/pic.png]]', icon: '🌟' };
+            await modal.onOpen();
+
+            clickButton('Icon Emoji & Text');
+            await opened.emojiSelection('');
+
+            expect(frontmatter).toEqual({ banner: '[[images/pic.png]]' });
+        });
     });
 });

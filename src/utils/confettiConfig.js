@@ -1,4 +1,5 @@
 import { CONFETTI_PRESETS, getPresetCopy } from '../core/confettiPresets';
+import { writeField, clearField } from '../core/fieldRegistry.js';
 
 // Single source of truth for the banner-confetti frontmatter value:
 // the field schema plus parse, normalize, diff and serialize.
@@ -428,18 +429,13 @@ const confettiFieldAliases = (settings) => {
 export function writeConfettiField(frontmatter, settings, value) {
     if (!frontmatter || typeof frontmatter !== 'object') return;
 
-    const aliases = confettiFieldAliases(settings);
+    // The registry holds the write rule; the aliases keep the banner-confetti
+    // fallback for callers without configured names
+    const plugin = { settings: { customBannerConfettiField: confettiFieldAliases(settings) } };
 
     if (value === null || value === undefined) {
-        for (const alias of aliases) {
-            delete frontmatter[alias];
-        }
+        clearField(frontmatter, plugin, 'confetti');
         return;
     }
-
-    const target = aliases.find(alias => Object.prototype.hasOwnProperty.call(frontmatter, alias)) || aliases[0];
-    for (const alias of aliases) {
-        if (alias !== target) delete frontmatter[alias];
-    }
-    frontmatter[target] = value;
+    writeField(frontmatter, plugin, 'confetti', value);
 }

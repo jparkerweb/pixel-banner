@@ -3,6 +3,7 @@ import { IconFolderSelectionModal } from './iconFolderSelectionModal.js';
 import { SaveImageModal } from './saveImageModal.js';
 import { TargetPositionModal } from "../modals";
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
+import { getFieldNames, clearField } from '../../core/fieldRegistry.js';
 
 
 // ------------------------------
@@ -378,86 +379,33 @@ export class IconImageSelectionModal extends Modal {
             const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
                 await this.app.fileManager.processFrontMatter(activeFile, (frontmatter) => {
-                    // Get frontmatter field names
-                    const bannerIconField = Array.isArray(this.plugin.settings.customBannerIconField) 
-                        ? this.plugin.settings.customBannerIconField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconField;
+                    // Check if there's a text/emoji icon set, under any configured name
+                    const hasTextEmoji = getFieldNames(this.plugin, 'icon').some(name =>
+                        frontmatter[name] !== undefined &&
+                        frontmatter[name] !== null &&
+                        frontmatter[name] !== '');
 
-                    const bannerIconImageAlignmentField = Array.isArray(this.plugin.settings.customBannerIconImageAlignmentField) 
-                        ? this.plugin.settings.customBannerIconImageAlignmentField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconImageAlignmentField;
-                    
-                    const iconSizeField = Array.isArray(this.plugin.settings.customBannerIconSizeField) 
-                        ? this.plugin.settings.customBannerIconSizeField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconSizeField;
-
-                    const iconImageSizeMultiplierField = Array.isArray(this.plugin.settings.customBannerIconImageSizeMultiplierField) 
-                        ? this.plugin.settings.customBannerIconImageSizeMultiplierField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconImageSizeMultiplierField;
-
-                    const iconRotateField = Array.isArray(this.plugin.settings.customBannerIconRotateField) 
-                        ? this.plugin.settings.customBannerIconRotateField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconRotateField;
-                    
-                    const iconYPositionField = Array.isArray(this.plugin.settings.customBannerIconVerticalOffsetField) 
-                        ? this.plugin.settings.customBannerIconVerticalOffsetField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconVerticalOffsetField;
-                    
-                    const iconXPositionField = Array.isArray(this.plugin.settings.customBannerIconXPositionField) 
-                        ? this.plugin.settings.customBannerIconXPositionField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconXPositionField;
-                    
-                    const iconColorField = Array.isArray(this.plugin.settings.customBannerIconColorField) 
-                        ? this.plugin.settings.customBannerIconColorField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconColorField;
-                    
-                    const iconBgColorField = Array.isArray(this.plugin.settings.customBannerIconBackgroundColorField) 
-                        ? this.plugin.settings.customBannerIconBackgroundColorField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconBackgroundColorField;
-                    
-                    const iconXPaddingField = Array.isArray(this.plugin.settings.customBannerIconPaddingXField) 
-                        ? this.plugin.settings.customBannerIconPaddingXField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconPaddingXField;
-                    
-                    const iconYPaddingField = Array.isArray(this.plugin.settings.customBannerIconPaddingYField) 
-                        ? this.plugin.settings.customBannerIconPaddingYField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconPaddingYField;
-                    
-                    const iconBorderRadiusField = Array.isArray(this.plugin.settings.customBannerIconBorderRadiusField) 
-                        ? this.plugin.settings.customBannerIconBorderRadiusField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconBorderRadiusField;
-                    
-                    // Get the banner icon image field name
-                    const bannerIconImageField = Array.isArray(this.plugin.settings.customBannerIconImageField) 
-                        ? this.plugin.settings.customBannerIconImageField[0].split(',')[0].trim()
-                        : this.plugin.settings.customBannerIconImageField;
-                    
-                    // Check if there's a text/emoji icon set
-                    const hasTextEmoji = frontmatter[bannerIconField] !== undefined && 
-                                         frontmatter[bannerIconField] !== null && 
-                                         frontmatter[bannerIconField] !== '';
-                    
                     // Only remove all icon-related fields if there's no text/emoji
                     if (!hasTextEmoji) {
-                        // Remove all banner icon related fields
-                        delete frontmatter[bannerIconField];
-                        delete frontmatter[bannerIconImageField];
-                        delete frontmatter[bannerIconImageAlignmentField];
-                        delete frontmatter[iconSizeField];
-                        delete frontmatter[iconImageSizeMultiplierField];
-                        delete frontmatter[iconRotateField];
-                        delete frontmatter[iconYPositionField];
-                        delete frontmatter[iconXPositionField];
-                        delete frontmatter[iconColorField];
-                        delete frontmatter[iconBgColorField];
-                        delete frontmatter[iconXPaddingField];
-                        delete frontmatter[iconYPaddingField];
-                        delete frontmatter[iconBorderRadiusField];
+                        // Remove all banner icon related fields, under every configured name
+                        clearField(frontmatter, this.plugin, 'icon');
+                        clearField(frontmatter, this.plugin, 'iconImage');
+                        clearField(frontmatter, this.plugin, 'iconImageAlignment');
+                        clearField(frontmatter, this.plugin, 'iconSize');
+                        clearField(frontmatter, this.plugin, 'iconImageSizeMultiplier');
+                        clearField(frontmatter, this.plugin, 'iconRotate');
+                        clearField(frontmatter, this.plugin, 'iconVerticalOffset');
+                        clearField(frontmatter, this.plugin, 'iconXPosition');
+                        clearField(frontmatter, this.plugin, 'iconColor');
+                        clearField(frontmatter, this.plugin, 'iconBackgroundColor');
+                        clearField(frontmatter, this.plugin, 'iconPaddingX');
+                        clearField(frontmatter, this.plugin, 'iconPaddingY');
+                        clearField(frontmatter, this.plugin, 'iconBorderRadius');
                     } else {
                         // If there is text/emoji, only remove the icon image field
-                        delete frontmatter[bannerIconImageField];
-                        delete frontmatter[iconImageSizeMultiplierField];
-                        delete frontmatter[bannerIconImageAlignmentField];
+                        clearField(frontmatter, this.plugin, 'iconImage');
+                        clearField(frontmatter, this.plugin, 'iconImageSizeMultiplier');
+                        clearField(frontmatter, this.plugin, 'iconImageAlignment');
                     }
                 });
 

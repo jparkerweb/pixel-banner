@@ -363,18 +363,6 @@ function getFolderSpecificImage(filePath) {
 }
 
 
-function getFolderSpecificSetting(filePath, settingName) {
-    const folderPath = this.getFolderPath(filePath);
-    for (const folderImage of this.settings.folderImages) {
-        if (folderPath.startsWith(folderImage.folder)) {
-            // Use nullish coalescing to properly handle 0 values
-            return folderImage[settingName] ?? undefined;
-        }
-    }
-    return undefined;
-}
-
-
 function getRandomImageFromFolder(folderPath) {
     if (typeof folderPath !== 'string' || !folderPath) return null;
     try {
@@ -472,7 +460,6 @@ export {
     preloadImage,
     getFolderPath, 
     getFolderSpecificImage, 
-    getFolderSpecificSetting, 
     getRandomImageFromFolder, 
     getActiveApiProvider, 
     hasBannerFrontmatter, 
