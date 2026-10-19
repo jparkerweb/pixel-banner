@@ -42,25 +42,25 @@
 }
 
 .pixel-banner-image {
-	position: absolute !important;
+	position: absolute;
 	top: 0;
 	left: var(--pixel-banner-banner-gap, 0);
 	right: var(--pixel-banner-banner-gap, 0);
 	background-size: cover; 
-	background-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%) !important;
+	background-position: var(--pixel-banner-x-position, 50%) var(--pixel-banner-y-position, 50%);
 	overflow: hidden;  
 	mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
 	-webkit-mask-image: linear-gradient(to bottom, black calc(100% + var(--pixel-banner-fade, -75%)), transparent);
 	height: var(--pixel-banner-height, 350px);
-    border-radius: var(--pixel-banner-radius, 17px) !important;
+    border-radius: var(--pixel-banner-radius, 17px);
 	pointer-events: none;
 	animation: pixel-banner-fade-in var(--pixel-banner-fade-in-animation-duration, 300ms) ease-in-out;
 	will-change: opacity;
 	transform: translateZ(0);
 	background-repeat: no-repeat;
     z-index: -1;
-    width: unset !important;
-    max-width: var(--pixel-banner-max-width, unset) !important;
+    width: unset;
+    max-width: var(--pixel-banner-max-width, unset);
     margin: var(--pixel-banner-alignment, 0 auto);
     /* add transition to banner image background position */
     transition: background-position 0.5s ease;
@@ -74,11 +74,11 @@
 /* only embeds that show a banner: the variable also sits on the host note's view */
 /* and inherits into every embed, padding block and heading embeds (issue #331)   */
 .internal-embed.pixel-banner > .markdown-embed-content > .markdown-preview-view {
-    min-height: var(--pixel-banner-embed-min-height, unset) !important;
+    min-height: var(--pixel-banner-embed-min-height, unset);
 }
 .markdown-embed-content .pixel-banner-image {
-    position: absolute !important;
-	left: 0 !important;
+    position: absolute;
+	left: 0;
     z-index: unset !important;
 }
 .markdown-embed-content .pixel-banner-image ~ div {
@@ -114,7 +114,7 @@
 .view-content.pixel-banner > .markdown-source-view > .cm-editor > .cm-scroller,
 .view-content.pixel-banner > .markdown-reading-view,
 .view-content.pixel-banner > .markdown-reading-view > .markdown-preview-view {
-    background-color: transparent !important;
+    background-color: transparent;
 }
 
 /* phone: Obsidian pads the scroller by --view-top-spacing-markdown so content */
@@ -131,29 +131,29 @@
 /* -- Specific styles for hover popover banners -- */
 /* ----------------------------------------------- */
 .popover.hover-popover {
-    min-height: 200px !important;
+    min-height: 200px;
 }
 /* no forced background-repeat: it overrode the Image Repeat setting and tiled */
 /* "contain" banners in hover popovers and Hover Editor (issue #312)            */
 .popover.hover-popover .pixel-banner-image {
-    min-height: 100px !important;
+    min-height: 100px;
 }
 .pixel-banner-image + .markdown-preview-sizer.markdown-preview-section {
-    margin-top: 100px !important;
+    margin-top: 100px;
 }
 .hover-popover .markdown-preview-view.pixel-banner {
     position: relative;
     isolation: isolate;
 }
 .hover-popover .pixel-banner-image {
-    position: absolute !important;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 0;
-    width: 100% !important;
+    width: 100%;
     max-width: 100% !important;
-    border-radius: var(--pixel-banner-radius, 17px) !important;
+    border-radius: var(--pixel-banner-radius, 17px);
 }
 .hover-popover .markdown-preview-view .markdown-preview-sizer {
     position: relative;
@@ -190,11 +190,6 @@
 /* *** NOTE: this is now handled in bannerManager.js *** */
 /* ***       for faster rendering!                   *** */
 /* ----------------------------------------------------- */
-/* .view-content.pixel-banner > .markdown-source-view .cm-sizer,
-.view-content.pixel-banner > .markdown-reading-view .markdown-preview-sizer {
-    padding-top: var(--pixel-banner-content-start, 355px) !important;
-    padding-bottom: 0 !important;
-} */
 /* -- fix for embedded notes -- */
 .internal-embed > .markdown-embed-content .cm-sizer:first-of-type,
 .internal-embed > .markdown-embed-content .markdown-preview-sizer:first-of-type {
@@ -674,7 +669,7 @@
 .banner-icon-overlay {
     --pixel-banner-icon-translate-x: calc(var(--pixel-banner-icon-x) * -1);
     transform: translate(var(--pixel-banner-icon-translate-x), -15%) rotate(var(--pixel-banner-icon-rotate, 0deg));
-    transform-origin: center !important;
+    transform-origin: center;
     position: absolute !important;
     top: var(--pixel-banner-icon-start);
     left: var(--pixel-banner-icon-x, 25%);
@@ -690,7 +685,6 @@
     background: var(--pixel-banner-icon-background-color, unset);
     border-radius: var(--pixel-banner-icon-border-radius, 17px);
     white-space: nowrap;
-    text-wrap: pretty;
     word-break: break-word;
     width: max-content !important;
     max-width: var(--pixel-banner-width) !important;
@@ -1135,32 +1129,13 @@
 /* ========================= */
 /* == misc helper classes == */
 /* ========================= */
-.display-none { display: none !important; }
+/* Only the helpers in use stay. They are scoped (specificity 0,2,0 and up) so they beat Obsidian core rules with no important flag. */
+.modal .margin-top-0 { margin-top: 0px; }
+.modal .margin-left-5 { margin-left: 5px; }
+.vertical-tab-content .margin-top-0 { margin-top: 0px; }
+.vertical-tab-content .margin-bottom-0 { margin-bottom: 0px; }
 
-.margin-top-0 { margin-top: 0px !important; }
-.margin-top-5 { margin-top: 5px !important; }
-.margin-top-10 { margin-top: 10px !important; }
-.margin-top-20 { margin-top: 20px !important; }
-.margin-top-40 { margin-top: 40px !important; }
-.margin-right-0 { margin-right: 0px !important; }
-.margin-right-5 { margin-right: 5px !important; }
-.margin-right-10 { margin-right: 10px !important; }
-.margin-right-20 { margin-right: 20px !important; }
-.margin-right-40 { margin-right: 40px !important; }
-.margin-left-0 { margin-left: 0px !important; }
-.margin-left-5 { margin-left: 5px !important; }
-.margin-left-10 { margin-left: 10px !important; }
-.margin-left-20 { margin-left: 20px !important; }
-.margin-left-40 { margin-left: 40px !important; }
-.margin-bottom-0 { margin-bottom: 0px !important; }
-.margin-bottom-5 { margin-bottom: 5px !important; }
-.margin-bottom-10 { margin-bottom: 10px !important; }
-.margin-bottom-20 { margin-bottom: 20px !important; }
-.margin-bottom-40 { margin-bottom: 40px !important; }
-
-.width-100 { width: 100% !important; }
-
-.cursor-pointer { cursor: pointer !important; }
+.modal button.cursor-pointer { cursor: pointer; }
 
 /* =============================== */
 /* == Confetti Canvas Styles == */

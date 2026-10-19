@@ -600,6 +600,14 @@ async function addPixelBanner(plugin, el, ctx) {
                     plugin.settings.contentStartPosition;
             }
 
+            // A popover banner is capped (see capPopoverBannerHeight), so pull the content up by
+            // the height it lost to keep the gap below the banner
+            if (isHoverPopover) {
+                const fullHeight = Number(ctx.bannerHeight ?? resolveField(plugin, 'height', frontmatter, folderSpecific));
+                const cutHeight = fullHeight - capPopoverBannerHeight(plugin, fullHeight, true);
+                if (cutHeight > 0) effectiveContentStart = Math.max(0, effectiveContentStart - cutHeight);
+            }
+
             plugin.applyContentStartPosition(viewContent, effectiveContentStart);
             plugin.applyBannerWidth(viewContent);
 
@@ -1388,6 +1396,15 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
 }
 
 
+// Hover popovers cap the banner height at the Popover Banner Max Height setting
+// (issue #342); a banner already shorter than the cap is left alone
+function capPopoverBannerHeight(plugin, bannerHeight, isHoverPopover) {
+    const maxHeight = Number(plugin.settings.popoverBannerMaxHeight);
+    if (!isHoverPopover || !Number.isFinite(maxHeight) || isNaN(Number(bannerHeight))) return bannerHeight;
+    return Math.min(Number(bannerHeight), maxHeight);
+}
+
+
 // ----------------------------------
 // -- applyBannerSettings function --
 // ----------------------------------
@@ -1402,7 +1419,8 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     // The markdown post-processors (reading view, hover popovers) pass no height, fade
     // or radius; resolve them like updateBanner does instead of writing "undefinedpx",
     // which is invalid at computed-value time and drops the CSS fallbacks
-    const bannerHeight = ctx.bannerHeight ?? resolveField(plugin, 'height', frontmatter, folderSpecific);
+    const isHoverPopover = bannerDiv.closest?.('.hover-popover') != null;
+    const bannerHeight = capPopoverBannerHeight(plugin, ctx.bannerHeight ?? resolveField(plugin, 'height', frontmatter, folderSpecific), isHoverPopover);
     const fade = ctx.fade ?? resolveField(plugin, 'fade', frontmatter, folderSpecific);
     const borderRadius = ctx.borderRadius ?? resolveField(plugin, 'borderRadius', frontmatter, folderSpecific);
     

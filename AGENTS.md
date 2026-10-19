@@ -72,8 +72,12 @@ Details: [Adding New Features](./.agents-docs/AGENTS-adding-new-features.md)
 1. Update version in `manifest.json` and `package.json`. Any version bump, a CHANGELOG renumber included, sets the same number in `CHANGELOG.md`, the `UPDATE.md` heading, `package.json` and `manifest.json` together
 2. Update `CHANGELOG.md` (technical) and `UPDATE.md` (user-facing)
 3. Update `inventory.md` if files changed
-4. Run `npm run build`
+4. Run `npm run build` (bundle only; `npm run build-vault` also copies to the test vault and zips it)
 5. Test in `.vault` environment
+6. Commit and push the version bump, then push the tag: `git tag <version> && git push origin <version>` (the tag equals the manifest version, no leading `v`). `.github/workflows/release.yml` builds, attests `main.js`, `manifest.json` and `styles.css`, and publishes the GitHub release; it fails when the tag differs from `manifest.json` or `package.json`
+7. Publish releases only through that workflow so the assets carry attestations. Do not run `/ai-assist-git-publish` for the same tag: it would create a second release without attestations. Check an asset with `gh attestation verify main.js --repo jparkerweb/pixel-banner`
+
+A step-by-step walkthrough of this process lives in the local skill `.claude/skills/pixel-banner-release/` (gitignored, so it exists only on the maintainer's machine).
 
 ## Keeping this file current
 
@@ -112,3 +116,4 @@ When you make a mistake, get corrected, or discover something about this codebas
 - Fake `Date` and step it past 350 ms between calls when a test calls the exported `addPixelBanner` more than once (`vi.useFakeTimers({ toFake: ['Date'] })`, then `vi.setSystemTime`): it is exported through `debounceAndSwallow`, a leading throttle on `Date.now()`, so a second call within 350 ms returns `undefined` without rendering (see `tests/unit/core/bannerManager.embed.test.js`).
 - Read the settings UI from `app.setting.win.document` in a live check: this Obsidian build opens settings in its own window, so `document.querySelector('.mod-settings')` finds nothing and `app.setting.containerEl.isConnected` is `false`.
 - Expect a vault video (`app://<hash>/...`) to taint any canvas it is drawn on unless it was loaded with `crossOrigin = 'anonymous'` (`setBannerVideoSource()`): the app itself is `app://obsidian.md`, another origin.
+- Open a settings tab with `openPluginSettings()` / `openCommunityPluginsSettings()` (`src/utils/openSettings.js`), never `document.querySelectorAll` on the sidebar: settings can live in their own window, so the main `document` has no sidebar and the click silently lands nowhere (the Plugin Settings button showed General).

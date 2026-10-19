@@ -9,6 +9,7 @@ import { semver } from '../../utils/semver.js';
 import { decimalToFractionString } from '../../utils/fractionTextDisplay';
 import { PIXEL_BANNER_PLUS } from '../../resources/constants.js';
 import { writeField, clearField } from '../../core/fieldRegistry.js';
+import { openPluginSettings, openCommunityPluginsSettings } from '../../utils/openSettings.js';
 
 export class SelectPixelBannerModal extends Modal {
     constructor(app, plugin) {
@@ -130,17 +131,7 @@ export class SelectPixelBannerModal extends Modal {
             
             // Open settings and navigate to Pixel Banner tab
             const openSettings = async () => {
-                await this.app.setting.open();
-                await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-                
-                // Find and click the Pixel Banner item in the settings sidebar
-                const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-                for (const tab of settingsTabs) {
-                    if (tab.textContent.includes('Pixel Banner')) {
-                        tab.click();
-                        break;
-                    }
-                }
+                await openPluginSettings(this.app);
             };
             
             openSettings();
@@ -739,26 +730,7 @@ export class SelectPixelBannerModal extends Modal {
                     // function to open settings and navigate to Pixel Banner tab
                     const openPlusSettings = async () => {
                         this.close();
-                        await this.app.setting.open();
-                        await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-                        
-                        // Find and click the Pixel Banner item in the settings sidebar
-                        const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-                        for (const tab of settingsTabs) {
-                            if (tab.textContent.includes('Pixel Banner')) {
-                                tab.click();
-                                break;
-                            }
-                        }
-                        
-                        // Find and click the Pixel Banner Plus item in the settings sidebar
-                        const pixelBannerSettingsTabs = document.querySelectorAll('.pixel-banner-settings-tabs > button.pixel-banner-settings-tab');
-                        for (const tab of pixelBannerSettingsTabs) {
-                            if (tab.textContent.includes('Plus')) {
-                                tab.click();
-                                break;
-                            }
-                        }
+                        await openPluginSettings(this.app, { plusTab: true });
                     };
 
                     // openPlusSettings click handler for account title
@@ -1099,28 +1071,7 @@ export class SelectPixelBannerModal extends Modal {
                         // Obsidian API call to update the plugin: plugin-id is "pexels-banner"
                         const openCommunityPlugins = async () => {
                             this.close();
-                            await this.app.setting.open();
-                            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for settings to load
-                            
-                            // Find and click the Community Plugins item in the settings sidebar
-                            const settingsTabs = document.querySelectorAll('.vertical-tab-header-group .vertical-tab-nav-item');
-                            for (const tab of settingsTabs) {
-                                if (tab.textContent.includes('Community plugins')) {
-                                    tab.click();
-                                    break;
-                                }
-                            }
-
-                            await new Promise(resolve => setTimeout(resolve, 500)); // Wait for settings to load
-                            
-                            // Find the "Check for updates" button
-                            const allTheButtons = document.querySelectorAll('button.mod-cta');
-                            for (const button of allTheButtons) {
-                                if (button.textContent.includes('Check for updates')) {
-                                    button.click();
-                                    break;
-                                }
-                            }
+                            await openCommunityPluginsSettings(this.app, { checkForUpdates: true });
                         };
                         versionInfo.addEventListener('click', openCommunityPlugins);
                     }

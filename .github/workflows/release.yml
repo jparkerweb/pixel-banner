@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Check the tag matches the manifest and package versions
+        run: |
+          manifest_version=$(node -p "require('./manifest.json').version")
+          package_version=$(node -p "require('./package.json').version")
+          if [ "$GITHUB_REF_NAME" != "$manifest_version" ] || [ "$GITHUB_REF_NAME" != "$package_version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match manifest.json ($manifest_version) and package.json ($package_version)"
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Attest the release assets
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          awk -v tag="$GITHUB_REF_NAME" '
+            index($0, "### v" tag " ") == 1 { found = 1; next }
+            found && /^### v/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ -s release-notes.md ]; then
+            notes=(--notes-file release-notes.md)
+          else
+            notes=(--generate-notes)
+          fi
+          gh release create "$GITHUB_REF_NAME" main.js manifest.json styles.css --title "$GITHUB_REF_NAME" "${notes[@]}"

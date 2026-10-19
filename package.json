@@ -1,6 +1,6 @@
 {
   "name": "pixel-banner",
-  "version": "3.7.1",
+  "version": "3.7.2",
   "description": "A plugin for Obsidian that allows you to add banners to your notes",
   "author": "Pixel Banner",
   "license": "Apache-2.0",
@@ -13,7 +13,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test-build": "node scripts/esbuild.config.mjs production && node scripts/copy-build.mjs",
-    "build": "npm run test-build && zip -r example-vault.zip .vault",
+    "build": "node scripts/esbuild.config.mjs production",
+    "build-vault": "npm run test-build && zip -r example-vault.zip .vault",
     "clean": "npx rimraf node_modules package-lock.json && npm install",
     "prepare": "husky"
   },
@@ -24,10 +25,8 @@
     "@types/node": "^24.13.1",
     "@vitest/coverage-v8": "^3.2.6",
     "@vitest/ui": "^3.2.6",
-    "builtin-modules": "^5.2.0",
     "emojilib": "^4.0.3",
     "esbuild": "^0.25.12",
-    "fs-extra": "^11.3.5",
     "happy-dom": "^20.10.2",
     "husky": "^9.1.7",
     "marked": "^16.4.2",
