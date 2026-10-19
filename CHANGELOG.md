@@ -9,6 +9,17 @@ All notable changes to the Pixel Banner plugin will be documented in this file.
   - In the popover branch of `addPixelBanner()` the content start is reduced by the height the cap removed (floor 0), so the gap below the banner is kept
   - Tests in `tests/unit/core/bannerManager.applyBannerSettings.test.js`
 
+#### 🔧 Changed
+- **Fewer `!important` rules in `styles.css`** (scorecard): 67 down to 26 live declarations
+  - 19 unused helper classes (`.display-none`, `.width-100`, `.margin-right-*`, the unused `.margin-top|left|bottom-*` sizes) deleted; the four in use (`.margin-top-0`, `.margin-left-5`, `.margin-bottom-0`, `.cursor-pointer`) are scoped to `.modal` / `.vertical-tab-content` instead of using `!important`
+  - 16 banner rules lost `!important` after a live check showed no change in 11 views (reading view, live preview, embeds, hover popover, icon notes) on desktop and the phone layout
+  - A dead commented-out rule was deleted; the 26 remaining rules fight an Obsidian rule, an inline style or a theme, or could not be proven removable by a live check (video banners, hover and pane states)
+- **Build uses Node built-ins** (scorecard): `builtin-modules` and `fs-extra` removed from `devDependencies`; `scripts/esbuild.config.mjs` and `scripts/copy-build.mjs` use Node's own modules instead
+- **`npm run build` is a plain bundle**: it no longer copies to the test vault and zips it; that flow is now `npm run build-vault` (`npm run test-build` is unchanged)
+- **README discloses network use and filesystem access**: a new *Network use and privacy* section lists each service the plugin contacts and when, and states that reading an external file is desktop only and read only
+- **Tag-triggered release workflow** (`.github/workflows/release.yml`): pushing a version tag builds the plugin, attests `main.js`, `manifest.json` and `styles.css`, and creates the GitHub release with the CHANGELOG section as notes; it fails when the tag differs from `manifest.json` or `package.json`
+- **Duplicate `text-wrap` declaration removed** from `styles.css`
+
 #### 🐛 Fixed
 - **Plugin Settings button opened the generic Obsidian settings**: this Obsidian build shows settings in its own window, so the sidebar lookup on the main `document` found nothing
   - New `src/utils/openSettings.js` (`openPluginSettings()`, `openCommunityPluginsSettings()`) opens the tab with `app.setting.openTabById()`, falling back to the sidebar entry in `app.setting.win.document`

@@ -77,6 +77,8 @@ Details: [Adding New Features](./.agents-docs/AGENTS-adding-new-features.md)
 6. Commit and push the version bump, then push the tag: `git tag <version> && git push origin <version>` (the tag equals the manifest version, no leading `v`). `.github/workflows/release.yml` builds, attests `main.js`, `manifest.json` and `styles.css`, and publishes the GitHub release; it fails when the tag differs from `manifest.json` or `package.json`
 7. Publish releases only through that workflow so the assets carry attestations. Do not run `/ai-assist-git-publish` for the same tag: it would create a second release without attestations. Check an asset with `gh attestation verify main.js --repo jparkerweb/pixel-banner`
 
+A step-by-step walkthrough of this process lives in the local skill `.claude/skills/pixel-banner-release/` (gitignored, so it exists only on the maintainer's machine).
+
 ## Keeping this file current
 
 The `Failure log` section below is a recording of mistakes made by previous AI Agents while working with this code base.
