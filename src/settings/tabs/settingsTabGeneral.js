@@ -501,6 +501,31 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
 
+    // The readable width toggle overrides the slider, so grey the slider out while it is on
+    const setBannerMaxWidthSliderInactive = (inactive) => {
+        const sliderComponent = bannerMaxWidthSetting.components[0];
+        if (sliderComponent) sliderComponent.setDisabled(inactive);
+        bannerMaxWidthSetting.settingEl.toggleClass('pixel-banner-setting-inactive', inactive);
+    };
+
+    // Match readable line length setting (issue #267)
+    new Setting(containerEl)
+        .setName('Match readable line length')
+        .setDesc('Line the banner up with the note text: as wide as Obsidian\'s readable line length when that is on, full width when it is off. A note\'s own banner-max-width still wins.')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.bannerMaxWidthReadable)
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.bannerMaxWidthReadable = value;
+                    await plugin.saveSettings();
+                    setBannerMaxWidthSliderInactive(value);
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+    setBannerMaxWidthSliderInactive(plugin.settings.bannerMaxWidthReadable === true);
+
     // Image Horizontal Position setting
     const imageHorizontalPositionSetting = new Setting(containerEl)
         .setName('Image Horizontal Position')
@@ -569,6 +594,37 @@ export function createGeneralSettings(containerEl, plugin) {
                 }
             }));
     
+    // Animate banner position changes setting
+    const bannerPositionTransitionSetting = new Setting(containerEl)
+        .setName('Animate banner position changes')
+        .setDesc('Slide the banner image to a new focal point instead of jumping there. It never slides when your system asks for reduced motion.')
+        .addToggle(toggle => toggle
+            .setValue(plugin.settings.bannerPositionTransition)
+            .onChange(async (value) => {
+                try {
+                    plugin.settings.bannerPositionTransition = value;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }))
+        .addExtraButton(button => button
+            .setIcon('reset')
+            .setTooltip('Reset to default')
+            .onClick(async () => {
+                try {
+                    plugin.settings.bannerPositionTransition = DEFAULT_SETTINGS.bannerPositionTransition;
+                    await plugin.saveSettings();
+                    plugin.updateAllBanners();
+                    // Update the toggle value via the component API
+                    const toggleComponent = bannerPositionTransitionSetting.components[0];
+                    if (toggleComponent) toggleComponent.setValue(DEFAULT_SETTINGS.bannerPositionTransition);
+                } catch (error) {
+                    console.error('Failed to save settings:', error);
+                }
+            }));
+
     // Content Start Position setting
     const contentStartPositionSetting = new Setting(containerEl)
         .setName('Content Start Position')

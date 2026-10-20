@@ -2,6 +2,17 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.7.3 - 2026-10-19
+#### ✨ Added
+- **Icon-only headers** (issues #322, #238): a note with `banner-icon` or `banner-icon-image` and no banner now shows its icon as a compact header, with the content starting below it (`content-start` still wins). A banner path that gives no image falls back to the icon too. Works in reading and editing view, in embedded notes (unless *Hide Embedded Note Banners* is on) and in Export to PDF
+- **Icons and Position, Size & Style without a banner**: the Select modal's icon buttons and commands work on any note, Position, Size & Style opens for a note with only an icon (banner-only controls hidden), and setting an icon through the emoji modal opens it
+- **Match readable line length** (issue #267): new global setting (default off) and `banner-max-width: readable` per note, a `readable` checkbox in Position, Size & Style; the banner then matches the note's text column. A numeric string such as `720px` is now read as 720
+- **Animate banner position changes** (issue #226): new global setting (default on) to turn off the half second slide when the focal point changes; reduced motion is honoured
+
+#### 🔧 Changed
+- **Icon overlay styled by CSS variables only**: the overlay no longer carries inline styles; it reads `--pixel-banner-icon-*` from the view, and an unchanged icon is no longer rebuilt on every update (`shouldUpdateIconOverlay()` compares the state it was built from)
+- **Print render** icon variables now written on the `.pixel-banner-print` wrapper, because the cloned overlay has no inline styles
+
 ### v3.7.2 - 2026-10-18
 #### ✨ Added
 - **Popover Banner Max Height** (issue #342): new global setting `popoverBannerMaxHeight` (default 150, 0-1280) in General settings, after *Show Banner in Popover Previews*, with a reset button

@@ -6,6 +6,7 @@ import { flags } from '../resources/flags.js';
 import { debounceAndSwallow } from '../utils/debounce.js';
 import { releaseVaultImageBlobUrl } from './bannerUtils.js';
 import { resolveField } from './fieldRegistry.js';
+import { resolveMaxWidth, maxWidthCssValue, getHeaderMode, getIconLayoutVars, getIconOnlyContentStart, resolveHideEmbeddedBanners } from './headerMode.js';
 
 // Debouncing map for updateBanner to prevent concurrent updates, keyed by the
 // view's content element (holding { filePath, time, isContentChange,
@@ -129,15 +130,16 @@ function setBannerBackground(bannerDiv, fileUrl) {
 // ----------------------
 // -- add pixel banner --
 // ----------------------
+// Resolves to true once the banner shows its image, false when the banner value gave no
+// image (updateBanner then falls back to an icon-only header), and undefined when it
+// stopped early: no container, or a newer render or a cleanup took the banner over
 const debouncedAddPixelBanner = debounceAndSwallow(addPixelBanner, 350);
 async function addPixelBanner(plugin, el, ctx) {
     const { frontmatter, file, isContentChange, yPosition, xPosition, contentStartPosition, bannerImage, isReadingView, updateMode } = ctx;
     const viewContent = el;
     const isEmbedded = viewContent.classList.contains('internal-embed') && viewContent.classList.contains('markdown-embed');
     const isHoverPopover = viewContent.closest('.hover-popover') !== null;
-    const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 
-        plugin.getFolderSpecificImage(file.path)?.hideEmbeddedNoteBanners || 
-        plugin.settings.hideEmbeddedNoteBanners || false;
+    const hideEmbeddedNoteBanners = resolveHideEmbeddedBanners(plugin, frontmatter, plugin.getFolderSpecificImage(file.path));
 
     // Add pixel-banner class to the appropriate container
     if (!isEmbedded && !isHoverPopover && viewContent.classList.contains('view-content')) {
@@ -177,8 +179,7 @@ async function addPixelBanner(plugin, el, ctx) {
             if (previewViewEl) {
                 
                 const folderSpecific = plugin.getFolderSpecificImage(file.path);
-                const maxWidth = resolveField(plugin, 'maxWidth', frontmatter, folderSpecific);
-                const maxWidthValue = (maxWidth === undefined || maxWidth === 'unset') ? 'unset' : `${maxWidth}px`;
+                const maxWidthValue = maxWidthCssValue(resolveMaxWidth(plugin, frontmatter));
 
                 const bannerYPosition = resolveField(plugin, 'yPosition', frontmatter, folderSpecific);
                 const bannerXPosition = resolveField(plugin, 'xPosition', frontmatter, folderSpecific);
@@ -585,9 +586,7 @@ async function addPixelBanner(plugin, el, ctx) {
             plugin.applyBannerSettings(bannerDiv, ctx, isEmbedded);
 
             // Get hide embedded note banners setting
-            const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 
-                folderSpecific?.hideEmbeddedNoteBanners || 
-                plugin.settings.hideEmbeddedNoteBanners || false;
+            const hideEmbeddedNoteBanners = resolveHideEmbeddedBanners(plugin, frontmatter, folderSpecific);
             
             let effectiveContentStart = 0;
             if (!hideEmbeddedNoteBanners || !isEmbedded) {
@@ -745,6 +744,8 @@ async function addPixelBanner(plugin, el, ctx) {
                     insertPersistentElement(container, refreshIcon);
                 }
             }
+
+            return true;
         } else {
             // No final imageUrl => hide banner, and drop its image so it cannot
             // flash while the next note's image decodes (setBannerBackground)
@@ -756,6 +757,8 @@ async function addPixelBanner(plugin, el, ctx) {
             if (!isEmbedded) {
                 viewContent.classList.remove('pixel-banner');
             }
+
+            return false;
         }
     }
 }
@@ -846,25 +849,20 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     const isEmbedded = contentEl.classList.contains('internal-embed') && contentEl.classList.contains('markdown-embed');
     const isHoverPopover = contentEl.closest('.hover-popover') !== null;
     const viewContent = contentEl;  // Define viewContent here
+    // A note pane gets header modes. The reading-view post processor also passes stand-in views
+    // for embeds (contentEl: the embed's .markdown-preview-view); those keep today's path
+    const isMainPane = !isEmbedded && contentEl.classList.contains('view-content');
 
     // Only clean up non-persistent overlays
     const nonPersistentOverlays = viewContent.querySelectorAll('.banner-icon-overlay:not([data-persistent="true"])');
     nonPersistentOverlays.forEach(overlay => overlay.remove());
 
-    // Clean up any duplicate persistent overlays (keep only the one right after banner)
-    ['markdown-preview-sizer', 'cm-sizer'].forEach(container => {
-        const containerEl = viewContent.querySelector(`.${container}`);
+    // Clean up any duplicate persistent overlays: keep the first one in each sizer, with or
+    // without a banner element (icon-only notes have none)
+    Object.values(getOverlaySizers(viewContent, isMainPane)).forEach(containerEl => {
         if (containerEl) {
-            const bannerImage = containerEl.querySelector(':scope > .pixel-banner-image');
-            if (bannerImage) {
-                const allOverlays = containerEl.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
-                allOverlays.forEach(overlay => {
-                    // Only keep the overlay if it's immediately after the banner
-                    if (overlay.previousElementSibling !== bannerImage) {
-                        overlay.remove();
-                    }
-                });
-            }
+            const allOverlays = containerEl.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
+            Array.from(allOverlays).slice(1).forEach(overlay => overlay.remove());
         }
     });
 
@@ -874,6 +872,19 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     // Get folder-specific settings first
     const folderSpecific = plugin.getFolderSpecificImage(view.file.path);
     let bannerImage = null;
+
+    // Read the icon before the banner: together they decide the header mode
+    const bannerIcon = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconField);
+    let bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
+
+    // Handle array flattening for icon-image (same issue as main banner with unquoted wiki links)
+    if (Array.isArray(bannerIconImage)) {
+        bannerIconImage = bannerIconImage.flat()[0];
+        // Only format as internal link if it's not already formatted
+        if (bannerIconImage && !bannerIconImage.startsWith('[[') && !bannerIconImage.startsWith('![[')) {
+            bannerIconImage = `[[${bannerIconImage}]]`;
+        }
+    }
 
     // Check for banner shuffle path in frontmatter first. Only a folder path can be
     // shuffled: `banner-shuffle: true` names no folder, and a folder group's shuffle is
@@ -908,28 +919,8 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         bannerImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerField) || folderSpecific?.image;
     }
     
-    if (!isEmbedded && !bannerImage) {
-        contentEl.classList.remove('pixel-banner');
-
-        // cleanup padding-top from preview & source sizers
-        const previewSizer = contentEl.querySelector('.markdown-preview-sizer');
-        if (previewSizer) {
-            // Remove only the 'padding-top' inline style from previewSizer
-            previewSizer.style.removeProperty('padding-top');
-        }
-        const sourceSizer = contentEl.querySelector('.cm-sizer');
-        if (sourceSizer) {
-            // Remove only the 'padding-top' inline style from sourceSizer
-            sourceSizer.style.removeProperty('padding-top');
-        }
-        
-        if (existingBanner) {
-            // A fetch still running for the previous note must not show its image here
-            existingBanner._pixelBannerRender = null;
-            existingBanner.style.backgroundImage = '';
-            existingBanner.style.display = 'none';
-        }
-    } else if (isEmbedded && !bannerImage) {
+    // A main pane's layout is set from its header mode once the banner is processed (below)
+    if (isEmbedded && !bannerImage) {
         // Set default values for embedded notes without banners
         const embedRoot = viewContent.closest('.internal-embed.markdown-embed');
         if (embedRoot) {
@@ -998,11 +989,12 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
     let bannerHeight = resolveField(plugin, 'height', frontmatter, folderSpecific);
     let fade = resolveField(plugin, 'fade', frontmatter, folderSpecific);
     let borderRadius = resolveField(plugin, 'borderRadius', frontmatter, folderSpecific);
-    let maxWidth = resolveField(plugin, 'maxWidth', frontmatter, folderSpecific) ?? 'unset';
+    let maxWidth = resolveMaxWidth(plugin, frontmatter);
 
     // Process this note's banner if it exists
+    let imageShown;
     if (bannerImage) {
-        await addPixelBanner(plugin, contentEl, { 
+        imageShown = await addPixelBanner(plugin, contentEl, {
             frontmatter, 
             file: view.file, 
             isContentChange,
@@ -1025,9 +1017,40 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         if (view.file?.path !== filePath) {
             return false;
         }
-    } else if (existingBanner) {
+    } else if (existingBanner && !isMainPane) {
+        // (a main pane's banners are hidden by clearHeaderLayout, in its own sizers only)
         existingBanner._pixelBannerRender = null;
         existingBanner.style.display = 'none';
+    }
+
+    // Header mode for main panes (embeds keep their own path): a banner, an icon-only header
+    // (no banner value, or one that gave no image) or nothing. Clear the other modes' leftovers
+    let headerMode = null;
+    if (isMainPane) {
+        headerMode = getHeaderMode({
+            hasBannerSource: !!bannerImage,
+            imageFailed: imageShown === false,
+            icon: bannerIcon,
+            iconImage: bannerIconImage
+        });
+        clearHeaderLayout(contentEl, headerMode);
+        if (headerMode === 'icon-only') {
+            applyIconOnlyLayout(plugin, contentEl, { frontmatter, folderSpecific });
+        }
+    }
+
+    // An embedded note with an icon and no banner gets a compact icon-only header, unless embedded
+    // note banners are hidden: then it keeps the 1% / 0 values set above (or its hidden banner's)
+    let embedIconOnly = false;
+    if (isEmbedded) {
+        const hideEmbeddedNoteBanners = resolveHideEmbeddedBanners(plugin, frontmatter, folderSpecific);
+        embedIconOnly = !hideEmbeddedNoteBanners && getHeaderMode({
+            hasBannerSource: !!bannerImage,
+            imageFailed: imageShown === false,
+            icon: bannerIcon,
+            iconImage: bannerIconImage
+        }) === 'icon-only';
+        applyEmbedIconOnlyLayout(plugin, contentEl, { iconOnly: embedIconOnly, frontmatter, folderSpecific });
     }
 
     // Process embedded notes if this is not an embedded note itself
@@ -1108,18 +1131,6 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         plugin.updateFieldVisibility(view);
     }
 
-    const bannerIcon = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconField);
-    let bannerIconImage = getFrontmatterValue(frontmatter, plugin.settings.customBannerIconImageField);
-    
-    // Handle array flattening for icon-image (same issue as main banner with unquoted wiki links)
-    if (Array.isArray(bannerIconImage)) {
-        bannerIconImage = bannerIconImage.flat()[0];
-        // Only format as internal link if it's not already formatted
-        if (bannerIconImage && !bannerIconImage.startsWith('[[') && !bannerIconImage.startsWith('![[')) {
-            bannerIconImage = `[[${bannerIconImage}]]`;
-        }
-    }
-
     // Only clean up overlays that belong to the current container context
     if (isEmbedded) {
         // For embedded notes, only clean up overlays within this specific embed
@@ -1154,8 +1165,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             });
         } else {
             // For main notes, clean up in both views
-            const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
-            const sourceContainer = contentEl.querySelector('div.cm-sizer');
+            const { preview: previewContainer, source: sourceContainer } = getOverlaySizers(contentEl, isMainPane);
 
             if (previewContainer) {
                 const previewOverlays = previewContainer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]');
@@ -1185,32 +1195,34 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         const cachedState = plugin.bannerStateCache.get(cacheKey);
         const cachedIconState = cachedState?.state?.iconState;
 
-        // Function to create or update icon overlay
-        const createOrUpdateIconOverlay = async (banner, viewType) => {
-            if (!banner) {
+        // Function to create or update the icon overlay in a sizer. It needs no banner element
+        // (icon-only notes have none) and carries no inline styles: it reads the
+        // --pixel-banner-icon-* variables set on the view
+        const createOrUpdateIconOverlay = async (sizer, viewType) => {
+            if (!sizer) {
                 return;
             }
 
             // Get current icon state
             const currentIconState = {
                 icon: cleanIcon,
-                size: resolveField(plugin, 'iconSize', frontmatter),
-                xPosition: resolveField(plugin, 'iconXPosition', frontmatter),
-                opacity: resolveField(plugin, 'iconOpacity', frontmatter),
-                color: resolveField(plugin, 'iconColor', frontmatter),
-                fontWeight: resolveField(plugin, 'iconFontWeight', frontmatter),
-                backgroundColor: resolveField(plugin, 'iconBackgroundColor', frontmatter) ?? 'transparent',
-                paddingX: resolveField(plugin, 'iconPaddingX', frontmatter),
-                paddingY: resolveField(plugin, 'iconPaddingY', frontmatter),
-                borderRadius: resolveField(plugin, 'iconBorderRadius', frontmatter),
-                verticalOffset: resolveField(plugin, 'iconVerticalOffset', frontmatter),
-                imageAlignment: resolveField(plugin, 'iconImageAlignment', frontmatter),
+                iconImage: typeof bannerIconImage === 'string' ? bannerIconImage.trim() : '',
+                size: resolveField(plugin, 'iconSize', frontmatter, folderSpecific),
+                xPosition: resolveField(plugin, 'iconXPosition', frontmatter, folderSpecific),
+                opacity: resolveField(plugin, 'iconOpacity', frontmatter, folderSpecific),
+                color: resolveField(plugin, 'iconColor', frontmatter, folderSpecific),
+                fontWeight: resolveField(plugin, 'iconFontWeight', frontmatter, folderSpecific),
+                backgroundColor: resolveField(plugin, 'iconBackgroundColor', frontmatter, folderSpecific) ?? 'transparent',
+                paddingX: resolveField(plugin, 'iconPaddingX', frontmatter, folderSpecific),
+                paddingY: resolveField(plugin, 'iconPaddingY', frontmatter, folderSpecific),
+                borderRadius: resolveField(plugin, 'iconBorderRadius', frontmatter, folderSpecific),
+                verticalOffset: resolveField(plugin, 'iconVerticalOffset', frontmatter, folderSpecific),
+                imageAlignment: resolveField(plugin, 'iconImageAlignment', frontmatter, folderSpecific),
                 viewType
             };
 
             // Check if we already have a persistent icon overlay
-            const existingOverlay = banner.nextElementSibling?.classList?.contains('banner-icon-overlay') ?
-                banner.nextElementSibling : null;
+            const existingOverlay = sizer.querySelector(':scope > .banner-icon-overlay[data-persistent="true"]');
 
             if (existingOverlay) {
                 // Only update if necessary
@@ -1228,6 +1240,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             bannerIconOverlay.dataset.persistent = 'true';
             bannerIconOverlay.textContent = '';
             bannerIconOverlay._isPersistentBannerIcon = true;
+            bannerIconOverlay._pixelBannerIconState = currentIconState;
 
             // Clear any existing content
             bannerIconOverlay.innerHTML = '';
@@ -1354,19 +1367,11 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
                 if (textElement) bannerIconOverlay.appendChild(textElement);
             }
 
-            // Apply styles
-            bannerIconOverlay.style.display = 'block'; // Ensure visibility
-            bannerIconOverlay.style.fontSize = `${currentIconState.size}px`;
-            bannerIconOverlay.style.left = `${currentIconState.xPosition}%`;
-            bannerIconOverlay.style.opacity = `${currentIconState.opacity}%`;
-            bannerIconOverlay.style.color = currentIconState.color;
-            bannerIconOverlay.style.fontWeight = currentIconState.fontWeight;
-            bannerIconOverlay.style.backgroundColor = currentIconState.backgroundColor;
-            bannerIconOverlay.style.padding = `${currentIconState.paddingY}px ${currentIconState.paddingX}px`;
-            bannerIconOverlay.style.borderRadius = `${currentIconState.borderRadius}px`;
-            bannerIconOverlay.style.marginTop = `${currentIconState.verticalOffset}px`;
-
-            banner.insertAdjacentElement('afterend', bannerIconOverlay);
+            // In front of Obsidian's children, after the banner when there is one (issue #315).
+            // An icon-only sizer never went through addPixelBanner, so it may not keep our
+            // elements through Obsidian's child reconciliation yet
+            installPersistentChildrenOverride(sizer);
+            insertPersistentElement(sizer, bannerIconOverlay);
             return bannerIconOverlay;
         };
 
@@ -1375,23 +1380,166 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
             const embedContainer = contentEl.querySelector('.markdown-preview-sizer') ||
                                     contentEl.querySelector('.markdown-embed-content') ||
                                     contentEl;
-            const previewBanner = embedContainer.querySelector(':scope > .pixel-banner-image');
-            await createOrUpdateIconOverlay(previewBanner, 'preview');
-        } else {
-            // For main notes, apply to both views
-            const previewContainer = contentEl.querySelector('div.markdown-preview-sizer');
-            const sourceContainer = contentEl.querySelector('div.cm-sizer');
-
-            if (previewContainer) {
-                const previewBanner = previewContainer.querySelector(':scope > .pixel-banner-image');
-                await createOrUpdateIconOverlay(previewBanner, 'preview');
+            // An embed's icon sits next to its banner, or alone in an icon-only header
+            if (embedIconOnly || embedContainer.querySelector(':scope > .pixel-banner-image')) {
+                await createOrUpdateIconOverlay(embedContainer, 'preview');
             }
-
-            if (sourceContainer) {
-                const sourceBanner = sourceContainer.querySelector(':scope > .pixel-banner-image');
-                await createOrUpdateIconOverlay(sourceBanner, 'source');
+        } else {
+            // For main notes, apply to both views. An icon-only header shows in both; a banner
+            // note's icon only next to a banner, as before (the other view's banner and its icon
+            // variables arrive when that view renders), so drop an overlay left there
+            const sizers = getOverlaySizers(contentEl, isMainPane);
+            for (const [sizer, viewType] of [[sizers.preview, 'preview'], [sizers.source, 'source']]) {
+                if (!sizer) continue;
+                if (headerMode === 'icon-only' || sizer.querySelector(':scope > .pixel-banner-image')) {
+                    await createOrUpdateIconOverlay(sizer, viewType);
+                } else if (isMainPane) {
+                    sizer.querySelectorAll(':scope > .banner-icon-overlay[data-persistent="true"]').forEach(overlay => {
+                        plugin.returnIconOverlay(overlay);
+                        overlay.remove();
+                    });
+                }
             }
         }
+    }
+}
+
+
+// The main pane's reading and editing view elements, which carry the header's CSS variables
+// like the pane itself (embeds are not matched)
+function getMainViewEls(contentEl) {
+    return [
+        contentEl.querySelector(':scope > .markdown-reading-view > .markdown-preview-view'),
+        contentEl.querySelector(':scope > .markdown-source-view')
+    ].filter(Boolean);
+}
+
+// The main pane's own sizers. Scoped to its views: in editing view the source view comes first
+// and an embedded note in live preview has a .markdown-preview-sizer of its own, which a plain
+// querySelector would find before the reading view's
+function getMainSizers(contentEl) {
+    return {
+        preview: contentEl.querySelector(':scope > .markdown-reading-view .markdown-preview-sizer'),
+        source: contentEl.querySelector(':scope > .markdown-source-view .cm-sizer')
+    };
+}
+
+// The sizers that hold a view's icon overlay: the main pane's own, or, for the stand-in views the
+// reading-view post processor passes for embeds, the first ones found, as before
+function getOverlaySizers(contentEl, isMainPane) {
+    if (isMainPane) return getMainSizers(contentEl);
+    return {
+        preview: contentEl.querySelector('div.markdown-preview-sizer'),
+        source: contentEl.querySelector('div.cm-sizer')
+    };
+}
+
+
+// ----------------------------------
+// -- applyIconOnlyLayout function --
+// ----------------------------------
+// A main pane whose note shows an icon and no banner (issues #322, #238): a compact header
+// sized from the icon settings, the same in a fresh pane and in one that showed another note
+function applyIconOnlyLayout(plugin, contentEl, { frontmatter, folderSpecific }) {
+    contentEl.classList.add('pixel-banner-icon-only');
+    contentEl.classList.remove('pixel-banner');
+
+    const cssVars = {
+        ...getIconLayoutVars(plugin, frontmatter, folderSpecific, { mode: 'icon-only' }),
+        '--pixel-banner-content-start': `${getIconOnlyContentStart(plugin, frontmatter, folderSpecific)}px`
+    };
+    [contentEl, ...getMainViewEls(contentEl)].forEach(el => el.setCssProps(cssVars));
+
+    // --pixel-banner-width caps the overlay's max-width. Unthrottled: the shared 350 ms throttle of
+    // plugin.applyBannerWidth would drop this write when another pane set its width just before
+    applyBannerWidth(plugin, contentEl);
+    plugin.setupResizeObserver(contentEl);
+}
+
+
+// ----------------------------------------
+// -- applyEmbedIconOnlyLayout function --
+// ----------------------------------------
+// The embedded counterpart of applyIconOnlyLayout: the icon variables go on the embed's preview
+// view, and the content start and min height (the header's height) on the embed, where banner
+// embeds keep them. Called for every embed, so one that stopped being icon-only is cleared
+function applyEmbedIconOnlyLayout(plugin, embedRoot, { iconOnly, frontmatter, folderSpecific }) {
+    embedRoot.classList.toggle('pixel-banner-icon-only', iconOnly);
+    if (!iconOnly) return;
+
+    // A banner that gave no image leaves its element and class behind
+    embedRoot.classList.remove('pixel-banner');
+    const sizer = embedRoot.querySelector('.markdown-preview-sizer');
+    const failedBanner = sizer?.querySelector(':scope > .pixel-banner-image');
+    if (failedBanner) {
+        failedBanner._pixelBannerRender = null;
+        failedBanner.style.display = 'none';
+    }
+
+    const contentStart = `${getIconOnlyContentStart(plugin, frontmatter, folderSpecific)}px`;
+    // A banner render wrote the content start and min height on the preview view too, where they
+    // would shadow the embed's own
+    embedRoot.querySelector(':scope > .markdown-embed-content > .markdown-preview-view')
+        ?.setCssProps({
+            ...getIconLayoutVars(plugin, frontmatter, folderSpecific, { mode: 'icon-only' }),
+            '--pixel-banner-content-start': contentStart,
+            '--pixel-banner-embed-min-height': contentStart
+        });
+    embedRoot.setCssProps({
+        '--pixel-banner-content-start': contentStart,
+        '--pixel-banner-embed-min-height': contentStart
+    });
+}
+
+
+// --------------------------------
+// -- clearHeaderLayout function --
+// --------------------------------
+// Clear what other header modes left on a main pane, so switching notes in one pane looks like
+// a fresh render of the new note
+function clearHeaderLayout(contentEl, mode) {
+    const isHeaderVar = name => name.startsWith('--pixel-banner-icon-') || name === '--pixel-banner-content-start';
+    const removeVars = (el, test) => Array.from(el.style).filter(test).forEach(name => el.style.removeProperty(name));
+
+    if (mode !== 'icon-only') {
+        contentEl.classList.remove('pixel-banner-icon-only');
+    }
+
+    // A banner after an icon-only note: banner mode writes the icon variables on the banner and
+    // its view and the content start on the pane, so icon-only values left on the pane (icon
+    // variables) or on a view (content start, and icon variables the banner render did not
+    // replace, still translate-y 0%) would shadow them
+    if (mode === 'banner') {
+        removeVars(contentEl, name => name.startsWith('--pixel-banner-icon-'));
+        getMainViewEls(contentEl).forEach(el => {
+            const isIconOnlyStyled = el.style.getPropertyValue('--pixel-banner-icon-translate-y') === '0%';
+            removeVars(el, name => name === '--pixel-banner-content-start' ||
+                (isIconOnlyStyled && name.startsWith('--pixel-banner-icon-')));
+        });
+    }
+
+    if (mode !== 'banner') {
+        contentEl.classList.remove('pixel-banner');
+
+        // cleanup padding-top from preview & source sizers, and hide their banners (the pane's
+        // own only: an embedded note keeps its banner)
+        Object.values(getMainSizers(contentEl)).forEach(sizer => {
+            if (!sizer) return;
+            // Remove only the 'padding-top' inline style from the sizer
+            sizer.style.removeProperty('padding-top');
+
+            const existingBanner = sizer.querySelector(':scope > .pixel-banner-image');
+            if (existingBanner) {
+                // A fetch still running for the previous note must not show its image here
+                existingBanner._pixelBannerRender = null;
+                existingBanner.style.backgroundImage = '';
+                existingBanner.style.display = 'none';
+            }
+        });
+    }
+
+    if (mode === 'none') {
+        [contentEl, ...getMainViewEls(contentEl)].forEach(el => removeVars(el, isHeaderVar));
     }
 }
 
@@ -1430,55 +1578,19 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     // Get pixel banner x position
     let pixelBannerXPosition = resolveField(plugin, 'xPosition', frontmatter, folderSpecific);
 
-    // Get pixel banner max width
-    const pixelBannerMaxWidth = resolveField(plugin, 'maxWidth', frontmatter, folderSpecific) ?? 'unset';
+    // Get pixel banner max width: a pixel value, unset, or the readable line length (issue #267)
+    const pixelBannerMaxWidth = maxWidthCssValue(resolveMaxWidth(plugin, frontmatter));
 
     // Get title color from frontmatter, folder settings, or default
     const titleColor = resolveField(plugin, 'titleColor', frontmatter, folderSpecific);
 
-    // Get banner-icon size from frontmatter, folder settings, or default
+    // The banner-icon values the embed min height needs; every icon variable comes from getIconLayoutVars
     const bannerIconSize = resolveField(plugin, 'iconSize', frontmatter, folderSpecific);
-
-    // Get banner-icon x position
-    const bannerIconXPosition = resolveField(plugin, 'iconXPosition', frontmatter, folderSpecific);
-
-    // Get banner-icon opacity
-    const bannerIconOpacity = resolveField(plugin, 'iconOpacity', frontmatter, folderSpecific);
-
-    // Get banner-icon color
-    const bannerIconColor = resolveField(plugin, 'iconColor', frontmatter, folderSpecific);
-
-    // Get banner-icon font weight
-    const bannerIconFontWeight = resolveField(plugin, 'iconFontWeight', frontmatter, folderSpecific);
-
-    // Get banner-icon background color
-    const bannerIconBackgroundColor = resolveField(plugin, 'iconBackgroundColor', frontmatter, folderSpecific) ?? 'transparent';
-
-    // Get banner-icon padding X
-    const bannerIconPaddingX = resolveField(plugin, 'iconPaddingX', frontmatter, folderSpecific);
-
-    // Get banner-icon padding Y
     const bannerIconPaddingY = resolveField(plugin, 'iconPaddingY', frontmatter, folderSpecific);
-
-    // Get banner-icon border radius
-    const bannerIconBorderRadius = resolveField(plugin, 'iconBorderRadius', frontmatter, folderSpecific);
-
-    // Get banner-icon vertical offset
     const bannerIconVerticalOffset = resolveField(plugin, 'iconVerticalOffset', frontmatter, folderSpecific);
 
-    // Get banner-icon rotate
-    const bannerIconRotate = resolveField(plugin, 'iconRotate', frontmatter, folderSpecific);
-
-    // Get banner-icon image size multiplier
-    const bannerIconImageSizeMultiplier = resolveField(plugin, 'iconImageSizeMultiplier', frontmatter, folderSpecific);
-
-    // Get banner-icon text vertical offset
-    const bannerIconTextVerticalOffset = resolveField(plugin, 'iconTextVerticalOffset', frontmatter, folderSpecific);
-
     // Get hide embedded note banners setting
-    const hideEmbeddedNoteBanners = getFrontmatterValue(frontmatter, plugin.settings.customHideEmbeddedNoteBannersField) || 
-        folderSpecific?.hideEmbeddedNoteBanners || 
-        plugin.settings.hideEmbeddedNoteBanners || false;
+    const hideEmbeddedNoteBanners = resolveHideEmbeddedBanners(plugin, frontmatter, folderSpecific);
 
     // Get banner alignment
     const bannerAlignment = resolveField(plugin, 'alignment', frontmatter, folderSpecific);
@@ -1497,24 +1609,11 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
         '--pixel-banner-fade': `${fade}%`,
         '--pixel-banner-fade-in-animation-duration': `${plugin.settings.bannerFadeInAnimationDuration}ms`,
         '--pixel-banner-radius': `${borderRadius}px`,
-        '--pixel-banner-max-width': pixelBannerMaxWidth === 'unset' ? 'unset' : `${pixelBannerMaxWidth}px`,
+        '--pixel-banner-max-width': pixelBannerMaxWidth,
         '--pixel-banner-y-position': `${pixelBannerYPosition}%`,
         '--pixel-banner-x-position': `${pixelBannerXPosition}%`,
         '--pixel-banner-title-color': titleColor,
-        '--pixel-banner-icon-size': `${bannerIconSize}px`,
-        '--pixel-banner-icon-start': `${(bannerHeight - (bannerIconSize / 2))}px`,
-        '--pixel-banner-icon-x': `${bannerIconXPosition}%`,
-        '--pixel-banner-icon-opacity': `${bannerIconOpacity}%`,
-        '--pixel-banner-icon-color': bannerIconColor,
-        '--pixel-banner-icon-font-weight': bannerIconFontWeight,
-        '--pixel-banner-icon-background-color': bannerIconBackgroundColor,
-        '--pixel-banner-icon-padding-x': `${bannerIconPaddingX}px`,
-        '--pixel-banner-icon-padding-y': `${bannerIconPaddingY}px`,
-        '--pixel-banner-icon-border-radius': `${bannerIconBorderRadius}px`,
-        '--pixel-banner-icon-vertical-offset': `${bannerIconVerticalOffset}px`,
-        '--pixel-banner-icon-rotate': `${bannerIconRotate}deg`,
-        '--pixel-banner-icon-image-size-multiplier': `${bannerIconImageSizeMultiplier}em`,
-        '--pixel-banner-icon-text-vertical-offset': `${bannerIconTextVerticalOffset}px`,
+        ...getIconLayoutVars(plugin, frontmatter, folderSpecific, { mode: 'banner', bannerHeight }),
         '--pixel-banner-embed-min-height': !hideEmbeddedNoteBanners ? 
             `${(parseInt(bannerHeight) + (parseInt(bannerIconSize) / 2) + parseInt(bannerIconVerticalOffset) + parseInt(bannerIconPaddingY))}px` : 
             '0px',
@@ -1529,6 +1628,10 @@ function applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded) {
     Object.entries(cssVars).forEach(([property, value]) => {
         bannerDiv.style.setProperty(property, value);
     });
+
+    // Switch off the focal point slide when the setting is off (issue #226). On the
+    // banner element, not document.body, so pop-out windows get it too
+    bannerDiv.classList.toggle('pixel-banner-no-position-transition', plugin.settings.bannerPositionTransition === false);
 
     // Find and apply to container
     const container = bannerDiv.closest('.markdown-preview-view, .markdown-source-view');

@@ -137,15 +137,9 @@ export class SelectPixelBannerModal extends Modal {
             openSettings();
         });
 
-        // Check if the current note has a banner
+        // Check if the current note has a banner or an icon
         const activeFile = this.app.workspace.getActiveFile();
-        const hasBanner = activeFile ? (
-            this.plugin.hasBannerFrontmatter(activeFile) || 
-            (this.plugin.app.metadataCache.getFileCache(activeFile)?.frontmatter && 
-             this.plugin.settings.customBannerShuffleField.some(field => 
-                this.plugin.app.metadataCache.getFileCache(activeFile)?.frontmatter?.[field]
-             ))
-        ) : false;
+        const hasBannerOrIcon = activeFile ? !!this.plugin.hasBannerOrIcon(activeFile) : false;
 
         // Create main container
         const mainContainer = contentEl.createDiv({ cls: 'pixel-banner-main-container' });
@@ -339,13 +333,6 @@ export class SelectPixelBannerModal extends Modal {
             cls: 'pixel-banner-button-text' 
         });
 
-        // Disable the Icon Image button if no banner exists
-        if (!hasBanner) {
-            bannerIconImageButton.disabled = true;
-            bannerIconImageButton.classList.add('pixel-banner-button-disabled');
-            bannerIconImageButton.title = 'You need to add a banner first';
-        }
-
         // Add click handler for the Icon Image button
         bannerIconImageButton.addEventListener('click', () => {
             this.close();
@@ -443,16 +430,7 @@ export class SelectPixelBannerModal extends Modal {
             cls: 'pixel-banner-button-text' 
         });
         
-        // Disable the button if no banner exists
-        if (!hasBanner) {
-            bannerIconButton.disabled = true;
-            bannerIconButton.classList.add('pixel-banner-button-disabled');
-            bannerIconButton.title = 'You need to add a banner first';
-        }
-        
         bannerIconButton.addEventListener('click', () => {
-            if (!hasBanner) return; // Extra safety check
-            
             this.close();
             new EmojiSelectionModal(
                 this.app, 
@@ -484,11 +462,11 @@ export class SelectPixelBannerModal extends Modal {
             cls: 'pixel-banner-button-text' 
         });
 
-        // Disable the button if no banner exists
-        if (!hasBanner) {
+        // Disable the button until the note has a banner or an icon to position
+        if (!hasBannerOrIcon) {
             targetingIconButton.disabled = true;
             targetingIconButton.classList.add('pixel-banner-button-disabled');
-            targetingIconButton.title = 'You need to add a banner first';
+            targetingIconButton.title = 'Add a banner or an icon first';
         }
 
         targetingIconButton.addEventListener('click', () => {
@@ -498,16 +476,16 @@ export class SelectPixelBannerModal extends Modal {
         
         // Set focus on the targeting icon button
         setTimeout(() => {
-            if (hasBanner && targetingIconButton) {
+            if (hasBannerOrIcon && targetingIconButton) {
                 targetingIconButton.focus();
             }
         }, 1000);
         
         // No Banner Message
-        if (!hasBanner) {
+        if (!hasBannerOrIcon) {
             const noBannerMessage = customizationSection.createDiv({ cls: 'pixel-banner-no-banner-message' });
-            noBannerMessage.createEl('p', { 
-                text: 'Add a banner first to enable customization options.',
+            noBannerMessage.createEl('p', {
+                text: 'Add a banner or an icon to adjust position, size and style.',
                 cls: 'pixel-banner-message-text'
             });
         }

@@ -57,9 +57,11 @@ async function handleActiveLeafChange(leaf) {
 
     // Check if the new leaf should have a banner icon
     const hasBannerIcon = this.settings.customBannerIconField.some(field => frontmatter?.[field]);
-    
-    // If no banner icon in frontmatter, ensure any existing overlay is removed
-    if (!hasBannerIcon) {
+    // An icon image alone also keeps the overlay (icon-image-only notes)
+    const hasBannerIconImage = !!getFrontmatterValue(frontmatter, this.settings.customBannerIconImageField);
+
+    // If no banner icon or icon image in frontmatter, ensure any existing overlay is removed
+    if (!hasBannerIcon && !hasBannerIconImage) {
         this.cleanupIconOverlay(leaf.view);
     }
 
@@ -234,10 +236,10 @@ function handleLayoutChange() {
     setTimeout(() => {
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-            // Only update if we have a banner
+            // Only update if we have a banner (or an icon-only overlay)
             const contentEl = activeLeaf.view.contentEl;
             if (contentEl) {
-                const hasBanner = contentEl.querySelector('.pixel-banner-image');
+                const hasBanner = contentEl.querySelector('.pixel-banner-image, .banner-icon-overlay');
                 if (hasBanner) {
                     // Check if we have a valid cache entry before updating
                     const cacheKey = activeLeaf.id;

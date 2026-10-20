@@ -18,6 +18,8 @@ export class EmojiSelectionModal extends Modal {
         // This is useful when the caller wants to handle opening the targeting modal itself
         this.skipTargetingModal = skipTargetingModal;
         this.closedByButton = false;
+        // Set when the Set button saved a non-empty icon, before the metadata cache shows it
+        this.savedIcon = false;
     }
 
     onOpen() {
@@ -27,6 +29,7 @@ export class EmojiSelectionModal extends Modal {
 
         // Reset the closedByButton flag when the modal opens
         this.closedByButton = false;
+        this.savedIcon = false;
 
         // get the current banner icon
         const activeFile = this.app.workspace.getActiveFile();
@@ -100,7 +103,8 @@ export class EmojiSelectionModal extends Modal {
             this.closedByButton = true;
             // Trim the input value before using it
             const trimmedValue = this.bannerIconInput.value.trim();
-            
+            this.savedIcon = trimmedValue !== '';
+
             // If the value is empty, pass null to signal that the field should be removed
             // Otherwise pass the trimmed value as normal
             await this.onChoose(trimmedValue === '' ? null : trimmedValue);
@@ -203,8 +207,10 @@ export class EmojiSelectionModal extends Modal {
                         }, 500);
                     });
                     
-                    // Open the targeting modal
-                    new TargetPositionModal(this.app, this.plugin).open();
+                    // Open the targeting modal, unless removing the last icon left nothing to position
+                    if (this.savedIcon || this.plugin.hasBannerOrIcon(activeFile)) {
+                        new TargetPositionModal(this.app, this.plugin).open();
+                    }
                 }
             }
         };
@@ -335,15 +341,16 @@ export class EmojiSelectionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         
-        // Get the active file and check if it has a banner
+        // Get the active file and check if it has a banner or an icon. The metadata cache may not
+        // have caught up with an icon this modal just saved, so savedIcon counts too
         const activeFile = this.app.workspace.getActiveFile();
-        const hasBanner = activeFile ? this.plugin.hasBannerFrontmatter(activeFile) : false;
-        
+        const hasBannerOrIcon = this.savedIcon || (activeFile ? this.plugin.hasBannerOrIcon(activeFile) : false);
+
         // Only open the targeting modal if:
         // 1. The modal wasn't closed by clicking the button (which already handles opening the targeting modal)
         // 2. The setting is enabled
-        // 3. The note has a banner
-        if (!this.closedByButton && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon && hasBanner) {
+        // 3. The note has a banner or an icon
+        if (!this.closedByButton && this.plugin.settings.openTargetingModalAfterSelectingBannerOrIcon && hasBannerOrIcon) {
             const openTargetingModal = async () => {
                 if (activeFile) {
                     // Create a promise that resolves when the metadata is updated or after a short timeout

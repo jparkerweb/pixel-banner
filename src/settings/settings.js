@@ -57,6 +57,8 @@ const DEFAULT_SETTINGS = {
     imageRepeat: false,
     bannerHeight: 350,
     bannerMaxWidth: 2560,
+    bannerMaxWidthReadable: false,
+    bannerPositionTransition: true,
     fade: -40,
     bannerFadeInAnimationDuration: 300,
     borderRadius: 17,

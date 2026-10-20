@@ -9,13 +9,14 @@ import { generateCacheKey, getCacheEntriesForFile, cleanupCache, invalidateLeafC
 import { fetchPexelsImage, fetchPixabayImage, fetchFlickrImage, fetchUnsplashImage } from '../services/apiService.js';
 import { verifyPixelBannerPlusCredentials, getPixelBannerInfo } from '../services/apiPIxelBannerPlus.js';
 import { addPixelBanner, updateBanner, applyBannerSettings, applyContentStartPosition, applyBannerWidth, updateAllBanners, updateBannerPosition } from './bannerManager.js';
-import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getMarkdownLinkTarget, getVaultImageUrl, releaseAllVaultImageUrls, preloadImage, getFolderPath, getFolderSpecificImage, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, createFolderImageSettings } from './bannerUtils.js';
+import { getInputType, getIconImageInputType, getPathFromObsidianLink, getPathFromMarkdownImage, getMarkdownLinkTarget, getVaultImageUrl, releaseAllVaultImageUrls, preloadImage, getFolderPath, getFolderSpecificImage, getRandomImageFromFolder, getActiveApiProvider, hasBannerFrontmatter, hasBannerSource, hasBannerOrIcon, createFolderImageSettings } from './bannerUtils.js';
 import { handleActiveLeafChange, handleLayoutChange, handleModeChange, handleSelectImage, handleBannerIconClick, handleConfettiMetadataChange, handleConfettiForNote, runConfettiPass } from './eventHandler.js';
 import { scheduleUnquotedBannerLinkCheck } from '../utils/unquotedBannerLink.js';
 import { setupMutationObserver, setupResizeObserver, updateFieldVisibility, updateEmbeddedTitlesVisibility, updateEmbeddedBannersVisibility, cleanupPreviousLeaf } from './domManager.js';
 import { isPrintRender, addPrintBanner } from './printBanner.js';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
-import { getAllFieldNames } from './fieldRegistry.js';
+import { getAllFieldNames, getFieldNames } from './fieldRegistry.js';
+import { getHeaderMode } from './headerMode.js';
 import { confettiManager } from './confettiManager.js';
 import { clearShapeCache } from './confettiShapes.js';
 
@@ -88,6 +89,8 @@ export class PixelBannerPlugin extends Plugin {
     getRandomImageFromFolder(folderPath) { return getRandomImageFromFolder.call(this, folderPath); }
     getActiveApiProvider() { return getActiveApiProvider.call(this); }
     hasBannerFrontmatter(file) { return hasBannerFrontmatter.call(this, file); }
+    hasBannerSource(file) { return hasBannerSource.call(this, file); }
+    hasBannerOrIcon(file) { return hasBannerOrIcon.call(this, file); }
     createFolderImageSettings(folderImage) { return createFolderImageSettings.call(this, folderImage); }
 
     // -------------------------------------
@@ -295,8 +298,19 @@ export class PixelBannerPlugin extends Plugin {
                 }
             }
             
-            if (!bannerImage) return;
-            
+            // A note with an icon and no banner still gets its header (icon-only notes), except in
+            // hover popovers, which never showed the icon
+            if (!bannerImage) {
+                if (isHoverPopover) return;
+                const iconMode = getHeaderMode({
+                    hasBannerSource: false,
+                    icon: getFrontmatterValue(frontmatter, getFieldNames(this, 'icon')),
+                    // an unquoted [[wikilink]] arrives as a nested array
+                    iconImage: [getFrontmatterValue(frontmatter, getFieldNames(this, 'iconImage'))].flat(2)[0]
+                });
+                if (iconMode !== 'icon-only') return;
+            }
+
             // Export to PDF prints its render before updateBanner() would finish, so the
             // print render gets a synchronous banner of its own and never the async path (issue #323)
             if (isPrintRender(ctx.containerEl)) {
@@ -461,24 +475,10 @@ export class PixelBannerPlugin extends Plugin {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (!activeView || !activeView.file) return false;
 
-                // Get the current banner settings and check all possible banner fields
-                const frontmatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
-                let hasBanner = false;
+                if (checking) return true;
 
-                // Check all custom banner fields
-                for (const field of this.settings.customBannerField) {
-                    if (frontmatter?.[field]) {
-                        hasBanner = true;
-                        break;
-                    }
-                }
-                
-                if (checking) return hasBanner;
-
-                if (hasBanner) {
-                    // Bind this context explicitly
-                    handleSetBannerIconImage(this);
-                }
+                // Bind this context explicitly
+                handleSetBannerIconImage(this);
                 return true;
             }
         });
@@ -491,24 +491,10 @@ export class PixelBannerPlugin extends Plugin {
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (!activeView || !activeView.file) return false;
 
-                // Get the current banner settings and check all possible banner fields
-                const frontmatter = this.app.metadataCache.getFileCache(activeView.file)?.frontmatter;
-                let hasBanner = false;
+                if (checking) return true;
 
-                // Check all custom banner fields
-                for (const field of this.settings.customBannerField) {
-                    if (frontmatter?.[field]) {
-                        hasBanner = true;
-                        break;
-                    }
-                }
-                
-                if (checking) return hasBanner;
-
-                if (hasBanner) {
-                    // Bind this context explicitly
-                    handleSetBannerIcon(this);
-                }
+                // Bind this context explicitly
+                handleSetBannerIcon(this);
                 return true;
             }
         });
@@ -519,13 +505,13 @@ export class PixelBannerPlugin extends Plugin {
             name: '🎯 Adjust Position, Size, & Style',
             checkCallback: (checking) => {
                 const activeFile = this.app.workspace.getActiveFile();
-                const hasBanner = activeFile && this.hasBannerFrontmatter(activeFile);
-                
+                const hasBannerOrIcon = activeFile && this.hasBannerOrIcon(activeFile);
+
                 if (checking) {
-                    return hasBanner;
+                    return hasBannerOrIcon;
                 }
 
-                if (hasBanner) {
+                if (hasBannerOrIcon) {
                     new TargetPositionModal(
                         this.app,
                         this,
@@ -548,7 +534,8 @@ export class PixelBannerPlugin extends Plugin {
                 const leaf = this.app.workspace.activeLeaf;
                 if (leaf && leaf.view instanceof MarkdownView) {
                     const contentEl = leaf.view.contentEl;
-                    const hasBanner = contentEl.querySelector('.pixel-banner-image');
+                    // Icon-only notes have an overlay but no banner element
+                    const hasBanner = contentEl.querySelector('.pixel-banner-image, .banner-icon-overlay');
                     if (hasBanner) {
                         const file = leaf.view.file;
                         const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
@@ -589,9 +576,9 @@ export class PixelBannerPlugin extends Plugin {
     debouncedEnsureBanner = debounce(() => {
         const activeLeaf = this.app.workspace.activeLeaf;
         if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
-            // Only update if we have a banner
+            // Only update if we have a banner (or an icon-only overlay)
             const contentEl = activeLeaf.view.contentEl;
-            const hasBanner = contentEl.querySelector('.pixel-banner-image');
+            const hasBanner = contentEl.querySelector('.pixel-banner-image, .banner-icon-overlay');
             if (hasBanner) {
                 this.updateBanner(activeLeaf.view, false);
             }
