@@ -1286,3 +1286,9 @@
 .pixel-banner-target-icon-only .pixel-banner-banner-only {
     display: none !important;
 }
+
+/* The Content Start slider is sized by the banner preview beside it (flex: 1). With the preview
+   hidden it collapses to nothing and cannot be dragged, so give it a height of its own */
+.pixel-banner-target-icon-only .content-start-position-slider {
+    min-height: 220px;
+}
