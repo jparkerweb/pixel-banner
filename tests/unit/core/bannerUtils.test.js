@@ -15,6 +15,8 @@ import {
     getRandomImageFromFolder, 
     getActiveApiProvider, 
     hasBannerFrontmatter, 
+    hasBannerSource,
+    hasBannerOrIcon,
     createFolderImageSettings 
 } from '@/core/bannerUtils.js';
 import { createMockApp, TFile, TFolder } from 'obsidian';
@@ -848,6 +850,98 @@ describe('bannerUtils', () => {
             
             const result = hasBannerFrontmatter.call(testContext, mockFile);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('hasBannerSource and hasBannerOrIcon', () => {
+        let ctx;
+        let frontmatter;
+        const file = new TFile('notes/test.md');
+
+        beforeEach(() => {
+            frontmatter = {};
+            testContext.app.metadataCache.getFileCache = vi.fn(() => ({ frontmatter }));
+            testContext.settings.folderImages = [];
+            testContext.settings.customBannerShuffleField = ['banner-shuffle'];
+            testContext.settings.customBannerIconField = ['icon'];
+            testContext.settings.customBannerIconImageField = ['icon-image'];
+            ctx = { ...testContext };
+            ctx.getFolderSpecificImage = getFolderSpecificImage.bind(ctx);
+            ctx.hasBannerFrontmatter = hasBannerFrontmatter.bind(ctx);
+            ctx.hasBannerSource = hasBannerSource.bind(ctx);
+        });
+
+        const source = () => hasBannerSource.call(ctx, file);
+        const sourceOrIcon = () => hasBannerOrIcon.call(ctx, file);
+
+        it('counts a banner field in the note', () => {
+            frontmatter = { banner: 'image.jpg' };
+            expect(source()).toBe(true);
+            expect(sourceOrIcon()).toBe(true);
+        });
+
+        it('counts an empty banner field, as hasBannerFrontmatter does', () => {
+            frontmatter = { banner: null };
+            expect(source()).toBe(true);
+            expect(sourceOrIcon()).toBe(true);
+        });
+
+        it('counts a shuffle field', () => {
+            frontmatter = { 'banner-shuffle': 'images' };
+            expect(source()).toBe(true);
+            expect(sourceOrIcon()).toBe(true);
+        });
+
+        it('counts a folder image', () => {
+            testContext.settings.folderImages = [
+                { folder: 'notes', image: 'folder-banner.jpg', directChildrenOnly: false, enableImageShuffle: false }
+            ];
+            expect(source()).toBe(true);
+            expect(sourceOrIcon()).toBe(true);
+        });
+
+        it('counts a folder shuffle folder', () => {
+            testContext.settings.folderImages = [
+                { folder: 'notes', image: '', directChildrenOnly: false, enableImageShuffle: true, shuffleFolder: 'images' }
+            ];
+            expect(source()).toBe(true);
+            expect(sourceOrIcon()).toBe(true);
+        });
+
+        it('ignores a folder entry with no image and no enabled shuffle', () => {
+            testContext.settings.folderImages = [
+                { folder: 'notes', image: '', directChildrenOnly: false, enableImageShuffle: false, shuffleFolder: 'images' }
+            ];
+            expect(source()).toBe(false);
+        });
+
+        it('has no banner source for an icon alone, but counts it as an icon', () => {
+            frontmatter = { icon: '🌟' };
+            expect(source()).toBe(false);
+            expect(sourceOrIcon()).toBe(true);
+        });
+
+        it('counts an icon image alone as an icon', () => {
+            frontmatter = { 'icon-image': 'images/icon.png' };
+            expect(source()).toBe(false);
+            expect(sourceOrIcon()).toBe(true);
+        });
+
+        it('does not count a whitespace-only icon', () => {
+            frontmatter = { icon: '   ', 'icon-image': ' ' };
+            expect(sourceOrIcon()).toBe(false);
+        });
+
+        it('is false for a note with nothing', () => {
+            frontmatter = { title: 'Test Note' };
+            expect(source()).toBe(false);
+            expect(sourceOrIcon()).toBe(false);
+        });
+
+        it('is false for a note with no frontmatter', () => {
+            testContext.app.metadataCache.getFileCache = vi.fn(() => null);
+            expect(source()).toBe(false);
+            expect(sourceOrIcon()).toBe(false);
         });
     });
 

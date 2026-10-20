@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TargetPositionModal } from '@/modal/modals/targetPositionModal.js';
 import { DEFAULT_SETTINGS } from '@/settings/settings.js';
+import { getIconOnlyContentStart } from '@/core/headerMode.js';
 import { createMockApp, createMockPlugin } from 'obsidian';
 
 // The Target Position modal's confetti row: what it says for the note's
@@ -19,6 +20,8 @@ describe('TargetPositionModal confetti status row', () => {
         app.vault.config = { showInlineTitle: true };
         plugin = createMockPlugin(app);
         plugin.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+        plugin.hasBannerSource = vi.fn(() => true);
+        plugin.getFolderSpecificImage = vi.fn(() => null);
         vi.useFakeTimers();
     });
 
@@ -96,6 +99,8 @@ describe('TargetPositionModal style element', () => {
         app.vault.config = { showInlineTitle: true };
         plugin = createMockPlugin(app);
         plugin.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+        plugin.hasBannerSource = vi.fn(() => true);
+        plugin.getFolderSpecificImage = vi.fn(() => null);
         vi.useFakeTimers();
     });
 
@@ -141,6 +146,8 @@ describe('TargetPositionModal start values', () => {
         app.vault.config = { showInlineTitle: true };
         plugin = createMockPlugin(app);
         plugin.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+        plugin.hasBannerSource = vi.fn(() => true);
+        plugin.getFolderSpecificImage = vi.fn(() => null);
         vi.useFakeTimers();
     });
 
@@ -182,5 +189,218 @@ describe('TargetPositionModal start values', () => {
         const buttons = [...modal.contentEl.querySelectorAll('button')].map(button => button.textContent);
 
         expect(buttons).toContain('📝 Edit Icon Text & Emoji');
+    });
+});
+
+// The max width control's readable checkbox: it writes "readable", starts
+// checked for a readable note, and never sits checked beside unset
+describe('TargetPositionModal max width readable', () => {
+    let app;
+    let plugin;
+    let frontmatter;
+
+    beforeEach(() => {
+        frontmatter = {};
+        app = createMockApp();
+        app.workspace.getActiveFile = vi.fn(() => ({ path: 'note.md', basename: 'note' }));
+        app.workspace.getActiveViewOfType = vi.fn(() => null);
+        app.metadataCache.getFileCache = vi.fn(() => ({ frontmatter }));
+        app.vault.config = { showInlineTitle: true };
+        plugin = createMockPlugin(app);
+        plugin.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+        plugin.hasBannerSource = vi.fn(() => true);
+        plugin.getFolderSpecificImage = vi.fn(() => null);
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    async function openModal() {
+        const modal = new TargetPositionModal(app, plugin, vi.fn());
+        const setup = modal.setupUI(modal.contentEl);
+        await vi.advanceTimersByTimeAsync(400);
+        await setup;
+        const el = modal.contentEl;
+        return {
+            modal,
+            unset: el.querySelector('.unset-checkbox'),
+            readable: el.querySelector('.readable-checkbox'),
+            slider: el.querySelector('.max-width-slider'),
+            display: el.querySelector('.max-width-value')
+        };
+    }
+
+    function toggle(checkbox, checked) {
+        checkbox.checked = checked;
+        checkbox.dispatchEvent(new Event('change'));
+    }
+
+    it('writes readable when the readable checkbox is checked', async () => {
+        const { unset, readable, slider, display } = await openModal();
+        expect(unset.checked).toBe(true);
+        expect(readable.checked).toBe(false);
+
+        toggle(readable, true);
+
+        expect(frontmatter['banner-max-width']).toBe('readable');
+        expect(unset.checked).toBe(false);
+        expect(slider.disabled).toBe(true);
+        expect(slider.style.opacity).toBe('0.5');
+        expect(display.textContent).toBe('readable');
+    });
+
+    it('opens a readable note with readable checked and the slider disabled', async () => {
+        frontmatter['banner-max-width'] = ' Readable ';
+
+        const { modal, unset, readable, slider, display } = await openModal();
+
+        expect(modal.isMaxWidthReadable).toBe(true);
+        expect(modal.currentMaxWidth).toBe(1928);
+        expect(readable.checked).toBe(true);
+        expect(unset.checked).toBe(false);
+        expect(slider.disabled).toBe(true);
+        expect(display.textContent).toBe('readable');
+    });
+
+    it('unchecks readable when unset is checked, and the other way round', async () => {
+        const { unset, readable, slider, display } = await openModal();
+
+        toggle(readable, true);
+        expect(unset.checked).toBe(false);
+
+        toggle(unset, true);
+        expect(readable.checked).toBe(false);
+        expect('banner-max-width' in frontmatter).toBe(false);
+        expect(display.textContent).toBe('unset');
+
+        toggle(readable, true);
+        expect(unset.checked).toBe(false);
+        expect(frontmatter['banner-max-width']).toBe('readable');
+
+        // Unchecking readable with unset also off goes back to the slider value
+        toggle(readable, false);
+        expect(slider.disabled).toBe(false);
+        expect(frontmatter['banner-max-width']).toBe(1928);
+        expect(display.textContent).toBe('1928px');
+    });
+
+    it('reset leaves readable unchecked and unset checked', async () => {
+        frontmatter['banner-max-width'] = 'readable';
+        const { modal, unset, readable, display } = await openModal();
+        expect(readable.checked).toBe(true);
+
+        modal.resetPixelBannerNoteSettings();
+
+        expect(readable.checked).toBe(false);
+        expect(unset.checked).toBe(true);
+        expect(display.textContent).toBe('unset');
+        expect('banner-max-width' in frontmatter).toBe(false);
+    });
+});
+
+// A note with no banner source: the modal hides the banner-only controls and starts content
+// start from the value the note uses
+describe('TargetPositionModal icon-only mode', () => {
+    let app;
+    let plugin;
+    let frontmatter;
+    let hasSource;
+
+    beforeEach(() => {
+        frontmatter = { icon: '🌟' };
+        hasSource = false;
+        app = createMockApp();
+        app.workspace.getActiveFile = vi.fn(() => ({ path: 'note.md', basename: 'note' }));
+        app.workspace.getActiveViewOfType = vi.fn(() => null);
+        app.metadataCache.getFileCache = vi.fn(() => ({ frontmatter }));
+        app.vault.config = { showInlineTitle: true };
+        plugin = createMockPlugin(app);
+        plugin.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+        plugin.hasBannerSource = vi.fn(() => hasSource);
+        plugin.getFolderSpecificImage = vi.fn(() => null);
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    async function openModal() {
+        const modal = new TargetPositionModal(app, plugin, vi.fn());
+        const setup = modal.setupUI(modal.contentEl);
+        await vi.advanceTimersByTimeAsync(400);
+        await setup;
+        return modal;
+    }
+
+    const BANNER_ONLY = [
+        '.banner-image-header',
+        '.banner-image-header-buttons',
+        '.control-panel',
+        '.max-width-container',
+        '.height-container',
+        '.target-container'
+    ];
+
+    it('marks the modal and every banner-only control', async () => {
+        const modal = await openModal();
+
+        expect(modal.modalEl.classList.contains('pixel-banner-target-icon-only')).toBe(true);
+        for (const selector of BANNER_ONLY) {
+            expect(modal.contentEl.querySelector(selector).classList.contains('pixel-banner-banner-only'), selector).toBe(true);
+        }
+        const marked = [...modal.contentEl.querySelectorAll('.pixel-banner-banner-only')];
+        expect(marked.some(el => el.textContent.includes('Banner Alignment'))).toBe(true);
+        expect(marked).toHaveLength(BANNER_ONLY.length + 1);
+    });
+
+    it('leaves the content start and icon controls visible', async () => {
+        const modal = await openModal();
+
+        for (const selector of ['.content-start-position-container', '.main-container--banner-icon']) {
+            expect(modal.contentEl.querySelectorAll(selector).length, selector).toBeGreaterThan(0);
+            for (const el of modal.contentEl.querySelectorAll(selector)) {
+                expect(el.classList.contains('pixel-banner-banner-only'), selector).toBe(false);
+            }
+        }
+    });
+
+    it('starts content start at the computed compact value, not the global setting', async () => {
+        const expected = getIconOnlyContentStart(plugin, frontmatter, null);
+        const modal = await openModal();
+
+        expect(expected).not.toBe(plugin.settings.contentStartPosition);
+        expect(modal.currentContentStartPosition).toBe(expected);
+        expect(modal.contentEl.querySelector('.content-start-position-value').textContent).toBe(`${expected}px`);
+    });
+
+    it('starts content start at its own value when the note has one', async () => {
+        frontmatter['content-start'] = 120;
+        const modal = await openModal();
+
+        expect(modal.contentEl.querySelector('.content-start-position-value').textContent).toBe('120px');
+    });
+
+    it('shows the computed value again after a reset', async () => {
+        frontmatter['content-start'] = 120;
+        const modal = await openModal();
+
+        modal.resetPixelBannerNoteSettings();
+
+        const expected = getIconOnlyContentStart(plugin, {}, null);
+        expect(modal.contentEl.querySelector('.content-start-position-value').textContent).toBe(`${expected}px`);
+        expect(modal.contentEl.querySelector('.content-start-position-slider').value).toBe(String(expected));
+    });
+
+    it('hides nothing on a note with a banner', async () => {
+        hasSource = true;
+        const modal = await openModal();
+
+        expect(modal.modalEl.classList.contains('pixel-banner-target-icon-only')).toBe(false);
+        expect(modal.contentEl.querySelectorAll('.pixel-banner-banner-only')).toHaveLength(0);
+        expect(modal.contentEl.querySelector('.content-start-position-value').textContent)
+            .toBe(`${plugin.settings.contentStartPosition}px`);
     });
 });

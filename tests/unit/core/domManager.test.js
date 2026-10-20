@@ -173,6 +173,49 @@ describe('domManager', () => {
             expect(mockPlugin.debouncedEnsureBanner).toHaveBeenCalled();
         });
 
+        // Icon-only notes (issues #322, #238) have no banner element: losing the icon
+        // overlay re-ensures them, but only there, so banner notes never loop on overlay churn
+        describe('icon overlay removal', () => {
+            let callback;
+
+            beforeEach(() => {
+                callback = vi.fn();
+                MutationObserver.mockImplementation((cb) => {
+                    callback.mockImplementation(cb);
+                    return { observe: vi.fn(), disconnect: vi.fn(), takeRecords: vi.fn(() => []) };
+                });
+                setupMutationObserver.call(mockPlugin);
+            });
+
+            function removeOverlayFrom(viewClass) {
+                mockContentEl.className = `view-content ${viewClass}`;
+                const sizer = document.createElement('div');
+                sizer.className = 'cm-sizer';
+                mockContentEl.appendChild(sizer);
+                const overlay = document.createElement('div');
+                overlay.className = 'banner-icon-overlay';
+                callback([{ type: 'childList', target: sizer, removedNodes: [overlay], addedNodes: [] }]);
+            }
+
+            it('re-ensures when the overlay leaves an icon-only view', () => {
+                removeOverlayFrom('pixel-banner-icon-only');
+
+                expect(mockPlugin.debouncedEnsureBanner).toHaveBeenCalled();
+            });
+
+            it('ignores an overlay leaving a banner view', () => {
+                removeOverlayFrom('pixel-banner');
+
+                expect(mockPlugin.debouncedEnsureBanner).not.toHaveBeenCalled();
+            });
+
+            it('keeps the icon-only class when no banner element is present', () => {
+                removeOverlayFrom('pixel-banner-icon-only');
+
+                expect(mockContentEl.classList.contains('pixel-banner-icon-only')).toBe(true);
+            });
+        });
+
         it('should re-ensure on mode-switch structural change (cm-sizer added)', () => {
             const callback = vi.fn();
             MutationObserver.mockImplementation((cb) => {

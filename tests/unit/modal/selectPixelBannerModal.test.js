@@ -67,6 +67,7 @@ describe('SelectPixelBannerModal', () => {
         plugin.pixelBannerPlusTimeLeft = '24:00:00';
         plugin.saveSettings = vi.fn().mockResolvedValue();
         plugin.hasBannerFrontmatter = vi.fn().mockReturnValue(false);
+        plugin.hasBannerOrIcon = vi.fn().mockReturnValue(false);
         plugin.verifyPixelBannerPlusCredentials = vi.fn().mockResolvedValue({
             verified: true,
             serverOnline: true,
@@ -229,7 +230,7 @@ describe('SelectPixelBannerModal', () => {
 
         it('removes the icon under a second configured name when the emoji is cleared', async () => {
             plugin.settings.customBannerIconField = ['banner-icon', 'icon'];
-            plugin.hasBannerFrontmatter.mockReturnValue(true);
+            plugin.hasBannerOrIcon.mockReturnValue(true);
             frontmatter = { banner: '[[images/pic.png]]', icon: '🌟' };
             await modal.onOpen();
 
@@ -239,4 +240,48 @@ describe('SelectPixelBannerModal', () => {
             expect(frontmatter).toEqual({ banner: '[[images/pic.png]]' });
         });
     });
+    describe('customization buttons', () => {
+        const button = (text) => [...modal.contentEl.querySelectorAll('button.pixel-banner-customize-button')]
+            .find(b => b.textContent.includes(text));
+        const message = () => modal.contentEl.querySelector('.pixel-banner-no-banner-message');
+
+        it('enables all three on a note with a banner and shows no message', async () => {
+            plugin.hasBannerOrIcon.mockReturnValue(true);
+            await modal.onOpen();
+
+            expect(button('Icon Image').disabled).toBe(false);
+            expect(button('Icon Emoji & Text').disabled).toBe(false);
+            expect(button('Position, Size').disabled).toBe(false);
+            expect(message()).toBeNull();
+        });
+
+        it('enables all three on a note with only an icon', async () => {
+            plugin.hasBannerOrIcon.mockReturnValue(true);
+            plugin.hasBannerFrontmatter.mockReturnValue(false);
+            await modal.onOpen();
+
+            expect(button('Position, Size').disabled).toBe(false);
+            expect(button('Icon Image').disabled).toBe(false);
+            expect(message()).toBeNull();
+        });
+
+        it('keeps the icon buttons on and disables Position, Size & Style on a note with neither', async () => {
+            await modal.onOpen();
+
+            expect(button('Icon Image').disabled).toBe(false);
+            expect(button('Icon Emoji & Text').disabled).toBe(false);
+            expect(button('Position, Size').disabled).toBe(true);
+            expect(button('Position, Size').title).toBe('Add a banner or an icon first');
+            expect(message().textContent).toBe('Add a banner or an icon to adjust position, size and style.');
+        });
+
+        it('opens the emoji modal from a note with no banner', async () => {
+            await modal.onOpen();
+
+            button('Icon Emoji & Text').click();
+
+            expect(opened.emojiSelection).toEqual(expect.any(Function));
+        });
+    });
+
 });

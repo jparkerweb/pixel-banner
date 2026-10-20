@@ -1,4 +1,5 @@
 import { MarkdownView } from 'obsidian';
+import { getFieldNames } from './fieldRegistry.js';
 
 // Whether the value has the shape of a Markdown image or link, ![alt](target) or
 // [text](target), even with an empty target: an empty link shows no banner, it
@@ -429,6 +430,32 @@ function hasBannerFrontmatter(file) {
     );
 }
 
+// Whether the note gets a banner from any source: a banner field, a shuffle field, or its folder's
+// settings (an image or an enabled shuffle folder). hasBannerFrontmatter() alone means only "this
+// note names a banner"
+function hasBannerSource(file) {
+    if (this.hasBannerFrontmatter(file)) return true;
+
+    const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+    if (frontmatter && getFieldNames(this, 'shuffle').some(field => frontmatter[field])) return true;
+
+    const folderImage = this.getFolderSpecificImage(file.path);
+    return !!(folderImage && (folderImage.image || (folderImage.enableImageShuffle && folderImage.shuffleFolder)));
+}
+
+// Whether the note has a banner source or an icon, the condition for the Position, Size & Style
+// button and command now that a note can show an icon without a banner
+function hasBannerOrIcon(file) {
+    if (this.hasBannerSource(file)) return true;
+
+    const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+    if (!frontmatter) return false;
+
+    return ['icon', 'iconImage'].some(id => getFieldNames(this, id).some(field => {
+        const value = frontmatter[field];
+        return typeof value === 'string' ? value.trim().length > 0 : (value !== undefined && value !== null && value !== false);
+    }));
+}
 
 // Helper method to create folder image settings object
 function createFolderImageSettings(folderImage) {
@@ -462,6 +489,8 @@ export {
     getFolderSpecificImage, 
     getRandomImageFromFolder, 
     getActiveApiProvider, 
-    hasBannerFrontmatter, 
-    createFolderImageSettings 
+    hasBannerFrontmatter,
+    hasBannerSource,
+    hasBannerOrIcon,
+    createFolderImageSettings
 };

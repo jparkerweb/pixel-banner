@@ -2,6 +2,26 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.7.3 - 2026-10-19
+#### ✨ Added
+- **Icon-only headers** (issues #322, #238): a note with `banner-icon` or `banner-icon-image` and no banner now shows its icon as a compact header, with the content starting below it (`content-start` still wins). A banner path that gives no image falls back to the icon too. Works in reading and editing view, in embedded notes (unless *Hide Embedded Note Banners* is on) and in Export to PDF
+  - New `src/core/headerMode.js` (pure, no DOM): `getHeaderMode()` (banner, icon-only or none), `getIconLayoutVars()`, `getIconOnlyContentStart()` (16 px inset and gap, or the note's own content start), `resolveMaxWidth()`, `maxWidthCssValue()` and `resolveHideEmbeddedBanners()`. Tests in `tests/unit/core/headerMode.test.js`
+  - `updateBanner()` routes each main pane on its header mode through `clearHeaderLayout()` and `applyIconOnlyLayout()`, and embeds through `applyEmbedIconOnlyLayout()`; only `.view-content` panes get header modes, so the post processor's embed stand-ins keep their old path
+  - `addPixelBanner()` now resolves to whether it showed an image (`false` for a broken banner path), which is how a broken banner falls back to the icon
+  - Export to PDF: `addPrintBanner()` falls back to `addPrintIconOnly()` (a `div.pixel-banner-print.pixel-banner-print-icon-only` holding the cloned pane icon, in normal flow); the post processor lets notes with an icon and no banner through, but not hover popovers
+  - New CSS: `pixel-banner-icon-only` (pane and embed), `pixel-banner-print-icon-only`, `pixel-banner-target-icon-only` and `pixel-banner-banner-only` (the modal), `pixel-banner-setting-inactive`, `pixel-banner-no-position-transition`, and `--pixel-banner-readable-width`
+- **Icons and Position, Size, & Style without a banner**: the Select modal's icon buttons and commands work on any note, Position, Size & Style opens for a note with only an icon (banner-only controls hidden), and setting an icon through the emoji modal opens it
+  - `hasBannerSource()` and `hasBannerOrIcon()` (`bannerUtils.js`, bound on the plugin) gate the Select modal's icon buttons, the icon commands and Position, Size & Style; `TargetPositionModal` has an icon-only mode (`isIconOnly`, `pixel-banner-target-icon-only` with `pixel-banner-banner-only` on the banner controls), and `EmojiSelectionModal` opens it after an icon is saved on a banner-less note
+- **Match readable line length** (issue #267): new global setting (default off) and `banner-max-width: readable` per note, a `readable` checkbox in Position, Size, & Style; the banner then matches the note's text column. A numeric string such as `720px` is now read as 720
+  - Setting `bannerMaxWidthReadable` (default false); `banner-max-width: readable` and the toggle resolve to `var(--pixel-banner-readable-width, none)`, defined as `var(--file-line-width)` on readable-width views, so the cap is `none` when Readable line length is off. The slider is disabled and carries `pixel-banner-setting-inactive` while the toggle is on
+- **Animate banner position changes** (issue #226): new global setting (default on) to turn off the half second slide when the focal point changes; reduced motion is honoured
+  - Setting `bannerPositionTransition` (default true); `applyBannerSettings()` toggles `pixel-banner-no-position-transition` on the banner element, and a `prefers-reduced-motion: reduce` block turns the slide off
+
+#### 🔧 Changed
+- **Icon overlay styled by CSS variables only**: the overlay no longer carries inline styles; it reads `--pixel-banner-icon-*` from the view, and an unchanged icon is no longer rebuilt on every update (`shouldUpdateIconOverlay()` compares the state it was built from)
+  - The overlay is created per sizer without needing a banner element and inserted with `insertPersistentElement()` (with the `setChildrenInPlace` override installed on icon-only sizers); the `margin-top` rule was `calc(var(--pixel-banner-icon-vertical-offset, 0) * 1px)` on a variable that already carries `px`, which inline styles had hidden, and is now `var(--pixel-banner-icon-vertical-offset, 0px)`
+- **Print render** icon variables now written on the `.pixel-banner-print` wrapper, because the cloned overlay has no inline styles
+
 ### v3.7.2 - 2026-10-18
 #### ✨ Added
 - **Popover Banner Max Height** (issue #342): new global setting `popoverBannerMaxHeight` (default 150, 0-1280) in General settings, after *Show Banner in Popover Previews*, with a reset button

@@ -19,6 +19,15 @@ global.TargetPositionModal = vi.fn(() => ({
     open: vi.fn()
 }));
 
+// The modal opens the position modal imported from modals.js; record those opens
+const positionModal = vi.hoisted(() => ({ opened: 0 }));
+vi.mock('@/modal/modals.js', async (importOriginal) => ({
+    ...(await importOriginal()),
+    TargetPositionModal: class {
+        open() { positionModal.opened++; }
+    }
+}));
+
 describe('EmojiSelectionModal (simplified)', () => {
     let mockApp;
     let mockPlugin;
@@ -65,7 +74,7 @@ describe('EmojiSelectionModal (simplified)', () => {
             updateBanner: vi.fn(() => Promise.resolve()),
             UPDATE_MODE: { FULL_UPDATE: 'full' },
             returnIconOverlay: vi.fn(),
-            hasBannerFrontmatter: vi.fn(() => true)
+            hasBannerOrIcon: vi.fn(() => true)
         };
 
         // Create callback spy
@@ -181,11 +190,58 @@ describe('EmojiSelectionModal (simplified)', () => {
             expect(global.TargetPositionModal).not.toHaveBeenCalled();
         });
 
-        it('should not open targeting modal when no banner exists', () => {
-            mockPlugin.hasBannerFrontmatter.mockReturnValue(false);
+        it('should not open targeting modal when the note has no banner and no icon', () => {
+            mockPlugin.hasBannerOrIcon.mockReturnValue(false);
             modal.onClose();
             
             expect(global.TargetPositionModal).not.toHaveBeenCalled();
+        });
+
+        describe('on a note with no banner', () => {
+            beforeEach(() => {
+                vi.useFakeTimers();
+                positionModal.opened = 0;
+                mockPlugin.hasBannerOrIcon.mockReturnValue(false);
+                mockPlugin.settings.openTargetingModalAfterSelectingBannerOrIcon = true;
+            });
+
+            afterEach(() => {
+                vi.useRealTimers();
+            });
+
+            async function clickSet(value) {
+                modal.onOpen();
+                modal.bannerIconInput.value = value;
+                modal.contentEl.querySelector('.set-banner-button').click();
+                await vi.advanceTimersByTimeAsync(1000);
+            }
+
+            it('opens the position modal after an icon is set, before the metadata cache shows it', async () => {
+                await clickSet('🌟');
+
+                expect(positionModal.opened).toBe(1);
+            });
+
+            it('does not open the position modal when removing the last icon leaves nothing to position', async () => {
+                await clickSet('');
+
+                expect(positionModal.opened).toBe(0);
+            });
+
+            it('opens the position modal when the note already has an icon', async () => {
+                mockPlugin.hasBannerOrIcon.mockReturnValue(true);
+                modal.onClose();
+                await vi.advanceTimersByTimeAsync(500);
+
+                expect(positionModal.opened).toBe(1);
+            });
+
+            it('does not open the position modal when nothing was saved and the note has neither', async () => {
+                modal.onClose();
+                await vi.advanceTimersByTimeAsync(500);
+
+                expect(positionModal.opened).toBe(0);
+            });
         });
 
         it('should not open targeting modal when setting is disabled', () => {

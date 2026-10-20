@@ -8,6 +8,7 @@ import { getFrontmatterValue } from '../../utils/frontmatterUtils.js';
 import { getFieldNames, resolveField, writeField, clearField } from '../../core/fieldRegistry.js';
 import { parseConfettiConfig } from '../../utils/confettiUtils.js';
 import { readPresetName } from '../../utils/confettiConfig.js';
+import { getIconOnlyContentStart } from '../../core/headerMode.js';
 
 
 // ---------------------------
@@ -42,13 +43,22 @@ export class TargetPositionModal extends Modal {
         // max-width field
         // Only the note's own value counts here: no value means "unset"
         const maxWidthValue = getFrontmatterValue(frontmatter, getFieldNames(this.plugin, 'maxWidth'));
-        const isMaxWidthUnset = maxWidthValue === undefined || maxWidthValue === null;
+        // "readable" (any case) means match Obsidian's readable line length
+        this.isMaxWidthReadable = typeof maxWidthValue === 'string' && maxWidthValue.trim().toLowerCase() === 'readable';
+        const isMaxWidthUnset = !this.isMaxWidthReadable && (maxWidthValue === undefined || maxWidthValue === null);
 
-        // Get the current value, or use default if unset
+        // Get the current value, or use default if unset or readable
         this.currentMaxWidth = isMaxWidthUnset ? 1928 : (parseInt(maxWidthValue) || 1928);
 
         // content start position field
         this.currentContentStartPosition = resolveField(this.plugin, 'contentStart', frontmatter);
+
+        // A note with no banner source from any place is icon-only: the modal hides the banner
+        // controls and starts content start from the value the note actually uses, not the global 355
+        this.isIconOnly = activeFile ? !this.plugin.hasBannerSource(activeFile) : false;
+        if (this.isIconOnly) {
+            this.currentContentStartPosition = this.getIconOnlyContentStartPosition(frontmatter);
+        }
 
         // banner icon x position field
         this.currentBannerIconXPosition = resolveField(this.plugin, 'iconXPosition', frontmatter);
@@ -77,6 +87,13 @@ export class TargetPositionModal extends Modal {
             this.currentZoom = parseInt(this.currentDisplay) || 100;
             this.currentDisplay = 'cover-zoom';
         }
+    }
+
+    // The content start an icon-only note uses: its own value if set, else the height of the icon header
+    getIconOnlyContentStartPosition(frontmatter) {
+        const activeFile = this.app.workspace.getActiveFile();
+        const folderSpecific = activeFile ? this.plugin.getFolderSpecificImage(activeFile.path) : null;
+        return getIconOnlyContentStart(this.plugin, frontmatter || {}, folderSpecific);
     }
 
     // Helper to update frontmatter with new display value
@@ -315,6 +332,13 @@ export class TargetPositionModal extends Modal {
         modalEl.style.height = "max-content";
         bgEl.style.opacity = "0";
 
+        // An icon-only note has no banner to adjust: styles.css hides every control marked banner-only
+        if (this.isIconOnly) modalEl.addClass('pixel-banner-target-icon-only');
+        const markBannerOnly = (el) => {
+            if (this.isIconOnly) el.addClass('pixel-banner-banner-only');
+            return el;
+        };
+
         // Get current frontmatter
         const activeFile = this.app.workspace.getActiveFile();
         const frontmatter = activeFile ? this.app.metadataCache.getFileCache(activeFile)?.frontmatter || {} : {};
@@ -357,6 +381,8 @@ export class TargetPositionModal extends Modal {
             }
         });
 
+        markBannerOnly(bannerImageHeader);
+
         // banner image header buttons container
         const bannerImageHeaderButtons = bannerImageHeader.createEl('div', {
             cls: 'banner-image-header-buttons',
@@ -369,6 +395,8 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
+
+        markBannerOnly(bannerImageHeaderButtons);
 
         // add Change Image button to bannerImageHeader
         const bannerImageHeaderChangeButton = bannerImageHeaderButtons.createEl('button', {
@@ -451,6 +479,8 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
+
+        markBannerOnly(controlPanel);
 
         // Display mode dropdown
         const displaySelect = controlPanel.createEl('select', { cls: 'display-mode-select' });
@@ -535,6 +565,7 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
+        markBannerOnly(maxWidthContainer);
 
         // Max Width label
         const maxWidthLabel = maxWidthContainer.createEl('div', { 
@@ -550,9 +581,13 @@ export class TargetPositionModal extends Modal {
 
         // Get current max width from frontmatter or set to default
         const maxWidthValue = getFrontmatterValue(frontmatter, getFieldNames(this.plugin, 'maxWidth'));
-        const isMaxWidthUnset = maxWidthValue === undefined || maxWidthValue === null;
+        // "readable" (any case) means match Obsidian's readable line length
+        this.isMaxWidthReadable = typeof maxWidthValue === 'string' && maxWidthValue.trim().toLowerCase() === 'readable';
+        const isMaxWidthUnset = !this.isMaxWidthReadable && (maxWidthValue === undefined || maxWidthValue === null);
+        // The slider is off for both unset and readable
+        const isMaxWidthSliderOff = isMaxWidthUnset || this.isMaxWidthReadable;
 
-        // Get the current value, or use default if unset
+        // Get the current value, or use default if unset or readable
         this.currentMaxWidth = isMaxWidthUnset ? 1928 : (parseInt(maxWidthValue) || 1928);
 
         // Unset checkbox container
@@ -582,6 +617,30 @@ export class TargetPositionModal extends Modal {
             text: 'unset'
         });
 
+        // Readable checkbox container
+        const readableContainer = maxWidthContainer.createDiv({
+            cls: 'readable-container',
+            attr: {
+                style: `
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    margin-bottom: 5px;
+                `
+            }
+        });
+
+        // Readable checkbox (match Obsidian's readable line length)
+        const readableCheckbox = readableContainer.createEl('input', {
+            type: 'checkbox',
+            cls: 'readable-checkbox',
+        });
+        readableCheckbox.checked = this.isMaxWidthReadable;
+
+        readableContainer.createEl('span', {
+            text: 'readable'
+        });
+
         // Max Width value display
         const maxWidthValueDisplay = maxWidthContainer.createDiv({
             cls: 'max-width-value',
@@ -593,7 +652,7 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
-        maxWidthValueDisplay.setText(isMaxWidthUnset ? 'unset' : `${this.currentMaxWidth}px`);
+        maxWidthValueDisplay.setText(isMaxWidthUnset ? 'unset' : (this.isMaxWidthReadable ? 'readable' : `${this.currentMaxWidth}px`));
 
         // Max Width slider
         const maxWidthSlider = maxWidthContainer.createEl('input', {
@@ -604,7 +663,7 @@ export class TargetPositionModal extends Modal {
                 max: '2560',
                 step: '10',
                 value: this.currentMaxWidth,
-                disabled: isMaxWidthUnset,
+                disabled: isMaxWidthSliderOff,
                 draggable: false,
                 style: `
                     width: 15px;
@@ -612,13 +671,13 @@ export class TargetPositionModal extends Modal {
                     flex: 1;
                     writing-mode: vertical-lr;
                     direction: rtl;
-                    ${isMaxWidthUnset ? 'opacity: 0.5;' : ''}
+                    ${isMaxWidthSliderOff ? 'opacity: 0.5;' : ''}
                 `
             }
         });
-        
-        // Ensure the slider is enabled if max-width is set
-        if (!isMaxWidthUnset) {
+
+        // Ensure the slider is enabled if max-width is set to a pixel value
+        if (!isMaxWidthSliderOff) {
             maxWidthSlider.disabled = false;
             maxWidthSlider.style.opacity = '1';
         }
@@ -626,6 +685,10 @@ export class TargetPositionModal extends Modal {
         // Toggle max width unset/set
         unsetCheckbox.addEventListener('change', () => {
             const isUnset = unsetCheckbox.checked;
+            // unset and readable exclude each other
+            if (isUnset) {
+                readableCheckbox.checked = false;
+            }
             maxWidthSlider.disabled = isUnset;
             maxWidthSlider.style.opacity = isUnset ? '0.5' : '1';
             maxWidthValueDisplay.style.color = isUnset ? 'var(--text-muted)' : '';
@@ -634,6 +697,26 @@ export class TargetPositionModal extends Modal {
             if (isUnset) {
                 this.updateBannerMaxWidth('unset');
             } else {
+                this.updateBannerMaxWidth(this.currentMaxWidth);
+            }
+        });
+
+        // Toggle max width readable/set
+        readableCheckbox.addEventListener('change', () => {
+            if (readableCheckbox.checked) {
+                // unset and readable exclude each other
+                unsetCheckbox.checked = false;
+                maxWidthSlider.disabled = true;
+                maxWidthSlider.style.opacity = '0.5';
+                maxWidthValueDisplay.style.color = '';
+                maxWidthValueDisplay.setText('readable');
+                this.updateBannerMaxWidth('readable');
+            } else if (!unsetCheckbox.checked) {
+                // Back to the slider's pixel value
+                maxWidthSlider.disabled = false;
+                maxWidthSlider.style.opacity = '1';
+                maxWidthValueDisplay.style.color = '';
+                maxWidthValueDisplay.setText(`${this.currentMaxWidth}px`);
                 this.updateBannerMaxWidth(this.currentMaxWidth);
             }
         });
@@ -659,6 +742,8 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
+
+        markBannerOnly(heightContainer);
 
         // Height label
         const heightLabel = heightContainer.createEl('div', { 
@@ -718,6 +803,8 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
+
+        markBannerOnly(targetContainer);
 
         // Create container for the target area
         const targetArea = targetContainer.createDiv({
@@ -866,7 +953,8 @@ export class TargetPositionModal extends Modal {
                 `
             }
         });
-        
+        markBannerOnly(bannerSettingsRow2);
+
         // Banner alignment select
         // Alignment label
         bannerSettingsRow2.createEl('div', {
@@ -2809,6 +2897,13 @@ export class TargetPositionModal extends Modal {
             zoomValue.setText('100%');
             heightValue.setText(`${this.plugin.settings.bannerHeight}px`);
             contentStartPositionValue.setText(`${this.plugin.settings.contentStartPosition}px`);
+            if (this.isIconOnly) {
+                // The reset clears the note's own fields, so an icon-only note falls back to the
+                // computed compact value, not the global Content Start setting
+                this.currentContentStartPosition = this.getIconOnlyContentStartPosition({});
+                contentStartPositionSlider.value = this.currentContentStartPosition;
+                contentStartPositionValue.setText(`${this.currentContentStartPosition}px`);
+            }
             bannerIconXPositionValue.setText(`${this.plugin.settings.bannerIconXPosition}`);
             
             // Reset max-width checkbox to checked (default is unset)
@@ -2817,7 +2912,10 @@ export class TargetPositionModal extends Modal {
                 maxWidthValueDisplay.style.color = 'var(--text-muted)';
                 maxWidthValueDisplay.setText('unset');
             }
-            
+            if (readableCheckbox) {
+                readableCheckbox.checked = false;
+            }
+
             // Reset alignment to default (center)
             if (alignmentSelect) {
                 alignmentSelect.value = 'center';

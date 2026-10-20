@@ -22,6 +22,14 @@ function setupMutationObserver() {
                     node.classList && node.classList.contains('pixel-banner-image')
                 );
 
+                // Icon-only notes have no banner element, so losing their icon overlay counts
+                // as a banner removal. Only when it left a pixel-banner-icon-only view, so
+                // banner notes do not re-ensure on overlay churn.
+                const iconOverlayRemoved = removedNodes.some(node =>
+                    node.classList && node.classList.contains('banner-icon-overlay')
+                ) && !!(mutation.target && typeof mutation.target.closest === 'function' &&
+                    mutation.target.closest('.pixel-banner-icon-only'));
+
                 // Only care about mode switches (a new editor sizer appearing), NOT scroll.
                 // The proactive setChildrenInPlace override (bannerManager.js) keeps the banner
                 // in place during reconciliation, so we no longer re-ensure on every
@@ -32,9 +40,10 @@ function setupMutationObserver() {
                     node.classList.contains('cm-sizer')
                 );
 
-                if (bannerRemoved || structuralChange) {
-                    // console.log('🔄 Mutation observer detected change:', { bannerRemoved, structuralChange });
+                if (bannerRemoved || iconOverlayRemoved || structuralChange) {
+                    // console.log('🔄 Mutation observer detected change:', { bannerRemoved, iconOverlayRemoved, structuralChange });
                     // Clean up pixel-banner class if no banner is present
+                    // (pixel-banner-icon-only is never removed here)
                     const activeLeaf = this.app.workspace.activeLeaf;
                     if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
                         const contentEl = activeLeaf.view.contentEl;
@@ -42,8 +51,8 @@ function setupMutationObserver() {
                         if (!hasBanner) {
                             contentEl.classList.remove('pixel-banner');
                         }
-                        // Update banner when banner is removed or structural change occurs
-                        if (bannerRemoved || structuralChange) {
+                        // Update banner when banner or icon-only overlay is removed or structural change occurs
+                        if (bannerRemoved || iconOverlayRemoved || structuralChange) {
                             this.debouncedEnsureBanner();
                         }
                     }

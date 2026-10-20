@@ -6,6 +6,8 @@
 
 import { MarkdownView } from 'obsidian';
 import { getFrontmatterValue } from '../utils/frontmatterUtils.js';
+import { resolveField } from './fieldRegistry.js';
+import { getIconLayoutVars } from './headerMode.js';
 
 
 // ---------------------
@@ -148,6 +150,36 @@ function clonePaneIcon(plugin, file) {
 }
 
 
+// ------------------
+// -- set icon vars --
+// ------------------
+// Plain style.setProperty: Obsidian's setCssProps may not exist on elements of the print document
+function setIconVars(el, vars) {
+    for (const [name, value] of Object.entries(vars)) {
+        el.style.setProperty(name, value);
+    }
+}
+
+
+// -------------------------
+// -- add print icon only --
+// -------------------------
+// An icon-only note's header: the pane's icon at the top of the print render, in normal flow.
+// Returns true when it was added, false without a pane icon to copy
+function addPrintIconOnly(plugin, containerEl, { file, frontmatter, folderSpecific }) {
+    const icon = clonePaneIcon(plugin, file);
+    if (!icon) return false;
+
+    const doc = containerEl.ownerDocument;
+    const wrapper = doc.createElement('div');
+    wrapper.className = 'pixel-banner-print pixel-banner-print-icon-only';
+    wrapper.appendChild(icon.ownerDocument === doc ? icon : doc.importNode(icon, true));
+    setIconVars(wrapper, getIconLayoutVars(plugin, frontmatter, folderSpecific, { mode: 'icon-only' }));
+    containerEl.insertBefore(wrapper, containerEl.firstChild);
+    return true;
+}
+
+
 // ----------------------
 // -- add print banner --
 // ----------------------
@@ -159,8 +191,10 @@ function addPrintBanner(plugin, containerEl, { file, frontmatter, bannerImage })
 
     let wrapper = null;
     try {
-        const source = resolvePrintImageSource(plugin, file, bannerImage);
-        if (!source) return false;
+        const folderSpecific = plugin.getFolderSpecificImage(file.path);
+        // No banner value, or one with no image to print: the icon alone, when the pane has one
+        const source = bannerImage ? resolvePrintImageSource(plugin, file, bannerImage) : null;
+        if (!source) return addPrintIconOnly(plugin, containerEl, { file, frontmatter, folderSpecific });
 
         // The print render has its own document
         const doc = containerEl.ownerDocument;
@@ -182,8 +216,13 @@ function addPrintBanner(plugin, containerEl, { file, frontmatter, bannerImage })
         }
         containerEl.insertBefore(wrapper, containerEl.firstChild);
 
+        // The cloned overlay carries no inline styles: it reads the icon variables from here
+        setIconVars(wrapper, getIconLayoutVars(plugin, frontmatter, folderSpecific, {
+            mode: 'banner',
+            bannerHeight: resolveField(plugin, 'height', frontmatter, folderSpecific)
+        }));
+
         // Same resolution as the hover popover branch of the post processor
-        const folderSpecific = plugin.getFolderSpecificImage(file.path);
         const imageDisplay = getFrontmatterValue(frontmatter, plugin.settings.customImageDisplayField) ||
             folderSpecific?.imageDisplay ||
             plugin.settings.imageDisplay;

@@ -14,7 +14,11 @@ function normalizeColor(color) {
 // Get an overlay from the pool or create a new one
 export function getIconOverlay(plugin) {
     if (plugin.iconOverlayPool.length > 0) {
-        return plugin.iconOverlayPool.pop();
+        // Overlays are styled by CSS variables now; one styled inline by older code carries nothing over
+        const pooled = plugin.iconOverlayPool.pop();
+        pooled.removeAttribute('style');
+        pooled._pixelBannerIconState = null;
+        return pooled;
     }
     const overlay = document.createElement('div');
     overlay.className = 'banner-icon-overlay';
@@ -44,6 +48,14 @@ export function shouldUpdateIconOverlay(plugin, existingOverlay, newIconState, v
         existingOverlay.dataset.viewType !== viewType ||
         existingOverlay.textContent !== newIconState.icon) {
         return true;
+    }
+
+    // An overlay carries no inline styles (it reads the view's CSS variables), so its computed
+    // style cannot be compared with the state: computed opacity is 0.8, not 80%, and colours come
+    // back as rgb(). Compare the state it was built from instead. Replacing an overlay that has not
+    // changed would also re-trigger the observer's icon-only re-ensure on every update
+    if (existingOverlay._pixelBannerIconState) {
+        return JSON.stringify(existingOverlay._pixelBannerIconState) !== JSON.stringify(newIconState);
     }
 
     // Cache computed style

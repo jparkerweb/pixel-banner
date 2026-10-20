@@ -905,6 +905,88 @@ describe('Banner Workflow Integration Tests', () => {
             const hasBanner = container2.querySelector('.pixel-banner-image') !== null;
             expect(hasBanner).toBe(true);
         });
+
+        // FR-3 (issues #322, #238): a pane that switches between banner, icon-only and
+        // plain notes looks exactly like a fresh pane showing the same note
+        it('renders each note in a reused pane exactly as in a fresh pane', async () => {
+            vi.spyOn(plugin, 'loadData').mockResolvedValue({});
+            await plugin.onload();
+            // The real overlay and banner styling: the comparison is about what they leave behind
+            delete plugin.getIconOverlay;
+            delete plugin.shouldUpdateIconOverlay;
+            delete plugin.returnIconOverlay;
+            delete plugin.applyBannerSettings;
+            vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/banner.jpg');
+
+            const notes = {
+                bannerIcon: { banner: 'https://example.com/banner.jpg', icon: '🌟' },
+                iconOnly: { icon: '🦊', 'icon-padding-y': 4 },
+                plain: {}
+            };
+            const frontmatterByPath = new Map();
+            mockApp.metadataCache.getFileCache = vi.fn(file => ({ frontmatter: frontmatterByPath.get(file.path) }));
+            const fileFor = name => {
+                const file = new TFile(`${name}-${Math.random()}.md`);
+                frontmatterByPath.set(file.path, notes[name]);
+                return file;
+            };
+
+            // A pane as Obsidian builds it, with the reading view's .markdown-preview-view
+            function createPane() {
+                const pane = createBannerContainer();
+                const readingView = pane.querySelector('.markdown-reading-view');
+                const previewView = document.createElement('div');
+                previewView.classList.add('markdown-preview-view');
+                previewView.appendChild(readingView.querySelector('.markdown-preview-sizer'));
+                readingView.appendChild(previewView);
+                return pane;
+            }
+
+            function snapshot(contentEl) {
+                const sizers = ['.markdown-preview-sizer', '.cm-sizer'].map(s => contentEl.querySelector(s));
+                const headerVars = el => ({
+                    iconStart: el.style.getPropertyValue('--pixel-banner-icon-start'),
+                    contentStart: el.style.getPropertyValue('--pixel-banner-content-start')
+                });
+                return {
+                    classes: ['pixel-banner', 'pixel-banner-icon-only'].filter(cls => contentEl.classList.contains(cls)),
+                    pane: headerVars(contentEl),
+                    readingView: headerVars(contentEl.querySelector('.markdown-preview-view')),
+                    sourceView: headerVars(contentEl.querySelector(':scope > .markdown-source-view')),
+                    sizerPadding: sizers.map(sizer => sizer.style.paddingTop),
+                    overlays: sizers.map(sizer => sizer.querySelectorAll(':scope > .banner-icon-overlay').length)
+                };
+            }
+
+            // Render, then step Date past the 350 ms throttles before the next render
+            async function render(view, file) {
+                view.file = file;
+                await runUpdate(view, true);
+                await vi.advanceTimersByTimeAsync(400);
+            }
+
+            const expectedClasses = { bannerIcon: ['pixel-banner'], iconOnly: ['pixel-banner-icon-only'], plain: [] };
+
+            for (const mode of ['source', 'preview']) {
+                const viewIn = (testName) => {
+                    const { testView } = createTestView(testName);
+                    testView.contentEl = createPane();
+                    testView.getMode = vi.fn(() => mode);
+                    return testView;
+                };
+                const reused = viewIn(`reused-pane-${mode}`);
+
+                // Ends on the banner note again: what an icon-only note leaves must not reach a banner
+                for (const name of ['bannerIcon', 'iconOnly', 'plain', 'iconOnly', 'bannerIcon']) {
+                    await render(reused, fileFor(name));
+                    const fresh = viewIn(`fresh-${name}-${mode}`);
+                    await render(fresh, fileFor(name));
+
+                    expect(snapshot(reused.contentEl).classes).toEqual(expectedClasses[name]);
+                    expect(snapshot(reused.contentEl)).toEqual(snapshot(fresh.contentEl));
+                }
+            }
+        });
     });
 
     describe('Error Handling in Banner Workflows', () => {
@@ -1222,6 +1304,116 @@ describe('Banner Workflow Integration Tests', () => {
             expect(host.querySelector('.pixel-banner-print')).toBeNull();
             // The embed keeps the path it had before
             expect(updateBannerSpy).toHaveBeenCalledWith(expect.objectContaining({ contentEl: el }), false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+        });
+
+        // Icon-only notes (issues #322, #238): an icon without a banner still reaches the print
+        // render and the reading view, but never a hover popover
+        describe('for a note with an icon and no banner', () => {
+            const iconFrontmatter = { icon: '🌟' };
+
+            // The open pane the print path copies the icon from
+            function openPaneWithIcon() {
+                const contentEl = document.createElement('div');
+                const sizer = document.createElement('div');
+                sizer.classList.add('markdown-preview-sizer');
+                const overlay = document.createElement('div');
+                overlay.classList.add('banner-icon-overlay');
+                overlay.setAttribute('data-persistent', 'true');
+                overlay.textContent = '🌟';
+                sizer.appendChild(overlay);
+                contentEl.appendChild(sizer);
+                mockView.contentEl = contentEl;
+                mockApp.workspace.getLeavesOfType = vi.fn(() => [mockLeaf]);
+            }
+
+            async function load(settings = {}) {
+                vi.spyOn(plugin, 'loadData').mockResolvedValue(settings);
+                registerSpy = spyOnPostProcessors();
+                await plugin.onload();
+                mockApp.vault.getAbstractFileByPath = vi.fn(() => mockFile);
+                mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: iconFrontmatter }));
+            }
+
+            it('prints the icon when the setting is on', async () => {
+                await load();
+                openPaneWithIcon();
+                const el = createPrintContainer();
+                const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+                getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+                const wrapper = el.querySelector(':scope > .pixel-banner-print.pixel-banner-print-icon-only');
+                expect(wrapper).not.toBeNull();
+                expect(wrapper.querySelector('.banner-icon-overlay').textContent).toBe('🌟');
+                expect(wrapper.querySelector('img')).toBeNull();
+                expect(updateBannerSpy).not.toHaveBeenCalled();
+            });
+
+            it('prints nothing when the setting is off', async () => {
+                await load({ includeBannerInPdfExport: false });
+                openPaneWithIcon();
+                const el = createPrintContainer();
+                const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+                getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+                expect(el.querySelector('.pixel-banner-print')).toBeNull();
+                expect(updateBannerSpy).not.toHaveBeenCalled();
+            });
+
+            it('adds nothing to a hover popover', async () => {
+                await load({ ...DEFAULT_SETTINGS, showBannerInPopoverPreviews: true });
+                const popover = document.createElement('div');
+                popover.classList.add('hover-popover');
+                const el = document.createElement('div');
+                popover.appendChild(el);
+                document.body.appendChild(popover);
+                const addPixelBannerSpy = vi.spyOn(plugin, 'addPixelBanner').mockResolvedValue();
+                const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+                getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+                expect(addPixelBannerSpy).not.toHaveBeenCalled();
+                expect(updateBannerSpy).not.toHaveBeenCalled();
+                expect(popover.querySelector('.banner-icon-overlay')).toBeNull();
+                document.body.removeChild(popover);
+            });
+
+            it('updates a regular reading view through updateBanner', async () => {
+                await load();
+                const el = document.createElement('div');
+                el.classList.add('markdown-preview-view', 'markdown-rendered');
+                const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+                getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+                expect(updateBannerSpy).toHaveBeenCalledWith(expect.objectContaining({ contentEl: el }), false, plugin.UPDATE_MODE.ENSURE_VISIBILITY);
+            });
+
+            // An unquoted [[wikilink]] in frontmatter arrives as a nested array
+            it('treats an icon image written as an unquoted wikilink as an icon', async () => {
+                await load();
+                mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { 'icon-image': [['icon.png']] } }));
+                const el = document.createElement('div');
+                el.classList.add('markdown-preview-view', 'markdown-rendered');
+                const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+                getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+                expect(updateBannerSpy).toHaveBeenCalled();
+            });
+
+            it('ignores a note whose icon is blank', async () => {
+                await load();
+                mockApp.metadataCache.getFileCache = vi.fn(() => ({ frontmatter: { icon: '   ' } }));
+                const el = document.createElement('div');
+                el.classList.add('markdown-preview-view', 'markdown-rendered');
+                const updateBannerSpy = vi.spyOn(plugin, 'updateBanner').mockResolvedValue(true);
+
+                getPostProcessor()(el, { containerEl: el, sourcePath: mockFile.path });
+
+                expect(updateBannerSpy).not.toHaveBeenCalled();
+            });
         });
 
         it('still updates a normal reading view through updateBanner', async () => {

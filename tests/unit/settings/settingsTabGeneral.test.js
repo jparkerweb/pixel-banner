@@ -26,6 +26,8 @@ const DEFAULT_SETTINGS = {
     defaultSelectIconPath: '',
     openTargetingModalAfterSelectingBannerOrIcon: false,
     bannerMaxWidth: 1280,
+    bannerMaxWidthReadable: false,
+    bannerPositionTransition: true,
     xPosition: 50,
     yPosition: 50,
     contentStartPosition: 150,
@@ -69,6 +71,8 @@ vi.mock('../../../src/settings/settings.js', () => ({
         defaultSelectIconPath: '',
         openTargetingModalAfterSelectingBannerOrIcon: false,
         bannerMaxWidth: 1280,
+        bannerMaxWidthReadable: false,
+        bannerPositionTransition: true,
         xPosition: 50,
         yPosition: 50,
         contentStartPosition: 150,
@@ -437,6 +441,124 @@ describe('settingsTabGeneral', () => {
             expect(options).toContain('auto');
             expect(options).toContain('cover');
             expect(options).toContain('contain');
+        });
+    });
+
+    // Readable banner width (issue #267)
+    describe('match readable line length setting', () => {
+        const getReadableToggle = () => containerEl
+            .querySelector('[data-name="Match readable line length"]')
+            ?.querySelector('input[type="checkbox"]');
+        const getMaxWidthSetting = () => containerEl.querySelector('[data-name="Banner Max Width"]');
+        const getMaxWidthSlider = () => getMaxWidthSetting().querySelector('input[type="range"]');
+
+        it('should render the toggle off by default with the slider active', () => {
+            createGeneralSettings(containerEl, mockPlugin);
+
+            expect(getReadableToggle()).toBeTruthy();
+            expect(getReadableToggle().checked).toBe(false);
+            expect(getMaxWidthSlider().disabled).toBe(false);
+            expect(getMaxWidthSetting().classList.contains('pixel-banner-setting-inactive')).toBe(false);
+        });
+
+        it('should disable the slider and add the inactive class on display when on', () => {
+            mockPlugin.settings.bannerMaxWidthReadable = true;
+            createGeneralSettings(containerEl, mockPlugin);
+
+            expect(getReadableToggle().checked).toBe(true);
+            expect(getMaxWidthSlider().disabled).toBe(true);
+            expect(getMaxWidthSetting().classList.contains('pixel-banner-setting-inactive')).toBe(true);
+        });
+
+        it('should save, refresh banners and grey out the slider when toggled on', async () => {
+            createGeneralSettings(containerEl, mockPlugin);
+
+            const toggleInput = getReadableToggle();
+            toggleInput.checked = true;
+            toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(mockPlugin.settings.bannerMaxWidthReadable).toBe(true);
+            expect(mockPlugin.saveSettings).toHaveBeenCalled();
+            expect(mockPlugin.updateAllBanners).toHaveBeenCalled();
+            expect(getMaxWidthSlider().disabled).toBe(true);
+            expect(getMaxWidthSetting().classList.contains('pixel-banner-setting-inactive')).toBe(true);
+        });
+
+        it('should re-enable the slider when toggled off', async () => {
+            mockPlugin.settings.bannerMaxWidthReadable = true;
+            createGeneralSettings(containerEl, mockPlugin);
+
+            const toggleInput = getReadableToggle();
+            toggleInput.checked = false;
+            toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(mockPlugin.settings.bannerMaxWidthReadable).toBe(false);
+            expect(getMaxWidthSlider().disabled).toBe(false);
+            expect(getMaxWidthSetting().classList.contains('pixel-banner-setting-inactive')).toBe(false);
+        });
+
+        it('should leave the toggle alone when Banner Max Width is reset', async () => {
+            mockPlugin.settings.bannerMaxWidthReadable = true;
+            createGeneralSettings(containerEl, mockPlugin);
+
+            getMaxWidthSetting().querySelector('[aria-label="Reset to default"]').click();
+
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(mockPlugin.settings.bannerMaxWidthReadable).toBe(true);
+            expect(getReadableToggle().checked).toBe(true);
+        });
+    });
+
+    describe('animate banner position changes setting', () => {
+        it('should render the toggle on by default', () => {
+            createGeneralSettings(containerEl, mockPlugin);
+
+            const setting = containerEl.querySelector('[data-name="Animate banner position changes"]');
+            expect(setting).toBeTruthy();
+            const toggleInput = setting.querySelector('input[type="checkbox"]');
+            expect(toggleInput).toBeTruthy();
+            expect(toggleInput.checked).toBe(true);
+        });
+
+        it('should save the new value and refresh banners when toggled off', async () => {
+            createGeneralSettings(containerEl, mockPlugin);
+
+            const setting = containerEl.querySelector('[data-name="Animate banner position changes"]');
+            const toggleInput = setting.querySelector('input[type="checkbox"]');
+
+            toggleInput.checked = false;
+            toggleInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(mockPlugin.settings.bannerPositionTransition).toBe(false);
+            expect(mockPlugin.saveSettings).toHaveBeenCalled();
+            expect(mockPlugin.updateAllBanners).toHaveBeenCalled();
+        });
+
+        it('should restore the default when its reset button is clicked', async () => {
+            mockPlugin.settings.bannerPositionTransition = false;
+            createGeneralSettings(containerEl, mockPlugin);
+
+            const setting = containerEl.querySelector('[data-name="Animate banner position changes"]');
+            const toggleInput = setting.querySelector('input[type="checkbox"]');
+            expect(toggleInput.checked).toBe(false);
+
+            const resetButton = setting.querySelector('[aria-label="Reset to default"]');
+            expect(resetButton).toBeTruthy();
+            resetButton.click();
+
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect(mockPlugin.settings.bannerPositionTransition).toBe(true);
+            expect(mockPlugin.saveSettings).toHaveBeenCalled();
+            expect(mockPlugin.updateAllBanners).toHaveBeenCalled();
+            expect(toggleInput.checked).toBe(true);
         });
     });
 

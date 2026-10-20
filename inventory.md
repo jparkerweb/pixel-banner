@@ -135,6 +135,25 @@ Pixel Banner is a comprehensive Obsidian plugin that adds customizable banner im
 
 ---
 
+## `/src/core/headerMode.js`
+Pure decisions for banner and icon headers (issues #322, #238, #267): each helper takes plain values (the plugin's settings, a note's frontmatter) and returns a value, with no DOM access.
+
+**Methods**:
+1. **getHeaderMode({ hasBannerSource, imageFailed, icon, iconImage })**  
+   `banner`, `icon-only` or `none`. A banner wins unless its image failed and the note has an icon; an icon with no banner is `icon-only`.
+2. **getIconLayoutVars(plugin, frontmatter, folderSpecific, { mode, bannerHeight })**  
+   The `--pixel-banner-icon-*` variables the overlay reads: straddling the banner's bottom edge in `banner` mode, `ICON_ONLY_INSET_PX` below the top in `icon-only` mode.
+3. **getIconOnlyContentStart(plugin, frontmatter, folderSpecific)**  
+   Where an icon-only note's content starts, in pixels: the note's own content start, else inset + icon height + padding and offsets + `ICON_ONLY_GAP_PX`.
+4. **resolveMaxWidth(plugin, frontmatter)** and **maxWidthCssValue(resolved)**  
+   A note's `readable`, `unset` or pixel value, else the Match readable line length toggle, else the Banner Max Width slider; and its CSS value (`var(--pixel-banner-readable-width, none)` for `readable`).
+5. **resolveHideEmbeddedBanners(plugin, frontmatter, folderSpecific)**  
+   Whether embedded notes drop their banner and icon header.
+
+Tests in `tests/unit/core/headerMode.test.js`.
+
+---
+
 ## `/src/core/fieldRegistry.js`
 The banner field registry: one hand-written entry per `custom*Field` setting, and the functions that read a field's names, resolve its value and write or clear it.
 
@@ -181,7 +200,7 @@ Handles adding and updating "pixel banners" (the large images at the top of note
 1. **addPixelBanner(plugin, el, ctx)**  
    Creates or updates a banner `<div>` in the specified element, adds icons (e.g. view, pin, refresh, set icon). Claims the banner for each render (`bannerDiv._pixelBannerRender`) and stops after each `await` once a newer render or a cleanup has taken it over, so a slow image for a note the pane has left is never painted; the refresh icon claims it the same way, and hiding a banner sets it to `null`. Field values (the embedded-note CSS variables, Image Display and repeat, the select-image flag colour) come from `resolveField` in `fieldRegistry.js`, so embeds honour `banner-fade` and `0` sticks. Both video paths, the first render and the keyword refresh icon, build the `<video>` through one inner `buildBannerVideo(bannerDiv, fileUrl, imageDisplay)`, so a refreshed video keeps Image Display. Tests in `tests/unit/core/bannerManager.embed.test.js` and `tests/unit/core/bannerManager.keywordRefresh.test.js`.
 2. **updateBanner(plugin, view, isContentChange, updateMode)**  
-   Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates. Exported with a trailing 50 ms debounce per pane (keyed by `view.contentEl`; calls within the window merge, and ENSURE_VISIBILITY never replaces a stronger pending mode; returns a promise that resolves once the merged update has run, to `false` when it threw or was skipped as a repeat and `true` otherwise (it never rejects), and a failed update clears the pane's marker so `handleLayoutChange` retries it), and skips a repeat for the same pane and file within 250 ms unless the new call is stronger (a content change after a run without one, or a full update after an `ENSURE_VISIBILITY` run, such as the reading-view post-processor's); both used to be global or per file path, which dropped the update of a second pane showing the same note (issue #207). Records the rendered note on `contentEl._pixelBannerFilePath`. Reads every field value (image display and repeat, height, fade, radius, max width, the icon overlay state) through `resolveField`.
+   Core method to apply or refresh a banner in a particular MarkdownView, with various modes for partial or full updates. Decides the header mode of a main pane (banner, icon-only or none; `clearHeaderLayout()`, `applyIconOnlyLayout()`) and of each embedded note (`applyEmbedIconOnlyLayout()`, skipped when embedded note banners are hidden); the icon overlay needs no banner element and carries no inline styles. Tests in `tests/unit/core/bannerManager.updateBanner.test.js` and `tests/unit/core/bannerManager.embed.test.js`. Exported with a trailing 50 ms debounce per pane (keyed by `view.contentEl`; calls within the window merge, and ENSURE_VISIBILITY never replaces a stronger pending mode; returns a promise that resolves once the merged update has run, to `false` when it threw or was skipped as a repeat and `true` otherwise (it never rejects), and a failed update clears the pane's marker so `handleLayoutChange` retries it), and skips a repeat for the same pane and file within 250 ms unless the new call is stronger (a content change after a run without one, or a full update after an `ENSURE_VISIBILITY` run, such as the reading-view post-processor's); both used to be global or per file path, which dropped the update of a second pane showing the same note (issue #207). Records the rendered note on `contentEl._pixelBannerFilePath`. Reads every field value (image display and repeat, height, fade, radius, max width, the icon overlay state) through `resolveField`.
 3. **applyBannerSettings(plugin, bannerDiv, ctx, isEmbedded)**  
    Applies style-based settings: fade, size, border radius, max-width, alignment, etc., to the banner `<div>`. Exported without a throttle: a shared one dropped the call for a second banner rendered within 350ms (issue #333). A `ctx` without `bannerHeight`, `fade` or `borderRadius` (the markdown post-processors pass none) gets them from frontmatter, folder and global settings instead of writing `undefinedpx`. Every field value comes from `resolveField` (`0` is a real value, `''` falls through to the next step). A banner inside `.hover-popover` is capped at `popoverBannerMaxHeight` by `capPopoverBannerHeight` (issue #342). Tests in `tests/unit/core/bannerManager.applyBannerSettings.test.js`.
 4. **applyContentStartPosition(plugin, el, contentStartPosition)**  
@@ -212,7 +231,7 @@ Adds the banner to Obsidian's Export to PDF render (`.print > .markdown-preview-
 2. **resolvePrintImageSource(plugin, file, bannerImage)**  
    Returns `{ src }` from the image the open pane cached, else a direct URL or a vault image's resource path, else `null` (keywords, `file://` and uncached `mp4`/`mov` files print nothing). A cached video (an `isVideo` entry or a `/media-attachment/` `.mp4`/`.mov` URL) prints the frame from `grabVideoFrame()`, or nothing without one.
 3. **addPrintBanner(plugin, containerEl, { file, frontmatter, bannerImage })**  
-   Inserts `div.pixel-banner-print` with an `<img>` (plus the pane's icon when it has one, with `has-icon` on the wrapper) as the container's first child, once per render, built from the print document, and applies the banner settings to it. Image Display `contain` adds `pixel-banner-print-contain`. Errors are caught and logged; the export always completes.
+   Inserts `div.pixel-banner-print` with an `<img>` (plus the pane's icon when it has one, with `has-icon` on the wrapper) as the container's first child, once per render, built from the print document, and applies the banner settings to it. Image Display `contain` adds `pixel-banner-print-contain`. Without a banner value or a printable image it prints the pane's icon alone (`pixel-banner-print-icon-only`, in normal flow), or nothing without a pane icon. The icon variables are written on the wrapper in both cases, because the cloned overlay has no inline styles. Errors are caught and logged; the export always completes.
 4. **clonePaneIcon(plugin, file)**  
    Returns a copy of the `.banner-icon-overlay` the open pane showing the note already rendered (without `data-persistent`, skipping icons of embedded notes), or `null`.
 5. **grabVideoFrame(plugin, file)**  
@@ -246,6 +265,7 @@ General-purpose utilities for processing banner-related inputs and folder-based 
    Chooses an image-hosting provider, or picks one randomly if the user has selected "all".
 11. **hasBannerFrontmatter(file)**  
    Checks the file's frontmatter for the presence of a banner field.
+   **hasBannerSource(file)** and **hasBannerOrIcon(file)** (bound on the plugin): whether the note gets a banner from a banner field, a shuffle field or a folder entry; and whether it has that or an icon. The second gates the Position, Size, & Style button and command now that a note can show an icon without a banner. Tests in `tests/unit/core/bannerUtils.test.js`.
 12. **createFolderImageSettings(folderImage)**  
    Creates or merges the folder-specific image settings, optionally randomizing if shuffle is enabled.
 13. **isMarkdownLink(input)**  
@@ -275,7 +295,7 @@ Manages DOM observers and watchers to keep banners in sync when Obsidian reflows
 
 **Methods**:
 1. **setupMutationObserver()**  
-   Watches `document.body` for banner removal (safety net to re-ensure the banner) and editor mode switches (a new `.cm-sizer`). Intentionally ignores `.markdown-preview-section` adds (scroll churn), since the `setChildrenInPlace` override keeps the banner in place during reconciliation.
+   Watches `document.body` for banner removal (safety net to re-ensure the banner) and editor mode switches (a new `.cm-sizer`). Also re-ensures an icon overlay removed from a `pixel-banner-icon-only` view (an icon-only note has no banner to watch). Intentionally ignores `.markdown-preview-section` adds (scroll churn), since the `setChildrenInPlace` override keeps the banner in place during reconciliation.
 2. **setupResizeObserver(viewContent)**  
    Attaches a `ResizeObserver` to adjust banner width dynamically when the container changes size.
 3. **updateFieldVisibility(view)**  
@@ -332,6 +352,8 @@ Manages the lifecycle and rendering of confetti/particle effects, one effect per
 
 **Class**: `ConfettiManager` (singleton)
 
+Icon-only mode (`isIconOnly`, a note with an icon and no banner): the modal gets `pixel-banner-target-icon-only` and the banner controls carry `pixel-banner-banner-only`, which `styles.css` hides, leaving content start and the icon controls. Max width has a `readable` checkbox, exclusive with the pixel value (issue #267).
+
 **Key Methods**:
 1. **init(plugin)** / **destroy()** - Registers the visibility listener and an unload cleanup through the plugin; disposes every effect
 2. **mapPosition(position)** - Maps position strings ('top', 'center', etc.) to canvas coordinates
@@ -381,7 +403,7 @@ Defines custom SVG path shapes for confetti particles.
 
 ## `/src/modal/modals/emojiSelectionModal.js`
 **Class**: `EmojiSelectionModal` (extends `Modal`)  
-Lets users pick from an emoji list to set the banner icon.
+Lets users pick from an emoji list to set the banner icon. After an icon is saved on a note with no banner it opens Position, Size, & Style in its icon-only mode (`savedIcon`).
 
 **Key Methods**:
 - **onOpen()**: Renders the modal's search box, emoji grid, and "Set Banner Icon" button.  
@@ -513,6 +535,7 @@ The modal now supports video banners with thumbnails, play icons, proper file ex
 **Description**:  
 - The main selection modal for choosing the banner source type or modification method.
 - Presents different options for banner images based on available features and API status.
+- The icon buttons (Icon Image, Icon Emoji & Text) and their commands work on any note; Position, Size, & Style needs a banner source or an icon (`hasBannerOrIcon()`).
 
 **Key Methods**:
 1. **onOpen()**  
@@ -751,7 +774,7 @@ Contains multiple small modules for organizing plugin settings sub-UI, mostly us
 - **settingsTabFolderImages.js**  
   Manages settings for folder-specific banner overrides. A folder entry without a saved fade starts its fade slider at `DEFAULT_SETTINGS.fade` (-40).  
 - **settingsTabGeneral.js**  
-  Configures general plugin options, including Popover Banner Max Height (`popoverBannerMaxHeight`, issue #342).  
+  Configures general plugin options, including Popover Banner Max Height (`popoverBannerMaxHeight`, issue #342), Match readable line length (`bannerMaxWidthReadable`, greys out the Banner Max Width slider, issue #267) and Animate banner position changes (`bannerPositionTransition`, issue #226).  
 - **settingsTabPixelBannerPlus.js**  
   Contains settings for Pixel Banner Plus authentication and API connection.
 
@@ -922,6 +945,7 @@ Vitest with happy-dom (`vitest.config.js`); `obsidian` and `virtual:release-note
 - `core/bannerManager.setBannerBackground.test.js`: decode-before-swap backgrounds (issue #327)
 - `core/bannerManager.setBannerVideoSource.test.js`: CORS mode for vault banner videos (issue #323)
 - `core/bannerManager.updateBanner.test.js`: `updateBanner` when the pane moves to another note mid-load, banner shuffle sources (a named folder, `banner-shuffle: true`, a folder group), and the invalid-blob release
+- `core/headerMode.test.js`: header modes, icon layout variables, icon-only content start, max width resolution and the hide-embedded lookup
 - `core/bannerUtils.test.js`: `getInputType`, Markdown links, vault blob URLs and folder helpers
 - `core/cacheHelpers.test.js`: cache keys, cleanup, leaf invalidation and the shared blob URL guards
 - `core/confettiManager.test.js`: the per-pane engine, gates, block reasons, particle budget and one-shot release

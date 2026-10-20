@@ -28,6 +28,9 @@ Pixel Banner is a powerful Obsidian plugin that transforms your notes with custo
 - **Appearance Options**: Customize transparency, border radius, animation effects, and spacing for seamless integration.
 - **Display Flexibility**: Choose between display modes (cover, auto, contain) with options for repetition and sizing.
 - **Banner Icons**: Add and customize decorative icons with control over size, position, color, background, and style.
+- **Icons Without a Banner**: Give a note just an icon (emoji, text or image) and it shows as a compact header, in reading view, editing view, embedded notes and PDF export.
+- **Readable Banner Width**: Turn on *Match readable line length* (or set `banner-max-width: readable` on a note) so banners are as wide as the text column.
+- **Position Animation Switch**: Choose whether a banner slides to its new position when you move the focal point (*Animate banner position changes*).
 - **Title Integration**: Style in-line titles with custom colors that complement your banner designs.
 - **Hide Frontmatter**: Automatically hide banner-related fields in reading view for a cleaner look.
 
@@ -103,6 +106,8 @@ Local images from your vault never leave your machine.
     ![3](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/3.jpg)
 
 4. _Optionally_ Add `Icon Emoji & Text` (this can be any text, but it is advised to use an Emoji 🤣)
+
+    A note does not need a banner for this: with only an icon it shows as a compact header at the top of the note.
 
     ![4](https://raw.githubusercontent.com/jparkerweb/pixel-banner/refs/heads/main/img/4.jpg)
 

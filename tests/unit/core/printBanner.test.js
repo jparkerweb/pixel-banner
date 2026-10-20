@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { isPrintRender, resolvePrintImageSource, addPrintBanner, clonePaneIcon, grabVideoFrame } from '@/core/printBanner.js';
 import { getInputType, getPathFromObsidianLink, getPathFromMarkdownImage } from '@/core/bannerUtils.js';
 import { TFile, MarkdownView } from 'obsidian';
+import { DEFAULT_SETTINGS } from '@/settings/settings.js';
 
 // Export to PDF renders the note into .print > .markdown-preview-view (issue #323)
 
@@ -389,6 +390,123 @@ function iconOverlay(content) {
     }
     return overlay;
 }
+
+// Icon-only notes (issues #322, #238): the PDF gets the pane's icon at the top, with no banner
+describe('addPrintBanner for an icon-only note', () => {
+    const note = new TFile('notes/note.md');
+    const frontmatter = { icon: '🌟' };
+    let plugin;
+    let printDocument;
+    let containerEl;
+    let guards;
+
+    beforeEach(() => {
+        plugin = createPlugin();
+        plugin.settings = { ...DEFAULT_SETTINGS };
+        plugin.getFolderSpecificImage = vi.fn(() => null);
+        plugin.applyBannerSettings = vi.fn();
+
+        printDocument = document.implementation.createHTMLDocument('print');
+        const print = printDocument.createElement('div');
+        print.classList.add('print');
+        containerEl = printDocument.createElement('div');
+        containerEl.classList.add('markdown-preview-view', 'markdown-rendered');
+        containerEl.appendChild(printDocument.createElement('p'));
+        print.appendChild(containerEl);
+        printDocument.body.appendChild(print);
+
+        // The print path stays synchronous: no timers, no fetches, no writes to the pane's caches
+        guards = {
+            timeout: vi.spyOn(globalThis, 'setTimeout'),
+            fetch: vi.fn(),
+            cacheSet: vi.spyOn(plugin.loadedImages, 'set'),
+            keywordSet: vi.spyOn(plugin.lastKeywords, 'set')
+        };
+        vi.stubGlobal('fetch', guards.fetch);
+    });
+
+    afterEach(() => {
+        expect(guards.timeout).not.toHaveBeenCalled();
+        expect(guards.fetch).not.toHaveBeenCalled();
+        expect(guards.cacheSet).not.toHaveBeenCalled();
+        expect(guards.keywordSet).not.toHaveBeenCalled();
+        // Only the spies created here: another afterEach may assert on its own
+        guards.timeout.mockRestore();
+        guards.cacheSet.mockRestore();
+        guards.keywordSet.mockRestore();
+        vi.unstubAllGlobals();
+    });
+
+    const add = (bannerImage = null) => addPrintBanner(plugin, containerEl, { file: note, frontmatter, bannerImage });
+
+    it('prints the pane icon as an icon-only wrapper with the icon-only variables', () => {
+        addPane(plugin, note, iconOverlay('🌟'));
+
+        expect(add()).toBe(true);
+
+        const wrapper = containerEl.querySelector(':scope > .pixel-banner-print');
+        expect(containerEl.firstChild).toBe(wrapper);
+        expect(wrapper.classList.contains('pixel-banner-print-icon-only')).toBe(true);
+        expect(wrapper.classList.contains('has-icon')).toBe(false);
+        expect(wrapper.querySelector('img.pixel-banner-print-image')).toBeNull();
+        expect(wrapper.children).toHaveLength(1);
+        const icon = wrapper.firstElementChild;
+        expect(icon.classList.contains('banner-icon-overlay')).toBe(true);
+        expect(icon.textContent).toBe('🌟');
+        expect(icon.ownerDocument).toBe(printDocument);
+        expect(wrapper.style.getPropertyValue('--pixel-banner-icon-start')).toBe('16px');
+        expect(wrapper.style.getPropertyValue('--pixel-banner-icon-translate-y')).toBe('0%');
+        expect(wrapper.style.getPropertyValue('--pixel-banner-icon-size')).toBe(`70px`);
+        expect(plugin.applyBannerSettings).not.toHaveBeenCalled();
+    });
+
+    it('adds nothing when the pane has no icon to copy', () => {
+        addPane(plugin, note, document.createElement('p'));
+
+        expect(add()).toBe(false);
+        expect(containerEl.querySelector('.pixel-banner-print')).toBeNull();
+    });
+
+    it('adds nothing when no pane shows the note', () => {
+        expect(add()).toBe(false);
+        expect(containerEl.querySelector('.pixel-banner-print')).toBeNull();
+    });
+
+    it('adds the header once across several calls', () => {
+        addPane(plugin, note, iconOverlay('🌟'));
+
+        expect(add()).toBe(true);
+        expect(add()).toBe(false);
+        expect(add()).toBe(false);
+
+        expect(containerEl.querySelectorAll(':scope > .pixel-banner-print')).toHaveLength(1);
+    });
+
+    it('falls back to the icon when the banner value gives no image to print', () => {
+        addPane(plugin, note, iconOverlay('🌟'));
+
+        expect(add('mountains')).toBe(true);
+
+        const wrapper = containerEl.querySelector('.pixel-banner-print');
+        expect(wrapper.classList.contains('pixel-banner-print-icon-only')).toBe(true);
+        expect(wrapper.querySelector('img.pixel-banner-print-image')).toBeNull();
+        expect(wrapper.querySelector('.banner-icon-overlay')).not.toBeNull();
+    });
+
+    it('gives a banner wrapper the banner-mode icon variables', () => {
+        plugin.loadedImages.set(note.path, 'blob:cached');
+        guards.cacheSet.mockClear();
+        addPane(plugin, note, iconOverlay('🌟'));
+
+        expect(add('https://example.com/banner.jpg')).toBe(true);
+
+        const wrapper = containerEl.querySelector('.pixel-banner-print');
+        expect(wrapper.classList.contains('pixel-banner-print-icon-only')).toBe(false);
+        expect(wrapper.style.getPropertyValue('--pixel-banner-icon-translate-y')).toBe('-15%');
+        expect(wrapper.style.getPropertyValue('--pixel-banner-icon-start')).toBe('315px');
+        expect(wrapper.style.getPropertyValue('--pixel-banner-icon-size')).toBe(`70px`);
+    });
+});
 
 describe('clonePaneIcon', () => {
     const note = new TFile('notes/note.md');
