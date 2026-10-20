@@ -39,6 +39,14 @@ Resolution order:
 
 Obsidian's child reconciliation (`setChildrenInPlace`) removes injected DOM, so `bannerManager.js` overrides it to keep the banner in place, and `domManager.js` observes only mode switches, not scroll. Read `OBSIDIAN_DOM_LIFECYCLE.md` (repo root) before changing banner insertion, observers or cleanup.
 
+## Header Modes
+
+A note's header is a banner, an icon-only header (an icon and no banner, or a banner that gave no image) or nothing (issues #322, #238). `headerMode.js:getHeaderMode()` decides; `updateBanner()` routes main panes (`.view-content` only) through `clearHeaderLayout()` and `applyIconOnlyLayout()`, and embedded notes through `applyEmbedIconOnlyLayout()` (skipped when embedded note banners are hidden). `addPixelBanner()` resolves to whether it showed an image, which is how a broken banner falls back to the icon.
+
+- The icon overlay needs no banner element and carries no inline styles: it reads the `--pixel-banner-icon-*` variables from the view (`getIconLayoutVars()`), and `shouldUpdateIconOverlay()` compares the state it was built from, never computed styles. Insert it with `insertPersistentElement()`.
+- Icon-only sizers get `padding-top: var(--pixel-banner-content-start)` (`getIconOnlyContentStart()`); embeds put the content start and min height on the embed and its preview view, and the embed's pusher reads it.
+- Export to PDF prints an icon-only note's pane icon in `pixel-banner-print-icon-only`; the post processor lets icon-only notes through, but never hover popovers.
+
 ## Export to PDF
 
 - Obsidian renders the export into a separate, short-lived print document (`.print > .markdown-preview-view`, its own `ownerDocument`) and prints it about 1.1 s later. Main-window timers are held back meanwhile, so anything async (the 50 ms `updateBanner()` path) lands after the print (issues #298, #323)
@@ -87,6 +95,7 @@ class ExampleModal extends Modal {
 |------|---------|
 | `src/core/pixelBannerPlugin.js` | Main entry point; binds module functions onto the plugin |
 | `src/core/bannerManager.js` | Banner creation/updates |
+| `src/core/headerMode.js` | Pure header decisions: header mode (banner, icon-only, none), icon layout variables, icon-only content start, banner max width, hide-embedded lookup |
 | `src/core/printBanner.js` | Synchronous banner for Export to PDF renders |
 | `src/core/bannerUtils.js` | Input type detection, path resolution, `getActiveApiProvider()` |
 | `src/core/domManager.js` | DOM observers, field/embed visibility, leaf cleanup |

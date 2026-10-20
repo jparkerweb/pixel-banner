@@ -4,6 +4,26 @@
 
 ## 🎉 What's New
 
+### v3.7.3
+#### ✨ Added
+- **Icons without a banner** (issues #322, #238): a note can now show just an icon, with no banner image at all
+  - Add an emoji, text or an icon image to a note and the icon appears as a compact header, with the note's content starting just below it
+  - It works in reading view, editing view, notes embedded in other notes (unless *Hide Embedded Note Banners* is on) and Export to PDF (when *Include Banner in PDF Export* is on)
+  - A banner that cannot be loaded now falls back to the note's icon instead of leaving an empty gap
+  - The Select modal's **Icon Image** and **Icon Emoji & Text** buttons, their commands, and **Position, Size, & Style** work on a note that has only an icon; the banner-only controls are hidden there
+  - Set **Content Start Position** (in Position, Size, & Style) on the note to change how far the content sits below the icon
+- **Match readable line length** (issue #267): a new toggle in Settings → General that makes banners as wide as your note's text column, and a `readable` option for a single note
+  - Per note: tick **readable** in Position, Size, & Style, or set `banner-max-width: readable` in the note's properties
+  - While the toggle is on, the Banner Max Width slider is greyed out, and a note's own width still wins
+  - It needs Obsidian's *Readable line length* setting to be on; with it off, the banner uses the full width
+- **Animate banner position changes** (issue #226): a new toggle in Settings → General for the half second slide that plays when a banner's focal point changes
+  - On by default, as before; turn it off to make the banner jump straight to the new position
+  - It also stays off automatically if your system is set to reduce motion
+
+#### 📝 Good to know
+- A note that kept its icon properties after the banner was removed now shows that icon on its own
+- Icon style settings that you set for a folder (size, color, padding and so on) now take effect on the icon
+
 ### v3.7.2
 #### ✨ Added
 - **Popover Banner Max Height**: a new setting limits how tall a banner can be in hover previews, so a tall banner no longer fills the whole preview and covers the text (issue #342)
