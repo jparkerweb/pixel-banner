@@ -29,7 +29,7 @@ global.URL.createObjectURL = vi.fn(() => 'blob:test-url');
 global.URL.revokeObjectURL = vi.fn();
 
 // Mock Blob constructor
-global.Blob = vi.fn().mockImplementation(() => ({}));
+global.Blob = vi.fn().mockImplementation(function () { return {}; });
 
 // Mock Image constructor
 global.Image = class {

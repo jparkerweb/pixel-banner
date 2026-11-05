@@ -3,7 +3,7 @@
 
 - Framework: Vitest with happy-dom
 - Tests: `tests/unit/` and `tests/integration/` (only `tests/**/*.test.js` runs)
-- Mocks: `vitest.config.js` aliases `obsidian` to `tests/mocks/obsidian.js` and `virtual:release-notes` to `tests/mocks/virtual-release-notes.js`
+- Mocks: `vitest.config.mjs` aliases `obsidian` to `tests/mocks/obsidian.js` and `virtual:release-notes` to `tests/mocks/virtual-release-notes.js`
 - Setup: `tests/setup.js` runs before every file
 - Shared data and helpers: `tests/fixtures/mockData.js`, `tests/helpers/testHelpers.js`
 - `tests/unit/services/apiService.slow.test.js.backup` is parked and never runs

@@ -12,7 +12,7 @@ vi.mock('obsidian', async () => {
     const actual = await vi.importActual('obsidian');
     return {
         ...actual,
-        Notice: vi.fn().mockImplementation((message) => ({ message }))
+        Notice: vi.fn().mockImplementation(function (message) { return { message }; })
     };
 });
 

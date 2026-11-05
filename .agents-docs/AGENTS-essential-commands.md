@@ -33,5 +33,5 @@ Gotchas:
 - `npm test` is plain `vitest`, which stays in watch mode in an interactive shell. Use `npx vitest run` when you need it to exit.
 - `npm run build-vault` shells out to `zip`, which is not on PATH on Windows. Use `npm run test-build` for development builds.
 - The Husky pre-commit hook (`.husky/pre-commit`) runs `npm test`, so every commit runs the full suite.
-- `test:coverage` enforces 60% thresholds (lines, functions, branches, statements) from `vitest.config.js`.
+- `test:coverage` enforces 60% thresholds (lines, functions, branches, statements) from `vitest.config.mjs`.
 - The real build is `scripts/esbuild.config.mjs` plus `scripts/copy-build.mjs`. The root `build.mjs` is legacy and unused (it points at an `esbuild.config.mjs` that no longer exists at the root).

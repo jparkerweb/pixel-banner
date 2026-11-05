@@ -13,11 +13,11 @@ import { createMockApp, MarkdownView, TFile } from 'obsidian';
 const pickerCallbacks = vi.hoisted(() => []);
 const emojiCallbacks = vi.hoisted(() => []);
 vi.mock('@/modal/modals.js', () => ({
-    EmojiSelectionModal: vi.fn().mockImplementation((app, plugin, onChoose) => {
+    EmojiSelectionModal: vi.fn().mockImplementation(function (app, plugin, onChoose) {
         emojiCallbacks.push(onChoose);
         return { open: vi.fn() };
     }),
-    IconImageSelectionModal: vi.fn().mockImplementation((app, plugin, onChoose) => {
+    IconImageSelectionModal: vi.fn().mockImplementation(function (app, plugin, onChoose) {
         pickerCallbacks.push(onChoose);
         return { open: vi.fn() };
     })

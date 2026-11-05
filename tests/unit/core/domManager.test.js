@@ -107,7 +107,7 @@ describe('domManager', () => {
         };
 
         // Mock MutationObserver
-        const mockMutationObserver = vi.fn((callback) => {
+        const mockMutationObserver = vi.fn(function (callback) {
             return {
                 observe: vi.fn(),
                 disconnect: vi.fn(),
@@ -117,7 +117,7 @@ describe('domManager', () => {
         global.MutationObserver = mockMutationObserver;
 
         // Mock ResizeObserver
-        const mockResizeObserver = vi.fn((callback) => {
+        const mockResizeObserver = vi.fn(function (callback) {
             return {
                 observe: vi.fn(),
                 disconnect: vi.fn(),
@@ -148,7 +148,7 @@ describe('domManager', () => {
 
         it('should handle banner removal mutations', () => {
             const callback = vi.fn();
-            MutationObserver.mockImplementation((cb) => {
+            MutationObserver.mockImplementation(function (cb) {
                 callback.mockImplementation(cb);
                 return {
                     observe: vi.fn(),
@@ -180,7 +180,7 @@ describe('domManager', () => {
 
             beforeEach(() => {
                 callback = vi.fn();
-                MutationObserver.mockImplementation((cb) => {
+                MutationObserver.mockImplementation(function (cb) {
                     callback.mockImplementation(cb);
                     return { observe: vi.fn(), disconnect: vi.fn(), takeRecords: vi.fn(() => []) };
                 });
@@ -218,7 +218,7 @@ describe('domManager', () => {
 
         it('should re-ensure on mode-switch structural change (cm-sizer added)', () => {
             const callback = vi.fn();
-            MutationObserver.mockImplementation((cb) => {
+            MutationObserver.mockImplementation(function (cb) {
                 callback.mockImplementation(cb);
                 return {
                     observe: vi.fn(),
@@ -251,7 +251,7 @@ describe('domManager', () => {
 
         it('should NOT re-ensure on scroll section adds (markdown-preview-section)', () => {
             const callback = vi.fn();
-            MutationObserver.mockImplementation((cb) => {
+            MutationObserver.mockImplementation(function (cb) {
                 callback.mockImplementation(cb);
                 return {
                     observe: vi.fn(),
@@ -286,7 +286,7 @@ describe('domManager', () => {
 
         it('should remove pixel-banner class when no banner present', () => {
             const callback = vi.fn();
-            MutationObserver.mockImplementation((cb) => {
+            MutationObserver.mockImplementation(function (cb) {
                 callback.mockImplementation(cb);
                 return {
                     observe: vi.fn(),
@@ -313,7 +313,7 @@ describe('domManager', () => {
 
         it('should ignore non-childList mutations', () => {
             const callback = vi.fn();
-            MutationObserver.mockImplementation((cb) => {
+            MutationObserver.mockImplementation(function (cb) {
                 callback.mockImplementation(cb);
                 return {
                     observe: vi.fn(),
@@ -371,7 +371,7 @@ describe('domManager', () => {
             vi.useFakeTimers();
             
             let resizeCallback;
-            ResizeObserver.mockImplementation((callback) => {
+            ResizeObserver.mockImplementation(function (callback) {
                 resizeCallback = callback;
                 return {
                     observe: vi.fn(),

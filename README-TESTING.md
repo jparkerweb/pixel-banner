@@ -256,7 +256,7 @@ it('should fetch image from API', async () => {
 
 3. **DOM not available**
    ```javascript
-   // Ensure happy-dom is configured in vitest.config.js
+   // Ensure happy-dom is configured in vitest.config.mjs
    environment: 'happy-dom'
    ```
 

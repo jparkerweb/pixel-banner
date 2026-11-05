@@ -1,24 +1,24 @@
 import { vi } from 'vitest';
 
 // Global setup for all tests
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+global.ResizeObserver = vi.fn().mockImplementation(function () { return {
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}));
+}; });
 
-global.MutationObserver = vi.fn().mockImplementation(() => ({
+global.MutationObserver = vi.fn().mockImplementation(function () { return {
   observe: vi.fn(),
   disconnect: vi.fn(),
   takeRecords: vi.fn(() => []),
-}));
+}; });
 
 // Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+global.IntersectionObserver = vi.fn().mockImplementation(function () { return {
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}));
+}; });
 
 // Obsidian adds setCssProps to every element; it sets CSS variables
 if (typeof HTMLElement !== 'undefined' && !HTMLElement.prototype.setCssProps) {

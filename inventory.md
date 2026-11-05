@@ -919,7 +919,7 @@ Provides semantic versioning utilities for the plugin.
 ---
 
 ## `/tests` Directory
-Vitest with happy-dom (`vitest.config.js`); `obsidian` and `virtual:release-notes` are aliased to the mocks below. Run with `npx vitest run`.
+Vitest with happy-dom (`vitest.config.mjs`); `obsidian` and `virtual:release-notes` are aliased to the mocks below. Run with `npx vitest run`.
 
 **Support files**:
 - `tests/setup.js`: global setup (happy-dom extras, `setCssProps` polyfill)

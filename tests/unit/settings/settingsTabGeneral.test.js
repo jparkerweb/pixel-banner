@@ -104,11 +104,11 @@ vi.mock('../../../src/settings/settings.js', () => ({
         bannerIconVerticalOffset: 0,
         showReleaseNotes: true
     },
-    FolderSuggestModal: vi.fn().mockImplementation((app, callback) => ({
+    FolderSuggestModal: vi.fn().mockImplementation(function (app, callback) { return {
         open: vi.fn(() => {
             callback('test-folder-path');
         })
-    }))
+    }; })
 }));
 
 describe('settingsTabGeneral', () => {
