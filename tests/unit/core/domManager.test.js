@@ -12,16 +12,16 @@ import { createMockApp, MarkdownView, TFile } from 'obsidian';
 import { getVaultImageUrl, releaseAllVaultImageUrls } from '@/core/bannerUtils.js';
 
 // Mock DOM globals
-global.MutationObserver = vi.fn(() => ({
+global.MutationObserver = vi.fn(function () { return {
     observe: vi.fn(),
     disconnect: vi.fn(),
     takeRecords: vi.fn(() => [])
-}));
-global.ResizeObserver = vi.fn(() => ({
+}; });
+global.ResizeObserver = vi.fn(function () { return {
     observe: vi.fn(),
     unobserve: vi.fn(),
     disconnect: vi.fn()
-}));
+}; });
 
 describe('domManager', () => {
     let mockPlugin;
@@ -491,17 +491,31 @@ describe('domManager', () => {
             expect(metadataContainer.classList.contains('pixel-banner-hidden-section')).toBe(false);
         });
 
-        it('should return early for non-preview mode', () => {
-            mockView.getMode = vi.fn(() => 'edit');
-            
+        // Issue #346: Live Preview reports getMode() === 'source' and shows the same
+        // properties editor, so the hide must apply there too
+        it('should hide banner fields and the section in Live Preview (source mode)', () => {
+            mockView.getMode = vi.fn(() => 'source');
+            mockPlugin.settings.hidePropertiesSectionIfOnlyBanner = true;
+
             const metadataContainer = document.createElement('div');
             metadataContainer.className = 'metadata-container';
+
+            ['banner', 'x-position', 'y-position'].forEach(key => {
+                const property = document.createElement('div');
+                property.className = 'metadata-property';
+                property.setAttribute('data-property-key', key);
+                metadataContainer.appendChild(property);
+            });
             mockContentEl.appendChild(metadataContainer);
 
             mockPlugin.updateFieldVisibility(mockView);
 
-            const properties = metadataContainer.querySelectorAll('.pixel-banner-hidden-field');
-            expect(properties.length).toBe(0);
+            expect(metadataContainer.querySelectorAll('.pixel-banner-hidden-field').length).toBe(3);
+            expect(metadataContainer.classList.contains('pixel-banner-hidden-section')).toBe(true);
+        });
+
+        it('should leave a missing view alone', () => {
+            expect(() => mockPlugin.updateFieldVisibility(null)).not.toThrow();
         });
 
         it('should handle missing metadata container gracefully', () => {

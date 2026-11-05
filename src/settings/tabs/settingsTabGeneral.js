@@ -1272,7 +1272,7 @@ export function createGeneralSettings(containerEl, plugin) {
     // For Hide Pixel Banner Fields
     const hidePixelBannerFieldsSetting = new Setting(hideSettingsGroup)
         .setName('Hide Pixel Banner Fields')
-        .setDesc('Hide banner-related frontmatter fields in Reading mode')
+        .setDesc('Hide banner-related frontmatter fields in Reading mode and Live Preview')
         .addToggle(toggle => toggle
             .setValue(plugin.settings.hidePixelBannerFields)
             .onChange(async (value) => {
@@ -1348,7 +1348,7 @@ export function createGeneralSettings(containerEl, plugin) {
     // Then create Hide Properties Section setting
     const hidePropertiesSection = new Setting(hideSettingsGroup)
         .setName('Hide Properties Section')
-        .setDesc('Hide the entire Properties section in Reading mode if it only contains Pixel Banner fields')
+        .setDesc('Hide the entire Properties section in Reading mode and Live Preview if it only contains Pixel Banner fields')
         .addToggle(toggle => toggle
             .setValue(plugin.settings.hidePropertiesSectionIfOnlyBanner)
             .setDisabled(!plugin.settings.hidePixelBannerFields)

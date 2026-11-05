@@ -4,6 +4,12 @@
 
 ## 🎉 What's New
 
+### v3.7.4
+#### 🐛 Fixed
+- **Hide Pixel Banner Fields in Live Preview** (issue #346): the banner properties (`banner`, `banner-x`, `banner-y` and the rest) are now hidden in Live Preview as well as Reading mode when **Hide Pixel Banner Fields** is on, and **Hide Properties Section** hides the whole section there too when it only held banner fields
+  - You can still change every banner property from the Pixel Banner modal, so nothing becomes uneditable
+  - With **Hide Properties Section** on (the default), a note that only has banner properties shows no Properties block in Live Preview, so no **Add property** either. Turn that toggle off if you want to add other properties there
+
 ### v3.7.3
 #### ✨ Added
 - **Icons without a banner** (issues #322, #238): a note can now show just an icon, with no banner image at all

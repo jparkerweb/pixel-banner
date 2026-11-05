@@ -299,7 +299,7 @@ Manages DOM observers and watchers to keep banners in sync when Obsidian reflows
 2. **setupResizeObserver(viewContent)**  
    Attaches a `ResizeObserver` to adjust banner width dynamically when the container changes size.
 3. **updateFieldVisibility(view)**  
-   Hides banner-related frontmatter fields in preview mode if plugin settings require it. The fields are every name in the field registry (`getAllFieldNames` from `fieldRegistry.js`).
+   Hides banner-related frontmatter fields in Reading mode and Live Preview if plugin settings require it (issue #346). The fields are every name in the field registry (`getAllFieldNames` from `fieldRegistry.js`).
 4. **updateEmbeddedTitlesVisibility()**  
    Toggles whether embedded note titles are displayed or hidden in embeds.
 5. **updateEmbeddedBannersVisibility()**  

@@ -76,6 +76,28 @@ describe('updateBanner when the pane moves to another note', () => {
         expect(plugin.getIconOverlay).toHaveBeenCalled();
     });
 
+    // Issue #346: Live Preview reports getMode() === 'source' (the view above), and the
+    // banner fields must be hidden there as well as in Reading mode
+    it('hides the banner fields in Live Preview when the setting is on', async () => {
+        vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/old.jpg');
+        const hideFields = vi.spyOn(plugin, 'updateFieldVisibility').mockImplementation(() => {});
+        plugin.settings.hidePixelBannerFields = true;
+
+        await runUpdate();
+
+        expect(hideFields).toHaveBeenCalledWith(view);
+    });
+
+    it('leaves the banner fields alone in Live Preview when the setting is off', async () => {
+        vi.spyOn(plugin, 'getImageUrl').mockResolvedValue('https://example.com/old.jpg');
+        const hideFields = vi.spyOn(plugin, 'updateFieldVisibility').mockImplementation(() => {});
+        plugin.settings.hidePixelBannerFields = false;
+
+        await runUpdate();
+
+        expect(hideFields).not.toHaveBeenCalled();
+    });
+
     it('stops without touching the new note once the pane has switched', async () => {
         vi.spyOn(plugin, 'getImageUrl').mockImplementation(async () => {
             // The pane opens another note while the old banner image loads

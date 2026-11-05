@@ -93,7 +93,8 @@ function setupResizeObserver(viewContent) {
 
 
 function updateFieldVisibility(view) {
-    if (!view || view.getMode() !== 'preview') return;
+    // Reading mode and Live Preview both show the properties editor (issue #346)
+    if (!view || !view.contentEl) return;
 
     const fieldsToHide = getAllFieldNames(this);
 

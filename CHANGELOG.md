@@ -2,6 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.7.4 - 2026-11-04
+#### 🐛 Fixed
+- **Banner properties shown in Live Preview** (issue #346): *Hide Pixel Banner Fields* and *Hide Properties Section* only worked in Reading mode, so Live Preview kept showing `banner`, `banner-x` and `banner-y`
+  - `updateFieldVisibility()` (`domManager.js`) no longer returns early unless `getMode() === 'preview'` (it only needs the view's `contentEl`), and `addPixelBanner()` (`bannerManager.js`) calls it whenever `hidePixelBannerFields` is on; the `pixel-banner-hidden-field` and `pixel-banner-hidden-section` rules in `styles.css` were never scoped to Reading mode
+  - Both setting descriptions now say "Reading mode and Live Preview"; the 'non-preview mode' test became a Live Preview case in `tests/unit/core/domManager.test.js`
+
 ### v3.7.3 - 2026-10-19
 #### ✨ Added
 - **Icon-only headers** (issues #322, #238): a note with `banner-icon` or `banner-icon-image` and no banner now shows its icon as a compact header, with the content starting below it (`content-start` still wins). A banner path that gives no image falls back to the icon too. Works in reading and editing view, in embedded notes (unless *Hide Embedded Note Banners* is on) and in Export to PDF

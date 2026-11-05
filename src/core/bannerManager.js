@@ -1127,7 +1127,7 @@ async function updateBanner(plugin, view, isContentChange, updateMode = plugin.U
         }
     }
 
-    if (plugin.settings.hidePixelBannerFields && view.getMode() === 'preview') {
+    if (plugin.settings.hidePixelBannerFields) {
         plugin.updateFieldVisibility(view);
     }
 
