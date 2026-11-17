@@ -4,6 +4,10 @@
 
 ## 🎉 What's New
 
+### v3.7.5
+#### 🐛 Fixed
+- **Full width banners in the Minimal theme** (issue #334): with Minimal, banners were squeezed to the width of the note's text instead of spanning the pane. They are full width again, and *Match readable line length* or a note's own **banner-max-width** still narrows them when you want that
+
 ### v3.7.4
 #### 🐛 Fixed
 - **Hide Pixel Banner Fields in Live Preview** (issue #346): the banner properties (`banner`, `banner-x`, `banner-y` and the rest) are now hidden in Live Preview as well as Reading mode when **Hide Pixel Banner Fields** is on, and **Hide Properties Section** hides the whole section there too when it only held banner fields

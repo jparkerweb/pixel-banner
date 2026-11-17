@@ -66,6 +66,17 @@
     transition: background-position 0.5s ease;
 }
 
+/* themes such as Minimal size every `.markdown-preview-sizer > div` to the text column,    */
+/* with a forced margin, which shrank the banner to the note's text (issue #334). The      */
+/* doubled class outranks their (0,3,1) selector, and the forced margin below beats their  */
+/* margin-inline. Keep these values in sync with `.pixel-banner-image` above               */
+.markdown-preview-view .markdown-preview-sizer > div.pixel-banner-image.pixel-banner-image,
+.markdown-source-view .cm-sizer > div.pixel-banner-image.pixel-banner-image {
+    width: unset;
+    max-width: var(--pixel-banner-max-width, unset);
+    margin: var(--pixel-banner-alignment, 0 auto) !important;
+}
+
 /* the text column width for banner-max-width: readable and Match readable line length (issue #267). */
 /* The variable only exists while Obsidian's Readable line length is on, so readable falls back to  */
 /* none (full width) otherwise. It inherits, reaching the banner and its --pixel-banner-max-width    */

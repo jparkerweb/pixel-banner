@@ -281,6 +281,19 @@ describe('applyBannerSettings', () => {
 
             expect(css).toMatch(/\.markdown-preview-view\.is-readable-line-width,\s*\.markdown-source-view\.is-readable-line-width\s*\{\s*--pixel-banner-readable-width:\s*var\(--file-line-width\);\s*\}/);
         });
+
+        // Themes such as Minimal size every `.markdown-preview-sizer > div` to the text
+        // column, with an !important margin, which shrank the banner (issue #334). The
+        // override must outrank (0,3,1) and keep the max width and alignment variables
+        it('has the CSS rule that keeps theme line widths off the banner', () => {
+            const css = fs.readFileSync(path.resolve(process.cwd(), 'styles.css'), 'utf-8');
+            const rule = css.match(/\.markdown-preview-view \.markdown-preview-sizer > div\.pixel-banner-image\.pixel-banner-image,\s*\.markdown-source-view \.cm-sizer > div\.pixel-banner-image\.pixel-banner-image\s*\{([^}]*)\}/);
+
+            expect(rule).not.toBeNull();
+            expect(rule[1]).toMatch(/width:\s*unset;/);
+            expect(rule[1]).toMatch(/max-width:\s*var\(--pixel-banner-max-width, unset\);/);
+            expect(rule[1]).toMatch(/margin:\s*var\(--pixel-banner-alignment, 0 auto\) !important;/);
+        });
     });
 
     // Animate banner position changes (issue #226)

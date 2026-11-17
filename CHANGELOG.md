@@ -2,6 +2,12 @@
 
 All notable changes to the Pixel Banner plugin will be documented in this file.
 
+### v3.7.5 - 2026-11-17
+#### 🐛 Fixed
+- **Banner shrunk to the text column in the Minimal theme** (issue #334): Minimal sizes every `.markdown-preview-view.is-readable-line-width .markdown-preview-sizer > div` to the line width with `margin-inline: ... !important`, and the banner is a direct `div` child of the sizer, so it lost its full width
+  - New `styles.css` rule for `.markdown-preview-view .markdown-preview-sizer > div.pixel-banner-image.pixel-banner-image` and the same under `.markdown-source-view .cm-sizer`: `width: unset`, `max-width: var(--pixel-banner-max-width, unset)` and `margin: var(--pixel-banner-alignment, 0 auto) !important`. The doubled class outranks Minimal's (0,3,1) selector; the one new `!important` (29 declarations in `styles.css` now) beats Minimal's `!important` margin
+  - Verified live with Minimal 9.1.4's CSS: Reading view and Live Preview back to full width, *Match readable line length* still caps the banner, embedded banners still fill their embed. Test in `tests/unit/core/bannerManager.applyBannerSettings.test.js`
+
 ### v3.7.4 - 2026-11-04
 #### 🐛 Fixed
 - **Banner properties shown in Live Preview** (issue #346): *Hide Pixel Banner Fields* and *Hide Properties Section* only worked in Reading mode, so Live Preview kept showing `banner`, `banner-x` and `banner-y`
